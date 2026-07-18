@@ -13,6 +13,10 @@ const LABELS: Record<IndicatorId, string> = {
   gdp_growth: 'GDP GROWTH · %/YR',
   inflation: 'INFLATION · %/YR',
   unemployment: 'UNEMPLOYMENT · %',
+  payrolls: 'PAYROLLS EX-AGRI · M',
+  capital_stock: 'CAPITAL STOCK · IDX',
+  conf_consumer: 'CONSUMER CONFIDENCE',
+  conf_business: 'BUSINESS CONFIDENCE',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78
@@ -102,10 +106,21 @@ export function AnalogGauge({
         )}
       </div>
       {/* the stamped figure */}
-      <div className="flex items-baseline justify-between border-t border-dossier-ink/20 px-3 py-1.5">
+      <div
+        className="flex items-baseline justify-between border-t border-dossier-ink/20 px-3 py-1.5"
+        title="The latest published figure, its confessed error band, and how stale it already was when it reached your desk."
+      >
         <span className="font-mono text-xl font-medium tabular-nums text-dossier-ink">
           {latest.value.toFixed(1)}
           {band > 0 && <span className="text-[10px] opacity-60"> ±{band.toFixed(1)}</span>}
+          {latest.levels && (
+            <span
+              className="ml-2 font-mono text-[10px] tabular-nums text-dossier-ink/70"
+              title="The office's estimate of the GDP level behind that growth figure: real (base-year prices) and nominal (current prices)."
+            >
+              R{latest.levels.real.toFixed(0)} · N{latest.levels.nominal.toFixed(0)}
+            </span>
+          )}
         </span>
         <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">
           AS OF {qtrLabel(latest.forQtr).toUpperCase()} · {latest.lag}Q LATE

@@ -12,6 +12,7 @@ export interface ShapedPoint {
   lag: number
   /** revised and moved by more than a third of the first print's band */
   visiblyRevised: boolean
+  levels?: { real: number; nominal: number }
 }
 
 export function shapeSeries(series: IndicatorSeries, windowQtrs: number, now: number): ShapedPoint[] {
@@ -27,11 +28,13 @@ export function shapeSeries(series: IndicatorSeries, windowQtrs: number, now: nu
         revision: p.revision,
         lag: p.publishedAt - p.forQtr,
         visiblyRevised: false,
+        levels: p.levels,
       })
     } else if (p.revision > cur.revision) {
       cur.value = p.value
       cur.errorBand = p.errorBand
       cur.revision = p.revision
+      cur.levels = p.levels ?? cur.levels
       cur.visiblyRevised =
         Math.abs(p.value - cur.firstPrint) > Math.max(0.4, cur.errorBand * 0.5)
     }

@@ -9,6 +9,7 @@ import { rngFor, type Seed } from '../rng/rng'
 import {
   adminEffectiveness,
   taxEfficiency,
+  CONF_NEUTRAL,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
   IO_COEFF,
@@ -236,6 +237,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       inflationExpectations: 0.03,
       debtToGdp: 0.3,
       lastRealGdp: gdp0,
+      confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
     flows,
   }

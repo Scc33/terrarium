@@ -13,6 +13,10 @@ const LABELS: Record<IndicatorId, string> = {
   gdp_growth: 'GDP.GROWTH %/YR',
   inflation: 'CPI.INFL %/YR',
   unemployment: 'UNEMP %',
+  payrolls: 'PAYROLL.XA M',
+  capital_stock: 'CAP.STOCK IDX',
+  conf_consumer: 'CONF.CONS IDX',
+  conf_business: 'CONF.BIZ IDX',
 }
 
 const W = 300
@@ -32,7 +36,8 @@ export function TerminalTicker({
   now: number
 }) {
   const [hover, setHover] = useState<ShapedPoint | null>(null)
-  const points = shapeSeries(series, 40, now)
+  const [fullHistory, setFullHistory] = useState(false)
+  const points = shapeSeries(series, fullHistory ? Number.MAX_SAFE_INTEGER : 40, now)
   if (points.length < 2) return null
   const latest = points[points.length - 1]
 
@@ -79,11 +84,26 @@ export function TerminalTicker({
 
   return (
     <div className="flex h-full flex-col border border-terminal-grid bg-terminal-bg">
-      <div className="flex items-baseline justify-between border-b border-terminal-grid px-2.5 py-1">
-        <span className="font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
+      <div className="flex items-baseline justify-between gap-2 border-b border-terminal-grid px-2.5 py-1">
+        <span className="flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
           {LABELS[indicator]}
+          <button
+            onClick={() => setFullHistory((v) => !v)}
+            title="Toggle between the recent window and the whole published history"
+            className="border border-terminal-grid px-1 text-[8px] tracking-normal text-terminal-primary/70 hover:text-terminal-primary"
+          >
+            {fullHistory ? 'ALL' : '40Q'}
+          </button>
         </span>
         <span className="font-mono text-[10px] tabular-nums text-terminal-primary">
+          {latest.levels && (
+            <span
+              className="mr-2 opacity-70"
+              title="Estimated GDP level behind the growth print: Real (base-year prices) / Nominal (current prices)."
+            >
+              R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
+            </span>
+          )}
           {latest.value.toFixed(2)}
           {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
           <span className="terminal-cursor">▮</span>

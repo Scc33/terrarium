@@ -44,6 +44,28 @@ describe('applyActions', () => {
     expect(s2.gov.capacity.statistical).toBeGreaterThan(s0.gov.capacity.statistical * 0.996)
   })
 
+  it('refuses to fund a ministry already at full strength', () => {
+    const s0 = fresh()
+    const maxed = {
+      ...s0,
+      gov: { ...s0.gov, capacity: { ...s0.gov.capacity, statistical: 0.96 } },
+    }
+    expect(() =>
+      applyActions(maxed, [{ kind: 'investCapacity', target: 'statistical', amount: 5 }]),
+    ).toThrow(/full strength/)
+    // in-flight programmes count toward the ceiling too
+    const building = applyActions(fresh(), [
+      { kind: 'investCapacity', target: 'statistical', amount: 12 },
+    ])
+    const nearMax = {
+      ...building,
+      gov: { ...building.gov, capacity: { ...building.gov.capacity, statistical: 0.9 } },
+    }
+    expect(() =>
+      applyActions(nearMax, [{ kind: 'investCapacity', target: 'statistical', amount: 12 }]),
+    ).toThrow(/full strength/)
+  })
+
   it('refuses the dials after deposition', () => {
     const s0 = fresh()
     const deposed = { ...s0, politics: { ...s0.politics, inPower: false } }

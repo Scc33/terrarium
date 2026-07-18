@@ -7,7 +7,15 @@
 
 import type { CapacityId, DialState, Qtr } from '@terrarium/engine'
 
-export const INDICATOR_IDS = ['gdp_growth', 'inflation', 'unemployment'] as const
+export const INDICATOR_IDS = [
+  'gdp_growth',
+  'inflation',
+  'unemployment',
+  'payrolls',
+  'capital_stock',
+  'conf_consumer',
+  'conf_business',
+] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
 export interface IndicatorPoint {
@@ -16,6 +24,8 @@ export interface IndicatorPoint {
   value: number
   revision: number // 0 = first print
   errorBand: number // half-width; 0 = the office can't even estimate it
+  /** GDP only: the office's level estimates behind the growth print */
+  levels?: { real: number; nominal: number }
 }
 
 export interface IndicatorSeries {
@@ -48,6 +58,17 @@ export interface PublishedState {
   }
   capacity: Record<CapacityId, number>
   capacityBuilding: Array<{ target: CapacityId; remaining: Qtr }>
+  /** the treasury's own books, every quarter, exact — no fog on yourself */
+  books: Array<{
+    tick: Qtr
+    revenue: number
+    outlays: number
+    balance: number
+    debt: number
+    reserves: number
+  }>
+  /** census-grade facts (static in M1; demography arrives in M4) */
+  population: { total: number; laborForce: number }
   reserves: number
   exchangeRate: number
   politicalCapital: number

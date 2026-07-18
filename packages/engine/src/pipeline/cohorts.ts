@@ -10,6 +10,8 @@ import {
   adminEffectiveness,
   APPROVAL_DRIFT,
   BOND_HOLDING,
+  CONF_ADAPT,
+  CONF_NEUTRAL,
   LABOR_SOURCE,
   LOSS_AVERSION,
   PARTICIPATION,
@@ -103,6 +105,36 @@ export const cohorts: PipelineStep = {
       }
     })
 
-    return { ...state, cohorts: newCohorts }
+    // --- animal spirits adapt to conditions everyone can feel ---
+    // consumers: income trend vs habit + how many neighbors are out of work;
+    // firms: how full the order books are + whether margins are holding
+    let incomeNow = 0
+    let incomeHabit = 0
+    for (const [i, c] of newCohorts.entries()) {
+      incomeNow += c.lastRealIncome
+      incomeHabit += state.cohorts[i].lastRealIncome
+    }
+    const trend = incomeHabit > 1e-9 ? incomeNow / incomeHabit - 1 : 0
+    const consumerTarget = clamp(
+      CONF_NEUTRAL + 6 * trend - 1.5 * (flows.unemployment - 0.075),
+      0,
+      1,
+    )
+    const avgUtil =
+      state.sectors.reduce((s, x) => s + x.capacityUtilization, 0) / state.sectors.length
+    const profitRate =
+      SECTOR_IDS.reduce((s, sid) => s + flows.profits[sid], 0) / Math.max(flows.nominalGdp, 1e-9)
+    const businessTarget = clamp(
+      CONF_NEUTRAL + 1.5 * (avgUtil - 0.85) + 1.5 * (profitRate - 0.35),
+      0,
+      1,
+    )
+    const conf = state.ledger.confidence
+    const confidence = {
+      consumer: conf.consumer + CONF_ADAPT * (consumerTarget - conf.consumer),
+      business: conf.business + CONF_ADAPT * (businessTarget - conf.business),
+    }
+
+    return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence } }
   },
 }

@@ -16,8 +16,18 @@ function Fig({ label, value, warn }: { label: string; value: string; warn?: bool
   )
 }
 
-export function HeaderBar({ pub }: { pub: PublishedState }) {
+export function HeaderBar({
+  pub,
+  onStudy,
+  onSettings,
+}: {
+  pub: PublishedState
+  onStudy: () => void
+  onSettings: () => void
+}) {
   const t = pub.treasury
+  const hBtn =
+    'border border-dossier-paper/25 px-2 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-paper/70 hover:border-dossier-brass hover:text-dossier-brass'
   return (
     <header className="flex min-w-0 items-center gap-5 overflow-hidden border-b-2 border-dossier-brass bg-dossier-felt px-4 py-2">
       <div className="flex items-baseline gap-3">
@@ -27,21 +37,46 @@ export function HeaderBar({ pub }: { pub: PublishedState }) {
         <span className="font-mono text-xs tabular-nums text-dossier-brass">{qtrLabel(pub.tick)}</span>
       </div>
       <div className="h-5 w-px bg-dossier-paper/20" />
-      <Fig label="POL.CAP" value={pub.politicalCapital.toFixed(0)} />
+      <span title="Political capital — spent on every dial change and programme. Earned from enfranchisement-weighted approval.">
+        <Fig label="POL.CAP" value={pub.politicalCapital.toFixed(0)} />
+      </span>
       {pub.inPower ? (
-        <Fig label="ELECTION" value={`${pub.quartersToElection}Q`} warn={pub.quartersToElection <= 2} />
+        <span title="Quarters until the electorate weighs in. Approval below the line means the dials stop being yours.">
+          <Fig label="ELECTION" value={`${pub.quartersToElection}Q`} warn={pub.quartersToElection <= 2} />
+        </span>
       ) : (
         <span className="font-mono text-xs font-medium tracking-[0.2em] text-terminal-alert">DEPOSED</span>
       )}
+      <span title={`Census figures: total population and labour force (millions). Static until the demographic transition arrives.`}>
+        <Fig label="POP/LF" value={`${pub.population.total.toFixed(1)}/${pub.population.laborForce.toFixed(1)}M`} />
+      </span>
       <div className="h-5 w-px bg-dossier-paper/20" />
       <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
-        <Fig label="REV" value={t.revenue.toFixed(1)} />
-        <Fig label="OUT" value={t.outlays.toFixed(1)} />
-        <Fig label="BAL" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} warn={t.balance < 0} />
-        <Fig label="DEBT" value={t.debt.toFixed(0)} />
-        <Fig label="PRINTED" value={t.printed.toFixed(1)} warn={t.printed > 0.5} />
-        <Fig label="FX RES" value={pub.reserves.toFixed(1)} warn={pub.reserves < 2} />
+        <span title="Tax revenue collected this quarter — gated by tax administration capacity, not by the true size of the economy.">
+          <Fig label="REV" value={t.revenue.toFixed(1)} />
+        </span>
+        <span title="All spending this quarter: programmes, subsidies, capacity building, and debt interest.">
+          <Fig label="OUT" value={t.outlays.toFixed(1)} />
+        </span>
+        <span title="Revenue minus outlays. Persistent deficits become debt; deficits the bond market won't fund become printing.">
+          <Fig label="BAL" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} warn={t.balance < 0} />
+        </span>
+        <span title="Outstanding government debt. Interest costs rise with the debt burden.">
+          <Fig label="DEBT" value={t.debt.toFixed(0)} />
+        </span>
+        <span title="Money the mint has created to cover deficits the bond market refused. Feeds inflation expectations directly.">
+          <Fig label="PRINTED" value={t.printed.toFixed(1)} warn={t.printed > 0.5} />
+        </span>
+        <span title="Foreign-exchange reserves. When they run out, the currency depreciates and imports get dearer.">
+          <Fig label="FX RES" value={pub.reserves.toFixed(1)} warn={pub.reserves < 2} />
+        </span>
       </div>
+      <button onClick={onStudy} className={hBtn} title="The Study: analysis drawn from your published statistics — the Phillips board.">
+        STUDY
+      </button>
+      <button onClick={onSettings} className={hBtn} title="Records office: export, import, new country.">
+        RECORDS
+      </button>
     </header>
   )
 }

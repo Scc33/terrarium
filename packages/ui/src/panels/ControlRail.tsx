@@ -4,8 +4,7 @@
  * no, it lets you find out.
  */
 
-import { useRef } from 'react'
-import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath, type SaveFile } from '@terrarium/engine'
+import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 
@@ -63,6 +62,17 @@ const DIALS: Array<{ group: string; dials: DialDef[] }> = [
   },
 ]
 
+const DIAL_TIPS: Partial<Record<DialPath, string>> = {
+  'taxRates.income': 'Taxes wages. Collection is gated by tax administration — the rate you set is not the rate you get.',
+  'taxRates.corporate': 'Taxes positive sector profits, at the same gated collection.',
+  'taxRates.tariff': 'Taxes imports at the border. Customs posts are easy to man, so collection is better.',
+  'taxRates.fuel': 'An excise on every energy purchase. Watch what it does to trucking, and then to bread.',
+  'spending.transfers': 'Cash to households (pensions, relief). Delivery leaks through weak administration.',
+  'spending.procurement': 'The state buys goods and services from the economy.',
+  'spending.investment': 'Public works: buys construction and adds to the capital stock.',
+  policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
+}
+
 function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   const { staged, stage } = useGame()
   const key = `dial:${def.path}`
@@ -73,7 +83,12 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
 
   return (
     <div className="grid grid-cols-[86px_1fr_52px] items-center gap-2">
-      <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75 capitalize">{def.label}</span>
+      <span
+        className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75 capitalize"
+        title={DIAL_TIPS[def.path] ?? `A quarterly subsidy paid to the ${def.label} sector. Most of it leaks through weak administration; all of it hits the budget.`}
+      >
+        {def.label}
+      </span>
       <input
         type="range"
         min={def.min}
@@ -99,21 +114,34 @@ const CAP_LABELS: Record<CapacityId, string> = {
   administrative: 'Civil service',
 }
 
+const CAP_TIPS: Record<CapacityId, string> = {
+  tax: 'Gates what the treasury can actually collect from the tax base.',
+  statistical: 'Lifts the fog: funds surveys, shortens lags, shrinks error bands, unlocks instruments.',
+  administrative: 'How much of every programme survives delivery instead of leaking.',
+}
+
 function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   const { staged, stage } = useGame()
   const key = `cap:${id}`
   const stagedAction = staged.get(key)
   const building = pub.capacityBuilding.some((b) => b.target === id)
   const amount = Math.max(2, pub.treasury.revenue * 0.8)
+  const maxed = pub.capacity[id] >= 0.95
   return (
     <div className="grid grid-cols-[86px_1fr_52px] items-center gap-2">
-      <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75">{CAP_LABELS[id]}</span>
-      <div className="h-1.5 bg-dossier-paper/15">
+      <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75" title={CAP_TIPS[id]}>
+        {CAP_LABELS[id]}
+      </span>
+      <div className="h-1.5 bg-dossier-paper/15" title={`${CAP_TIPS[id]} Currently at ${(pub.capacity[id] * 100).toFixed(0)} of 100.`}>
         <div className="h-full bg-dossier-brass" style={{ width: `${(pub.capacity[id] * 100).toFixed(0)}%` }} />
       </div>
       <button
-        disabled={!pub.inPower}
-        title={`Fund a programme (${amount.toFixed(1)} over 2 years)${building ? ' — one already building' : ''}`}
+        disabled={!pub.inPower || maxed}
+        title={
+          maxed
+            ? 'This ministry is already at full strength.'
+            : `Fund a programme: ${amount.toFixed(1)} spread over 2 years, delivering capacity with a lag.${building ? ' One is already building.' : ''}`
+        }
         onClick={() => stage(key, stagedAction ? null : { kind: 'investCapacity', target: id, amount })}
         className={`border px-1 py-0.5 font-mono text-[10px] tabular-nums ${
           stagedAction
@@ -121,26 +149,14 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
             : 'border-dossier-paper/30 text-dossier-paper/80 hover:border-dossier-brass hover:text-dossier-brass'
         } disabled:opacity-40`}
       >
-        {stagedAction ? 'STAGED' : building ? 'BLDG+' : 'FUND'}
+        {maxed ? 'FULL' : stagedAction ? 'STAGED' : building ? 'BLDG+' : 'FUND'}
       </button>
     </div>
   )
 }
 
 export function ControlRail({ pub }: { pub: PublishedState }) {
-  const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, rejection, save, loadSave, newGame } = useGame()
-  const fileInput = useRef<HTMLInputElement>(null)
-
-  const exportSave = () => {
-    if (!save) return
-    const blob = new Blob([JSON.stringify(save, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `terrarium-${pub.country.toLowerCase()}-q${pub.tick}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, rejection } = useGame()
 
   return (
     <aside className="flex flex-col gap-3 border-t-2 border-dossier-brass bg-dossier-felt px-3 py-2.5 lg:h-full lg:overflow-y-auto lg:border-l-2 lg:border-t-0">
@@ -186,28 +202,6 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
               DISCARD
             </button>
           )}
-        </div>
-        <div className="flex gap-2">
-          <button onClick={exportSave} className="flex-1 border border-dossier-paper/25 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-paper/60 hover:border-dossier-brass hover:text-dossier-brass">
-            EXPORT
-          </button>
-          <button onClick={() => fileInput.current?.click()} className="flex-1 border border-dossier-paper/25 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-paper/60 hover:border-dossier-brass hover:text-dossier-brass">
-            IMPORT
-          </button>
-          <button onClick={() => newGame()} className="flex-1 border border-dossier-paper/25 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-paper/60 hover:border-dossier-brass hover:text-dossier-brass">
-            NEW
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/json"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) void f.text().then((text) => loadSave(JSON.parse(text) as SaveFile))
-              e.target.value = ''
-            }}
-          />
         </div>
         {!pub.inPower && (
           <div className="font-dossier text-[11px] italic leading-snug text-dossier-paper/60">

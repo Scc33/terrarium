@@ -131,6 +131,12 @@ export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
 export const CAPACITY_DECAY_Q = 0.004 // neglect is a policy
 
+// ---------- confidence (animal spirits; kept mild — they amplify cycles) ----------
+export const CONF_NEUTRAL = 0.55
+export const CONF_ADAPT = 0.15 // per quarter toward conditions
+export const CONF_MPC_GAIN = 0.08 // ±4% consumption swing across full range
+export const CONF_INV_GAIN = 0.3 // added to the investment factor
+
 // ---------- monetary ----------
 export const EXPECTATION_ADAPT = 0.12 // per quarter, toward realized inflation
 export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (printed/GDP)

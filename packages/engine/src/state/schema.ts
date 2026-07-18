@@ -134,6 +134,8 @@ export interface FragilityLedger {
   debtToGdp: number // cached
   /** previous tick's real GDP (cached for growth calc) */
   lastRealGdp: Money
+  /** animal spirits, 0..1 with 0.55 neutral — surveyed only if you fund it */
+  confidence: { consumer: Ratio; business: Ratio }
 }
 
 // ---------- per-tick flows (scratch, recomputed every tick; kept for inspectability) ----------
@@ -191,7 +193,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2 // v2: FragilityLedger.confidence
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 

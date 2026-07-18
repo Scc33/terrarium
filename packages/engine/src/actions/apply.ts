@@ -119,6 +119,13 @@ export function applyAction(state: TrueState, action: Action): TrueState {
       if (amount > 0.4 * state.flows.nominalGdp) {
         throw new IllegalActionError('capacity program too large to administer at once')
       }
+      // a ministry at (or building toward) full strength can't absorb more
+      const inFlight = state.gov.pipeline
+        .filter((b) => b.target === target)
+        .reduce((s, b) => s + b.perQtr * b.remaining, 0)
+      if (state.gov.capacity[target] + inFlight >= 0.95) {
+        throw new IllegalActionError(`the ${target} ministry is already at full strength`)
+      }
       const s = spendPc(state, PC_COST_CAPACITY, `invest in ${target} capacity`)
       const points = amount / CAPACITY_COST_PER_POINT
       return {

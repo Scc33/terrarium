@@ -7,7 +7,7 @@
  * RNG: fog never perturbs the economy.
  */
 
-import { rngFor, type Seed, type TrueState } from '@terrarium/engine'
+import { rngFor, totalLaborForce, type Seed, type TrueState } from '@terrarium/engine'
 import type { IndicatorId, IndicatorPoint, IndicatorSeries, NewsItem, PublishedState } from './published'
 
 /** The per-tick true record the observation layer measures. Kept by the host
@@ -15,8 +15,14 @@ import type { IndicatorId, IndicatorPoint, IndicatorSeries, NewsItem, PublishedS
 export interface TrueSnapshot {
   tick: number
   realGdp: number
+  nominalGdp: number
   inflationQ: number
   unemployment: number
+  /** total employment outside agriculture, millions */
+  payrolls: number
+  capitalTotal: number
+  confConsumer: number
+  confBusiness: number
   statCapacity: number
   satisfiedAgri: number
   printedShare: number // printed / nominal GDP
@@ -24,6 +30,12 @@ export interface TrueSnapshot {
   utilization: number
   electionHeld: boolean
   electionWon: boolean
+  // the treasury's own books — exact
+  revenue: number
+  outlays: number
+  balance: number
+  debt: number
+  reserves: number
 }
 
 export function snapshotOf(prev: TrueState, next: TrueState): TrueSnapshot {
@@ -31,8 +43,13 @@ export function snapshotOf(prev: TrueState, next: TrueState): TrueSnapshot {
   return {
     tick: prev.meta.tick, // the quarter these flows describe
     realGdp: next.flows.realGdp,
+    nominalGdp: next.flows.nominalGdp,
     inflationQ: next.flows.inflationQ,
     unemployment: next.flows.unemployment,
+    payrolls: next.sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
+    capitalTotal: next.sectors.reduce((s, x) => s + x.capital, 0),
+    confConsumer: next.ledger.confidence.consumer,
+    confBusiness: next.ledger.confidence.business,
     statCapacity: next.gov.capacity.statistical,
     satisfiedAgri: next.flows.satisfied.agri,
     printedShare: next.flows.printedThisQtr / Math.max(next.flows.nominalGdp, 1e-9),
@@ -40,6 +57,11 @@ export function snapshotOf(prev: TrueState, next: TrueState): TrueSnapshot {
     utilization: next.sectors.reduce((s, x) => s + x.capacityUtilization, 0) / next.sectors.length,
     electionHeld: next.politics.quartersToElection === 16 || !next.politics.inPower,
     electionWon: next.politics.electionsWon > prev.politics.electionsWon,
+    revenue: next.gov.budget.revenue,
+    outlays: next.gov.budget.outlays,
+    balance: next.gov.budget.balance,
+    debt: next.gov.debt,
+    reserves: next.external.reserves,
   }
 }
 
@@ -50,8 +72,12 @@ interface IndicatorSpec {
   /** annualized % value for measured quarter q (needs q−1 for growth) */
   trueValue(h: TrueSnapshot[], q: number): number
   baseSd: number // first-print noise, in indicator units, at zero capacity
+  /** if set, baseSd is a fraction of the true value (level series) */
+  relativeSd?: boolean
   /** minimum statistical capacity for the series to exist at all */
   fundedAt: number
+  /** GDP only: attach level estimates to each print */
+  withLevels?: boolean
 }
 
 const SPECS: IndicatorSpec[] = [
@@ -65,6 +91,7 @@ const SPECS: IndicatorSpec[] = [
     },
     baseSd: 2.5,
     fundedAt: 0, // customs receipts and guesswork — you always get *something*
+    withLevels: true,
   },
   {
     id: 'inflation',
@@ -82,6 +109,40 @@ const SPECS: IndicatorSpec[] = [
     baseSd: 2.0,
     fundedAt: 0.35, // requires a labor force survey
   },
+  {
+    id: 'payrolls',
+    label: 'Payrolls ex-agri',
+    unit: 'M jobs',
+    trueValue: (h, q) => h[q].payrolls,
+    baseSd: 0.05,
+    relativeSd: true,
+    fundedAt: 0.3, // an establishment survey
+  },
+  {
+    id: 'capital_stock',
+    label: 'Capital stock',
+    unit: 'index',
+    trueValue: (h, q) => h[q].capitalTotal,
+    baseSd: 0.05,
+    relativeSd: true,
+    fundedAt: 0.3, // a census of industry
+  },
+  {
+    id: 'conf_consumer',
+    label: 'Consumer confidence',
+    unit: 'idx',
+    trueValue: (h, q) => h[q].confConsumer * 100,
+    baseSd: 5,
+    fundedAt: 0.45, // door-to-door sentiment surveys are a luxury
+  },
+  {
+    id: 'conf_business',
+    label: 'Business confidence',
+    unit: 'idx',
+    trueValue: (h, q) => h[q].confBusiness * 100,
+    baseSd: 5,
+    fundedAt: 0.45,
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -92,19 +153,29 @@ function seriesFor(spec: IndicatorSpec, history: TrueSnapshot[], now: number, se
     const capAtMeasure = history[q].statCapacity
     if (capAtMeasure < spec.fundedAt) continue // the survey didn't exist that quarter
     const lag = capAtMeasure >= 0.5 ? 1 : 2
-    const sd0 = spec.baseSd * (1 - 0.85 * capAtMeasure)
+    const truth = spec.trueValue(history, q)
+    const sd0 =
+      spec.baseSd * (spec.relativeSd ? Math.abs(truth) : 1) * (1 - 0.85 * capAtMeasure)
     for (let r = 0; r < REVISION_DELAYS.length; r++) {
       const publishedAt = q + lag + REVISION_DELAYS[r]
       if (publishedAt > now) break
       const rng = rngFor(seed, `obs:${spec.id}:${q}:${r}`, 0)
       const sd = sd0 * Math.pow(0.45, r)
-      points.push({
+      const point: IndicatorPoint = {
         forQtr: q,
         publishedAt,
-        value: spec.trueValue(history, q) + rng.normal(0, sd),
+        value: truth + rng.normal(0, sd),
         revision: r,
         errorBand: capAtMeasure >= 0.45 ? 1.96 * sd : 0,
-      })
+      }
+      if (spec.withLevels) {
+        const relErr = 1 + rng.normal(0, 0.03 * (1 - 0.85 * capAtMeasure) * Math.pow(0.45, r))
+        point.levels = {
+          real: history[q].realGdp * relErr,
+          nominal: history[q].nominalGdp * relErr,
+        }
+      }
+      points.push(point)
     }
   }
   if (points.length === 0) return null
@@ -220,12 +291,24 @@ export function observe(state: TrueState, history: TrueSnapshot[], seed: Seed): 
     treasury: { ...state.gov.budget, debt: state.gov.debt, printed: state.gov.printed },
     capacity: { ...state.gov.capacity },
     capacityBuilding: state.gov.pipeline.map((b) => ({ target: b.target, remaining: b.remaining })),
+    books: history.map((s) => ({
+      tick: s.tick,
+      revenue: s.revenue,
+      outlays: s.outlays,
+      balance: s.balance,
+      debt: s.debt,
+      reserves: s.reserves,
+    })),
+    population: {
+      total: Object.values(state.params.cohortSizes).reduce((a, b) => a + b, 0),
+      laborForce: totalLaborForce(state),
+    },
     reserves: state.external.reserves,
     exchangeRate: state.external.exchangeRate,
     politicalCapital: state.politics.politicalCapital,
     quartersToElection: state.politics.quartersToElection,
     inPower: state.politics.inPower,
     electionsWon: state.politics.electionsWon,
-    news: newsFor(history, seed).slice(-40),
+    news: newsFor(history, seed),
   }
 }

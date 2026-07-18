@@ -10,6 +10,10 @@ const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   gdp_growth: { label: 'GDP GROWTH', needs: 'NATIONAL ACCOUNTS' },
   inflation: { label: 'INFLATION', needs: 'PRICE COLLECTION' },
   unemployment: { label: 'UNEMPLOYMENT', needs: 'LABOUR FORCE SURVEY' },
+  payrolls: { label: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY' },
+  capital_stock: { label: 'CAPITAL STOCK', needs: 'CENSUS OF INDUSTRY' },
+  conf_consumer: { label: 'CONSUMER CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
+  conf_business: { label: 'BUSINESS CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {

@@ -8,6 +8,9 @@
 
 import {
   adminEffectiveness,
+  CONF_INV_GAIN,
+  CONF_MPC_GAIN,
+  CONF_NEUTRAL,
   DEPRECIATION_Q,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
@@ -49,7 +52,8 @@ export const production: PipelineStep = {
       // postwar consumption cycle
       const habitual = c.lastRealIncome * cohortCpi(state, c.id)
       const smoothed = 0.45 * disposable + 0.55 * habitual
-      const budget = Math.max(0, MPC[c.id] * smoothed + SAVINGS_DRAWDOWN * c.savings)
+      const spirits = 1 + CONF_MPC_GAIN * (state.ledger.confidence.consumer - CONF_NEUTRAL)
+      const budget = Math.max(0, MPC[c.id] * smoothed * spirits + SAVINGS_DRAWDOWN * c.savings)
       cohortSpend[c.id] = budget
       for (const sid of SECTOR_IDS) {
         householdDemand[sid] += (budget * c.consumptionWeights[sid]) / effectivePrice(state, sid)
@@ -69,7 +73,10 @@ export const production: PipelineStep = {
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)
     const invFactor = clamp(
-      1 + INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) + 0.5 * (avgUtil - 0.85),
+      1 +
+        INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
+        0.5 * (avgUtil - 0.85) +
+        CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL),
       0.5,
       1.3,
     )
