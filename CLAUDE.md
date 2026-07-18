@@ -3,6 +3,17 @@
 Economic policy game per docs/ (read `docs/tech-architecture.md` before touching structure).
 pnpm monorepo; M0+M1 are built.
 
+## UI design authority
+
+The **`terrarium-design` skill is the spec for all `packages/ui` work** — invoke it before
+touching any component. Core ideas it enforces: the screen is diegetic (per-instrument
+maturity: `unmeasured` blank brass plate → `dossier` analog gauge → `terminal` phosphor
+ticker, derived once in `ui/src/maturity.ts`); Tailwind tokens named `dossier-*` /
+`terminal-*` (in `ui/src/index.css` via `@theme`); one shared mono numeral face; corridor
+map + news wire live in their own quieter third register (`map-*` / `wire-*`); revision
+marks must be loud. Layout is a single-screen war room (header / instrument wall +
+control rail / wire) — no page scroll at desktop sizes.
+
 ## Hard rules (lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`

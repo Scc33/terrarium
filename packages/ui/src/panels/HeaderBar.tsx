@@ -19,7 +19,7 @@ function Fig({ label, value, warn }: { label: string; value: string; warn?: bool
 export function HeaderBar({ pub }: { pub: PublishedState }) {
   const t = pub.treasury
   return (
-    <header className="flex items-center gap-5 border-b-2 border-dossier-brass bg-dossier-felt px-4 py-2">
+    <header className="flex min-w-0 items-center gap-5 overflow-hidden border-b-2 border-dossier-brass bg-dossier-felt px-4 py-2">
       <div className="flex items-baseline gap-3">
         <span className="font-dossier text-lg font-semibold tracking-wide text-dossier-paper">
           {pub.country}
@@ -34,7 +34,7 @@ export function HeaderBar({ pub }: { pub: PublishedState }) {
         <span className="font-mono text-xs font-medium tracking-[0.2em] text-terminal-alert">DEPOSED</span>
       )}
       <div className="h-5 w-px bg-dossier-paper/20" />
-      <div className="flex flex-1 items-center gap-4 overflow-x-auto">
+      <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
         <Fig label="REV" value={t.revenue.toFixed(1)} />
         <Fig label="OUT" value={t.outlays.toFixed(1)} />
         <Fig label="BAL" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} warn={t.balance < 0} />
