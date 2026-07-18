@@ -17,6 +17,7 @@ const LABELS: Record<IndicatorId, string> = {
   capital_stock: 'CAPITAL STOCK · IDX',
   conf_consumer: 'CONSUMER CONFIDENCE',
   conf_business: 'BUSINESS CONFIDENCE',
+  approval: 'APPROVAL POLL · %',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78

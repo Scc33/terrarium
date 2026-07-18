@@ -1,4 +1,4 @@
-export { observe, snapshotOf, type TrueSnapshot } from './observe'
+export { observe } from './observe'
 export {
   INDICATOR_IDS,
   type IndicatorId,

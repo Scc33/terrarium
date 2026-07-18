@@ -1,11 +1,11 @@
 {
   "passive-40q": {
-    "stateHash": "fcfed0c8",
+    "stateHash": "ec6fd13e",
     "realGdp": 81.77276032959432,
     "tick": 40
   },
   "fuel-tax-40q": {
-    "stateHash": "e5c7a7c8",
+    "stateHash": "121c4387",
     "realGdp": 84.91749461837321,
     "tick": 40
   }

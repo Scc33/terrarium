@@ -17,6 +17,7 @@ const LABELS: Record<IndicatorId, string> = {
   capital_stock: 'CAP.STOCK IDX',
   conf_consumer: 'CONF.CONS IDX',
   conf_business: 'CONF.BIZ IDX',
+  approval: 'APPROVAL %',
 }
 
 const W = 300

@@ -74,6 +74,7 @@ export {
   SECTOR_IDS,
   COHORT_IDS,
   CAPACITY_IDS,
+  INDICATOR_IDS,
   ELECTION_PERIOD,
   ENGINE_VERSION,
   SCHEMA_VERSION,
@@ -85,13 +86,18 @@ export type {
   CountryParams,
   DialState,
   GovernmentState,
+  IndicatorId,
   Money,
+  NewsItem,
   Qtr,
   Ratio,
   Sector,
   SectorId,
+  StatPrint,
+  StatRecord,
+  StatsOffice,
   TickFlows,
   TrueState,
 } from './state/schema'
 export { TICK_ORDER } from './pipeline/pipeline'
-export { potentialOutput, cohortCpi, laborForce, totalLaborForce } from './pipeline/derive'
+export { potentialOutput, cohortCpi, laborForce, totalLaborForce, approvalIndex } from './pipeline/derive'

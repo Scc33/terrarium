@@ -236,9 +236,9 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     ledger: {
       inflationExpectations: 0.03,
       debtToGdp: 0.3,
-      lastRealGdp: gdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
+    stats: { record: [], series: {}, news: [] },
     flows,
   }
 }

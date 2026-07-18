@@ -2,43 +2,24 @@
  * PublishedState — the ONLY types the ui package may import (§3.1).
  * Everything here is what a government of the period could actually know:
  * its own dials and books exactly, the economy only through its statistical
- * apparatus, plus rumors.
+ * apparatus, plus rumors. The prints themselves are made in the engine's
+ * statistics step (they must be — politics reads them); this package owns
+ * their presentation.
  */
 
-import type { CapacityId, DialState, Qtr } from '@terrarium/engine'
+import type { CapacityId, DialState, IndicatorId, NewsItem, Qtr, StatPrint } from '@terrarium/engine'
 
-export const INDICATOR_IDS = [
-  'gdp_growth',
-  'inflation',
-  'unemployment',
-  'payrolls',
-  'capital_stock',
-  'conf_consumer',
-  'conf_business',
-] as const
-export type IndicatorId = (typeof INDICATOR_IDS)[number]
+export { INDICATOR_IDS } from '@terrarium/engine'
+export type { IndicatorId, NewsItem }
 
-export interface IndicatorPoint {
-  forQtr: Qtr // period measured
-  publishedAt: Qtr // period released (lag = publishedAt − forQtr)
-  value: number
-  revision: number // 0 = first print
-  errorBand: number // half-width; 0 = the office can't even estimate it
-  /** GDP only: the office's level estimates behind the growth print */
-  levels?: { real: number; nominal: number }
-}
+/** A published figure, exactly as the office released it. */
+export type IndicatorPoint = StatPrint
 
 export interface IndicatorSeries {
   id: IndicatorId
   label: string
   unit: string
   points: IndicatorPoint[]
-}
-
-export interface NewsItem {
-  tick: Qtr
-  text: string
-  tone: 'good' | 'bad' | 'neutral'
 }
 
 export interface PublishedState {

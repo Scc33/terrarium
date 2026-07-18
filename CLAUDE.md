@@ -22,6 +22,10 @@ control rail / wire) — no page scroll at desktop sizes.
   `@terrarium/engine`, but never `engine/src/state/*` — the UI must be unable to name true state.
 - Pipeline step order in `engine/src/pipeline/pipeline.ts` is versioned; reordering is a
   schema-version event.
+- The fog is MADE in the engine (`pipeline/statistics.ts`: prints, revisions, rumor news,
+  via `obs:*` substreams orthogonal to the economic RNG) because politics reads the
+  published headline, not the truth (§3.4 salience). `packages/observation` is
+  presentation-only — never grow measurement logic back into it.
 - Every behavioral constant lives in `engine/src/constants.ts` — tune there, nowhere else.
 
 ## Workflows

@@ -14,6 +14,7 @@ const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   capital_stock: { label: 'CAPITAL STOCK', needs: 'CENSUS OF INDUSTRY' },
   conf_consumer: { label: 'CONSUMER CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
   conf_business: { label: 'BUSINESS CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
+  approval: { label: 'APPROVAL POLL', needs: 'FIELD POLLING' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {

@@ -21,6 +21,7 @@ import { monetary } from './monetary'
 import { prices } from './prices'
 import { labor } from './labor'
 import { cohorts } from './cohorts'
+import { statistics } from './statistics'
 import { politics } from './politics'
 
 export const TICK_ORDER: PipelineStep[] = [
@@ -31,7 +32,8 @@ export const TICK_ORDER: PipelineStep[] = [
   prices, // tâtonnement with cost anchor
   labor, // employment, wages, capital accumulation
   cohorts, // incomes, savings, approval drifts toward experienced truth
-  politics, // PC accrual, elections every 16 ticks
+  statistics, // the office measures, publishes, revises — schema v3
+  politics, // PC accrual from PUBLISHED numbers, elections every 16 ticks
 ]
 
 export function runTick(state: TrueState): TrueState {

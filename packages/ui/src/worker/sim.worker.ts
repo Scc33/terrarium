@@ -14,13 +14,12 @@ import {
   type CountryParams,
   type TrueState,
 } from '@terrarium/engine'
-import { observe, snapshotOf, type TrueSnapshot } from '@terrarium/observation'
+import { observe } from '@terrarium/observation'
 import type { ClientMessage, WorkerMessage } from './protocol'
 
 let state: TrueState | null = null
 let params: CountryParams | null = null
 let seed = ''
-let history: TrueSnapshot[] = []
 let actionLog: ActionLog = []
 
 const post = (m: WorkerMessage) => postMessage(m)
@@ -29,7 +28,7 @@ function publish(): void {
   if (!state || !params) return
   post({
     type: 'published',
-    published: observe(state, history, seed),
+    published: observe(state),
     save: createSave(params, seed, actionLog, state.meta.tick),
   })
 }
@@ -38,7 +37,6 @@ function startNew(newSeed: string): void {
   seed = newSeed
   params = generateParams(seed)
   state = init(params, seed)
-  history = []
   actionLog = []
   publish()
 }
@@ -53,15 +51,19 @@ function load(save: {
   params = save.params
   actionLog = save.actionLog
   state = init(params, seed)
-  history = []
   const byTick = new Map(actionLog.map((t) => [t.tick, t.actions]))
-  const end = save.tick
-  while (state.meta.tick < end) {
+  while (state.meta.tick < save.tick) {
     const acts = byTick.get(state.meta.tick)
-    if (acts) state = applyActions(state, acts)
-    const prev = state
+    if (acts) {
+      // lenient: a save from an older engine may stage actions the new
+      // balance can no longer afford — skip them rather than brick the load
+      try {
+        state = applyActions(state, acts)
+      } catch (e) {
+        if (!(e instanceof IllegalActionError)) throw e
+      }
+    }
     state = step(state)
-    history.push(snapshotOf(prev, state))
   }
   publish()
 }
@@ -75,14 +77,12 @@ function advance(actions: Parameters<typeof applyActions>[1]): void {
     }
   } catch (e) {
     if (e instanceof IllegalActionError) {
-      post({ type: 'rejected', message: e.message, published: observe(state, history, seed) })
+      post({ type: 'rejected', message: e.message, published: observe(state) })
       return
     }
     throw e
   }
-  const prev = state
   state = step(state)
-  history.push(snapshotOf(prev, state))
   publish()
 }
 
@@ -118,7 +118,7 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
         previewCost(msg.actions)
         break
       case 'requestSave':
-        if (state && params) post({ type: 'published', published: observe(state, history, seed), save: createSave(params, seed, actionLog, state.meta.tick) })
+        publish()
         break
     }
   } catch (e) {

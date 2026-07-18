@@ -29,6 +29,19 @@ export function totalLaborForce(state: TrueState): number {
   return COHORT_IDS.reduce((s, id) => s + (laborForce(state)[id] ?? 0), 0)
 }
 
+/** Enfranchisement-weighted approval — the electorate as the ballot box
+ * (and an honest pollster) would count it. */
+export function approvalIndex(state: TrueState): number {
+  let weightSum = 0
+  let weightedApproval = 0
+  for (const c of state.cohorts) {
+    const w = c.enfranchisement * c.size
+    weightSum += w
+    weightedApproval += w * c.approval
+  }
+  return weightSum > 0 ? weightedApproval / weightSum : 0.5
+}
+
 /** Household own-basket price level for a cohort (base = 1). */
 export function cohortCpi(state: TrueState, cohortId: CohortId): number {
   const c = state.cohorts.find((x) => x.id === cohortId)!

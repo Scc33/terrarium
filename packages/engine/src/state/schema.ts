@@ -24,6 +24,18 @@ export type CohortId = (typeof COHORT_IDS)[number]
 export const CAPACITY_IDS = ['tax', 'statistical', 'administrative'] as const
 export type CapacityId = (typeof CAPACITY_IDS)[number]
 
+export const INDICATOR_IDS = [
+  'gdp_growth',
+  'inflation',
+  'unemployment',
+  'payrolls',
+  'capital_stock',
+  'conf_consumer',
+  'conf_business',
+  'approval',
+] as const
+export type IndicatorId = (typeof INDICATOR_IDS)[number]
+
 // ---------- country parameters (immutable after init) ----------
 export interface CountryParams {
   name: string
@@ -132,10 +144,63 @@ export interface PoliticalState {
 export interface FragilityLedger {
   inflationExpectations: number // annualized, adaptive in M1
   debtToGdp: number // cached
-  /** previous tick's real GDP (cached for growth calc) */
-  lastRealGdp: Money
   /** animal spirits, 0..1 with 0.55 neutral — surveyed only if you fund it */
   confidence: { consumer: Ratio; business: Ratio }
+}
+
+// ---------- the statistics office (lives INSIDE the state: §3.4 salience) ----------
+export interface StatPrint {
+  forQtr: Qtr // period measured
+  publishedAt: Qtr // period released (lag = publishedAt − forQtr)
+  value: number
+  revision: number // 0 = first print
+  errorBand: number // half-width; 0 = the office can't even estimate it
+  /** GDP only: the office's level estimates behind the growth print */
+  levels?: { real: number; nominal: number }
+}
+
+export interface NewsItem {
+  tick: Qtr
+  text: string
+  tone: 'good' | 'bad' | 'neutral'
+}
+
+/** One quarter's measurable truth, filed at measurement time. The office
+ * revises against THIS worksheet later — and the capacity that existed when
+ * the quarter happened decides forever whether it was surveyed at all. */
+export interface StatRecord {
+  tick: Qtr
+  realGdp: Money
+  nominalGdp: Money
+  inflationQ: number
+  unemployment: Ratio
+  payrolls: number // millions, ex-agri
+  capitalTotal: Money
+  confConsumer: Ratio
+  confBusiness: Ratio
+  /** enfranchisement-weighted approval — what a pollster would find */
+  approvalIndex: Ratio
+  /** statistical capacity when measured: freezes lag, noise, existence */
+  statCapacity: Ratio
+  // rumor-mill inputs
+  satisfiedAgri: Ratio
+  printedShare: number
+  reservesQtrs: number
+  utilization: Ratio
+  // the treasury's own books — exact, no fog on yourself
+  revenue: Money
+  outlays: Money
+  balance: Money
+  debt: Money
+  reserves: Money
+}
+
+export interface StatsOffice {
+  /** raw worksheets, one per quarter, appended by the statistics step */
+  record: StatRecord[]
+  /** everything ever published, in publication order */
+  series: Partial<Record<IndicatorId, StatPrint[]>>
+  news: NewsItem[]
 }
 
 // ---------- per-tick flows (scratch, recomputed every tick; kept for inspectability) ----------
@@ -190,10 +255,11 @@ export interface TrueState {
   external: ExternalState
   politics: PoliticalState
   ledger: FragilityLedger
+  stats: StatsOffice
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 2 // v2: FragilityLedger.confidence
+export const SCHEMA_VERSION = 3 // v3: statistics step in-pipeline; ledger.lastRealGdp removed
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 

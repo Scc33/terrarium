@@ -174,7 +174,10 @@ export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
 export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
-export const PC_PUBLISHED_GDP_BONUS = 0.15 // salience of the headline number
+/** §3.4 salience: PC per point of PUBLISHED annualized GDP growth — noisy
+ * statistics make this noisy, which is the point of funding the office */
+export const PC_HEADLINE_SALIENCE = 0.1
+export const PC_HEADLINE_CAP = 0.5 // the papers only care so much either way
 export const ELECTION_WIN_THRESHOLD = 0.38
 export const PC_START = 20
 export const PC_MAX = 100
