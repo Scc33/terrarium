@@ -16,6 +16,8 @@ interface GameState {
   stagedAffordable: boolean
   rejection: string | null
   advancing: boolean
+  /** traced positions on the Narrow Corridor (published data only) */
+  corridorTrail: Array<{ x: number; y: number }>
 
   newGame(seed?: string): void
   loadSave(save: SaveFile): void
@@ -33,13 +35,37 @@ function actionKey(a: Action): string {
 export const useGame = create<GameState>((set, get) => {
   const worker = new SimWorker()
 
+  // corridor coordinates from published/setup data only: the government
+  // knows its own capacity stocks; societal power comes from the country's
+  // enfranchisement setup (static until Layer 3 makes it move)
+  const corridorPoint = (published: PublishedState, save: SaveFile) => {
+    const caps = Object.values(published.capacity)
+    const x = caps.reduce((a, b) => a + b, 0) / caps.length
+    let people = 0
+    let weight = 0
+    for (const [cid, size] of Object.entries(save.params.cohortSizes)) {
+      people += size
+      weight += size * (save.params.enfranchisement[cid as keyof typeof save.params.enfranchisement] ?? 0)
+    }
+    return { x, y: people > 0 ? weight / people : 0.5 }
+  }
+
   worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
     const msg = ev.data
     switch (msg.type) {
-      case 'published':
-        set({ published: msg.published, save: msg.save, advancing: false, rejection: null })
+      case 'published': {
+        const point = corridorPoint(msg.published, msg.save)
+        const prevTrail = get().published && get().published!.tick < msg.published.tick ? get().corridorTrail : []
+        set({
+          published: msg.published,
+          save: msg.save,
+          advancing: false,
+          rejection: null,
+          corridorTrail: [...prevTrail, point].slice(-120),
+        })
         void dbPut(AUTOSAVE_KEY, msg.save)
         break
+      }
       case 'preview':
         set({ stagedCost: msg.affordable ? msg.cost : null, stagedAffordable: msg.affordable })
         break
@@ -72,6 +98,7 @@ export const useGame = create<GameState>((set, get) => {
     stagedAffordable: true,
     rejection: null,
     advancing: false,
+    corridorTrail: [],
 
     newGame(seed) {
       // seed entropy comes from the browser, not the sim — the sim itself

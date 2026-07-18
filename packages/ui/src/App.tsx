@@ -1,12 +1,15 @@
+/**
+ * The war room, on one screen: header letterhead, the instrument wall with
+ * the corridor docked, the control rail, and the wire along the bottom.
+ * No page scroll — the game is played, not read.
+ */
+
 import { useEffect } from 'react'
 import { useGame } from './store/gameStore'
-import { Masthead } from './panels/Masthead'
+import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
-import { Treasury } from './panels/Treasury'
-import { PolicyDrawer } from './panels/PolicyDrawer'
-import { Capacity } from './panels/Capacity'
-import { News } from './panels/News'
-import { TurnBar } from './panels/TurnBar'
+import { ControlRail } from './panels/ControlRail'
+import { NewsWire } from './panels/NewsWire'
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
@@ -20,41 +23,24 @@ export default function App() {
 
   if (!published) {
     return (
-      <div style={{ textAlign: 'center', paddingTop: 120 }}>
-        <div className="eyebrow">Ministry of National Economy</div>
-        <div style={{ fontFamily: 'var(--script)', fontSize: 56, marginTop: 18 }}>Terrarium</div>
-        <div className="fine" style={{ marginTop: 12 }}>drawing the first survey…</div>
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-dossier-felt">
+        <div className="font-mono text-[10px] tracking-[0.4em] text-dossier-brass">MINISTRY OF NATIONAL ECONOMY</div>
+        <div className="font-dossier text-3xl font-semibold text-dossier-paper">Terrarium</div>
+        <div className="font-mono text-[10px] tracking-[0.2em] text-dossier-paper/50">DRAWING THE FIRST SURVEY…</div>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: 1060, margin: '0 auto', paddingBottom: 60 }}>
-      <Masthead pub={published} />
-      <div className="flourish" style={{ margin: '4px 0 10px' }}>
-        <span className="dot" style={{ background: 'var(--alarm)' }} />
-        <span className="dot" style={{ background: 'var(--steel)' }} />
-        <span className="dot" style={{ background: 'var(--alarm)' }} />
+    <div className="grid h-full grid-rows-[auto_1fr_auto] bg-dossier-felt">
+      <HeaderBar pub={published} />
+      <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+        <main className="min-h-0 min-w-0 lg:overflow-hidden">
+          <Instruments pub={published} />
+        </main>
+        <ControlRail pub={published} />
       </div>
-      <Instruments pub={published} />
-      <Treasury pub={published} />
-      <PolicyDrawer pub={published} />
-      <Capacity pub={published} />
-      <News pub={published} />
-      <TurnBar pub={published} />
-      <footer
-        style={{
-          background: 'var(--ink)',
-          color: 'var(--paper)',
-          textAlign: 'center',
-          padding: '22px 20px',
-          marginTop: 30,
-        }}
-      >
-        <span className="label-caps" style={{ opacity: 0.6 }}>
-          Terrarium · the numbers are late, noisy, and will be revised
-        </span>
-      </footer>
+      <NewsWire pub={published} />
     </div>
   )
 }

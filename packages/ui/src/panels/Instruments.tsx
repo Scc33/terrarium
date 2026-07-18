@@ -1,75 +1,25 @@
 /**
- * The instrument panel is the game (§3.2). Only funded indicators render a
- * chart; the empty slots advertise exactly what the statistical office
- * cannot yet see — the fog made visible.
+ * The instrument wall — the home view. A patchwork by design: each
+ * indicator renders at its own maturity, and a brass blank plate beside a
+ * phosphor ticker IS the state-capacity mechanic on screen. The corridor
+ * map is permanently docked in the fourth bay.
  */
 
-import type { PublishedState } from '@terrarium/observation'
-import { LineChart } from '../components/LineChart'
-
-const SLOTS = [
-  {
-    id: 'gdp_growth' as const,
-    color: 'var(--series-blue)',
-    missing: 'Customs receipts and guesswork only.',
-  },
-  {
-    id: 'inflation' as const,
-    color: 'var(--series-sienna)',
-    missing: 'No one is walking the markets writing down prices. Fund the statistical office.',
-  },
-  {
-    id: 'unemployment' as const,
-    color: 'var(--series-green)',
-    missing: 'No labour force survey exists. Fund the statistical office to raise one.',
-  },
-]
+import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
+import { deriveMaturity } from '../maturity'
+import { CorridorPlot } from '../components/CorridorPlot'
+import { Gauge } from '../components/Gauge'
+import { useGame } from '../store/gameStore'
 
 export function Instruments({ pub }: { pub: PublishedState }) {
+  const maturity = deriveMaturity(pub)
+  const trail = useGame((s) => s.corridorTrail)
   return (
-    <section className="panel">
-      <div className="panel-title">
-        <span className="label-caps">Instruments</span>
-        <span className="fine">
-          hollow marks may still be revised · bands are the office’s own confessed error
-        </span>
-      </div>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '18px 28px',
-        }}
-      >
-        {SLOTS.map((slot) => {
-          const series = pub.indicators[slot.id]
-          return (
-            <div key={slot.id}>
-              <div className="label-caps" style={{ marginBottom: 8 }}>
-                {series?.label ??
-                  { gdp_growth: 'GDP growth', inflation: 'Inflation', unemployment: 'Unemployment' }[
-                    slot.id
-                  ]}
-                {series && <span style={{ opacity: 0.5 }}> · {series.unit}</span>}
-              </div>
-              {series ? (
-                <LineChart series={series} color={slot.color} now={pub.tick} />
-              ) : (
-                <div
-                  className="fine"
-                  style={{
-                    border: '1px dashed rgba(2,24,43,0.2)',
-                    padding: '38px 22px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {slot.missing}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </section>
+    <div className="grid h-full min-w-0 grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-rows-2 [&>*]:min-h-0 [&>*]:min-w-0">
+      {INDICATOR_IDS.map((id) => (
+        <Gauge key={id} indicator={id} maturity={maturity[id]} series={pub.indicators[id]} now={pub.tick} />
+      ))}
+      <CorridorPlot trail={trail} />
+    </div>
   )
 }
