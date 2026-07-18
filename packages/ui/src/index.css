@@ -1,0 +1,187 @@
+/* Terrarium — a mid-century ministry, set in ink on paper. */
+
+:root {
+  --paper: #fffcf3;
+  --ink: #02182b;
+  --steel: #98c1d9;
+  --alarm: #f8333c;
+  /* chart inks (validated against the paper surface) */
+  --series-blue: #2563a8;
+  --series-sienna: #c05621;
+  --series-green: #2f855a;
+
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --script: 'Pinyon Script', cursive;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 16px;
+}
+
+#root {
+  min-height: 100vh;
+  border-top: 3px solid var(--ink);
+}
+
+/* ---------- typography voices ---------- */
+
+.eyebrow {
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--steel);
+  font-weight: 400;
+}
+
+.label-caps {
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+.num {
+  font-family: var(--mono);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.fine {
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 300;
+  opacity: 0.55;
+  line-height: 1.7;
+}
+
+/* ---------- structure ---------- */
+
+.rule {
+  border: none;
+  border-top: 1px solid rgba(2, 24, 43, 0.12);
+}
+
+.panel {
+  padding: 22px 26px;
+}
+
+.panel + .panel {
+  border-top: 1px solid rgba(2, 24, 43, 0.12);
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+/* ---------- controls ---------- */
+
+button {
+  font-family: var(--serif);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid rgba(2, 24, 43, 0.28);
+  border-radius: 0;
+  padding: 9px 18px 8px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+  padding: 12px 30px 11px;
+}
+
+button.primary:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ink);
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1px;
+  background: rgba(2, 24, 43, 0.25);
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  cursor: pointer;
+}
+
+input[type='range']:disabled::-webkit-slider-thumb {
+  border-color: rgba(2, 24, 43, 0.3);
+}
+
+/* ---------- flourish ---------- */
+
+.flourish {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0.85;
+}
+
+.flourish::before,
+.flourish::after {
+  content: '';
+  width: 64px;
+  border-top: 1px solid rgba(2, 24, 43, 0.2);
+}
+
+.flourish .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+
+/* ---------- news tones ---------- */
+
+.tone-bad {
+  color: var(--alarm);
+}
+
+.tone-good {
+  color: var(--series-green);
+}

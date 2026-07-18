@@ -1,7 +1,15 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": [
+    "packages/engine/src",
+    "packages/observation/src",
+    "packages/fixtures",
+    "packages/runner/src",
+    "tests",
+    "tools",
+    "vitest.config.ts"
   ]
 }
