@@ -18,6 +18,7 @@ import {
   PROFIT_SHARE,
   taxEfficiency,
   TRANSFER_SHARE,
+  WELFARE_DISCOUNT_Q,
 } from '../constants'
 import { clamp } from '../math'
 import { SECTOR_IDS, type Cohort } from '../state/schema'
@@ -135,6 +136,26 @@ export const cohorts: PipelineStep = {
       business: conf.business + CONF_ADAPT * (businessTarget - conf.business),
     }
 
-    return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence } }
+    // --- §3.3 prosperity: what it was actually like to live here this
+    // quarter. Log consumption per head, population-weighted: diminishing
+    // returns mean a unit of bread to the poor scores more than a unit of
+    // services to the rich, and no terminal-GDP sprint can buy back a
+    // hungry decade once it has been discounted in ---
+    let logSum = 0
+    let popSum = 0
+    for (const c of newCohorts) {
+      const cpc = flows.cohortSpend[c.id] / cohortCpi(state, c.id) / Math.max(c.size, 1e-9)
+      logSum += c.size * Math.log(Math.max(cpc, 0.01))
+      popSum += c.size
+    }
+    const welfareQ = popSum > 1e-9 ? logSum / popSum : 0
+    const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
+    const score = {
+      discountedWelfare: state.score.discountedWelfare + beta * welfareQ,
+      discountWeight: state.score.discountWeight + beta,
+      baselineWelfare: state.score.baselineWelfare ?? welfareQ,
+    }
+
+    return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence }, score }
   },
 }

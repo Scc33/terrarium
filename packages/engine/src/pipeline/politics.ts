@@ -55,7 +55,7 @@ export const politics: PipelineStep = {
     // without the floor a slump locks every dial exactly when action is needed
     const pcIncome = Math.max(PC_INCOME_SCALE * (approval - 0.35) + salience, PC_INCOME_FLOOR)
 
-    let { quartersToElection, electionsWon } = pol
+    let { quartersToElection, electionsWon, deposedAt } = pol
     let inPower: boolean = pol.inPower
     let electionNews: NewsItem | null = null
     quartersToElection -= 1
@@ -68,6 +68,7 @@ export const politics: PipelineStep = {
       } else {
         inPower = false
         quartersToElection = 0
+        deposedAt = state.meta.tick
       }
       electionNews = {
         tick: state.meta.tick,
@@ -85,6 +86,7 @@ export const politics: PipelineStep = {
         quartersToElection,
         inPower,
         electionsWon,
+        deposedAt,
       },
       stats: electionNews ? { ...stats, news: [...stats.news, electionNews] } : stats,
     }

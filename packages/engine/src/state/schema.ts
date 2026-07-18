@@ -130,6 +130,13 @@ export interface ExternalState {
   worldPrices: Record<SectorId, number>
   reserves: Money
   exchangeRate: number // domestic per foreign; up = depreciation
+  /** the crisis clock's live wires (Pillar 4) */
+  shocks: {
+    /** quarters of failed harvest still to run; 0 = no drought */
+    droughtQtrsLeft: Qtr
+    /** agri tfp multiplier applied while the drought runs (restored after) */
+    droughtSeverity: number
+  }
 }
 
 // ---------- politics ----------
@@ -138,6 +145,8 @@ export interface PoliticalState {
   quartersToElection: number
   inPower: boolean
   electionsWon: number
+  /** the quarter the government fell; null while it stands */
+  deposedAt: Qtr | null
 }
 
 // ---------- fragility ----------
@@ -256,12 +265,23 @@ export interface TrueState {
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice
+  /** §3.3 Prosperity: cumulative discounted welfare, accumulated as the run
+   * happens — a scorched-earth sprint to 2049 must not score */
+  score: {
+    /** Σ β^t · (population-weighted mean log real consumption per capita) */
+    discountedWelfare: number
+    discountWeight: number // Σ β^t, for normalizing to an average
+    /** quarter-zero welfare (mean log), the "vs 1946" yardstick */
+    baselineWelfare: number | null
+  }
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 3 // v3: statistics step in-pipeline; ledger.lastRealGdp removed
+export const SCHEMA_VERSION = 4 // v4: crisis shocks, §3.3 prosperity score, deposedAt
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
+/** 1946Q1 + 416 quarters = 2050: the historians close the book */
+export const END_OF_HISTORY_TICK = 416
 
 export function sectorIndex(id: SectorId): number {
   return SECTOR_IDS.indexOf(id)

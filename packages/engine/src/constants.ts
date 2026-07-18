@@ -143,6 +143,22 @@ export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (prin
 export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investment
 export const NATURAL_REAL_RATE = 0.02
 
+// ---------- the crisis clock (Pillar 4: it always ticks) ----------
+/** per-quarter odds of a world energy rupture (~3 per century) */
+export const ENERGY_SHOCK_P = 0.008
+export const ENERGY_SHOCK_JUMP: [number, number] = [1.5, 2.2]
+/** per-quarter odds of a failed harvest (~5 per century) */
+export const DROUGHT_P = 0.012
+export const DROUGHT_SEVERITY: [number, number] = [0.78, 0.9] // agri tfp multiplier
+export const DROUGHT_EXTRA_QTRS: [number, number] = [1, 3] // beyond the onset quarter
+/** world prices drift home after a rupture — this is what makes a shock a
+ * crisis instead of a new normal (half-life ≈ 5–6 years) */
+export const WORLD_PRICE_REVERT = 0.03
+
+// ---------- §3.3 prosperity ----------
+/** quarterly discount on lived welfare (≈2%/yr) */
+export const WELFARE_DISCOUNT_Q = 0.995
+
 // ---------- trade ----------
 export const TRADE_ELASTICITY = 1.5
 export const EXPORT_BASE_SHARE: Record<SectorId, number> = {

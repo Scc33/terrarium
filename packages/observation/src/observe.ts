@@ -7,8 +7,8 @@
  * unable to name true state.
  */
 
-import { INDICATOR_IDS, totalLaborForce, type TrueState } from '@terrarium/engine'
-import type { IndicatorId, PublishedState } from './published'
+import { END_OF_HISTORY_TICK, INDICATOR_IDS, totalLaborForce, type TrueState } from '@terrarium/engine'
+import type { IndicatorId, PublishedState, ReportCard } from './published'
 
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'GDP growth', unit: '% / yr' },
@@ -19,6 +19,22 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   conf_consumer: { label: 'Consumer confidence', unit: 'idx' },
   conf_business: { label: 'Business confidence', unit: 'idx' },
   approval: { label: 'Approval poll', unit: '%' },
+}
+
+/** The card only exists when the book is closed — mid-run, the cumulative
+ * welfare number would be a quarterly drip-feed of true consumption. */
+function reportCardOf(state: TrueState): ReportCard | undefined {
+  const { politics, score, meta } = state
+  const over = !politics.inPower || meta.tick >= END_OF_HISTORY_TICK
+  if (!over || score.discountWeight <= 0 || score.baselineWelfare === null) return undefined
+  const meanLog = score.discountedWelfare / score.discountWeight
+  return {
+    endedBy: politics.inPower ? 'history' : 'deposition',
+    quartersGoverned: politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK),
+    electionsWon: politics.electionsWon,
+    prosperity: Math.exp(meanLog),
+    vsBaseline: Math.exp(meanLog - score.baselineWelfare),
+  }
 }
 
 export function observe(state: TrueState): PublishedState {
@@ -56,5 +72,6 @@ export function observe(state: TrueState): PublishedState {
     inPower: state.politics.inPower,
     electionsWon: state.politics.electionsWon,
     news: state.stats.news,
+    reportCard: reportCardOf(state),
   }
 }

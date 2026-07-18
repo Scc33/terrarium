@@ -4,7 +4,7 @@
  * prices (exogenous in M1).
  */
 
-import { DEPRECIATION_WHEN_BROKE, WORLD_PRICE_VOL } from '../constants'
+import { DEPRECIATION_WHEN_BROKE, WORLD_PRICE_REVERT, WORLD_PRICE_VOL } from '../constants'
 import { sectorRecord } from '../math'
 import { SECTOR_IDS } from '../state/schema'
 import type { PipelineStep } from './pipeline'
@@ -30,13 +30,16 @@ export const trade: PipelineStep = {
       exchangeRate *= 1 + 0.01 * rng.normal(0, 0.2) // small float wobble
     }
 
-    const worldPrices = sectorRecord((sid) =>
-      Math.max(0.2, external.worldPrices[sid] * (1 + rng.normal(0, WORLD_PRICE_VOL[sid]))),
-    )
+    // a reverting walk: wander, but drift home — so a shock-step rupture is
+    // a crisis the economy must live through, not a new permanent normal
+    const worldPrices = sectorRecord((sid) => {
+      const p = external.worldPrices[sid]
+      return Math.max(0.2, p * (1 + rng.normal(0, WORLD_PRICE_VOL[sid]) + WORLD_PRICE_REVERT * (1 - p)))
+    })
 
     return {
       ...state,
-      external: { worldPrices, reserves, exchangeRate },
+      external: { ...external, worldPrices, reserves, exchangeRate },
       flows: { ...flows, tariffBase: importsValue },
     }
   },

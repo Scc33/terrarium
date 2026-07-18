@@ -22,6 +22,18 @@ export interface IndicatorSeries {
   points: IndicatorPoint[]
 }
 
+/** §3.3: the historians' verdict. Axes are graded separately, never summed.
+ * Only exists once the run is over — no mid-run truth leak. */
+export interface ReportCard {
+  endedBy: 'deposition' | 'history' // history = the book closes at 2050
+  quartersGoverned: Qtr
+  electionsWon: number
+  /** discounted geometric-mean real consumption per person per quarter */
+  prosperity: number
+  /** prosperity relative to the 1946 standard of living */
+  vsBaseline: number
+}
+
 export interface PublishedState {
   tick: Qtr
   country: string
@@ -57,4 +69,6 @@ export interface PublishedState {
   inPower: boolean
   electionsWon: number
   news: NewsItem[]
+  /** present only when the run has ended (deposition or 2050) */
+  reportCard?: ReportCard
 }

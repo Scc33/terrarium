@@ -6,4 +6,5 @@ export {
   type IndicatorSeries,
   type NewsItem,
   type PublishedState,
+  type ReportCard,
 } from './published'

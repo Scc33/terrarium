@@ -20,10 +20,13 @@ export function HeaderBar({
   pub,
   onStudy,
   onSettings,
+  onVerdict,
 }: {
   pub: PublishedState
   onStudy: () => void
   onSettings: () => void
+  /** present only once the run has ended and a report card exists */
+  onVerdict?: () => void
 }) {
   const t = pub.treasury
   const hBtn =
@@ -71,6 +74,15 @@ export function HeaderBar({
           <Fig label="FX RES" value={pub.reserves.toFixed(1)} warn={pub.reserves < 2} />
         </span>
       </div>
+      {onVerdict && (
+        <button
+          onClick={onVerdict}
+          className="border border-dossier-warn px-2 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-warn hover:bg-dossier-warn hover:text-dossier-paper"
+          title="The historians' verdict on your run."
+        >
+          VERDICT
+        </button>
+      )}
       <button onClick={onStudy} className={hBtn} title="The Study: analysis drawn from your published statistics — the Phillips board.">
         STUDY
       </button>

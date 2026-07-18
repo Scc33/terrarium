@@ -87,7 +87,7 @@ describe('salience (§3.4)', () => {
       // healthy approval so PC accrual sits above its floor — the floor
       // would otherwise mask the salience term entirely
       cohorts: s0.cohorts.map((c) => ({ ...c, approval: 0.6 })),
-      politics: { politicalCapital: 50, quartersToElection: 8, inPower: true, electionsWon: 0 },
+      politics: { politicalCapital: 50, quartersToElection: 8, inPower: true, electionsWon: 0, deposedAt: null },
       stats: {
         ...s0.stats,
         series: {

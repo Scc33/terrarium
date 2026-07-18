@@ -226,12 +226,14 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       worldPrices: sectorRecord(() => 1),
       reserves: importsValue * RESERVES_INIT_QTRS,
       exchangeRate: 1,
+      shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
     politics: {
       politicalCapital: PC_START,
       quartersToElection: ELECTION_PERIOD,
       inPower: true,
       electionsWon: 0,
+      deposedAt: null,
     },
     ledger: {
       inflationExpectations: 0.03,
@@ -239,6 +241,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
     stats: { record: [], series: {}, news: [] },
+    score: { discountedWelfare: 0, discountWeight: 0, baselineWelfare: null },
     flows,
   }
 }

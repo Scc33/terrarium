@@ -5,7 +5,7 @@
  * the wire's spike, the study, the records office.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useGame } from './store/gameStore'
 import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
@@ -15,12 +15,14 @@ import { LedgerOverlay } from './panels/LedgerPanel'
 import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
+import { ReportCardOverlay } from './panels/ReportCardOverlay'
 
-type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | null
+type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | null
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
   const [overlay, setOverlay] = useState<OverlayKind>(null)
+  const hadCard = useRef(false)
 
   useEffect(() => {
     void loadAutosave().then((found) => {
@@ -28,6 +30,13 @@ export default function App() {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // the verdict presents itself exactly once, when the run ends
+  useEffect(() => {
+    const has = published?.reportCard !== undefined
+    if (has && !hadCard.current) setOverlay('verdict')
+    hadCard.current = has
+  }, [published])
 
   if (!published) {
     return (
@@ -41,7 +50,12 @@ export default function App() {
 
   return (
     <div className="grid h-full grid-rows-[auto_1fr_auto] bg-dossier-felt">
-      <HeaderBar pub={published} onStudy={() => setOverlay('study')} onSettings={() => setOverlay('settings')} />
+      <HeaderBar
+        pub={published}
+        onStudy={() => setOverlay('study')}
+        onSettings={() => setOverlay('settings')}
+        onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
+      />
       <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
         <main className="min-h-0 min-w-0 lg:overflow-hidden">
           <Instruments pub={published} onLedger={() => setOverlay('ledger')} />
@@ -54,6 +68,9 @@ export default function App() {
       {overlay === 'wire' && <WireOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'settings' && <SettingsOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'verdict' && published.reportCard && (
+        <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
+      )}
     </div>
   )
 }

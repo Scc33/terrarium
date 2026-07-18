@@ -34,7 +34,9 @@ control rail / wire) — no page scroll at desktop sizes.
   moved (that review IS the economics review) → `pnpm bless` if intentional.
 - Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
   `--policy passive --ticks 400`). Healthy passive baseline: u ≈ 7%, inflation ≈ 0,
-  growth ≈ 1.6%/yr, 0% deposed. Random policy: ~35% deposed, no NaN, no price explosions.
+  growth ≈ 1.6%/yr; ~5% deposed by 120q, ~14% by 400q — that residual is the crisis
+  clock (droughts/oil ruptures near elections), not instability. Random policy:
+  ~40% deposed, no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 
