@@ -37,13 +37,13 @@ export const TATONNEMENT = {
 export const SLACK_GAIN_RATIO = 0.4
 
 // ---------- labor ----------
-export const EMPLOYMENT_ADJUST = 0.15 // fraction of gap closed per quarter
-export const WAGE_DEMAND_GAIN = 0.25
+export const EMPLOYMENT_ADJUST = 0.12 // fraction of gap closed per quarter
+export const WAGE_DEMAND_GAIN = 0.15
 export const WAGE_INFLATION_PASSTHROUGH = 0.35
 /** Phillips anchor: wage growth responds to economy-wide slack around this
  * natural rate — the long-run full-employment attractor */
 export const NATURAL_UNEMPLOYMENT = 0.075
-export const WAGE_SLACK_GAIN = 0.15
+export const WAGE_SLACK_GAIN = 0.08
 /** wages are sticky downward — the asymmetry is the great stabilizer of the
  * postwar economy, and losing it is what made gold-standard busts so deep */
 export const WAGE_MAX_UP = 0.08

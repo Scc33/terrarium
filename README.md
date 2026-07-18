@@ -1,77 +1,53 @@
-# React + TypeScript + Vite
+# Terrarium
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+You've just taken control of a nation's economy in 1946 — and you can't even see it clearly.
+A browser-based policy game: quarterly decisions, an emergent 5-cohort × 5-sector economy,
+and statistics that are late, noisy, and quietly revised after you've bet your career on them.
 
-Currently, two official plugins are available:
+Design docs live in [docs/](docs/) — start with [game-description.md](docs/game-description.md),
+then [proposal-1.md](docs/proposal-1.md) (design) and [tech-architecture.md](docs/tech-architecture.md)
+(architecture). The current build implements **M0 + M1**: the full engine skeleton and the
+v0.1 terrarium.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Play it
 
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+pnpm install
+pnpm dev        # → http://localhost:5173
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Read the instruments, stage dial changes, advance the quarter. Elections every 16 quarters.
+Saves are `{seed, actionLog}` — autosaved to IndexedDB every turn, exportable as JSON, and
+replayed deterministically on load.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Workspace
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Package | What it is |
+| --- | --- |
+| `packages/engine` | The sim. Pure TS, zero dependencies, fully deterministic. `init` / `applyActions` / `step`. |
+| `packages/observation` | The fog: `observe(trueState, history, seed) → PublishedState`. The only types the UI may see. |
+| `packages/ui` | React instrument panel. Runs the engine in a Web Worker; renders `PublishedState` only. |
+| `packages/runner` | Headless batch CLI — the balance dashboard. |
+| `packages/fixtures` | Shared countries, scripts, golden snapshots. |
 
+## Commands
+
+```sh
+pnpm test          # unit + golden + property suites (incl. the M1 exit criteria)
+pnpm typecheck
+pnpm lint          # includes import-boundary rules and the Math.random ban
+pnpm batch -- --runs 1000 --ticks 120 --policy random
+pnpm bless         # re-bless golden snapshots after intentional engine changes
+pnpm diff-state    # see exactly which state variables moved before you bless
 ```
+
+## The two claims the tests enforce (M1 exit criteria)
+
+- **A fuel tax raises bread prices** — through energy → transport → agriculture in the
+  input–output table. No scripted arrow exists; `tests/properties/fuel-tax.test.ts` proves it
+  across 60 seeds.
+- **A subsidy in a low-capacity state does more harm than good** — leakage takes most of it,
+  the budget takes all of it; `tests/properties/subsidy.test.ts`.
+
+Plus the standing invariants: replay determinism, no NaN across thousands of runs, budget
+identity, prices bounded.
