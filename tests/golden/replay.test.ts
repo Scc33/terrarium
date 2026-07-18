@@ -17,7 +17,7 @@ const blessed = JSON.parse(
 describe('golden replays', () => {
   for (const c of GOLDEN_CASES) {
     it(`${c.name} matches its blessed hash`, () => {
-      const s = replay(createSave(c.params, c.seed, c.script), c.ticks)
+      const s = replay(createSave(c.params, c.seed, c.script, c.ticks))
       const expected = blessed[c.name]
       expect(expected, `no blessed snapshot for ${c.name} — run pnpm bless`).toBeDefined()
       expect(s.meta.tick).toBe(expected.tick)

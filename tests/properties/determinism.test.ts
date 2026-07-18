@@ -16,7 +16,7 @@ describe('replay determinism', () => {
   })
 
   it('replay(save) reproduces the same state every time', () => {
-    const save = createSave(standardCountry, 'replay-live', fuelTaxAtQ8)
+    const save = createSave(standardCountry, 'replay-live', fuelTaxAtQ8, 40)
     const replayed = replay(save, 40)
     const fresh = replay(save, 40)
     expect(replayed.meta.tick).toBe(40)

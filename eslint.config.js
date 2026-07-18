@@ -11,6 +11,7 @@ export default defineConfig([
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       // Determinism: all randomness must come from the seeded RNG (§6).
       'no-restricted-properties': [
         'error',

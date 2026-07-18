@@ -74,7 +74,9 @@ export const useGame = create<GameState>((set, get) => {
     advancing: false,
 
     newGame(seed) {
-      const s = seed ?? `game-${Date.now().toString(36)}`
+      // seed entropy comes from the browser, not the sim — the sim itself
+      // never touches a clock or unseeded randomness
+      const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, rejection: null })
       send({ type: 'new', seed: s })
     },

@@ -34,7 +34,7 @@ for (const c of GOLDEN_CASES) {
     console.log(`${c.name}: no blessed state — run pnpm bless first`)
     continue
   }
-  const now = replay(createSave(c.params, c.seed, c.script), c.ticks)
+  const now = replay(createSave(c.params, c.seed, c.script, c.ticks))
   const a = flatten(old)
   const b = flatten(JSON.parse(stableStringify(now)))
   const diffs: Array<{ path: string; from: number; to: number; rel: number }> = []

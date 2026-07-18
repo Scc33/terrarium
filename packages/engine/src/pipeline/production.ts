@@ -22,7 +22,7 @@ import {
 import { clamp, leontiefGross, sectorRecord } from '../math'
 import { SECTOR_IDS, type CohortId } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { effectivePrice, potentialOutput } from './derive'
+import { cohortCpi, effectivePrice, potentialOutput } from './derive'
 
 export const production: PipelineStep = {
   name: 'production',
@@ -43,7 +43,13 @@ export const production: PipelineStep = {
     for (const c of state.cohorts) {
       const disposable =
         c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome
-      const budget = Math.max(0, MPC[c.id] * disposable + SAVINGS_DRAWDOWN * c.savings)
+      // permanent-income smoothing: households spend to their habitual
+      // standard of living (the same EMA approval judges against), dipping
+      // into savings through bad quarters — this is the great damper of the
+      // postwar consumption cycle
+      const habitual = c.lastRealIncome * cohortCpi(state, c.id)
+      const smoothed = 0.45 * disposable + 0.55 * habitual
+      const budget = Math.max(0, MPC[c.id] * smoothed + SAVINGS_DRAWDOWN * c.savings)
       cohortSpend[c.id] = budget
       for (const sid of SECTOR_IDS) {
         householdDemand[sid] += (budget * c.consumptionWeights[sid]) / effectivePrice(state, sid)

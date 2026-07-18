@@ -6,6 +6,7 @@
 
 import {
   ELECTION_WIN_THRESHOLD,
+  PC_INCOME_FLOOR,
   PC_INCOME_SCALE,
   PC_MAX,
   PC_PUBLISHED_GDP_BONUS,
@@ -35,8 +36,13 @@ export const politics: PipelineStep = {
 
     const growthQ = ledger.lastRealGdp > 1e-9 ? flows.realGdp / ledger.lastRealGdp - 1 : 0
     const growthBonus = growthQ > 0 ? PC_PUBLISHED_GDP_BONUS : -PC_PUBLISHED_GDP_BONUS
-    // accrual is centered: approval 0.5 ≈ break-even
-    const pcIncome = PC_INCOME_SCALE * (approvalIndex - 0.35) + growthBonus
+    // accrual is centered (approval 0.5 ≈ break-even) but floored: even a
+    // despised government can eventually scrape together one act of policy —
+    // without the floor a slump locks every dial exactly when action is needed
+    const pcIncome = Math.max(
+      PC_INCOME_SCALE * (approvalIndex - 0.35) + growthBonus,
+      PC_INCOME_FLOOR,
+    )
 
     let { quartersToElection, electionsWon } = pol
     let inPower: boolean = pol.inPower

@@ -134,7 +134,7 @@ export const CAPACITY_DECAY_Q = 0.004 // neglect is a policy
 // ---------- monetary ----------
 export const EXPECTATION_ADAPT = 0.12 // per quarter, toward realized inflation
 export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (printed/GDP)
-export const INVESTMENT_RATE_SENSITIVITY = 4 // real-rate response of investment
+export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investment
 export const NATURAL_REAL_RATE = 0.02
 
 // ---------- trade ----------
@@ -167,6 +167,7 @@ export const WORLD_PRICE_VOL: Record<SectorId, number> = {
 export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
+export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
 export const PC_PUBLISHED_GDP_BONUS = 0.15 // salience of the headline number
 export const ELECTION_WIN_THRESHOLD = 0.38
 export const PC_START = 20

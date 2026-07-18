@@ -37,17 +37,24 @@ export interface SaveFile {
   params: CountryParams
   seed: Seed
   actionLog: ActionLog
+  /** the quarter the game had reached — action-free quarters count too */
+  tick: number
 }
 
-export function createSave(params: CountryParams, seed: Seed, actionLog: ActionLog): SaveFile {
-  return { version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION }, params, seed, actionLog }
+export function createSave(
+  params: CountryParams,
+  seed: Seed,
+  actionLog: ActionLog,
+  tick: number,
+): SaveFile {
+  return { version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION }, params, seed, actionLog, tick }
 }
 
 /** Replay a save to its current state. Deterministic by construction. */
 export function replay(save: SaveFile, untilTick?: number): TrueState {
   let s = init(save.params, save.seed)
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
-  const end = untilTick ?? Math.max(0, ...save.actionLog.map((t) => t.tick + 1))
+  const end = untilTick ?? save.tick
   while (s.meta.tick < end) {
     const actions = byTick.get(s.meta.tick)
     if (actions) s = applyActions(s, actions)

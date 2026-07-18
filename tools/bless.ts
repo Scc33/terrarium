@@ -14,7 +14,7 @@ import { GOLDEN_CASES } from './golden-cases'
 const hashes: Record<string, { stateHash: string; realGdp: number; tick: number }> = {}
 const fullStates: Record<string, unknown> = {}
 for (const c of GOLDEN_CASES) {
-  const s = replay(createSave(c.params, c.seed, c.script), c.ticks)
+  const s = replay(createSave(c.params, c.seed, c.script, c.ticks))
   hashes[c.name] = { stateHash: hashState(s), realGdp: s.flows.realGdp, tick: s.meta.tick }
   fullStates[c.name] = JSON.parse(stableStringify(s))
   console.log(`${c.name}: hash=${hashes[c.name].stateHash} realGdp=${s.flows.realGdp.toFixed(3)}`)

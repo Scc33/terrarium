@@ -68,6 +68,8 @@ export const cohorts: PipelineStep = {
       // --- experienced conditions ---
       const cpi = cohortCpi(state, c.id)
       const realIncome = income / cpi
+      // judged against a smoothed memory of living standards, not last
+      // quarter's pay packet — people notice trends, not ticks
       const growth = c.lastRealIncome > 1e-9 ? realIncome / c.lastRealIncome - 1 : 0
       const adjGrowth = growth < 0 ? growth * LOSS_AVERSION : growth
       const basketInflAnnual = c.lastCpi > 1e-9 ? (cpi / c.lastCpi - 1) * 4 : 0
@@ -80,7 +82,7 @@ export const cohorts: PipelineStep = {
 
       const target = logistic(
         0.3 +
-          25 * clamp(adjGrowth, -0.2, 0.2) -
+          15 * clamp(adjGrowth, -0.15, 0.15) -
           8 * Math.max(0, basketInflAnnual - 0.04) -
           3 * (jobless - 0.07) -
           5 * shortage,
@@ -95,7 +97,8 @@ export const cohorts: PipelineStep = {
         transferIncome,
         savings,
         approval,
-        lastRealIncome: realIncome,
+        // EMA: the standard of living people measure themselves against
+        lastRealIncome: 0.75 * c.lastRealIncome + 0.25 * realIncome,
         lastCpi: cpi,
       }
     })

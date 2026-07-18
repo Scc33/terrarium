@@ -30,7 +30,7 @@ function publish(): void {
   post({
     type: 'published',
     published: observe(state, history, seed),
-    save: createSave(params, seed, actionLog),
+    save: createSave(params, seed, actionLog, state.meta.tick),
   })
 }
 
@@ -43,14 +43,19 @@ function startNew(newSeed: string): void {
   publish()
 }
 
-function load(save: { params: CountryParams; seed: string; actionLog: ActionLog }): void {
+function load(save: {
+  params: CountryParams
+  seed: string
+  actionLog: ActionLog
+  tick: number
+}): void {
   seed = save.seed
   params = save.params
   actionLog = save.actionLog
   state = init(params, seed)
   history = []
   const byTick = new Map(actionLog.map((t) => [t.tick, t.actions]))
-  const end = Math.max(0, ...actionLog.map((t) => t.tick + 1))
+  const end = save.tick
   while (state.meta.tick < end) {
     const acts = byTick.get(state.meta.tick)
     if (acts) state = applyActions(state, acts)
@@ -113,7 +118,7 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
         previewCost(msg.actions)
         break
       case 'requestSave':
-        if (state && params) post({ type: 'published', published: observe(state, history, seed), save: createSave(params, seed, actionLog) })
+        if (state && params) post({ type: 'published', published: observe(state, history, seed), save: createSave(params, seed, actionLog, state.meta.tick) })
         break
     }
   } catch (e) {
