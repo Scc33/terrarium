@@ -32,6 +32,9 @@ control rail / wire) — no page scroll at desktop sizes.
 
 - Engine change → `pnpm test` breaks golden replays → run `pnpm diff-state` and review what
   moved (that review IS the economics review) → `pnpm bless` if intentional.
+- On a `SCHEMA_VERSION` bump, add an entry to `CHANGELOG.md` (human-readable) and
+  `docs/metrics-changelog.md` (the engine's inputs/outputs contract — new indicators + their
+  `fundedAt`, new levers/params, pipeline-order changes).
 - Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
   `--policy passive --ticks 400`). Healthy M4 passive baseline: growth ≈ 2.5%/yr,
   inflation ≈ 0, u ≈ 12.5% century mean — the elevated u is the DESIGNED §8 youth-bulge
