@@ -20,11 +20,13 @@ export function HeaderBar({
   pub,
   onStudy,
   onSettings,
+  onCensus,
   onVerdict,
 }: {
   pub: PublishedState
   onStudy: () => void
   onSettings: () => void
+  onCensus: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
 }) {
@@ -50,9 +52,13 @@ export function HeaderBar({
       ) : (
         <span className="font-mono text-xs font-medium tracking-[0.2em] text-terminal-alert">DEPOSED</span>
       )}
-      <span title={`Census figures: total population and labour force (millions). Static until the demographic transition arrives.`}>
+      <button
+        onClick={onCensus}
+        className="cursor-pointer hover:opacity-80"
+        title="Census figures: total population and labour force (millions), live — the transition is underway. Click for the age pyramid."
+      >
         <Fig label="POP/LF" value={`${pub.population.total.toFixed(1)}/${pub.population.laborForce.toFixed(1)}M`} />
-      </span>
+      </button>
       <div className="h-5 w-px bg-dossier-paper/20" />
       <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
         <span title="Tax revenue collected this quarter — gated by tax administration capacity, not by the true size of the economy.">
