@@ -22,6 +22,8 @@ export interface IndicatorSeries {
   points: IndicatorPoint[]
 }
 
+export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
+
 /** §3.3: the historians' verdict. Axes are graded separately, never summed.
  * Only exists once the run is over — no mid-run truth leak. */
 export interface ReportCard {
@@ -32,6 +34,11 @@ export interface ReportCard {
   prosperity: number
   /** prosperity relative to the 1946 standard of living */
   vsBaseline: number
+  /** annualized welfare growth over the tenure, %/yr — what gets graded */
+  prosperityRate: number
+  prosperityGrade: Grade
+  /** consent: survival to 2050 or mandates won before the fall */
+  legitimacyGrade: Grade
 }
 
 export interface PublishedState {

@@ -7,8 +7,16 @@
  * unable to name true state.
  */
 
-import { END_OF_HISTORY_TICK, INDICATOR_IDS, totalLaborForce, type TrueState } from '@terrarium/engine'
-import type { IndicatorId, PublishedState, ReportCard } from './published'
+import {
+  END_OF_HISTORY_TICK,
+  INDICATOR_IDS,
+  LEGITIMACY_GRADE_ELECTIONS,
+  PROSPERITY_GRADE_CUTS,
+  totalLaborForce,
+  WELFARE_DISCOUNT_Q,
+  type TrueState,
+} from '@terrarium/engine'
+import type { Grade, IndicatorId, PublishedState, ReportCard } from './published'
 
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'GDP growth', unit: '% / yr' },
@@ -24,6 +32,20 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gini: { label: 'Income inequality', unit: 'Gini pts' },
 }
 
+/** Discounted effective duration of an n-quarter tenure — the denominator
+ * that makes prosperity a rate, so grades don't re-punish short tenures for
+ * what the legitimacy axis already judges. */
+function effectiveQuarters(n: number): number {
+  let weight = 0
+  let weightedT = 0
+  for (let t = 0; t < n; t++) {
+    const b = Math.pow(WELFARE_DISCOUNT_Q, t)
+    weight += b
+    weightedT += b * t
+  }
+  return weight > 0 ? weightedT / weight : 1
+}
+
 /** The card only exists when the book is closed — mid-run, the cumulative
  * welfare number would be a quarterly drip-feed of true consumption. */
 function reportCardOf(state: TrueState): ReportCard | undefined {
@@ -31,12 +53,23 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
   const over = !politics.inPower || meta.tick >= END_OF_HISTORY_TICK
   if (!over || score.discountWeight <= 0 || score.baselineWelfare === null) return undefined
   const meanLog = score.discountedWelfare / score.discountWeight
+  const quartersGoverned = politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK)
+  const prosperityRate =
+    (400 * (meanLog - score.baselineWelfare)) / Math.max(effectiveQuarters(quartersGoverned), 1)
+  const prosperityGrade: Grade =
+    PROSPERITY_GRADE_CUTS.find((c) => prosperityRate >= c.atLeast)?.grade ?? 'F'
+  const legitimacyGrade: Grade = politics.inPower
+    ? 'A'
+    : (LEGITIMACY_GRADE_ELECTIONS.find((c) => politics.electionsWon >= c.atLeast)?.grade ?? 'F')
   return {
     endedBy: politics.inPower ? 'history' : 'deposition',
-    quartersGoverned: politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK),
+    quartersGoverned,
     electionsWon: politics.electionsWon,
     prosperity: Math.exp(meanLog),
     vsBaseline: Math.exp(meanLog - score.baselineWelfare),
+    prosperityRate,
+    prosperityGrade,
+    legitimacyGrade,
   }
 }
 

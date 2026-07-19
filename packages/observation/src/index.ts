@@ -4,6 +4,7 @@ export {
   type IndicatorId,
   type IndicatorPoint,
   type IndicatorSeries,
+  type Grade,
   type NewsItem,
   type PublishedState,
   type ReportCard,

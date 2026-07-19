@@ -102,3 +102,8 @@ export type {
 } from './state/schema'
 export { TICK_ORDER } from './pipeline/pipeline'
 export { potentialOutput, cohortCpi, laborForce, totalLaborForce, approvalIndex, giniIndex } from './pipeline/derive'
+export {
+  LEGITIMACY_GRADE_ELECTIONS,
+  PROSPERITY_GRADE_CUTS,
+  WELFARE_DISCOUNT_Q,
+} from './constants'

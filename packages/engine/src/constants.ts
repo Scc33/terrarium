@@ -159,6 +159,27 @@ export const WORLD_PRICE_REVERT = 0.03
 /** quarterly discount on lived welfare (≈2%/yr) */
 export const WELFARE_DISCOUNT_Q = 0.995
 
+/** The historians' letter grades. Prosperity is graded on annualized welfare
+ * growth over the tenure's discounted effective duration (%/yr) — tenure-
+ * independent, so a short brilliant government isn't double-punished on an
+ * axis that isn't survival. Calibrated 2026-07 on 150 passive + 150 random
+ * centuries: passive sits in a tight 1.34–1.58 band (C — safe but mediocre,
+ * by design), random median 2.12, p95 3.12, wreckage tail to −7. */
+export const PROSPERITY_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
+  { atLeast: 3.0, grade: 'A' }, // sustained policy clearly among the best runs
+  { atLeast: 2.0, grade: 'B' }, // beat the do-nothing century
+  { atLeast: 1.2, grade: 'C' }, // the passive band: growth happened around you
+  { atLeast: 0.0, grade: 'D' }, // living standards barely moved
+] // below every cut: F — the nation got poorer under you
+
+/** Legitimacy is graded on consent, not welfare: reach 2050 in power and the
+ * verdict is A; fall, and it is how many mandates the electorate gave you. */
+export const LEGITIMACY_GRADE_ELECTIONS: Array<{ atLeast: number; grade: 'B' | 'C' | 'D' }> = [
+  { atLeast: 4, grade: 'B' },
+  { atLeast: 2, grade: 'C' },
+  { atLeast: 1, grade: 'D' },
+] // deposed without ever winning one: F
+
 // ---------- trade ----------
 export const TRADE_ELASTICITY = 1.5
 export const EXPORT_BASE_SHARE: Record<SectorId, number> = {

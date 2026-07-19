@@ -83,4 +83,37 @@ describe('the report card (§3.3)', () => {
     const card = observe(closed).reportCard!
     expect(card.endedBy).toBe('history')
   })
+
+  it('grades the axes separately: passive prosperity is a C, consent decides legitimacy', () => {
+    // the passive band is calibrated to land in C (1.2–2.0 %/yr) at ANY tenure
+    // length — the rate normalization is what keeps the axes from bleeding
+    const deposed: TrueState = {
+      ...live,
+      politics: { ...live.politics, inPower: false, deposedAt: 88, electionsWon: 5 },
+    }
+    const card = observe(deposed).reportCard!
+    expect(card.prosperityGrade).toBe('C')
+    expect(card.prosperityRate).toBeGreaterThan(1.2)
+    expect(card.prosperityRate).toBeLessThan(2.0)
+    expect(card.legitimacyGrade).toBe('B') // five mandates before the fall
+
+    const never: TrueState = {
+      ...live,
+      politics: { ...live.politics, inPower: false, deposedAt: 12, electionsWon: 0 },
+    }
+    expect(observe(never).reportCard!.legitimacyGrade).toBe('F')
+
+    const survived: TrueState = { ...live, meta: { ...live.meta, tick: 416 } }
+    expect(observe(survived).reportCard!.legitimacyGrade).toBe('A')
+  })
+
+  it('the verdict freezes at deposition — the record does not drift afterwards', () => {
+    const deposed: TrueState = {
+      ...live,
+      politics: { ...live.politics, inPower: false, deposedAt: live.meta.tick },
+    }
+    let after = deposed
+    for (let i = 0; i < 6; i++) after = step(after)
+    expect(after.score).toEqual(deposed.score)
+  })
 })

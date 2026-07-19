@@ -21,7 +21,7 @@ import {
   WELFARE_DISCOUNT_Q,
 } from '../constants'
 import { clamp } from '../math'
-import { SECTOR_IDS, type Cohort } from '../state/schema'
+import { END_OF_HISTORY_TICK, SECTOR_IDS, type Cohort } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { cohortCpi } from './derive'
 
@@ -140,20 +140,25 @@ export const cohorts: PipelineStep = {
     // quarter. Log consumption per head, population-weighted: diminishing
     // returns mean a unit of bread to the poor scores more than a unit of
     // services to the rich, and no terminal-GDP sprint can buy back a
-    // hungry decade once it has been discounted in ---
-    let logSum = 0
-    let popSum = 0
-    for (const c of newCohorts) {
-      const cpc = flows.cohortSpend[c.id] / cohortCpi(state, c.id) / Math.max(c.size, 1e-9)
-      logSum += c.size * Math.log(Math.max(cpc, 0.01))
-      popSum += c.size
-    }
-    const welfareQ = popSum > 1e-9 ? logSum / popSum : 0
-    const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
-    const score = {
-      discountedWelfare: state.score.discountedWelfare + beta * welfareQ,
-      discountWeight: state.score.discountWeight + beta,
-      baselineWelfare: state.score.baselineWelfare ?? welfareQ,
+    // hungry decade once it has been discounted in. The ledger closes with
+    // the tenure — quarters after deposition (or after 2050) are somebody
+    // else's record, so the verdict must not drift if the sim keeps running.
+    let score = state.score
+    if (state.politics.deposedAt === null && state.meta.tick < END_OF_HISTORY_TICK) {
+      let logSum = 0
+      let popSum = 0
+      for (const c of newCohorts) {
+        const cpc = flows.cohortSpend[c.id] / cohortCpi(state, c.id) / Math.max(c.size, 1e-9)
+        logSum += c.size * Math.log(Math.max(cpc, 0.01))
+        popSum += c.size
+      }
+      const welfareQ = popSum > 1e-9 ? logSum / popSum : 0
+      const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
+      score = {
+        discountedWelfare: state.score.discountedWelfare + beta * welfareQ,
+        discountWeight: state.score.discountWeight + beta,
+        baselineWelfare: state.score.baselineWelfare ?? welfareQ,
+      }
     }
 
     return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence }, score }
