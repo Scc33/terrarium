@@ -20,6 +20,7 @@ const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   gini: { label: 'INCOME INEQUALITY', needs: 'HOUSEHOLD SURVEY' },
   birth_rate: { label: 'BIRTH RATE', needs: 'CIVIL REGISTRATION' },
   death_rate: { label: 'DEATH RATE', needs: 'CIVIL REGISTRATION' },
+  terms_of_trade: { label: 'TERMS OF TRADE', needs: 'TRADE STATISTICS' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {

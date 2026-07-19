@@ -17,7 +17,7 @@ import type {
   TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { approvalIndex, effectivePrice, giniIndex } from './derive'
+import { approvalIndex, effectivePrice, giniIndex, termsOfTrade } from './derive'
 
 interface IndicatorSpec {
   id: IndicatorId
@@ -124,6 +124,12 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 2,
     fundedAt: 0.3, // …and every death — vital registration, the old duty
   },
+  {
+    id: 'terms_of_trade',
+    trueValue: (h, q) => h[q].termsOfTrade,
+    baseSd: 2.5,
+    fundedAt: 0.4, // customs statisticians compiling the trade accounts
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -151,6 +157,7 @@ function recordOf(state: TrueState): StatRecord {
     deathRate: state.demography.crudeDeathRate,
     population: state.demography.pyramid.reduce((s, n) => s + n, 0),
     pyramid: [...state.demography.pyramid],
+    termsOfTrade: termsOfTrade(state),
     statCapacity: gov.capacity.statistical,
     satisfiedAgri: flows.satisfied.agri,
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),

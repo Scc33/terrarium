@@ -22,7 +22,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 8)
+## Current contract (schema 9)
 
 ### Inputs
 
@@ -46,10 +46,14 @@ contract, so it's called out below.
 
 **Actions**: `setDial` (move a lever) · `investCapacity` (build a Layer-2 stock over 8 quarters).
 
-### Pipeline (12 ordered steps)
+### Pipeline (13 ordered steps)
 
-`shocks` → `demography` → `technology` → `production` → `trade` → `fiscal` → `monetary` →
-`prices` → `labor` → `cohorts` → `statistics` → `politics`
+`shocks` → `demography` → `technology` → `world` → `production` → `trade` → `fiscal` →
+`monetary` → `prices` → `labor` → `cohorts` → `statistics` → `politics`
+
+The **rest of world** is exogenous input, not a lever: four abstract partners run their own
+business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
+booms/slumps/crises reach the wire but you cannot set them.
 
 ### Outputs — the indicator ladder (all fogged)
 
@@ -70,6 +74,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
+| `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
 additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
@@ -102,6 +107,15 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 9 — The rest of the world
+- **Pipeline +**: `world` step (after `technology`, before `production`); the world-price walk
+  moved out of `trade` into it.
+- **Outputs +**: `terms_of_trade` (fogged, unlock 0.40); partner booms/slumps/crises on the
+  wire (exact — foreign news isn't fogged).
+- **Internal state +**: `external.world` (four partner activity levels + per-sector export
+  demand). World prices are now semi-endogenous (partner supply pressure + reversion).
+- Inputs unchanged (partners are exogenous, not levers). Century baseline unchanged.
 
 ### schema 8 — Vital registration
 - **Outputs +**: `birth_rate`, `death_rate` (fogged, unlock 0.30); `census[]` exact history.

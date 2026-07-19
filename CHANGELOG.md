@@ -8,6 +8,23 @@ The **schema version** (`packages/engine/src/state/schema.ts` → `SCHEMA_VERSIO
 the shape of `TrueState` or the pipeline order changes; each bump is a golden-replay event
 (`pnpm test` → `pnpm diff-state` review → `pnpm bless`).
 
+## [schema 9] — 2026-07-19 — The rest of the world
+
+### Added
+- **`world` pipeline step**: four abstract trading partners (commodity exporter, manufacturing
+  giant, financial center, regional peer), each running an AR(1) business cycle. Their strength
+  drives **export demand** (a partner in recession buys less of your goods) and **world prices**
+  (a supplier's boom is cheap imports, its collapse a shortage) — so world prices are now
+  semi-endogenous rather than an exogenous walk. Partner booms, slumps, and sudden stops make
+  the wire with certainty (foreign conditions aren't fogged like domestic surveys).
+- **Terms-of-trade indicator** (`terms_of_trade`, 1946=100), fundable at trade statistics
+  (0.40): the world price of your export basket ÷ your import basket.
+
+### Changed
+- The world-price walk moved from `trade` into the new `world` step (upstream of production);
+  `trade` now only settles the balance of payments. The century baseline is unchanged (passive
+  ≈ 2.5 %/yr, 10 % deposed); partner cycles add terms-of-trade texture without destabilizing it.
+
 ## [schema 8] — 2026-07-19 — Vital registration
 
 ### Added

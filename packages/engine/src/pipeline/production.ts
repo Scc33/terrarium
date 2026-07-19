@@ -97,8 +97,14 @@ export const production: PipelineStep = {
     const exportsReal = sectorRecord((sid, i) => {
       const worldP = external.worldPrices[sid] * fx
       const ratio = worldP / market.prices[sid]
+      // partner demand (§10): a foreign recession buys less, whatever the price
+      const foreignDemand = external.world.exportDemand[sid]
       return Math.min(
-        EXPORT_BASE_SHARE[sid] * qPot[i] * state.params.openness * Math.pow(ratio, TRADE_ELASTICITY),
+        EXPORT_BASE_SHARE[sid] *
+          qPot[i] *
+          state.params.openness *
+          foreignDemand *
+          Math.pow(ratio, TRADE_ELASTICITY),
         0.5 * qPot[i],
       )
     })

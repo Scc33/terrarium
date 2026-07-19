@@ -30,6 +30,7 @@ import {
   COHORT_IDS,
   ELECTION_PERIOD,
   ENGINE_VERSION,
+  PARTNER_IDS,
   RETIREMENT_BAND,
   SCHEMA_VERSION,
   SECTOR_IDS,
@@ -310,6 +311,10 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       worldPrices: sectorRecord(() => 1),
       reserves: importsValue * RESERVES_INIT_QTRS,
       exchangeRate: 1,
+      world: {
+        partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
+        exportDemand: sectorRecord(() => 1),
+      },
       shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
     politics: {

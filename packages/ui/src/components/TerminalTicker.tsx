@@ -23,6 +23,7 @@ const LABELS: Record<IndicatorId, string> = {
   gini: 'GINI PTS',
   birth_rate: 'BIRTH.RATE /1K',
   death_rate: 'DEATH.RATE /1K',
+  terms_of_trade: 'TERMS.TRADE IDX',
 }
 
 const W = 300

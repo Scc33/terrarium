@@ -4,7 +4,7 @@
  * 1946 economy (the M1 exit criterion (c)).
  */
 
-import type { CapacityId, CohortId, SectorId } from './state/schema'
+import type { CapacityId, CohortId, PartnerId, SectorId } from './state/schema'
 
 // ---------- production ----------
 export const CAPITAL_ELASTICITY = 0.35
@@ -310,6 +310,53 @@ export const WORLD_PRICE_VOL: Record<SectorId, number> = {
   services: 0.005,
   transport: 0.008,
 }
+
+// ---------- the rest of world (§10: 5–8 abstract partners, coarse models) ----------
+// Each partner is a foreign economy with its own business cycle. Its activity
+// (an output gap, 1.0 neutral) drives its DEMAND for your exports and, where
+// it's a supplier to world markets, the world PRICE of what it sells. The
+// cycles are the source of the terms-of-trade swings and export booms/busts a
+// trade-exposed economy lives through — unscripted, emergent from four AR(1)s.
+export const PARTNER_CYCLE: Record<
+  PartnerId,
+  { persistence: number; vol: number; crisisProb: number; crisisDepth: number; drift: number }
+> = {
+  // a commodity exporter: volatile, boom-bust, occasional supply collapses
+  commodity: { persistence: 0.9, vol: 0.02, crisisProb: 0.006, crisisDepth: 0.12, drift: 0.0 },
+  // a manufacturing giant: steady secular growth, the cheap-goods deflator
+  manufacturing: { persistence: 0.94, vol: 0.012, crisisProb: 0.004, crisisDepth: 0.1, drift: 0.0006 },
+  // a financial center: calm until it isn't — sudden stops splash on exports
+  financial: { persistence: 0.92, vol: 0.015, crisisProb: 0.008, crisisDepth: 0.18, drift: 0.0 },
+  // a regional peer: your correlated neighbor, broad demand
+  regional: { persistence: 0.93, vol: 0.018, crisisProb: 0.005, crisisDepth: 0.1, drift: 0.0002 },
+}
+export const PARTNER_ACTIVITY_MIN = 0.6
+export const PARTNER_ACTIVITY_MAX = 1.4
+export const PARTNER_BOOM_AT = 1.06 // activity above this makes the foreign pages
+export const PARTNER_SLUMP_AT = 0.94
+
+/** who buys your exports of each sector (shares sum to 1 per sector) — a
+ * partner in recession simply buys less */
+export const EXPORT_DEMAND_WEIGHTS: Record<SectorId, Partial<Record<PartnerId, number>>> = {
+  agri: { manufacturing: 0.4, regional: 0.35, commodity: 0.2, financial: 0.05 },
+  manuf: { commodity: 0.4, regional: 0.35, manufacturing: 0.15, financial: 0.1 },
+  energy: { manufacturing: 0.5, regional: 0.3, commodity: 0.15, financial: 0.05 },
+  services: { financial: 0.5, regional: 0.25, manufacturing: 0.15, commodity: 0.1 },
+  transport: { regional: 1 },
+}
+
+/** who supplies each sector to world markets (shares sum to 1) — a supplier's
+ * boom means more supply and a softer world price; its collapse, dearer */
+export const WORLD_SUPPLY_WEIGHTS: Record<SectorId, Partial<Record<PartnerId, number>>> = {
+  agri: { commodity: 0.4, regional: 0.4, manufacturing: 0.2 },
+  manuf: { manufacturing: 0.8, regional: 0.2 },
+  energy: { commodity: 0.8, regional: 0.2 },
+  services: { financial: 0.6, regional: 0.4 },
+  transport: { regional: 1 },
+}
+/** how hard a supplier's cycle moves the world price it sells (steady-state
+ * offset ≈ GAIN·Δactivity·share / WORLD_PRICE_REVERT — kept gentle) */
+export const WORLD_SUPPLY_PRICE_GAIN = 0.02
 
 // ---------- politics ----------
 export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions

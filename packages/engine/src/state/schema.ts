@@ -47,8 +47,13 @@ export const INDICATOR_IDS = [
   'gini',
   'birth_rate',
   'death_rate',
+  'terms_of_trade',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
+
+/** the rest of world: a handful of abstract trading partners (§10) */
+export const PARTNER_IDS = ['commodity', 'manufacturing', 'financial', 'regional'] as const
+export type PartnerId = (typeof PARTNER_IDS)[number]
 
 // ---------- country parameters (immutable after init) ----------
 export interface CountryParams {
@@ -175,10 +180,26 @@ export interface GovernmentState {
 }
 
 // ---------- external ----------
+/** one abstract foreign economy (§10) — a coarse model: an activity level
+ * (output gap, 1.0 neutral) evolving on its own business cycle. */
+export interface WorldPartner {
+  id: PartnerId
+  activity: number
+}
+
+export interface WorldState {
+  partners: WorldPartner[]
+  /** per-sector multiplier on export demand (~1 neutral), set by how strong
+   * the partners who buy that sector currently are */
+  exportDemand: Record<SectorId, number>
+}
+
 export interface ExternalState {
   worldPrices: Record<SectorId, number>
   reserves: Money
   exchangeRate: number // domestic per foreign; up = depreciation
+  /** the rest of world: partner cycles that drive prices and export demand */
+  world: WorldState
   /** the crisis clock's live wires (Pillar 4) */
   shocks: {
     /** quarters of failed harvest still to run; 0 = no drought */
@@ -263,6 +284,9 @@ export interface StatRecord {
    * fog: you can always count people, even when you can't survey them */
   population: number
   pyramid: number[]
+  /** terms of trade: world price of your export basket ÷ your import basket,
+   * indexed to 1946=100 — what the customs statisticians would compile */
+  termsOfTrade: number
   /** statistical capacity when measured: freezes lag, noise, existence */
   statCapacity: Ratio
   // rumor-mill inputs
@@ -353,7 +377,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 8 // v8: vital registration — birth/death rates as fogged instruments
+export const SCHEMA_VERSION = 9 // v9: the rest of world — trading partners, semi-endogenous prices
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

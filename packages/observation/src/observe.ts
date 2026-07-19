@@ -32,6 +32,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gini: { label: 'Income inequality', unit: 'Gini pts' },
   birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
   death_rate: { label: 'Death rate', unit: 'per 1000/yr' },
+  terms_of_trade: { label: 'Terms of trade', unit: '1946=100' },
 }
 
 /** Discounted effective duration of an n-quarter tenure — the denominator

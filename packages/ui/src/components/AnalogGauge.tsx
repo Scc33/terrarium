@@ -23,6 +23,7 @@ const LABELS: Record<IndicatorId, string> = {
   gini: 'INEQUALITY · GINI PTS',
   birth_rate: 'BIRTH RATE · /1000',
   death_rate: 'DEATH RATE · /1000',
+  terms_of_trade: 'TERMS OF TRADE · IDX',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78

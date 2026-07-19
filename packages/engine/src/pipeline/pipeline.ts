@@ -17,6 +17,7 @@ export interface PipelineStep {
 import { shocks } from './shocks'
 import { demography } from './demography'
 import { technology } from './technology'
+import { world } from './world'
 import { production } from './production'
 import { trade } from './trade'
 import { fiscal } from './fiscal'
@@ -31,8 +32,9 @@ export const TICK_ORDER: PipelineStep[] = [
   shocks, // the crisis clock: ruptures land before anyone works — schema v4
   demography, // the pyramid ages; cohort sizes are derived from it — schema v6
   technology, // the frontier advances; attainment chases it — schema v7
+  world, // partner cycles set export demand and world prices — schema v9
   production, // output given prices, capital, labor, I/O table
-  trade, // reserves, exchange rate, world prices
+  trade, // books external flows, reserves, exchange rate
   fiscal, // capacity-gated collection; spending with leakage; the press
   monetary, // expectations adapt; printing feeds them
   prices, // tâtonnement with cost anchor

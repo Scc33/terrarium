@@ -1,11 +1,11 @@
 /**
- * Step 2 — trade. Books the external flows production decided on, moves
- * reserves, depreciates the currency when they run out, and walks world
- * prices (exogenous in M1).
+ * Step 4 — trade. Books the external flows production decided on, moves
+ * reserves, and depreciates the currency when they run out. World prices and
+ * export demand are set upstream by the `world` step (§10); this step just
+ * settles the balance of payments at them.
  */
 
-import { DEPRECIATION_WHEN_BROKE, WORLD_PRICE_REVERT, WORLD_PRICE_VOL } from '../constants'
-import { sectorRecord } from '../math'
+import { DEPRECIATION_WHEN_BROKE } from '../constants'
 import { SECTOR_IDS } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 
@@ -30,16 +30,9 @@ export const trade: PipelineStep = {
       exchangeRate *= 1 + 0.01 * rng.normal(0, 0.2) // small float wobble
     }
 
-    // a reverting walk: wander, but drift home — so a shock-step rupture is
-    // a crisis the economy must live through, not a new permanent normal
-    const worldPrices = sectorRecord((sid) => {
-      const p = external.worldPrices[sid]
-      return Math.max(0.2, p * (1 + rng.normal(0, WORLD_PRICE_VOL[sid]) + WORLD_PRICE_REVERT * (1 - p)))
-    })
-
     return {
       ...state,
-      external: { ...external, worldPrices, reserves, exchangeRate },
+      external: { ...external, reserves, exchangeRate },
       flows: { ...flows, tariffBase: importsValue },
     }
   },

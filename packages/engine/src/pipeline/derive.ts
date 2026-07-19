@@ -1,6 +1,13 @@
 /** Shared derived quantities used by several steps. Pure reads, no mutation. */
 
-import { CAPITAL_ELASTICITY, LABOR_ELASTICITY, LIVING_STANDARD_1946, PARTICIPATION } from '../constants'
+import {
+  CAPITAL_ELASTICITY,
+  EXPORT_BASE_SHARE,
+  IMPORT_BASE_SHARE,
+  LABOR_ELASTICITY,
+  LIVING_STANDARD_1946,
+  PARTICIPATION,
+} from '../constants'
 import { COHORT_IDS, SECTOR_IDS, type CohortId, type Sector, type SectorId, type TrueState } from '../state/schema'
 
 export function potentialOutput(s: Sector): number {
@@ -88,6 +95,25 @@ export function giniIndex(state: TrueState): number {
     areaTwice += f * (prev + cumShare)
   }
   return Math.max(0, 1 - areaTwice)
+}
+
+/** Terms of trade: the world price of your export basket relative to your
+ * import basket, indexed to 1946 (=100). Falls when the things you buy
+ * abroad (energy, machinery) outrun the things you sell. */
+export function termsOfTrade(state: TrueState): number {
+  const wp = state.external.worldPrices
+  let exp = 0
+  let imp = 0
+  let exp0 = 0
+  let imp0 = 0
+  for (const sid of SECTOR_IDS) {
+    exp += EXPORT_BASE_SHARE[sid] * wp[sid]
+    imp += IMPORT_BASE_SHARE[sid] * wp[sid]
+    exp0 += EXPORT_BASE_SHARE[sid]
+    imp0 += IMPORT_BASE_SHARE[sid]
+  }
+  if (imp <= 1e-9 || imp0 <= 1e-9 || exp0 <= 1e-9) return 100
+  return (100 * (exp / imp)) / (exp0 / imp0)
 }
 
 /** Household own-basket price level for a cohort (base = 1). */

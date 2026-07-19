@@ -116,6 +116,7 @@ export {
   PROSPERITY_GRADE_CUTS,
   WELFARE_DISCOUNT_Q,
 } from './constants'
-export { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
-export type { DemographyState, TechState } from './state/schema'
+export { AGE_BANDS, PARTNER_IDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
+export type { DemographyState, PartnerId, TechState, WorldPartner, WorldState } from './state/schema'
 export { absorptiveCapacity, frontierGrowthAt } from './pipeline/technology'
+export { termsOfTrade } from './pipeline/derive'
