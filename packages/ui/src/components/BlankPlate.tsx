@@ -9,12 +9,15 @@ import type { IndicatorId } from '@terrarium/observation'
 const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   gdp_growth: { label: 'GDP GROWTH', needs: 'NATIONAL ACCOUNTS' },
   inflation: { label: 'INFLATION', needs: 'PRICE COLLECTION' },
+  price_food: { label: 'FOOD PRICES', needs: 'PRICE BUREAU' },
+  price_fuel: { label: 'FUEL PRICES', needs: 'PRICE BUREAU' },
   unemployment: { label: 'UNEMPLOYMENT', needs: 'LABOUR FORCE SURVEY' },
   payrolls: { label: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY' },
   capital_stock: { label: 'CAPITAL STOCK', needs: 'CENSUS OF INDUSTRY' },
   conf_consumer: { label: 'CONSUMER CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
   conf_business: { label: 'BUSINESS CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
   approval: { label: 'APPROVAL POLL', needs: 'FIELD POLLING' },
+  gini: { label: 'INCOME INEQUALITY', needs: 'HOUSEHOLD SURVEY' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {

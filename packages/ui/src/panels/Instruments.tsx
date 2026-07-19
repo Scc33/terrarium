@@ -16,7 +16,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
   const maturity = deriveMaturity(pub)
   const trail = useGame((s) => s.corridorTrail)
   return (
-    <div className="grid h-full min-w-0 grid-cols-1 gap-2 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-h-0 [&>*]:min-w-0">
+    <div className="grid h-full min-w-0 grid-cols-1 gap-2 overflow-y-auto p-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 [&>*]:min-h-0 [&>*]:min-w-0">
       {INDICATOR_IDS.map((id) => (
         <Gauge key={id} indicator={id} maturity={maturity[id]} series={pub.indicators[id]} now={pub.tick} />
       ))}

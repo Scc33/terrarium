@@ -17,7 +17,7 @@ import type {
   TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { approvalIndex } from './derive'
+import { approvalIndex, effectivePrice, giniIndex } from './derive'
 
 interface IndicatorSpec {
   id: IndicatorId
@@ -30,6 +30,9 @@ interface IndicatorSpec {
   fundedAt: number
   /** GDP only: attach level estimates to each print */
   withLevels?: boolean
+  /** price boards are read off the market same-quarter: always lag 1,
+   * even when the office is too poor to compile anything else quickly */
+  fastLag?: boolean
 }
 
 export const INDICATOR_SPECS: IndicatorSpec[] = [
@@ -48,6 +51,22 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     trueValue: (h, q) => h[q].inflationQ * 4 * 100,
     baseSd: 3.0,
     fundedAt: 0.08, // somebody has to walk the markets writing down prices
+  },
+  {
+    id: 'price_food',
+    trueValue: (h, q) => h[q].priceFood * 100,
+    baseSd: 0.04,
+    relativeSd: true,
+    fundedAt: 0.2, // a price bureau: clerks copying the market boards
+    fastLag: true,
+  },
+  {
+    id: 'price_fuel',
+    trueValue: (h, q) => h[q].priceFuel * 100,
+    baseSd: 0.04,
+    relativeSd: true,
+    fundedAt: 0.2, // same clerks, the depot price list
+    fastLag: true,
   },
   {
     id: 'unemployment',
@@ -87,6 +106,12 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 6,
     fundedAt: 0.25, // field polling: clipboards on doorsteps nationwide
   },
+  {
+    id: 'gini',
+    trueValue: (h, q) => h[q].gini * 100,
+    baseSd: 3,
+    fundedAt: 0.55, // a full household income & expenditure survey
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -107,6 +132,9 @@ function recordOf(state: TrueState): StatRecord {
     confConsumer: ledger.confidence.consumer,
     confBusiness: ledger.confidence.business,
     approvalIndex: approvalIndex(state),
+    priceFood: effectivePrice(state, 'agri'),
+    priceFuel: effectivePrice(state, 'energy'),
+    gini: giniIndex(state),
     statCapacity: gov.capacity.statistical,
     satisfiedAgri: flows.satisfied.agri,
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),
@@ -136,7 +164,7 @@ function printsDue(
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       if (cap < spec.fundedAt) continue // the survey didn't exist that quarter
-      if (lagFor(cap) !== lag) continue
+      if ((spec.fastLag ? 1 : lagFor(cap)) !== lag) continue
       const truth = spec.trueValue(record, q)
       const sd =
         spec.baseSd * (spec.relativeSd ? Math.abs(truth) : 1) * noiseScale(cap) * Math.pow(0.45, r)

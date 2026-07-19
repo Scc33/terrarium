@@ -12,12 +12,15 @@ import { niceBounds, qtrLabel, shapeSeries } from './series'
 const LABELS: Record<IndicatorId, string> = {
   gdp_growth: 'GDP GROWTH · %/YR',
   inflation: 'INFLATION · %/YR',
+  price_food: 'FOOD PRICES · 1946=100',
+  price_fuel: 'FUEL PRICES · 1946=100',
   unemployment: 'UNEMPLOYMENT · %',
   payrolls: 'PAYROLLS EX-AGRI · M',
   capital_stock: 'CAPITAL STOCK · IDX',
   conf_consumer: 'CONSUMER CONFIDENCE',
   conf_business: 'BUSINESS CONFIDENCE',
   approval: 'APPROVAL POLL · %',
+  gini: 'INEQUALITY · GINI PTS',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78

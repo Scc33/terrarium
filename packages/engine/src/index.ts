@@ -101,4 +101,4 @@ export type {
   TrueState,
 } from './state/schema'
 export { TICK_ORDER } from './pipeline/pipeline'
-export { potentialOutput, cohortCpi, laborForce, totalLaborForce, approvalIndex } from './pipeline/derive'
+export { potentialOutput, cohortCpi, laborForce, totalLaborForce, approvalIndex, giniIndex } from './pipeline/derive'

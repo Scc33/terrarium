@@ -13,12 +13,15 @@ import type { IndicatorId, PublishedState, ReportCard } from './published'
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'GDP growth', unit: '% / yr' },
   inflation: { label: 'Inflation', unit: '% / yr' },
+  price_food: { label: 'Food price board', unit: '1946=100' },
+  price_fuel: { label: 'Fuel price board', unit: '1946=100' },
   unemployment: { label: 'Unemployment', unit: '%' },
   payrolls: { label: 'Payrolls ex-agri', unit: 'M jobs' },
   capital_stock: { label: 'Capital stock', unit: 'index' },
   conf_consumer: { label: 'Consumer confidence', unit: 'idx' },
   conf_business: { label: 'Business confidence', unit: 'idx' },
   approval: { label: 'Approval poll', unit: '%' },
+  gini: { label: 'Income inequality', unit: 'Gini pts' },
 }
 
 /** The card only exists when the book is closed — mid-run, the cumulative

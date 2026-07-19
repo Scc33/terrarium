@@ -27,12 +27,15 @@ export type CapacityId = (typeof CAPACITY_IDS)[number]
 export const INDICATOR_IDS = [
   'gdp_growth',
   'inflation',
+  'price_food',
+  'price_fuel',
   'unemployment',
   'payrolls',
   'capital_stock',
   'conf_consumer',
   'conf_business',
   'approval',
+  'gini',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
@@ -189,6 +192,11 @@ export interface StatRecord {
   confBusiness: Ratio
   /** enfranchisement-weighted approval — what a pollster would find */
   approvalIndex: Ratio
+  /** consumer-facing prices off the market boards (fuel includes the excise) */
+  priceFood: number
+  priceFuel: number
+  /** income Gini across cohorts, 0..1 — what a household survey would find */
+  gini: Ratio
   /** statistical capacity when measured: freezes lag, noise, existence */
   statCapacity: Ratio
   // rumor-mill inputs
@@ -277,7 +285,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 4 // v4: crisis shocks, §3.3 prosperity score, deposedAt
+export const SCHEMA_VERSION = 5 // v5: sector price boards + household-survey Gini (§6.1 disaggregation)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

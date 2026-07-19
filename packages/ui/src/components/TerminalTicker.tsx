@@ -12,12 +12,15 @@ import { qtrLabel, shapeSeries, type ShapedPoint } from './series'
 const LABELS: Record<IndicatorId, string> = {
   gdp_growth: 'GDP.GROWTH %/YR',
   inflation: 'CPI.INFL %/YR',
+  price_food: 'PX.FOOD IDX',
+  price_fuel: 'PX.FUEL IDX',
   unemployment: 'UNEMP %',
   payrolls: 'PAYROLL.XA M',
   capital_stock: 'CAP.STOCK IDX',
   conf_consumer: 'CONF.CONS IDX',
   conf_business: 'CONF.BIZ IDX',
   approval: 'APPROVAL %',
+  gini: 'GINI PTS',
 }
 
 const W = 300

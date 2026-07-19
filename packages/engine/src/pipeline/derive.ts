@@ -42,6 +42,28 @@ export function approvalIndex(state: TrueState): number {
   return weightSum > 0 ? weightedApproval / weightSum : 0.5
 }
 
+/** Income Gini across cohorts (grouped lower bound: within-cohort equality).
+ * Income = wages + transfers + profits, per capita — what a household income
+ * survey would tabulate, transfers included, so redistribution moves it. */
+export function giniIndex(state: TrueState): number {
+  const groups = state.cohorts
+    .filter((c) => c.size > 1e-9)
+    .map((c) => ({ pop: c.size, income: c.wageIncome + c.transferIncome + c.profitIncome }))
+    .sort((a, b) => a.income / a.pop - b.income / b.pop)
+  const popTotal = groups.reduce((s, g) => s + g.pop, 0)
+  const incTotal = groups.reduce((s, g) => s + Math.max(g.income, 0), 0)
+  if (popTotal <= 1e-9 || incTotal <= 1e-9) return 0
+  let cumShare = 0
+  let areaTwice = 0 // Σ fᵢ·(Sᵢ₋₁ + Sᵢ) — twice the area under the Lorenz curve
+  for (const g of groups) {
+    const f = g.pop / popTotal
+    const prev = cumShare
+    cumShare += Math.max(g.income, 0) / incTotal
+    areaTwice += f * (prev + cumShare)
+  }
+  return Math.max(0, 1 - areaTwice)
+}
+
 /** Household own-basket price level for a cohort (base = 1). */
 export function cohortCpi(state: TrueState, cohortId: CohortId): number {
   const c = state.cohorts.find((x) => x.id === cohortId)!
