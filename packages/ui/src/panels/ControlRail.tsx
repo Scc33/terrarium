@@ -112,12 +112,15 @@ const CAP_LABELS: Record<CapacityId, string> = {
   tax: 'Tax admin',
   statistical: 'Stat office',
   administrative: 'Civil service',
+  education: 'Schools',
 }
 
 const CAP_TIPS: Record<CapacityId, string> = {
   tax: 'Gates what the treasury can actually collect from the tax base.',
   statistical: 'Lifts the fog: funds surveys, shortens lags, shrinks error bands, unlocks instruments.',
   administrative: 'How much of every programme survives delivery instead of leaking.',
+  education:
+    'Human capital: sets how fast the country can absorb the world technology frontier, and schooling pulls fertility down. Slow to build, slower to matter — and the only way out of the middle.',
 }
 
 function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {

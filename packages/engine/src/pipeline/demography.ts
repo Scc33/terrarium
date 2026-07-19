@@ -15,6 +15,8 @@
 
 import {
   BASE_WORKER_SHARE,
+  EDUCATION_1946,
+  FERT_EDU_GAIN,
   FERT_INCOME_GAIN,
   FERT_MAX,
   FERT_MIN,
@@ -86,6 +88,7 @@ export const demography: PipelineStep = {
         FERT_INCOME_GAIN * Math.max(0, lnLiving) -
         FERT_URBAN_GAIN * Math.max(0, urbanShare - 0.5) -
         FERT_SURVIVAL_GAIN * (1 - mortalityIndex) -
+        FERT_EDU_GAIN * Math.max(0, state.gov.capacity.education - EDUCATION_1946) -
         FERT_SECULAR_Q * state.meta.tick,
       FERT_MIN,
       FERT_MAX,

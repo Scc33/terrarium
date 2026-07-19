@@ -117,4 +117,5 @@ export {
   WELFARE_DISCOUNT_Q,
 } from './constants'
 export { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
-export type { DemographyState } from './state/schema'
+export type { DemographyState, TechState } from './state/schema'
+export { absorptiveCapacity, frontierGrowthAt } from './pipeline/technology'

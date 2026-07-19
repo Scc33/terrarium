@@ -6,7 +6,7 @@ export const standardCountry: CountryParams = {
   name: 'Meridia',
   development: 0.35,
   openness: 1.0,
-  capacities: { tax: 0.25, statistical: 0.18, administrative: 0.3 },
+  capacities: { tax: 0.25, statistical: 0.18, administrative: 0.3, education: 0.2 },
   cohortSizes: {
     rural_workers: 12,
     urban_workers: 8,

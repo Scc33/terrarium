@@ -30,7 +30,7 @@ export const WORKING_CLASS_IDS = [
 ] as const
 export type WorkingClassId = (typeof WORKING_CLASS_IDS)[number]
 
-export const CAPACITY_IDS = ['tax', 'statistical', 'administrative'] as const
+export const CAPACITY_IDS = ['tax', 'statistical', 'administrative', 'education'] as const
 export type CapacityId = (typeof CAPACITY_IDS)[number]
 
 export const INDICATOR_IDS = [
@@ -182,6 +182,19 @@ export interface ExternalState {
   }
 }
 
+// ---------- technology (§9: two trees and the gap) ----------
+export interface TechState {
+  /** the global frontier — advancing on a roughly historical schedule,
+   * mostly indifferent to you (index, 1946 = 1) */
+  frontier: number
+  /** what this country has actually attained, per sector (1946 = 1).
+   * The gap to the sector's frontier is the whole drama of development. */
+  attained: Record<SectorId, number>
+  /** economy-wide attained tfp growth last quarter — what wage bargaining
+   * passes through near full employment */
+  tfpGrowthQ: number
+}
+
 // ---------- politics ----------
 export interface PoliticalState {
   politicalCapital: number
@@ -305,6 +318,7 @@ export interface TrueState {
   }
   params: CountryParams
   demography: DemographyState
+  tech: TechState
   cohorts: Cohort[]
   sectors: Sector[]
   io: IOTable
@@ -326,7 +340,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 6 // v6: M4 demography — the age pyramid drives cohort sizes
+export const SCHEMA_VERSION = 7 // v7: M4 technology — two trees, the gap, and the education capacity
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

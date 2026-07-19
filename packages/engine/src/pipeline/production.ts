@@ -22,7 +22,6 @@ import {
   NATURAL_UNEMPLOYMENT,
   SAVINGS_DRAWDOWN,
   taxEfficiency,
-  TFP_DRIFT_Q,
   TRADE_ELASTICITY,
 } from '../constants'
 import { clamp, leontiefGross, sectorRecord } from '../math'
@@ -32,14 +31,12 @@ import { cohortCpi, effectivePrice, potentialOutput } from './derive'
 
 export const production: PipelineStep = {
   name: 'production',
-  run(state, rng) {
+  run(state) {
     const { io, market, gov, external } = state
 
-    // exogenous technology drip (the frontier, M1 minimal)
-    const sectors = state.sectors.map((s) => ({
-      ...s,
-      tfp: s.tfp * (1 + TFP_DRIFT_Q + rng.normal(0, 0.001)),
-    }))
+    // technology now arrives via the tech step (§9) — production just works
+    // with the tfp it was handed
+    const sectors = state.sectors.map((s) => ({ ...s }))
     const qPot = sectors.map(potentialOutput)
 
     // --- household demand from last tick's net incomes ---

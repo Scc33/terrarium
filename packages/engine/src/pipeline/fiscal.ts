@@ -7,7 +7,7 @@
 
 import {
   BOND_MARKET_DEPTH,
-  CAPACITY_DECAY_Q,
+  CAPACITY_DECAY_BY_ID,
   DEBT_CEILING,
   RISK_PREMIUM_SLOPE,
   taxEfficiency,
@@ -72,7 +72,7 @@ export const fiscal: PipelineStep = {
       if (b.remaining > 1) pipeline.push({ ...b, remaining: b.remaining - 1 })
     }
     for (const cid of CAPACITY_IDS) {
-      capacity[cid] = clamp(capacity[cid] * (1 - CAPACITY_DECAY_Q), 0, 1)
+      capacity[cid] = clamp(capacity[cid] * (1 - CAPACITY_DECAY_BY_ID[cid]), 0, 1)
     }
 
     return {

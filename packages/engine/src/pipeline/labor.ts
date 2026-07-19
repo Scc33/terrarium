@@ -12,7 +12,6 @@ import {
   NORMAL_UTILIZATION,
   SUBSISTENCE_ABSORPTION_Q,
   SUBSISTENCE_CAP,
-  TFP_DRIFT_Q,
   WAGE_DEMAND_GAIN,
   WAGE_SLACK_GAIN,
   WAGE_INFLATION_PASSTHROUGH,
@@ -57,10 +56,11 @@ export const labor: PipelineStep = {
 
     // last tick's unemployment: bargaining power for this round of raises
     const uLast = flows.unemployment
-    // workers capture productivity gains near full employment, none in a
-    // slump; slack drags wage growth (Phillips) — the cost→price→export
+    // workers capture REALIZED productivity gains near full employment, none
+    // in a slump; slack drags wage growth (Phillips) — the cost→price→export
     // channel is what re-anchors the economy to full employment
-    const tfpTerm = TFP_DRIFT_Q * clamp(1 - 5 * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
+    const tfpTerm =
+      Math.max(0, state.tech.tfpGrowthQ) * clamp(1 - 5 * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
     const slackTerm = WAGE_SLACK_GAIN * (NATURAL_UNEMPLOYMENT - uLast)
     const newWages = sectorRecord((sid, i) => {
       const s = state.sectors[i]

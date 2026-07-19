@@ -42,7 +42,13 @@ import {
   type TickFlows,
   type TrueState,
 } from './schema'
-import { BASE_WORKER_SHARE, FERT_MAX } from '../constants'
+import {
+  BASE_WORKER_SHARE,
+  EDUCATION_1946,
+  FERT_MAX,
+  TECH_ATTAINED_BASE,
+  TECH_ATTAINED_DEV_GAIN,
+} from '../constants'
 
 // baseline gross outputs / employment / capital for a 27.5M-person country
 // at development 0.35 (a mid-poor 1946 economy)
@@ -123,6 +129,7 @@ export function generateParams(seed: Seed): CountryParams {
       tax: rng.range(0.18, 0.3),
       statistical: rng.range(0.12, 0.25),
       administrative: rng.range(0.22, 0.35),
+      education: rng.range(0.12, 0.28),
     },
     cohortSizes,
     enfranchisement: {
@@ -251,6 +258,15 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed },
     params,
     demography: initialDemography(params),
+    tech: {
+      frontier: 1,
+      // development buys position: the gap to the 1946 frontier is open from
+      // quarter one, so catch-up is immediately available to whoever can absorb
+      attained: sectorRecord(
+        () => TECH_ATTAINED_BASE + TECH_ATTAINED_DEV_GAIN * params.development,
+      ),
+      tfpGrowthQ: 0,
+    },
     cohorts,
     sectors: SECTOR_IDS.map((id) => ({
       id,
@@ -276,7 +292,11 @@ export function init(params: CountryParams, seed: Seed): TrueState {
         policyRate: 0.04,
         subsidies: {},
       },
-      capacity: { ...params.capacities },
+      // pre-M4 saves carry no education capacity — backfill the 1946 default
+      capacity: {
+        ...params.capacities,
+        education: (params.capacities.education as number | undefined) ?? EDUCATION_1946,
+      },
       pipeline: [],
       budget: { revenue: 0, outlays: 0, balance: 0 },
       debt: debt0,

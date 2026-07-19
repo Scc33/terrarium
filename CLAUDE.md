@@ -33,10 +33,11 @@ control rail / wire) — no page scroll at desktop sizes.
 - Engine change → `pnpm test` breaks golden replays → run `pnpm diff-state` and review what
   moved (that review IS the economics review) → `pnpm bless` if intentional.
 - Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
-  `--policy passive --ticks 400`). Healthy passive baseline: u ≈ 7%, inflation ≈ 0,
-  growth ≈ 1.6%/yr; ~5% deposed by 120q, ~14% by 400q — that residual is the crisis
-  clock (droughts/oil ruptures near elections), not instability. Random policy:
-  ~40% deposed, no NaN, no price explosions.
+  `--policy passive --ticks 400`). Healthy M4 passive baseline: growth ≈ 2.5%/yr,
+  inflation ≈ 0, u ≈ 12.5% century mean — the elevated u is the DESIGNED §8 youth-bulge
+  bomb an unschooled do-nothing government earns (funding education absorbs it to ~7%
+  and lifts growth past 3%). ~10% deposed by 400q, clustering at the aging endgame
+  (median ~q330). Random policy 120q: ~22% deposed, no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 
@@ -53,5 +54,12 @@ control rail / wire) — no page scroll at desktop sizes.
   election period.
 - Bond coupons are household income; redemptions go to household savings. Money paid to
   bondholders must not vanish, or every tax rise becomes an austerity bomb.
+- M4 growth needs both valves: Lewis investment (INVESTMENT_SLACK_GAIN — surplus labor
+  pulls capital widening, or a growing labor force ratchets u to 15%) and the subsistence
+  valve (SUBSISTENCE_ABSORPTION_Q, capped by the rural labor force — uncapped it recreates
+  the Malthusian trap: agri swallows the labor force, income stagnates, fertility never
+  falls). Education capacity decays at 1/4 the rate of the others (people stay taught);
+  vital rates read the income LEVEL (LIVING_STANDARD_1946 anchor), the report card reads
+  income vs your own 1946 — don't conflate the two anchors.
 - Init self-calibrates spending to the tax base (see `init.ts`) — an unbalanced opening
   budget compounds into a scripted depression.

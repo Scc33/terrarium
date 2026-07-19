@@ -4,13 +4,12 @@
  * 1946 economy (the M1 exit criterion (c)).
  */
 
-import type { CohortId, SectorId } from './state/schema'
+import type { CapacityId, CohortId, SectorId } from './state/schema'
 
 // ---------- production ----------
 export const CAPITAL_ELASTICITY = 0.35
 export const LABOR_ELASTICITY = 0.65
 export const DEPRECIATION_Q = 0.015 // capital, per quarter (war-worn stock)
-export const TFP_DRIFT_Q = 0.0035 // exogenous frontier drip in M1
 export const UTILIZATION_AT_INIT = 0.85
 /** economies run with headroom; demand at this share of potential is "neutral"
  * for prices and hiring — above it markets tighten, below it they slacken */
@@ -129,7 +128,14 @@ export const RISK_PREMIUM_SLOPE = 0.06 // adds to interest as debt/GDP grows pas
 // ---------- capacity (Layer 2) ----------
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
-export const CAPACITY_DECAY_Q = 0.004 // neglect is a policy
+/** neglect is a policy — but it rots institutions fast and people slowly:
+ * a taught generation stays taught for a working lifetime */
+export const CAPACITY_DECAY_BY_ID: Record<CapacityId, number> = {
+  tax: 0.004,
+  statistical: 0.004,
+  administrative: 0.004,
+  education: 0.001,
+}
 
 // ---------- confidence (animal spirits; kept mild — they amplify cycles) ----------
 export const CONF_NEUTRAL = 0.55
@@ -160,7 +166,47 @@ export const DROUGHT_EXTRA_QTRS: [number, number] = [1, 3] // beyond the onset q
  * crisis instead of a new normal (half-life ≈ 5–6 years) */
 export const WORLD_PRICE_REVERT = 0.03
 
+// ---------- technology (§9) ----------
+/** The frontier's roughly historical schedule: golden age, the 1973
+ * slowdown, the ICT bump, secular stagnation. Annual growth by start year;
+ * the tech step interpolates nothing — eras switch on the quarter. */
+export const FRONTIER_ERAS: Array<{ fromYear: number; growthPerYear: number }> = [
+  { fromYear: 1946, growthPerYear: 0.02 },
+  { fromYear: 1973, growthPerYear: 0.011 },
+  { fromYear: 1995, growthPerYear: 0.016 },
+  { fromYear: 2005, growthPerYear: 0.011 },
+  { fromYear: 2035, growthPerYear: 0.008 },
+]
+/** how much of the frontier each sector can ride (Baumol: the string
+ * quartet still takes four players) */
+export const TECH_EXPOSURE: Record<SectorId, number> = {
+  agri: 0.85, // mechanization, fertilizer, the green revolution
+  manuf: 1.0,
+  energy: 0.9,
+  services: 0.45, // the cost disease
+  transport: 0.75,
+}
+/** per-quarter share of the remaining gap closed at absorption = 1 */
+export const CATCHUP_Q = 0.02
+/** absorption = base + gain × education capacity, damped by autarky —
+ * the ceiling: you cannot absorb faster than your human capital allows,
+ * which is why "just buy the machines" fails, repeatedly and expensively */
+export const ABSORB_BASE = 0.05
+export const ABSORB_EDU_GAIN = 0.9
+export const ABSORB_OPENNESS_WEIGHT = 0.3 // share of absorption gated on trade exposure
+/** near the frontier, everyone drips forward a little on their own */
+export const FRONTIER_OWN_DRIFT_Q = 0.0008
+/** where a country starts relative to the 1946 frontier: development buys
+ * position — the gap is open from quarter one, so catch-up growth is
+ * available immediately to whoever can absorb */
+export const TECH_ATTAINED_BASE = 0.45
+export const TECH_ATTAINED_DEV_GAIN = 0.5
+
 // ---------- demography (§8) ----------
+/** schooling suppresses fertility beyond the income channel (§8: female
+ * education) — TFR drop per unit of education capacity above the 1946 base */
+export const FERT_EDU_GAIN = 1.2
+export const EDUCATION_1946 = 0.2 // default education capacity for old saves
 /** real consumption per capita of the standard 1946 country, in engine
  * units — the ABSOLUTE anchor for demographic behavior. Vital rates respond
  * to the level of income (a richer country starts its transition further
@@ -221,13 +267,13 @@ export const WELFARE_DISCOUNT_Q = 0.995
  * growth over the tenure's discounted effective duration (%/yr) — tenure-
  * independent, so a short brilliant government isn't double-punished on an
  * axis that isn't survival. Calibrated 2026-07 on 150 passive + 150 random
- * centuries under M4 demography: passive sits in a tight 1.18–1.38 band
- * (C — safe but mediocre, by design; per-capita welfare carries the
- * dependency burden now), random median 2.03, p95 2.88, wreckage to −5. */
+ * centuries under full M4 (demography + two-tree technology): passive sits
+ * in a 0.91–1.41 band (C — safe but mediocre, by design; the unschooled
+ * century leaves catch-up on the table), random median 2.11, p95 3.22. */
 export const PROSPERITY_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
-  { atLeast: 2.8, grade: 'A' }, // sustained policy clearly among the best runs
+  { atLeast: 3.2, grade: 'A' }, // sustained policy clearly among the best runs
   { atLeast: 1.8, grade: 'B' }, // beat the do-nothing century
-  { atLeast: 1.0, grade: 'C' }, // the passive band: growth happened around you
+  { atLeast: 0.85, grade: 'C' }, // the passive band: growth happened around you
   { atLeast: 0.0, grade: 'D' }, // living standards barely moved
 ] // below every cut: F — the nation got poorer under you
 
