@@ -15,6 +15,7 @@ export interface PipelineStep {
 }
 
 import { shocks } from './shocks'
+import { demography } from './demography'
 import { production } from './production'
 import { trade } from './trade'
 import { fiscal } from './fiscal'
@@ -27,6 +28,7 @@ import { politics } from './politics'
 
 export const TICK_ORDER: PipelineStep[] = [
   shocks, // the crisis clock: ruptures land before anyone works — schema v4
+  demography, // the pyramid ages; cohort sizes are derived from it — schema v6
   production, // output given prices, capital, labor, I/O table
   trade, // reserves, exchange rate, world prices
   fiscal, // capacity-gated collection; spending with leakage; the press

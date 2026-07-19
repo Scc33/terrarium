@@ -98,8 +98,10 @@ export function observe(state: TrueState): PublishedState {
       reserves: r.reserves,
     })),
     population: {
-      total: Object.values(state.params.cohortSizes).reduce((a, b) => a + b, 0),
+      // census-grade facts: heads are countable without a statistical office
+      total: state.demography.pyramid.reduce((a, b) => a + b, 0),
       laborForce: totalLaborForce(state),
+      pyramid: [...state.demography.pyramid],
     },
     reserves: state.external.reserves,
     exchangeRate: state.external.exchangeRate,

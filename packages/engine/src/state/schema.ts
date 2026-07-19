@@ -21,6 +21,15 @@ export const COHORT_IDS = [
 ] as const
 export type CohortId = (typeof COHORT_IDS)[number]
 
+/** the classes whose size is the non-retired population, split by share */
+export const WORKING_CLASS_IDS = [
+  'rural_workers',
+  'urban_workers',
+  'professionals',
+  'business_owners',
+] as const
+export type WorkingClassId = (typeof WORKING_CLASS_IDS)[number]
+
 export const CAPACITY_IDS = ['tax', 'statistical', 'administrative'] as const
 export type CapacityId = (typeof CAPACITY_IDS)[number]
 
@@ -52,6 +61,37 @@ export interface CountryParams {
   cohortSizes: Record<CohortId, number>
   /** starting enfranchisement weights */
   enfranchisement: Record<CohortId, Ratio>
+  /** 1946 age pyramid, persons (millions) per 5-year band, 0–4 first.
+   * Optional for saves from before M4 — init synthesizes one to match
+   * cohortSizes when absent. */
+  pyramid?: number[]
+}
+
+// ---------- demography (§8: the century IS the transition window) ----------
+export const AGE_BANDS = 17 // 0–4, 5–9, …, 80+
+/** band index at which people leave the labor force (60+: period-realistic,
+ * and it makes the pension arithmetic bite when the pyramid inverts) */
+export const RETIREMENT_BAND = 12
+/** first and last band of working age (15–59) */
+export const WORKING_BANDS: [number, number] = [3, 11]
+/** childbearing bands (15–39) */
+export const FERTILE_BANDS: [number, number] = [3, 7]
+
+export interface DemographyState {
+  /** persons (millions) per 5-year band */
+  pyramid: number[]
+  /** total fertility rate currently implied by income/urbanization/norms */
+  tfr: number
+  /** multiplier on the base mortality schedule (falls with income + time) */
+  mortalityIndex: number
+  /** net migration this quarter, millions (+ = immigration) */
+  netMigrationQ: number
+  /** (working-age / non-retired) relative to the 1946 baseline — scales
+   * participation, so the dividend and the aging squeeze reach the labor
+   * market through one number */
+  workerShareMult: number
+  /** how the non-retired population splits into the four working classes */
+  classShares: Record<WorkingClassId, Ratio>
 }
 
 // ---------- population ----------
@@ -264,6 +304,7 @@ export interface TrueState {
     seed: Seed
   }
   params: CountryParams
+  demography: DemographyState
   cohorts: Cohort[]
   sectors: Sector[]
   io: IOTable
@@ -285,7 +326,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 5 // v5: sector price boards + household-survey Gini (§6.1 disaggregation)
+export const SCHEMA_VERSION = 6 // v6: M4 demography — the age pyramid drives cohort sizes
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

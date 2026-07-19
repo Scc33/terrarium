@@ -14,7 +14,6 @@ import {
   CONF_NEUTRAL,
   LABOR_SOURCE,
   LOSS_AVERSION,
-  PARTICIPATION,
   PROFIT_SHARE,
   taxEfficiency,
   TRANSFER_SHARE,
@@ -23,7 +22,7 @@ import {
 import { clamp } from '../math'
 import { END_OF_HISTORY_TICK, SECTOR_IDS, type Cohort } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { cohortCpi } from './derive'
+import { cohortCpi, laborForce, meanLogConsumption } from './derive'
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
@@ -40,6 +39,7 @@ export const cohorts: PipelineStep = {
       return s + (gross > 0 ? gross * (1 - corpTaxEff) : gross)
     }, 0)
     const transfersDelivered = gov.dials.spending.transfers * adminEff
+    const lf = laborForce(state)
 
     const newCohorts: Cohort[] = state.cohorts.map((c) => {
       // wages from current staffing of each sector
@@ -76,7 +76,7 @@ export const cohorts: PipelineStep = {
       const growth = c.lastRealIncome > 1e-9 ? realIncome / c.lastRealIncome - 1 : 0
       const adjGrowth = growth < 0 ? growth * LOSS_AVERSION : growth
       const basketInflAnnual = c.lastCpi > 1e-9 ? (cpi / c.lastCpi - 1) * 4 : 0
-      const lfc = c.size * PARTICIPATION[c.id]
+      const lfc = lf[c.id]
       const jobless = lfc > 1e-9 ? clamp(1 - employed / lfc, 0, 1) : 0
       let shortage = 0
       for (const sid of SECTOR_IDS) {
@@ -145,14 +145,7 @@ export const cohorts: PipelineStep = {
     // else's record, so the verdict must not drift if the sim keeps running.
     let score = state.score
     if (state.politics.deposedAt === null && state.meta.tick < END_OF_HISTORY_TICK) {
-      let logSum = 0
-      let popSum = 0
-      for (const c of newCohorts) {
-        const cpc = flows.cohortSpend[c.id] / cohortCpi(state, c.id) / Math.max(c.size, 1e-9)
-        logSum += c.size * Math.log(Math.max(cpc, 0.01))
-        popSum += c.size
-      }
-      const welfareQ = popSum > 1e-9 ? logSum / popSum : 0
+      const welfareQ = meanLogConsumption(state)
       const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
       score = {
         discountedWelfare: state.score.discountedWelfare + beta * welfareQ,

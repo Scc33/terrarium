@@ -85,7 +85,7 @@ describe('the report card (§3.3)', () => {
   })
 
   it('grades the axes separately: passive prosperity is a C, consent decides legitimacy', () => {
-    // the passive band is calibrated to land in C (1.2–2.0 %/yr) at ANY tenure
+    // the passive band is calibrated to land in C (1.0–1.8 %/yr) at ANY tenure
     // length — the rate normalization is what keeps the axes from bleeding
     const deposed: TrueState = {
       ...live,
@@ -93,8 +93,8 @@ describe('the report card (§3.3)', () => {
     }
     const card = observe(deposed).reportCard!
     expect(card.prosperityGrade).toBe('C')
-    expect(card.prosperityRate).toBeGreaterThan(1.2)
-    expect(card.prosperityRate).toBeLessThan(2.0)
+    expect(card.prosperityRate).toBeGreaterThan(1.0)
+    expect(card.prosperityRate).toBeLessThan(1.8)
     expect(card.legitimacyGrade).toBe('B') // five mandates before the fall
 
     const never: TrueState = {

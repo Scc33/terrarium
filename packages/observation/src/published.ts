@@ -67,8 +67,8 @@ export interface PublishedState {
     debt: number
     reserves: number
   }>
-  /** census-grade facts (static in M1; demography arrives in M4) */
-  population: { total: number; laborForce: number }
+  /** census-grade facts — live from M4 on: the transition is the century */
+  population: { total: number; laborForce: number; pyramid: number[] }
   reserves: number
   exchangeRate: number
   politicalCapital: number

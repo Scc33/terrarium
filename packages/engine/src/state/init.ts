@@ -26,17 +26,23 @@ import {
 } from '../constants'
 import { sectorRecord } from '../math'
 import {
+  AGE_BANDS,
   COHORT_IDS,
   ELECTION_PERIOD,
   ENGINE_VERSION,
+  RETIREMENT_BAND,
   SCHEMA_VERSION,
   SECTOR_IDS,
+  WORKING_BANDS,
+  WORKING_CLASS_IDS,
   type Cohort,
   type CountryParams,
+  type DemographyState,
   type SectorId,
   type TickFlows,
   type TrueState,
 } from './schema'
+import { BASE_WORKER_SHARE, FERT_MAX } from '../constants'
 
 // baseline gross outputs / employment / capital for a 27.5M-person country
 // at development 0.35 (a mid-poor 1946 economy)
@@ -46,12 +52,69 @@ const BASE_CAPITAL: Record<SectorId, number> = { agri: 40, manuf: 60, energy: 30
 const BASE_POP = 27.5
 const BASE_DEVELOPMENT = 0.35
 
+/** The standard 1946 pyramid for a 27.5M mid-poor country: young and broad
+ * (35% under 15), thinning fast past 60. Bands sum to BASE_POP; 60+ sums to
+ * 3.0 (the standard retiree class). */
+const PYRAMID_1946 = [
+  3.6, 3.2, 2.8, // 0–14
+  2.45, 2.2, 1.95, 1.75, 1.55, 1.4, 1.3, 1.2, 1.1, // 15–59
+  1.05, 0.85, 0.6, 0.35, 0.15, // 60+
+]
+
+/** Synthesize a 1946-shaped pyramid consistent with class sizes: the
+ * standard shape, rescaled so the non-retired bands sum to the working
+ * classes and the 60+ bands to the retiree class. Also the lenient path for
+ * pre-M4 saves whose params carry no pyramid. */
+export function synthPyramid(cohortSizes: CountryParams['cohortSizes']): number[] {
+  const retired = cohortSizes.retirees
+  const nonRetired =
+    cohortSizes.rural_workers +
+    cohortSizes.urban_workers +
+    cohortSizes.professionals +
+    cohortSizes.business_owners
+  const baseNonRetired = PYRAMID_1946.slice(0, RETIREMENT_BAND).reduce((a, b) => a + b, 0)
+  const baseRetired = PYRAMID_1946.slice(RETIREMENT_BAND).reduce((a, b) => a + b, 0)
+  return PYRAMID_1946.map((n, i) =>
+    i < RETIREMENT_BAND ? (n * nonRetired) / baseNonRetired : (n * retired) / baseRetired,
+  )
+}
+
+function initialDemography(params: CountryParams): DemographyState {
+  const pyramid =
+    params.pyramid && params.pyramid.length === AGE_BANDS
+      ? [...params.pyramid]
+      : synthPyramid(params.cohortSizes)
+  const nonRetired = pyramid.slice(0, RETIREMENT_BAND).reduce((a, b) => a + b, 0)
+  const workingAge = pyramid
+    .slice(WORKING_BANDS[0], WORKING_BANDS[1] + 1)
+    .reduce((a, b) => a + b, 0)
+  const classTotal = WORKING_CLASS_IDS.reduce((s, id) => s + params.cohortSizes[id], 0)
+  const classShares = Object.fromEntries(
+    WORKING_CLASS_IDS.map((id) => [id, params.cohortSizes[id] / Math.max(classTotal, 1e-9)]),
+  ) as DemographyState['classShares']
+  return {
+    pyramid,
+    tfr: FERT_MAX,
+    mortalityIndex: 1,
+    netMigrationQ: 0,
+    workerShareMult: nonRetired > 1e-9 ? workingAge / nonRetired / BASE_WORKER_SHARE : 1,
+    classShares,
+  }
+}
+
 const NAMES = ['Arcadia', 'Meridia', 'Costona', 'Veltravia', 'Kestrel', 'Oranga', 'Sellandia', 'Tavor']
 
 /** Sample a plausible country from parameter space (procedural mode). */
 export function generateParams(seed: Seed): CountryParams {
   const rng = rngFor(seed, 'genParams', 0)
   const popScale = rng.range(0.85, 1.15)
+  const cohortSizes = {
+    rural_workers: 12 * popScale * rng.range(0.9, 1.1),
+    urban_workers: 8 * popScale * rng.range(0.9, 1.1),
+    professionals: 3 * popScale * rng.range(0.9, 1.1),
+    business_owners: 1.5 * popScale,
+    retirees: 3 * popScale * rng.range(0.9, 1.1),
+  }
   return {
     name: NAMES[Math.floor(rng.next() * NAMES.length)],
     development: rng.range(0.28, 0.45),
@@ -61,13 +124,7 @@ export function generateParams(seed: Seed): CountryParams {
       statistical: rng.range(0.12, 0.25),
       administrative: rng.range(0.22, 0.35),
     },
-    cohortSizes: {
-      rural_workers: 12 * popScale * rng.range(0.9, 1.1),
-      urban_workers: 8 * popScale * rng.range(0.9, 1.1),
-      professionals: 3 * popScale * rng.range(0.9, 1.1),
-      business_owners: 1.5 * popScale,
-      retirees: 3 * popScale * rng.range(0.9, 1.1),
-    },
+    cohortSizes,
     enfranchisement: {
       rural_workers: 0.6,
       urban_workers: 0.8,
@@ -75,6 +132,8 @@ export function generateParams(seed: Seed): CountryParams {
       business_owners: 1,
       retirees: 0.9,
     },
+    // the standard 1946 shape, scaled to this country's class structure
+    pyramid: synthPyramid(cohortSizes),
   }
 }
 
@@ -191,6 +250,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
   return {
     meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed },
     params,
+    demography: initialDemography(params),
     cohorts,
     sectors: SECTOR_IDS.map((id) => ({
       id,

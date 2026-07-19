@@ -10,6 +10,8 @@ import {
   EMPLOYMENT_ADJUST,
   NATURAL_UNEMPLOYMENT,
   NORMAL_UTILIZATION,
+  SUBSISTENCE_ABSORPTION_Q,
+  SUBSISTENCE_CAP,
   TFP_DRIFT_Q,
   WAGE_DEMAND_GAIN,
   WAGE_SLACK_GAIN,
@@ -19,7 +21,7 @@ import {
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
 import type { PipelineStep } from './pipeline'
-import { laborForOutput, totalLaborForce } from './derive'
+import { laborForce, laborForOutput, totalLaborForce } from './derive'
 
 export const labor: PipelineStep = {
   name: 'labor',
@@ -36,6 +38,17 @@ export const labor: PipelineStep = {
     })
     let newEmployment = state.sectors.map((s, i) =>
       Math.max(0.01, s.employment + EMPLOYMENT_ADJUST * (targets[i] - s.employment)),
+    )
+    // the subsistence valve: idle hands drift onto the family farm rather
+    // than a dole queue that doesn't exist — open unemployment becomes
+    // agricultural underemployment at falling marginal product. Farms can
+    // only stretch as far as the rural labor force reaches.
+    const agriIdx = state.sectors.findIndex((s) => s.id === 'agri')
+    const ruralLf = laborForce(state).rural_workers
+    const idle = Math.max(0, lf - newEmployment.reduce((a, b) => a + b, 0))
+    newEmployment[agriIdx] = Math.min(
+      newEmployment[agriIdx] + SUBSISTENCE_ABSORPTION_Q * idle,
+      SUBSISTENCE_CAP * ruralLf,
     )
     // the economy can't employ more people than exist
     const totalEmp = newEmployment.reduce((a, b) => a + b, 0)

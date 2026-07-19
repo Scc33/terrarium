@@ -101,9 +101,20 @@ export type {
   TrueState,
 } from './state/schema'
 export { TICK_ORDER } from './pipeline/pipeline'
-export { potentialOutput, cohortCpi, laborForce, totalLaborForce, approvalIndex, giniIndex } from './pipeline/derive'
+export {
+  potentialOutput,
+  cohortCpi,
+  laborForce,
+  totalLaborForce,
+  approvalIndex,
+  giniIndex,
+  meanLogConsumption,
+  livingStandard,
+} from './pipeline/derive'
 export {
   LEGITIMACY_GRADE_ELECTIONS,
   PROSPERITY_GRADE_CUTS,
   WELFARE_DISCOUNT_Q,
 } from './constants'
+export { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
+export type { DemographyState } from './state/schema'

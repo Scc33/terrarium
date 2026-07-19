@@ -21,4 +21,11 @@ export const standardCountry: CountryParams = {
     business_owners: 1,
     retirees: 0.9,
   },
+  // young 1946 pyramid: 35% under 15, 60+ sums to the 3.0 retiree class,
+  // bands sum to the 27.5 total (5-year bands, 0–4 first)
+  pyramid: [
+    3.6, 3.2, 2.8, // 0–14
+    2.45, 2.2, 1.95, 1.75, 1.55, 1.4, 1.3, 1.2, 1.1, // 15–59
+    1.05, 0.85, 0.6, 0.35, 0.15, // 60+
+  ],
 }

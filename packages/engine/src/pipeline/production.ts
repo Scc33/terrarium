@@ -14,9 +14,12 @@ import {
   DEPRECIATION_Q,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
+  INVESTMENT_FACTOR_MAX,
   INVESTMENT_RATE_SENSITIVITY,
+  INVESTMENT_SLACK_GAIN,
   MPC,
   NATURAL_REAL_RATE,
+  NATURAL_UNEMPLOYMENT,
   SAVINGS_DRAWDOWN,
   taxEfficiency,
   TFP_DRIFT_Q,
@@ -76,9 +79,11 @@ export const production: PipelineStep = {
       1 +
         INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
         0.5 * (avgUtil - 0.85) +
-        CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL),
+        CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
+        // surplus labor is an investment opportunity, not just a tragedy
+        INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT),
       0.5,
-      1.3,
+      INVESTMENT_FACTOR_MAX,
     )
     const privateInvReal = replacement * invFactor
     const govInvReal =

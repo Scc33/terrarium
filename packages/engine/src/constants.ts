@@ -142,6 +142,11 @@ export const EXPECTATION_ADAPT = 0.12 // per quarter, toward realized inflation
 export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (printed/GDP)
 export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investment
 export const NATURAL_REAL_RATE = 0.02
+/** Lewis-model capital widening: surplus labor (cheap hands, fat margins)
+ * pulls investment beyond replacement. Without this, a growing labor force
+ * outruns the capital stock and unemployment ratchets — the M4 lesson. */
+export const INVESTMENT_SLACK_GAIN = 3.0
+export const INVESTMENT_FACTOR_MAX = 1.7 // was 1.3 when the labor force was static
 
 // ---------- the crisis clock (Pillar 4: it always ticks) ----------
 /** per-quarter odds of a world energy rupture (~3 per century) */
@@ -155,6 +160,59 @@ export const DROUGHT_EXTRA_QTRS: [number, number] = [1, 3] // beyond the onset q
  * crisis instead of a new normal (half-life ≈ 5–6 years) */
 export const WORLD_PRICE_REVERT = 0.03
 
+// ---------- demography (§8) ----------
+/** real consumption per capita of the standard 1946 country, in engine
+ * units — the ABSOLUTE anchor for demographic behavior. Vital rates respond
+ * to the level of income (a richer country starts its transition further
+ * along), unlike the report card, which grades against the 1946 you
+ * inherited. */
+export const LIVING_STANDARD_1946 = 1.63
+/** annual mortality per person by 5-year band at the 1946 poor-country
+ * baseline (mortalityIndex = 1). The first band carries child mortality —
+ * the thing income growth crushes first, and a fertility input. */
+export const MORT_BASE_ANNUAL = [
+  0.045, 0.004, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.01, 0.013, 0.017, 0.024, 0.034,
+  0.05, 0.075, 0.115, 0.2,
+]
+/** mortality falls with the living standard (per ln of it)… */
+export const MORT_INCOME_GAIN = 0.18
+/** …and with a slow worldwide drip of medicine, whoever you are */
+export const MORT_SECULAR_Q = 0.0006
+export const MORT_FLOOR = 0.35 // even 2050 medicine has limits
+
+/** fertility: high at 1946, endogenously transitioning. You don't set it;
+ * you cause it (income, cities, surviving children, slow norm drift). */
+export const FERT_MAX = 5.6
+export const FERT_MIN = 1.55
+export const FERT_INCOME_GAIN = 1.6 // TFR drop per ln(living standard)
+export const FERT_URBAN_GAIN = 2.0 // TFR drop per unit rise in urban share
+/** surviving children need no replacements: TFR drop per unit fall in the
+ * mortality index — the transition's engine even where incomes lag */
+export const FERT_SURVIVAL_GAIN = 1.5
+export const FERT_SECULAR_Q = 0.0015 // norms/contraception drift per quarter
+export const FERTILE_YEARS = 25 // width of the childbearing window
+
+/** migration: the pressure valve. Slack labor markets push the young out;
+ * tight ones pull them in. Millions/quarter, capped. */
+export const MIG_GAIN = 0.02
+export const MIG_CAP_Q = 0.003 // as a share of total population
+
+/** The Lewis subsistence sector: a share of the openly unemployed pools
+ * into family agriculture each quarter — underemployment at falling
+ * marginal product, not a dole queue. Their pain arrives as soft food
+ * prices and lagging rural incomes (the price scissors), which is what
+ * 1946 labor surplus actually looked like. */
+export const SUBSISTENCE_ABSORPTION_Q = 0.06
+/** family farms can only stretch so far: agri employment is capped at this
+ * multiple of the rural labor force */
+export const SUBSISTENCE_CAP = 0.92
+
+/** rural→urban drift per quarter per unit of urban/rural wage gap */
+export const URBANIZATION_GAIN = 0.004
+/** working-age share of the non-retired population in the 1946 standard
+ * pyramid — normalizes workerShareMult to 1 at init */
+export const BASE_WORKER_SHARE = 0.608
+
 // ---------- §3.3 prosperity ----------
 /** quarterly discount on lived welfare (≈2%/yr) */
 export const WELFARE_DISCOUNT_Q = 0.995
@@ -163,12 +221,13 @@ export const WELFARE_DISCOUNT_Q = 0.995
  * growth over the tenure's discounted effective duration (%/yr) — tenure-
  * independent, so a short brilliant government isn't double-punished on an
  * axis that isn't survival. Calibrated 2026-07 on 150 passive + 150 random
- * centuries: passive sits in a tight 1.34–1.58 band (C — safe but mediocre,
- * by design), random median 2.12, p95 3.12, wreckage tail to −7. */
+ * centuries under M4 demography: passive sits in a tight 1.18–1.38 band
+ * (C — safe but mediocre, by design; per-capita welfare carries the
+ * dependency burden now), random median 2.03, p95 2.88, wreckage to −5. */
 export const PROSPERITY_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
-  { atLeast: 3.0, grade: 'A' }, // sustained policy clearly among the best runs
-  { atLeast: 2.0, grade: 'B' }, // beat the do-nothing century
-  { atLeast: 1.2, grade: 'C' }, // the passive band: growth happened around you
+  { atLeast: 2.8, grade: 'A' }, // sustained policy clearly among the best runs
+  { atLeast: 1.8, grade: 'B' }, // beat the do-nothing century
+  { atLeast: 1.0, grade: 'C' }, // the passive band: growth happened around you
   { atLeast: 0.0, grade: 'D' }, // living standards barely moved
 ] // below every cut: F — the nation got poorer under you
 
