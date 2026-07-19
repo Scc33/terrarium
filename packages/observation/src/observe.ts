@@ -30,6 +30,8 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   conf_business: { label: 'Business confidence', unit: 'idx' },
   approval: { label: 'Approval poll', unit: '%' },
   gini: { label: 'Income inequality', unit: 'Gini pts' },
+  birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
+  death_rate: { label: 'Death rate', unit: 'per 1000/yr' },
 }
 
 /** Discounted effective duration of an n-quarter tenure — the denominator
@@ -103,6 +105,13 @@ export function observe(state: TrueState): PublishedState {
       laborForce: totalLaborForce(state),
       pyramid: [...state.demography.pyramid],
     },
+    // the census over time — exact, like the treasury's books; the WHY of the
+    // population's change (birth/death rates) stays fogged in the indicators
+    census: state.stats.record.map((r) => ({
+      tick: r.tick,
+      population: r.population,
+      pyramid: r.pyramid,
+    })),
     reserves: state.external.reserves,
     exchangeRate: state.external.exchangeRate,
     politicalCapital: state.politics.politicalCapital,

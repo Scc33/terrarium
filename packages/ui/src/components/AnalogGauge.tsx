@@ -21,6 +21,8 @@ const LABELS: Record<IndicatorId, string> = {
   conf_business: 'BUSINESS CONFIDENCE',
   approval: 'APPROVAL POLL · %',
   gini: 'INEQUALITY · GINI PTS',
+  birth_rate: 'BIRTH RATE · /1000',
+  death_rate: 'DEATH RATE · /1000',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78

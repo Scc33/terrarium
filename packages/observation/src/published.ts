@@ -69,6 +69,9 @@ export interface PublishedState {
   }>
   /** census-grade facts — live from M4 on: the transition is the century */
   population: { total: number; laborForce: number; pyramid: number[] }
+  /** the census over time — exact head counts and age pyramids, one per
+   * quarter, no fog (heads are countable even when surveys aren't funded) */
+  census: Array<{ tick: Qtr; population: number; pyramid: number[] }>
   reserves: number
   exchangeRate: number
   politicalCapital: number

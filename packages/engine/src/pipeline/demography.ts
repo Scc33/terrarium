@@ -52,6 +52,26 @@ const sumBands = (p: number[], from: number, to: number) => {
   return s
 }
 
+/** Crude birth/death rates a registrar would tally: annualized, per 1000
+ * of the mid-quarter population. Shared by init and the step so the tick-0
+ * state and the running economy agree on the formula. */
+export function vitalRates(pyramid: number[], tfr: number, mortalityIndex: number) {
+  const totalPop = sumBands(pyramid, 0, AGE_BANDS - 1)
+  const totalDeaths = pyramid.reduce(
+    (s, n, i) => s + n * (MORT_BASE_ANNUAL[i] / 4) * mortalityIndex,
+    0,
+  )
+  const women = 0.5 * sumBands(pyramid, FERTILE_BANDS[0], FERTILE_BANDS[1])
+  const births = (tfr * women) / (FERTILE_YEARS * 4)
+  const per1000 = (flowQ: number) => (totalPop > 1e-9 ? ((flowQ * 4) / totalPop) * 1000 : 0)
+  return {
+    births,
+    totalDeaths,
+    crudeBirthRate: per1000(births),
+    crudeDeathRate: per1000(totalDeaths),
+  }
+}
+
 /** Split the non-retired population into the working classes and set the
  * retiree class to the 60+ — the one place cohort sizes are written. */
 export function classSizesFrom(
@@ -98,8 +118,7 @@ export const demography: PipelineStep = {
     const deaths = p.map((n, i) => n * (MORT_BASE_ANNUAL[i] / 4) * mortalityIndex)
     // uniform age within a 5-year band: 1/20th graduates each quarter
     const aged = p.map((n, i) => (i < AGE_BANDS - 1 ? (n - deaths[i]) / 20 : 0))
-    const women = 0.5 * sumBands(p, FERTILE_BANDS[0], FERTILE_BANDS[1])
-    const births = (tfr * women) / (FERTILE_YEARS * 4)
+    const { births, crudeBirthRate, crudeDeathRate } = vitalRates(p, tfr, mortalityIndex)
 
     // --- migration: slack pushes the young out, tightness pulls them in ---
     const totalPop = sumBands(p, 0, AGE_BANDS - 1)
@@ -143,7 +162,16 @@ export const demography: PipelineStep = {
 
     return {
       ...state,
-      demography: { pyramid, tfr, mortalityIndex, netMigrationQ, workerShareMult, classShares },
+      demography: {
+        pyramid,
+        tfr,
+        mortalityIndex,
+        netMigrationQ,
+        crudeBirthRate,
+        crudeDeathRate,
+        workerShareMult,
+        classShares,
+      },
       cohorts: classSizesFrom(pyramid, classShares, state.cohorts),
     }
   },

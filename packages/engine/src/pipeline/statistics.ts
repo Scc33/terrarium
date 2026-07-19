@@ -112,6 +112,18 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 3,
     fundedAt: 0.55, // a full household income & expenditure survey
   },
+  {
+    id: 'birth_rate',
+    trueValue: (h, q) => h[q].birthRate,
+    baseSd: 2.5,
+    fundedAt: 0.3, // a civil registry: every birth recorded at the parish
+  },
+  {
+    id: 'death_rate',
+    trueValue: (h, q) => h[q].deathRate,
+    baseSd: 2,
+    fundedAt: 0.3, // …and every death — vital registration, the old duty
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -135,6 +147,10 @@ function recordOf(state: TrueState): StatRecord {
     priceFood: effectivePrice(state, 'agri'),
     priceFuel: effectivePrice(state, 'energy'),
     gini: giniIndex(state),
+    birthRate: state.demography.crudeBirthRate,
+    deathRate: state.demography.crudeDeathRate,
+    population: state.demography.pyramid.reduce((s, n) => s + n, 0),
+    pyramid: [...state.demography.pyramid],
     statCapacity: gov.capacity.statistical,
     satisfiedAgri: flows.satisfied.agri,
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),

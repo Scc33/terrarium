@@ -49,6 +49,7 @@ import {
   TECH_ATTAINED_BASE,
   TECH_ATTAINED_DEV_GAIN,
 } from '../constants'
+import { vitalRates } from '../pipeline/demography'
 
 // baseline gross outputs / employment / capital for a 27.5M-person country
 // at development 0.35 (a mid-poor 1946 economy)
@@ -98,11 +99,14 @@ function initialDemography(params: CountryParams): DemographyState {
   const classShares = Object.fromEntries(
     WORKING_CLASS_IDS.map((id) => [id, params.cohortSizes[id] / Math.max(classTotal, 1e-9)]),
   ) as DemographyState['classShares']
+  const { crudeBirthRate, crudeDeathRate } = vitalRates(pyramid, FERT_MAX, 1)
   return {
     pyramid,
     tfr: FERT_MAX,
     mortalityIndex: 1,
     netMigrationQ: 0,
+    crudeBirthRate,
+    crudeDeathRate,
     workerShareMult: nonRetired > 1e-9 ? workingAge / nonRetired / BASE_WORKER_SHARE : 1,
     classShares,
   }

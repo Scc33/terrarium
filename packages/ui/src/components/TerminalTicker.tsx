@@ -21,6 +21,8 @@ const LABELS: Record<IndicatorId, string> = {
   conf_business: 'CONF.BIZ IDX',
   approval: 'APPROVAL %',
   gini: 'GINI PTS',
+  birth_rate: 'BIRTH.RATE /1K',
+  death_rate: 'DEATH.RATE /1K',
 }
 
 const W = 300

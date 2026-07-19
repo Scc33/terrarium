@@ -45,6 +45,8 @@ export const INDICATOR_IDS = [
   'conf_business',
   'approval',
   'gini',
+  'birth_rate',
+  'death_rate',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
@@ -86,6 +88,10 @@ export interface DemographyState {
   mortalityIndex: number
   /** net migration this quarter, millions (+ = immigration) */
   netMigrationQ: number
+  /** crude birth/death rates this quarter, annualized per 1000 — engine
+   * truth; only PUBLISHED once civil registration is funded (§8 fog) */
+  crudeBirthRate: number
+  crudeDeathRate: number
   /** (working-age / non-retired) relative to the 1946 baseline — scales
    * participation, so the dividend and the aging squeeze reach the labor
    * market through one number */
@@ -250,6 +256,13 @@ export interface StatRecord {
   priceFuel: number
   /** income Gini across cohorts, 0..1 — what a household survey would find */
   gini: Ratio
+  /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
+  birthRate: number
+  deathRate: number
+  /** the exact head count and age pyramid this quarter — census-grade, no
+   * fog: you can always count people, even when you can't survey them */
+  population: number
+  pyramid: number[]
   /** statistical capacity when measured: freezes lag, noise, existence */
   statCapacity: Ratio
   // rumor-mill inputs
@@ -340,7 +353,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 7 // v7: M4 technology — two trees, the gap, and the education capacity
+export const SCHEMA_VERSION = 8 // v8: vital registration — birth/death rates as fogged instruments
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

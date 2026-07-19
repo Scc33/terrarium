@@ -18,6 +18,8 @@ const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   conf_business: { label: 'BUSINESS CONFIDENCE', needs: 'SENTIMENT SURVEYS' },
   approval: { label: 'APPROVAL POLL', needs: 'FIELD POLLING' },
   gini: { label: 'INCOME INEQUALITY', needs: 'HOUSEHOLD SURVEY' },
+  birth_rate: { label: 'BIRTH RATE', needs: 'CIVIL REGISTRATION' },
+  death_rate: { label: 'DEATH RATE', needs: 'CIVIL REGISTRATION' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {
