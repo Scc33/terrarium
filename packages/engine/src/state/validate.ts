@@ -22,8 +22,14 @@ export function validate(state: TrueState): void {
     finite(s.capital, `capital[${s.id}]`)
     finite(s.employment, `employment[${s.id}]`)
     if (s.capital < 0) throw new InvariantError(`capital[${s.id}] < 0`)
-    if (s.credit !== 0) throw new InvariantError(`credit[${s.id}] must stay 0 until M5`)
+    finite(s.credit, `credit[${s.id}]`)
+    if (s.credit < 0) throw new InvariantError(`credit[${s.id}] < 0`)
   }
+  finite(state.finance.assetPrice, 'finance.assetPrice')
+  finite(state.finance.creditToGdp, 'finance.creditToGdp')
+  finite(state.finance.bankCapital, 'finance.bankCapital')
+  if (state.finance.assetPrice <= 0) throw new InvariantError('finance.assetPrice ≤ 0')
+  if (state.finance.bankCapital < 0) throw new InvariantError('finance.bankCapital < 0')
   for (const c of state.cohorts) {
     finite(c.savings, `savings[${c.id}]`)
     finite(c.approval, `approval[${c.id}]`)

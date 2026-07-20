@@ -24,6 +24,8 @@ const LABELS: Record<IndicatorId, string> = {
   birth_rate: 'BIRTH.RATE /1K',
   death_rate: 'DEATH.RATE /1K',
   terms_of_trade: 'TERMS.TRADE IDX',
+  asset_prices: 'ASSET.PX IDX',
+  credit_growth: 'CREDIT.GRW %/YR',
 }
 
 const W = 300

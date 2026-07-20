@@ -9,7 +9,9 @@ import { rngFor, type Seed } from '../rng/rng'
 import {
   adminEffectiveness,
   taxEfficiency,
+  BANK_TARGET_RATIO,
   CONF_NEUTRAL,
+  CREDIT_BASE,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
   IO_COEFF,
@@ -173,6 +175,13 @@ export function init(params: CountryParams, seed: Seed): TrueState {
   const wages = sectorRecord((id) => (LABOR_SHARE * valueAdded[id]) / employment[id])
   const gdp0 = SECTOR_IDS.reduce((s, id) => s + valueAdded[id], 0)
 
+  // the banking system opens in equilibrium: credit at its steady-state share
+  // of annual GDP, spread across sectors by capital, banks capitalized to
+  // their target so no crunch and no boom until policy or the world moves it
+  const annualGdp0 = 4 * gdp0
+  const creditOutstanding0 = CREDIT_BASE * annualGdp0
+  const capitalTotal0 = SECTOR_IDS.reduce((s, id) => s + capital[id], 0)
+
   // the government starts spending what its narrow tax base actually
   // covers: estimate quarter-one revenue with the same formulas the fiscal
   // step uses, net out interest, and allocate the rest across the dials —
@@ -273,6 +282,15 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       tfpGrowthQ: 0,
     },
     cohorts,
+    finance: {
+      assetPrice: 1,
+      bankCapital: BANK_TARGET_RATIO * creditOutstanding0,
+      creditOutstanding: creditOutstanding0,
+      creditToGdp: CREDIT_BASE,
+      creditGrowth: 0,
+      crisisQtrsLeft: 0,
+      crisisSeverity: 0,
+    },
     sectors: SECTOR_IDS.map((id) => ({
       id,
       capital: capital[id],
@@ -281,7 +299,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       output: gross[id],
       capacityUtilization: UTILIZATION_AT_INIT,
       inventory: 0,
-      credit: 0,
+      credit: (creditOutstanding0 * capital[id]) / Math.max(capitalTotal0, 1e-9),
     })),
     io: { coeff: IO_COEFF.map((row) => [...row]) },
     market: {

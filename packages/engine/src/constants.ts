@@ -358,6 +358,75 @@ export const WORLD_SUPPLY_WEIGHTS: Record<SectorId, Partial<Record<PartnerId, nu
  * offset ≈ GAIN·Δactivity·share / WORLD_PRICE_REVERT — kept gentle) */
 export const WORLD_SUPPLY_PRICE_GAIN = 0.02
 
+// ---------- the financial sector (§12 M5: fragility) ----------
+// Credit and asset prices are the amplifier and the fragility clock. A boom
+// runs on credit: cheap money and rising collateral pull investment beyond
+// retained earnings (production reads asset prices as Tobin's q). The boom
+// quietly levers up the banking system, and leverage above prudence WITH
+// assets overvalued is the fuel a Minsky moment burns. Crises also arrive
+// from abroad — the financial partner's sudden stop (§10) freezes credit at
+// home. None of it is scripted: the cycle emerges from reversion racing a
+// collateral feedback loop, and the crash transmits through the same
+// confidence/investment/employment channels every other shock does.
+
+/** asset valuation per unit of capital — a Tobin's q / price-to-book, 1946=1.
+ * Fundamental is set by profitability and the real rate; the market price
+ * departs from it on credit acceleration and animal spirits, then reverts —
+ * reversion must out-muscle the feedback at the margin or it ratchets. */
+export const ASSET_REVERT = 0.12 // pull toward fundamental per quarter (must beat the feedback)
+export const ASSET_FUND_PROFIT_GAIN = 1.4 // fundamental rises with the profit rate…
+export const ASSET_NORMAL_PROFIT = 0.38 // …above this (≈ the init profit rate, so calm q≈1)
+export const ASSET_FUND_RATE_GAIN = 4.0 // …and falls with the real rate above natural (the discount channel — strong, so easing is what inflates a bubble and tight passive rates keep it calm)
+/** credit ACCELERATION (Δ credit/GDP) bids assets up — the bubble feedback.
+ * On the flow, not the level, so a bubble deflates once credit stops growing.
+ * Kept below reversion's reach so a bubble needs a genuine boom or a rate cut
+ * to inflate, not idle drift under a do-nothing government. */
+export const ASSET_CREDIT_GAIN = 1.2
+export const ASSET_SPIRITS_GAIN = 0.06 // business animal spirits — mild
+export const ASSET_VOL = 0.015
+export const ASSET_MIN = 0.3
+export const ASSET_MAX = 3.0
+export const ASSET_BUBBLE_AT = 1.3 // q above this makes the financial pages (a boom warning)
+
+/** credit outstanding, targeted as a share of annual nominal GDP. */
+export const CREDIT_BASE = 0.55 // steady-state credit/GDP for a mid-century economy
+export const CREDIT_RATE_GAIN = 3.0 // cheap money → more borrowing (per unit real rate below natural) — the boom's engine, and the passive/active separator
+export const CREDIT_COLLATERAL_GAIN = 0.25 // high asset prices → more collateral → more credit (per q above 1)
+export const CREDIT_SPIRITS_GAIN = 0.25
+export const CREDIT_ADJUST = 0.1 // credit stocks move toward target
+/** banks lend against capital: a capital-ratio requirement caps credit at
+ * bankCapital / CAPITAL_REQUIREMENT. Slack during a boom (borrower demand is
+ * the binding limit there), it bites AFTER a crisis writes capital down —
+ * that's the forced deleveraging. */
+export const CAPITAL_REQUIREMENT = 0.06
+export const BANK_TARGET_RATIO = 0.12 // banks hold roughly twice the floor
+export const BANK_MARGIN = 0.6 // share of interest retained as capital
+export const BANK_SPREAD = 0.02 // lending spread over the policy rate
+export const LOAN_LOSS_BASE_Q = 0.002 // calm-time write-offs, share of credit per quarter
+export const BANK_DIVIDEND_Q = 0.06 // capital paid out above target per quarter
+
+/** the Minsky clock: a domestic banking crisis. Hazard rises with leverage
+ * above prudence TIMES asset overvaluation — you need both cheap credit and a
+ * bubble. Kept rare so a prudent century seldom sees one. */
+export const CRISIS_LEVERAGE_SAFE = 0.75 // credit/GDP below this adds no fragility
+export const CRISIS_ASSET_SAFE = 1.1 // q below this adds no fragility
+export const CRISIS_BASE_P = 0.0008 // background hazard (~0.3/century)
+export const CRISIS_FRAGILITY_P = 0.9 // × (leverage excess)·(overvaluation)
+/** imported crises: a money-centre sudden stop abroad lights the fuse at home,
+ * the more so the more levered you are */
+export const CRISIS_IMPORT_GAIN = 0.2 // × (0.9 − financial-partner activity)⁺ · (1 + leverage excess)
+export const CRISIS_DURATION: [number, number] = [4, 8] // quarters of a run-down crunch
+export const CRISIS_SEVERITY_GAIN = 2.5 // × (leverage excess)·(overvaluation), atop a 0.4 floor
+export const CRISIS_ASSET_CRASH = 0.55 // asset prices fall up to this × severity on impact
+export const CRISIS_WRITEOFF = 0.15 // bank capital loss, share of credit × severity
+export const CRISIS_CREDIT_CRUNCH = 0.55 // credit target cut to this fraction while the crisis runs
+export const CRISIS_CONF_SHOCK = 0.3 // confidence floored to this on onset — a panic
+
+/** the investment channel: production reads asset prices (Tobin's q) and the
+ * crunch. A boom in asset prices pulls investment; a crisis freezes it. */
+export const FIN_INVEST_Q_GAIN = 0.35 // added to the investment factor per q above 1
+export const FIN_CRUNCH_DRAG = 0.6 // subtracted from the investment factor at full crisis severity
+
 // ---------- politics ----------
 export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains

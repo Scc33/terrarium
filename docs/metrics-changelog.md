@@ -22,7 +22,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 9)
+## Current contract (schema 10)
 
 ### Inputs
 
@@ -46,14 +46,19 @@ contract, so it's called out below.
 
 **Actions**: `setDial` (move a lever) · `investCapacity` (build a Layer-2 stock over 8 quarters).
 
-### Pipeline (13 ordered steps)
+### Pipeline (14 ordered steps)
 
-`shocks` → `demography` → `technology` → `world` → `production` → `trade` → `fiscal` →
-`monetary` → `prices` → `labor` → `cohorts` → `statistics` → `politics`
+`shocks` → `demography` → `technology` → `world` → `finance` → `production` → `trade` →
+`fiscal` → `monetary` → `prices` → `labor` → `cohorts` → `statistics` → `politics`
 
 The **rest of world** is exogenous input, not a lever: four abstract partners run their own
 business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
 booms/slumps/crises reach the wire but you cannot set them.
+
+The **financial sector** (`finance` step) is not a lever either — you steer it indirectly. The
+policy rate leans against the credit cycle (cheap money inflates a bubble; tight money cools
+it), and the crisis is the one your own leverage earned. Its only direct dial is the one you
+already have (`policyRate`); a dedicated macroprudential lever is the natural next M5 chunk.
 
 ### Outputs — the indicator ladder (all fogged)
 
@@ -75,6 +80,8 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
+| `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
+| `credit_growth` | % / yr | 0.55 | v10 | growth of credit / annual GDP (leverage) |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
 additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
@@ -107,6 +114,21 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 10 — The financial sector
+- **Pipeline +**: `finance` step (after `world`, before `production`). It reads last quarter's
+  realized profits/confidence and sets the terrain — asset prices, the credit crunch, the panic
+  — that production this tick lives inside.
+- **Inputs**: no new lever — the credit cycle is steered through the existing `policyRate`
+  (cheap money inflates the boom; tight money cools it). A dedicated macroprudential lever is
+  deferred to the next M5 chunk.
+- **Outputs +**: `asset_prices` (fogged, unlock 0.45) and `credit_growth` (fogged, unlock 0.55);
+  banking-crisis onset and bubble/thaw notes on the wire (exact — a bank run isn't fog).
+- **Internal state +**: `finance` (asset price, bank capital, credit outstanding, leverage,
+  crisis state) and `Sector.credit` activated (reserved at zero since v1). Investment now reads
+  Tobin's q and the crunch, so the boom amplifies and the bust bites.
+- Century baseline nudged (passive ≈ 2.5 %/yr, u ≈ 12.4 %, ~7 % deposed); reckless-policy
+  deposition 22 % → 24 % as self-inflicted crises land. No NaN over 1,000 random runs.
 
 ### schema 9 — The rest of the world
 - **Pipeline +**: `world` step (after `technology`, before `production`); the world-price walk

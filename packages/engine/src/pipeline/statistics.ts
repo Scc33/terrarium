@@ -130,6 +130,23 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 2.5,
     fundedAt: 0.4, // customs statisticians compiling the trade accounts
   },
+  {
+    id: 'asset_prices',
+    trueValue: (h, q) => h[q].assetPrice * 100,
+    baseSd: 0.05,
+    relativeSd: true,
+    fundedAt: 0.45, // a stock/property price board — the exchanges quote it
+    fastLag: true, // markets mark to market same-quarter
+  },
+  {
+    id: 'credit_growth',
+    trueValue: (h, q) => {
+      const prev = q > 0 ? h[q - 1].creditToGdp : h[q].creditToGdp
+      return prev > 1e-9 ? (Math.pow(h[q].creditToGdp / prev, 4) - 1) * 100 : 0
+    },
+    baseSd: 4,
+    fundedAt: 0.55, // bank supervision: a returns office reading the ledgers
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -138,7 +155,7 @@ const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
 const noiseScale = (cap: number) => 1 - 0.85 * cap
 
 function recordOf(state: TrueState): StatRecord {
-  const { flows, sectors, gov, external, ledger } = state
+  const { flows, sectors, gov, external, ledger, finance } = state
   return {
     tick: state.meta.tick,
     realGdp: flows.realGdp,
@@ -158,6 +175,8 @@ function recordOf(state: TrueState): StatRecord {
     population: state.demography.pyramid.reduce((s, n) => s + n, 0),
     pyramid: [...state.demography.pyramid],
     termsOfTrade: termsOfTrade(state),
+    assetPrice: finance.assetPrice,
+    creditToGdp: finance.creditToGdp,
     statCapacity: gov.capacity.statistical,
     satisfiedAgri: flows.satisfied.agri,
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),

@@ -36,11 +36,13 @@ control rail / wire) — no page scroll at desktop sizes.
   `docs/metrics-changelog.md` (the engine's inputs/outputs contract — new indicators + their
   `fundedAt`, new levers/params, pipeline-order changes).
 - Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
-  `--policy passive --ticks 400`). Healthy M4 passive baseline: growth ≈ 2.5%/yr,
-  inflation ≈ 0, u ≈ 12.5% century mean — the elevated u is the DESIGNED §8 youth-bulge
+  `--policy passive --ticks 400`). Healthy M5 passive baseline: growth ≈ 2.5%/yr,
+  inflation ≈ 0, u ≈ 12.4% century mean — the elevated u is the DESIGNED §8 youth-bulge
   bomb an unschooled do-nothing government earns (funding education absorbs it to ~7%
-  and lifts growth past 3%). ~10% deposed by 400q, clustering at the aging endgame
-  (median ~q330). Random policy 120q: ~22% deposed, no NaN, no price explosions.
+  and lifts growth past 3%). ~7% deposed by 400q, clustering at the aging endgame
+  (median ~q336) — a functioning financial system is a mild stabilizer. Random policy
+  120q: ~24% deposed (self-inflicted banking crises claim a few more than pre-M5's ~22%),
+  no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 
@@ -66,3 +68,14 @@ control rail / wire) — no page scroll at desktop sizes.
   income vs your own 1946 — don't conflate the two anchors.
 - Init self-calibrates spending to the tax base (see `init.ts`) — an unbalanced opening
   budget compounds into a scripted depression.
+- M5 finance is a feedback loop that WANTS to ratchet (assets↑ → collateral↑ → credit↑ →
+  assets↑ — the Minsky loop, the tâtonnement lesson again). Two rules keep it a cycle: (1)
+  ASSET_REVERT to fundamental must out-muscle the collateral/spirits feedback at the margin,
+  or a passive economy spontaneously bubbles and lifts growth off-baseline; (2) the
+  passive-calm vs active-boom separation is carried by the REAL-RATE channel
+  (ASSET_FUND_RATE_GAIN / CREDIT_RATE_GAIN) — under passive, real rates sit above natural so
+  q<1 and leverage stays ~0.6; only a policy rate cut (or a genuine profit surge) inflates a
+  bubble. That is by design: the crisis a player gets is the one their own cheap money earned.
+  The bank-capital cap is deliberately SLACK in booms (borrower demand is the binding limit)
+  and only bites AFTER a crisis writes capital down — that post-crash cap IS the forced
+  deleveraging (credit runs off for years, q overshoots below 1 — a lasting credit hangover).

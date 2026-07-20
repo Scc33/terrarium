@@ -24,6 +24,8 @@ const LABELS: Record<IndicatorId, string> = {
   birth_rate: 'BIRTH RATE · /1000',
   death_rate: 'DEATH RATE · /1000',
   terms_of_trade: 'TERMS OF TRADE · IDX',
+  asset_prices: 'ASSET PRICES · 1946=100',
+  credit_growth: 'CREDIT GROWTH · %/YR',
 }
 
 // gauge geometry: 200×110 viewBox, arc centered at (100,100) r=78

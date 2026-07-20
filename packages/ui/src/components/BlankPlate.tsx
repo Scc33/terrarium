@@ -21,6 +21,8 @@ const PLATE_TEXT: Record<IndicatorId, { label: string; needs: string }> = {
   birth_rate: { label: 'BIRTH RATE', needs: 'CIVIL REGISTRATION' },
   death_rate: { label: 'DEATH RATE', needs: 'CIVIL REGISTRATION' },
   terms_of_trade: { label: 'TERMS OF TRADE', needs: 'TRADE STATISTICS' },
+  asset_prices: { label: 'ASSET PRICES', needs: 'EXCHANGE BOARD' },
+  credit_growth: { label: 'CREDIT GROWTH', needs: 'BANK SUPERVISION' },
 }
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {

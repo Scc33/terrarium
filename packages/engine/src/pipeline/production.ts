@@ -12,6 +12,8 @@ import {
   CONF_MPC_GAIN,
   CONF_NEUTRAL,
   DEPRECIATION_Q,
+  FIN_CRUNCH_DRAG,
+  FIN_INVEST_Q_GAIN,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
   INVESTMENT_FACTOR_MAX,
@@ -72,13 +74,17 @@ export const production: PipelineStep = {
     const avgUtil =
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)
+    const fin = state.finance
     const invFactor = clamp(
       1 +
         INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
         0.5 * (avgUtil - 0.85) +
         CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
         // surplus labor is an investment opportunity, not just a tragedy
-        INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT),
+        INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) +
+        // Tobin's q (§12): dear assets pull investment; a credit crunch freezes it
+        FIN_INVEST_Q_GAIN * (fin.assetPrice - 1) -
+        (fin.crisisQtrsLeft > 0 ? FIN_CRUNCH_DRAG * fin.crisisSeverity : 0),
       0.5,
       INVESTMENT_FACTOR_MAX,
     )

@@ -48,6 +48,8 @@ export const INDICATOR_IDS = [
   'birth_rate',
   'death_rate',
   'terms_of_trade',
+  'asset_prices',
+  'credit_growth',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
@@ -132,7 +134,9 @@ export interface Sector {
   output: Money // real units, this tick
   capacityUtilization: Ratio
   inventory: Money
-  credit: Money // RESERVED — always 0 until M5
+  /** credit outstanding to this sector's firms — the aggregate is allocated
+   * by capital share (§12 M5); it levers investment and sours in a crisis */
+  credit: Money
 }
 
 export interface IOTable {
@@ -222,6 +226,28 @@ export interface TechState {
   tfpGrowthQ: number
 }
 
+// ---------- the financial sector (§12 M5: fragility) ----------
+export interface FinanceState {
+  /** asset valuation per unit of capital — a Tobin's q, 1946 = 1. The bubble
+   * variable: departs from its profitability/rate fundamental on credit and
+   * animal spirits, and production reads it as the price of investing. */
+  assetPrice: number
+  /** the banking system's net worth — the buffer against loan losses. Crises
+   * write it down; the interest margin rebuilds it. Thin capital → a crunch. */
+  bankCapital: Money
+  /** total credit outstanding = Σ sector.credit (cached for cheap reads) */
+  creditOutstanding: Money
+  /** credit / annual nominal GDP — the leverage gauge and the fragility clock */
+  creditToGdp: number
+  /** last quarter's change in credit/GDP, annualized — the boom signal a
+   * bank supervisor would report; also what bids asset prices up */
+  creditGrowth: number
+  /** quarters of an active banking crisis still to run; 0 = calm */
+  crisisQtrsLeft: Qtr
+  /** how hard the current crisis hit, 0..1 — sizes the crunch and the drag */
+  crisisSeverity: number
+}
+
 // ---------- politics ----------
 export interface PoliticalState {
   politicalCapital: number
@@ -287,6 +313,10 @@ export interface StatRecord {
   /** terms of trade: world price of your export basket ÷ your import basket,
    * indexed to 1946=100 — what the customs statisticians would compile */
   termsOfTrade: number
+  /** asset price index (1946=100) — what a stock/property board would quote */
+  assetPrice: number
+  /** credit outstanding / annual GDP — what a bank supervisor would tabulate */
+  creditToGdp: number
   /** statistical capacity when measured: freezes lag, noise, existence */
   statCapacity: Ratio
   // rumor-mill inputs
@@ -356,6 +386,7 @@ export interface TrueState {
   params: CountryParams
   demography: DemographyState
   tech: TechState
+  finance: FinanceState
   cohorts: Cohort[]
   sectors: Sector[]
   io: IOTable
@@ -377,7 +408,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 9 // v9: the rest of world — trading partners, semi-endogenous prices
+export const SCHEMA_VERSION = 10 // v10: the financial sector — credit, asset prices, banking crises
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

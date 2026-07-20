@@ -8,6 +8,34 @@ The **schema version** (`packages/engine/src/state/schema.ts` → `SCHEMA_VERSIO
 the shape of `TrueState` or the pipeline order changes; each bump is a golden-replay event
 (`pnpm test` → `pnpm diff-state` review → `pnpm bless`).
 
+## [schema 10] — 2026-07-19 — The financial sector
+
+### Added
+- **`finance` pipeline step** (after `world`, before `production`): the credit cycle, the
+  amplifier and the crisis clock in one. Banks set a credit target from the real rate,
+  collateral (asset prices), and animal spirits, capped by their capital; an **asset price**
+  (a Tobin's q) chases a profitability/rate fundamental but is bid away by credit acceleration
+  and spirits — a bubble. The boom levers the banks up, and **leverage above prudence with
+  assets overvalued** is the fuel a **Minsky moment** burns. Crises also import from the
+  financial partner's sudden stop (§10). A crisis crashes asset prices, writes down bank
+  capital, crunches credit, and panics confidence — the recession then runs through the
+  ordinary investment/employment channels. Onset always makes the wire (a bank run isn't fog).
+- **`Sector.credit` activated** (reserved at zero since v1): credit outstanding per sector,
+  allocated by capital share; `FinanceState` carries the asset price, bank capital, aggregate
+  credit, leverage, and crisis state.
+- **Tobin's-q investment channel**: production reads asset prices (dear assets pull investment)
+  and the crunch (a crisis freezes it) — so cheap money genuinely inflates a boom, and the
+  bust genuinely bites.
+- **Two indicators**: **`asset_prices`** (1946=100, fundable at an exchange board, 0.45) and
+  **`credit_growth`** (%/yr of credit/GDP, fundable at bank supervision, 0.55) — the fragility
+  clock is legible only to a government that paid for the instruments.
+
+### Changed
+- The century baseline shifts slightly with a functioning financial system: passive ≈ 2.5 %/yr,
+  u ≈ 12.4 %, ~7 % deposed (a hair more stable — mild financial-deepening tailwind). Reckless
+  policy now accumulates fragility: random-policy deposition ticks 22 % → 24 % as self-inflicted
+  banking crises claim more governments. 1,000 random runs: no NaN, no price explosion.
+
 ## [schema 9] — 2026-07-19 — The rest of the world
 
 ### Added
