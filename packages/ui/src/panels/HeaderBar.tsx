@@ -21,12 +21,14 @@ export function HeaderBar({
   onStudy,
   onSettings,
   onCensus,
+  onFinance,
   onVerdict,
 }: {
   pub: PublishedState
   onStudy: () => void
   onSettings: () => void
   onCensus: () => void
+  onFinance: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
 }) {
@@ -89,6 +91,9 @@ export function HeaderBar({
           VERDICT
         </button>
       )}
+      <button onClick={onFinance} className={hBtn} title="The financial system: the asset-price bubble and the leverage build-up — and the banking crises they earned.">
+        FINANCE
+      </button>
       <button onClick={onStudy} className={hBtn} title="The Study: analysis drawn from your published statistics — the Phillips board.">
         STUDY
       </button>

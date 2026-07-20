@@ -17,8 +17,9 @@ import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
+import { FinanceOverlay } from './panels/FinanceOverlay'
 
-type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | 'census' | null
+type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | 'census' | 'finance' | null
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
@@ -56,6 +57,7 @@ export default function App() {
         onStudy={() => setOverlay('study')}
         onSettings={() => setOverlay('settings')}
         onCensus={() => setOverlay('census')}
+        onFinance={() => setOverlay('finance')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
       <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
@@ -71,6 +73,7 @@ export default function App() {
       {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'settings' && <SettingsOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'census' && <CensusOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'finance' && <FinanceOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'verdict' && published.reportCard && (
         <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
       )}
