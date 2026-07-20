@@ -39,9 +39,9 @@ import {
   FERTILE_BANDS,
   RETIREMENT_BAND,
   WORKING_BANDS,
-  WORKING_CLASS_IDS,
   type Cohort,
   type DemographyState,
+  type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { livingStandard } from './derive'
@@ -84,7 +84,7 @@ export function classSizesFrom(
   return cohorts.map((c) =>
     c.id === 'retirees'
       ? { ...c, size: retired }
-      : { ...c, size: nonRetired * classShares[c.id as (typeof WORKING_CLASS_IDS)[number]] },
+      : { ...c, size: nonRetired * classShares[c.id as WorkingClassId] },
   )
 }
 

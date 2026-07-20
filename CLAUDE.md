@@ -18,8 +18,12 @@ control rail / wire) — no page scroll at desktop sizes.
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`
   or `Date.now`. All randomness via `rngFor(seed, stepName, tick)` substreams.
-- `packages/ui` may import types from `@terrarium/observation` and action types from
-  `@terrarium/engine`, but never `engine/src/state/*` — the UI must be unable to name true state.
+- `packages/ui` may import types from `@terrarium/observation`, and constants / action & save
+  *types* from `@terrarium/engine`, but never `engine/src/state/*`, and never the engine's
+  state-running functions (`init`/`step`/`replay`/`applyActions`/`runTick`) outside
+  `ui/src/worker/**` — only the worker runs the engine; components see `PublishedState`. Both
+  the import boundary (lint) and the *data* boundary (`tests/contract/published-state.test.ts`:
+  no true-state field ever crosses, output is structured-cloneable) are enforced.
 - Pipeline step order in `engine/src/pipeline/pipeline.ts` is versioned; reordering is a
   schema-version event.
 - The fog is MADE in the engine (`pipeline/statistics.ts`: prints, revisions, rumor news,
@@ -45,6 +49,11 @@ control rail / wire) — no page scroll at desktop sizes.
   no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
+- `pnpm coverage` runs the suite with v8 coverage over the pure core (engine + observation);
+  an 80% floor is enforced (currently ~99% stmts / ~94% branch). It's a floor to prevent
+  regression — raise it as coverage grows, never lower it to green a build.
+- CI (`.github/workflows/ci.yml`) gates every push/PR on typecheck → lint → coverage → a
+  200×120 random-policy batch (which exits non-zero on any NaN or price explosion).
 
 ## Hard-won tuning lessons (violate at your peril)
 

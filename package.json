@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.12.3",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "pnpm --filter @terrarium/ui dev",
     "build": "pnpm --filter @terrarium/ui build",
@@ -11,20 +15,22 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
     "batch": "pnpm --filter @terrarium/runner batch",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.13.2",
-    "eslint": "^10.6.0",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.62.0",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.2",
+    "@vitest/coverage-v8": "3.2.7",
+    "eslint": "^10.6.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "tsx": "^4.19.2",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.62.0",
     "vitest": "^3.2.4"
   }
 }

@@ -66,7 +66,8 @@ if (isMain) {
   const policy = arg('policy', 'random') as 'random' | 'passive'
   const batch = runBatch({ runs, ticks, policy })
   printReport(batch, { runs, ticks, policy })
-  const bad = batch.runs.filter((r) => r.nanCount > 0).length
+  // fail the process (and CI) on either failure mode — NaN or a runaway price
+  const bad = batch.runs.filter((r) => r.nanCount > 0 || r.priceExplosions > 0).length
   process.exitCode = bad > 0 ? 1 : 0
 }
 
