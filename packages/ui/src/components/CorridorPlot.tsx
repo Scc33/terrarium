@@ -8,13 +8,17 @@
  * population). Static until Layer 3 (M3) makes it move.
  */
 
+import { WallTile } from './WallTile'
+
 interface Trail {
   x: number
   y: number
 }
 
-const W = 240
-const H = 220
+// landscape: the corridor is docked in a wide, short bay, and a square
+// viewBox letterboxed itself into a third of the space it was given
+const W = 340
+const H = 200
 const PAD = 30
 
 // a light hand wobble so straight lines read as pencil, not plotter
@@ -36,12 +40,21 @@ export function CorridorPlot({ trail }: { trail: Trail[] }) {
   const dot = trail[trail.length - 1]
 
   return (
-    <div className="flex h-full flex-col border border-map-line/60 bg-map-field">
-      <div className="border-b border-map-line/30 px-3 py-1.5 font-dossier text-[11px] italic tracking-wide text-map-line">
-        The Narrow Corridor
-      </div>
-      <div className="relative flex-1 p-1">
-        <svg viewBox={`0 0 ${W} ${H}`} className="block h-full w-full">
+    <WallTile
+      className="border border-map-line/60 bg-map-field"
+      bodyClassName="p-1"
+      header={
+        <div className="border-b border-map-line/30 px-3 py-1.5 font-dossier text-[11px] italic tracking-wide text-map-line">
+          The Narrow Corridor
+        </div>
+      }
+      footer={
+        <div className="border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic text-map-line/80">
+          Your nation drifts; the corridor does not wait.
+        </div>
+      }
+    >
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="block h-full w-full">
           {/* axes, penciled */}
           <path d={roughLine(PAD, H - PAD, W - 10, H - PAD)} fill="none" stroke="var(--color-map-line)" strokeWidth="1" />
           <path d={roughLine(PAD, H - PAD, PAD, 10)} fill="none" stroke="var(--color-map-line)" strokeWidth="1" />
@@ -97,10 +110,6 @@ export function CorridorPlot({ trail }: { trail: Trail[] }) {
             </g>
           )}
         </svg>
-      </div>
-      <div className="border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic text-map-line/80">
-        Your nation drifts; the corridor does not wait.
-      </div>
-    </div>
+    </WallTile>
   )
 }

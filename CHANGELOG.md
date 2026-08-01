@@ -8,6 +8,53 @@ The **schema version** (`packages/engine/src/state/schema.ts` → `SCHEMA_VERSIO
 the shape of `TrueState` or the pipeline order changes; each bump is a golden-replay event
 (`pnpm test` → `pnpm diff-state` review → `pnpm bless`).
 
+## [M5.5] — 2026-08-01 — The wall you can actually read
+
+No schema change: the economy is bit-identical (`ELECTION_WIN_THRESHOLD` is newly exported
+from the engine barrel so the approval dial can print the electoral line on its face, and
+that is the entire engine diff). This milestone is about the half of the game between the
+simulation and the player.
+
+### Fixed
+- **The instrument wall was clipping every figure it published.** Sixteen instruments sat in
+  one uniform auto-row grid that had no idea how tall a fitted gauge is: each was handed
+  ~174 px for ~250 px of content and painted its figure, vintage line and history strip
+  outside the card, underneath the tile below. At 1280×720 the wall showed needles and no
+  numbers at all, and it got *worse* the more surveys you funded — the reward for playing
+  the capacity mechanic well was a less readable screen.
+- **Dial faces were redrawn under their own needles** every quarter, derived from the
+  trailing 24 prints. Approval at 55 sat mid-dial one quarter and left-of-centre the next
+  because the window rolled, so needle position carried no meaning across time.
+- **The REVISED stamp fired on ~67 % of instrument-quarters** — effectively every gauge,
+  every quarter. A §3.4 signal that never turns off is wallpaper.
+- The ledger and corridor tiles demanded 474 px in a 199 px bay; the corridor's square
+  viewBox letterboxed itself into a third of the space it was given.
+
+### Added
+- **Board + rack.** The wall is now up to four player-pinned instruments at full size, above
+  a strip for every instrument in a stable order — the whole measurement apparatus at a
+  glance, unfitted ones included, each still in its own era's register. Click a strip to put
+  it on the board; the board holds four, so a fifth evicts the oldest. Pins persist in
+  `localStorage` (a view preference, not part of the save).
+- **Fixed dial faces** (`ui/src/domains.ts`), measured rather than guessed via the new
+  `pnpm ranges` tool. Off-scale readings peg at the rail with a chevron instead of triggering
+  a rescale. `capital_stock` ratchets, monotonically, because 175→900 has no honest face.
+- **Marks the rules put on the face**: the electoral threshold on the approval dial, zero on
+  growth, inflation and credit. Certain, even when the reading against them is not.
+- **Quarter-on-quarter deltas** on every instrument, at both maturities and in the rack.
+- **Revision stamps now carry their delta** (`REVISED +2.1`) and fire on ~10 % of
+  instrument-quarters, gated on two conditions calibrated against a measured century.
+- **Space advances the quarter**; Escape closes any overlay. A century is four hundred
+  clicks otherwise.
+- **`WallTile`** — one frame every wall tile goes through, owning the fit contract.
+- **`tests/ui/`** — the wall's height budget, the dial faces (re-measured against a surveyed
+  century, so a retune that pushes an instrument off its dial fails loudly), and the
+  revision-stamp firing rate. `pnpm ranges` for picking faces.
+
+### Changed
+- The four duplicated `Record<IndicatorId, …>` label tables are one table
+  (`ui/src/components/labels.ts`), so adding an indicator is a compile-enforced single edit.
+
 ## [schema 10] — 2026-07-19 — The financial sector
 
 ### Added

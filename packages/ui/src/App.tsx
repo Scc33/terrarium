@@ -33,6 +33,27 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // a century is four hundred quarters; making the player travel to a button
+  // four hundred times is a tax on the only verb the game has. Space advances,
+  // Escape closes whatever paperwork is on the desk.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
+      if (e.key === 'Escape') {
+        setOverlay(null)
+        return
+      }
+      if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        const s = useGame.getState()
+        if (overlay === null && !s.advancing && s.published?.inPower) s.advance()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [overlay])
+
   // the verdict presents itself exactly once, when the run ends
   useEffect(() => {
     const has = published?.reportCard !== undefined

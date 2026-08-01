@@ -3,37 +3,34 @@
  * live-feeling readout. Superseded first prints stay on screen with a
  * strikethrough beside the reprint — the machine remembers what it told you.
  * No shadows, no gradients, no rounding: hairlines only.
+ *
+ * Shares the dossier gauge's two structural rules: it fits its box by
+ * construction (fixed header row, flexing `overflow-hidden` chart row, SVG
+ * scaled with `preserveAspectRatio`), and it reads the same fixed face from
+ * `../domains`. That second one matters more than it looks — an indicator
+ * graduating from brass to phosphor should be the same quantity better
+ * measured, not a different-shaped chart the player has to relearn.
  */
 
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import { qtrLabel, shapeSeries, type ShapedPoint } from './series'
+import { gaugeDomain } from '../domains'
+import { NAMES } from './labels'
+import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from './series'
+import { WallTile } from './WallTile'
 
-const LABELS: Record<IndicatorId, string> = {
-  gdp_growth: 'GDP.GROWTH %/YR',
-  inflation: 'CPI.INFL %/YR',
-  price_food: 'PX.FOOD IDX',
-  price_fuel: 'PX.FUEL IDX',
-  unemployment: 'UNEMP %',
-  payrolls: 'PAYROLL.XA M',
-  capital_stock: 'CAP.STOCK IDX',
-  conf_consumer: 'CONF.CONS IDX',
-  conf_business: 'CONF.BIZ IDX',
-  approval: 'APPROVAL %',
-  gini: 'GINI PTS',
-  birth_rate: 'BIRTH.RATE /1K',
-  death_rate: 'DEATH.RATE /1K',
-  terms_of_trade: 'TERMS.TRADE IDX',
-  asset_prices: 'ASSET.PX IDX',
-  credit_growth: 'CREDIT.GRW %/YR',
-}
-
+// The viewBox aspect is chosen to match a board slot, not to be a tidy
+// number. The SVG scales with `preserveAspectRatio="meet"`, so a wide, short
+// viewBox in a tall bay letterboxes — a 104-unit chart left the bottom 40%
+// of a terminal tile as empty black, which is the opposite of the dense
+// readout the phosphor era is supposed to be. `none` is not the fix: it would
+// stretch the axis labels along with the trace.
 const W = 300
-const H = 104
+const H = 300
 const PAD_L = 34
 const PAD_R = 8
-const PAD_T = 8
-const PAD_B = 14
+const PAD_T = 10
+const PAD_B = 18
 
 export function TerminalTicker({
   indicator,
@@ -52,20 +49,16 @@ export function TerminalTicker({
 
   const x0 = points[0].forQtr
   const x1 = Math.max(latest.forQtr, x0 + 4)
-  const values = points.flatMap((p) => [p.value - p.errorBand, p.value + p.errorBand, p.firstPrint])
-  let lo = Math.min(...values)
-  let hi = Math.max(...values)
-  if (hi - lo < 2) {
-    const mid = (hi + lo) / 2
-    lo = mid - 1
-    hi = mid + 1
-  }
-  const pad = (hi - lo) * 0.1
-  lo -= pad
-  hi += pad
+  // the same fixed face the dossier gauge prints — the axis does not move
+  // under the trace as the window rolls
+  const { lo, hi } = gaugeDomain(
+    indicator,
+    series.points.map((p) => p.value),
+  )
 
   const sx = (q: number) => PAD_L + ((q - x0) / (x1 - x0)) * (W - PAD_L - PAD_R)
-  const sy = (v: number) => PAD_T + ((hi - v) / (hi - lo)) * (H - PAD_T - PAD_B)
+  const clampY = (v: number) => Math.min(hi, Math.max(lo, v))
+  const sy = (v: number) => PAD_T + ((hi - clampY(v)) / (hi - lo)) * (H - PAD_T - PAD_B)
   const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.forQtr).toFixed(1)},${sy(p.value).toFixed(1)}`).join(' ')
   const banded = points.filter((p) => p.errorBand > 0)
   const band =
@@ -92,10 +85,12 @@ export function TerminalTicker({
   }
 
   return (
-    <div className="flex h-full flex-col border border-terminal-grid bg-terminal-bg">
+    <WallTile
+      className="border border-terminal-grid bg-terminal-bg"
+      header={
       <div className="flex items-baseline justify-between gap-2 border-b border-terminal-grid px-2.5 py-1">
         <span className="flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
-          {LABELS[indicator]}
+          {NAMES[indicator].terminal}
           <button
             onClick={() => setFullHistory((v) => !v)}
             title="Toggle between the recent window and the whole published history"
@@ -115,22 +110,39 @@ export function TerminalTicker({
           )}
           {latest.value.toFixed(2)}
           {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
+          {(() => {
+            const d = quarterDelta(points)
+            if (d === null || Math.abs(d) < 0.005) return null
+            return (
+              <span className="ml-1.5 opacity-80">
+                {d > 0 ? '▲' : '▼'}
+                {Math.abs(d).toFixed(2)}
+              </span>
+            )
+          })()}
           <span className="terminal-cursor">▮</span>
         </span>
       </div>
-      <div className="relative flex-1">
-        <svg viewBox={`0 0 ${W} ${H}`} className="block w-full cursor-crosshair" onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+      }
+    >
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="xMidYMid meet"
+          className="block h-full w-full cursor-crosshair"
+          onMouseMove={onMove}
+          onMouseLeave={() => setHover(null)}
+        >
           {/* hairline frame + zero line */}
           <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
           <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
           {zeroVisible && (
             <line x1={PAD_L} x2={W - PAD_R} y1={sy(0)} y2={sy(0)} stroke="var(--color-terminal-grid)" strokeWidth="1" strokeDasharray="2 3" />
           )}
-          <text x={PAD_L - 4} y={sy(hi - pad) + 3} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
-            {(hi - pad).toFixed(0)}
+          <text x={PAD_L - 4} y={sy(hi) + 6} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
+            {hi}
           </text>
-          <text x={PAD_L - 4} y={sy(lo + pad) + 3} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
-            {(lo + pad).toFixed(0)}
+          <text x={PAD_L - 4} y={sy(lo)} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
+            {lo}
           </text>
           <text x={PAD_L} y={H - 3} fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.55">
             {qtrLabel(x0)}
@@ -201,7 +213,6 @@ export function TerminalTicker({
             )}
           </div>
         )}
-      </div>
-    </div>
+    </WallTile>
   )
 }

@@ -14,6 +14,32 @@ map + news wire live in their own quieter third register (`map-*` / `wire-*`); r
 marks must be loud. Layout is a single-screen war room (header / instrument wall +
 control rail / wire) — no page scroll at desktop sizes.
 
+### The wall (M5.5) — three modules own it, and they are pure on purpose
+
+The instrument wall is **board + rack + docked**: up to `BOARD_SLOTS` player-pinned
+instruments at full size, then every instrument as a fixed-height strip in a stable order
+(the whole measurement apparatus at a glance, unfitted ones included), then the ledger and
+the corridor. Pins are a view preference in `localStorage`, not part of the save.
+
+The decisions live in pure modules so they can be tested at all — components just render
+them. Keep it that way; anything you push into a component becomes untestable here:
+
+- **`ui/src/wallPlan.ts`** — how much room the war room has. The rack is fixed-height and
+  complete, so the wall's minimum height is a NUMBER, and `tests/ui/wall-plan.test.ts`
+  asserts it against a 1280×720 reference viewport. `rackHeadroom()` says how many more
+  indicators fit (24, today). When that hits zero the wall is full and the next indicator
+  needs a real layout decision.
+- **`ui/src/domains.ts`** — the printed face of each dial: a FIXED per-indicator domain,
+  measured with `pnpm ranges`, never derived from the trailing window. A face redrawn under
+  its own needle makes needle position meaningless across time. Off-scale readings peg at
+  the rail with a chevron — going off the dial is information. Only `capital_stock` ratchets
+  (175→900 over a century has no honest fixed face), and its bounds are monotone by
+  construction.
+- **`ui/src/components/WallTile.tsx`** — the tile frame. **Every wall tile goes through it.**
+  It owns `overflow-hidden`, definite `minmax(0,1fr)` rows and `min-h-0` on the body, because
+  a tile that sizes to its content instead of its slot is how M3–M5 shipped a wall that
+  painted its own figures underneath the tile below and showed needles with no numbers.
+
 ## Hard rules (lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`
@@ -31,6 +57,11 @@ control rail / wire) — no page scroll at desktop sizes.
   published headline, not the truth (§3.4 salience). `packages/observation` is
   presentation-only — never grow measurement logic back into it.
 - Every behavioral constant lives in `engine/src/constants.ts` — tune there, nowhere else.
+- A wall tile fills its slot and clips; it never sizes itself to its content. Use `WallTile`.
+  The three ways this goes wrong are all invisible in review AND in jsdom — a `flex-col`
+  child missing `min-h-0`, an `h-full` SVG in an auto-height parent falling back to its
+  viewBox aspect ratio, a grid band with implicit `auto` rows — so the browser check below
+  is not optional.
 
 ## Workflows
 
@@ -54,6 +85,41 @@ control rail / wire) — no page scroll at desktop sizes.
   regression — raise it as coverage grows, never lower it to green a build.
 - CI (`.github/workflows/ci.yml`) gates every push/PR on typecheck → lint → coverage → a
   200×120 random-policy batch (which exits non-zero on any NaN or price explosion).
+
+### Adding an indicator
+
+Steps 3–4 are compile-enforced: both tables are total `Record<IndicatorId, …>`, so the UI
+will not build until the new indicator has been named and given a dial face. Do them in
+order and the tests tell you the rest.
+
+1. `engine`: add to `INDICATOR_IDS` + a spec in `pipeline/statistics.ts` (with its
+   `fundedAt` capacity gate). Schema-version event → `CHANGELOG.md` + `metrics-changelog.md`.
+2. `observation`: a `PRESENTATION` entry (label + unit).
+3. `ui/src/components/labels.ts`: a `NAMES` entry — four names, one per place it appears.
+   Keep `short` to 10 characters or the rack truncates it.
+4. `ui/src/domains.ts`: an `INDICATOR_FACE` entry. Run **`pnpm ranges`** and take a face
+   covering roughly p01–p99, rounded outward; let the extremes peg.
+5. `pnpm test`. Three UI tests are now doing real work for you:
+   - `wall-plan` fails if the wall has run out of room (and prints the remaining headroom);
+   - `gauge-domains` fails if your new face is wrong — it re-measures a surveyed century and
+     rejects any instrument that spends >2 % of its life pegged against a rail;
+   - `revision-stamp` fails if the fog stopped biting, or started biting everywhere.
+6. Verify in the browser at **1280×720** (below), because none of the above sees layout.
+
+### Verifying the wall
+
+`tests/ui/` deliberately tests pure modules, not rendered components — jsdom has no layout
+engine, so a render test would have passed happily throughout the entire period the wall was
+clipping every figure it published. Real layout gets checked in a real browser. After any
+wall change, run the dev server, size to 1280×720, and confirm:
+
+```js
+(()=>{const w=document.querySelector('main > div'),b=w.getBoundingClientRect();let n=0;
+w.querySelectorAll('*').forEach(e=>{const r=e.getBoundingClientRect();if(r.bottom>b.bottom+1&&r.height>0)n++});
+return {scrolls:w.scrollHeight>b.height+1, belowFold:n}})()
+```
+
+Both must be `false` / `0`. That one-liner is the whole regression test for the M5.5 bug.
 
 ## Hard-won tuning lessons (violate at your peril)
 
@@ -88,3 +154,29 @@ control rail / wire) — no page scroll at desktop sizes.
   The bank-capital cap is deliberately SLACK in booms (borrower demand is the binding limit)
   and only bites AFTER a crisis writes capital down — that post-crash cap IS the forced
   deleveraging (credit runs off for years, q overshoots below 1 — a lasting credit hangover).
+
+## Hard-won UI lessons (M5.5)
+
+- **A warning that never turns off is not a warning.** The REVISED stamp fired on any
+  revision within six quarters, i.e. ~67 % of instrument-quarters — every gauge, every
+  quarter — so the load-bearing §3.4 signal became wallpaper. It now needs TWO gates and
+  sits at ~10 %: wrong by more than twice the band the office confessed ON THE FIRST PRINT,
+  *and* far enough to visibly move the needle (6 % of the dial). Judging against the
+  *current* band cannot work — a final print admits no error at all, so every later
+  correction divides by zero and stamps everything. The band-relative gate alone saturates;
+  the face-relative gate is what actually discriminates.
+- **Anything you want a test to hold has to leave the component.** Every M5.5 bug was a
+  layout fact, and layout facts are untestable in the repo's node/jsdom-free setup. The way
+  out was not to add a browser to CI, it was to move the *decisions* — the height budget,
+  the dial faces, the stamp gate — into pure modules and pin those. Prefer that trade every
+  time: a component thin enough to be obviously correct, over a test that fakes a browser.
+- **Constants that face the player get calibrated, not guessed, and then pinned as a rate.**
+  Both `INDICATOR_FACE` and the stamp thresholds were chosen by sweeping against a measured
+  century (`pnpm ranges`, and the sweep in `tests/ui/revision-stamp.test.ts`). Because the
+  tests re-measure rather than snapshot, a future engine retune that pushes an instrument
+  off its dial fails loudly and names the instrument.
+- **Grid/flex children size to their content unless you stop them.** `minmax(0,1fr)` not
+  `1fr`; `min-h-0` on every flexing child; `preserveAspectRatio` on every `h-full` SVG.
+- Tailwind generates utilities by scanning source *text* — a template-literal class like
+  `grid-rows-[${rows}]` produces a class that exists in the DOM and in no stylesheet. It
+  fails silently and looks exactly like a layout bug. Spell variants out as literals.
