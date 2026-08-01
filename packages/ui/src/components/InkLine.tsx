@@ -4,7 +4,9 @@
 interface Props {
   data: Array<{ tick: number; value: number }>
   height?: number
-  label?: string
+  /** a node, not a string, so a caller can colour the series names in the
+   * label itself and spend no vertical room on a separate legend */
+  label?: React.ReactNode
   /** color a second reference series (e.g. outlays against revenue) */
   compare?: Array<{ tick: number; value: number }>
 }

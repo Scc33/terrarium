@@ -112,6 +112,7 @@ export {
   livingStandard,
 } from './pipeline/derive'
 export {
+  ELECTION_WIN_THRESHOLD,
   LEGITIMACY_GRADE_ELECTIONS,
   PROSPERITY_GRADE_CUTS,
   WELFARE_DISCOUNT_Q,

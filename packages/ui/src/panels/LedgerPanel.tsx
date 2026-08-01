@@ -7,41 +7,47 @@
 import type { PublishedState } from '@terrarium/observation'
 import { InkLine } from '../components/InkLine'
 import { Overlay } from '../components/Overlay'
+import { WallTile } from '../components/WallTile'
 
 export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () => void }) {
   const books = pub.books.slice(-40)
   return (
-    <button
+    <WallTile
       onClick={onOpen}
       title="The treasury's own books — exact, no fog. Click for the full ledger with the whole history."
-      className="flex h-full flex-col border-2 border-dossier-brass bg-dossier-paper text-left hover:border-dossier-ink"
-    >
-      <div className="flex w-full items-baseline justify-between border-b border-dossier-ink/20 px-3 py-1.5">
-        <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
-          TREASURY LEDGER
-        </span>
-        <span className="font-mono text-[9px] tracking-[0.15em] text-dossier-ink/50">OPEN →</span>
-      </div>
-      <div className="w-full flex-1 px-3 py-1.5">
-        <InkLine
-          label="REVENUE ✕ OUTLAYS"
-          data={books.map((b) => ({ tick: b.tick, value: b.revenue }))}
-          compare={books.map((b) => ({ tick: b.tick, value: b.outlays }))}
-          height={70}
-        />
-        <div className="mt-0.5 flex gap-3 font-mono text-[9px] text-dossier-ink/70">
-          <span>— revenue</span>
-          <span className="text-dossier-warn">— outlays</span>
+      className="border-2 border-dossier-brass bg-dossier-paper hover:border-dossier-ink"
+      bodyClassName="px-3 py-1.5"
+      header={
+        <div className="flex w-full items-baseline justify-between border-b border-dossier-ink/20 px-3 py-1.5">
+          <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
+            TREASURY LEDGER
+          </span>
+          <span className="font-mono text-[9px] tracking-[0.15em] text-dossier-ink/50">OPEN →</span>
         </div>
-      </div>
-      <div className="flex w-full gap-4 border-t border-dossier-ink/20 px-3 py-1 font-mono text-[10px] tabular-nums text-dossier-ink/80">
-        <span title="Quarterly balance: revenue minus outlays">
-          BAL {(pub.treasury.balance >= 0 ? '+' : '') + pub.treasury.balance.toFixed(1)}
-        </span>
-        <span title="Outstanding government debt">DEBT {pub.treasury.debt.toFixed(0)}</span>
-        <span title="Foreign-exchange reserves at the central bank">FX {pub.reserves.toFixed(1)}</span>
-      </div>
-    </button>
+      }
+      footer={
+        <div className="flex w-full gap-4 border-t border-dossier-ink/20 px-3 py-1 font-mono text-[10px] tabular-nums text-dossier-ink/80">
+          <span title="Quarterly balance: revenue minus outlays">
+            BAL {(pub.treasury.balance >= 0 ? '+' : '') + pub.treasury.balance.toFixed(1)}
+          </span>
+          <span title="Outstanding government debt">DEBT {pub.treasury.debt.toFixed(0)}</span>
+          <span title="Foreign-exchange reserves at the central bank">FX {pub.reserves.toFixed(1)}</span>
+        </div>
+      }
+    >
+      <InkLine
+        label={
+          <>
+            <span className="text-dossier-ink">REVENUE</span>
+            <span className="opacity-50"> ✕ </span>
+            <span className="text-dossier-warn">OUTLAYS</span>
+          </>
+        }
+        data={books.map((b) => ({ tick: b.tick, value: b.revenue }))}
+        compare={books.map((b) => ({ tick: b.tick, value: b.outlays }))}
+        height={70}
+      />
+    </WallTile>
   )
 }
 

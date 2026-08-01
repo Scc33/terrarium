@@ -1,11 +1,39 @@
 import { create } from 'zustand'
 import type { Action, SaveFile } from '@terrarium/engine'
-import type { PublishedState } from '@terrarium/observation'
+import type { IndicatorId, PublishedState } from '@terrarium/observation'
+import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, WorkerMessage } from '../worker/protocol'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
+import { BOARD_SLOTS, DEFAULT_PINS } from '../wallPlan'
 
 const AUTOSAVE_KEY = 'autosave'
+/** which dials are on the board is a view preference, not part of the run —
+ * it belongs to the player and their screen, not to the save file, so it
+ * lives beside the game rather than inside it */
+const PINS_KEY = 'terrarium:pinned'
+
+function loadPins(): IndicatorId[] {
+  try {
+    const raw = localStorage.getItem(PINS_KEY)
+    if (!raw) return [...DEFAULT_PINS]
+    const valid = new Set<string>(INDICATOR_IDS)
+    // an old preference naming an indicator this build no longer has must
+    // degrade to the defaults, never to a short board
+    const pins = (JSON.parse(raw) as unknown[]).filter((id): id is IndicatorId => typeof id === 'string' && valid.has(id))
+    return pins.length ? pins.slice(-BOARD_SLOTS) : [...DEFAULT_PINS]
+  } catch {
+    return [...DEFAULT_PINS]
+  }
+}
+
+function savePins(pins: IndicatorId[]): void {
+  try {
+    localStorage.setItem(PINS_KEY, JSON.stringify(pins))
+  } catch {
+    /* private browsing, quota — the board still works, it just won't persist */
+  }
+}
 
 interface GameState {
   published: PublishedState | null
@@ -18,6 +46,8 @@ interface GameState {
   advancing: boolean
   /** traced positions on the Narrow Corridor (published data only) */
   corridorTrail: Array<{ x: number; y: number }>
+  /** instruments the player has put on the board, oldest pin first */
+  pinned: IndicatorId[]
 
   newGame(seed?: string): void
   loadSave(save: SaveFile): void
@@ -25,6 +55,7 @@ interface GameState {
   stage(key: string, action: Action | null): void
   clearStaged(): void
   advance(): void
+  togglePin(id: IndicatorId): void
 }
 
 /** one staged change per dial, one staged program per capacity target */
@@ -99,6 +130,17 @@ export const useGame = create<GameState>((set, get) => {
     rejection: null,
     advancing: false,
     corridorTrail: [],
+    pinned: loadPins(),
+
+    /** Pin an instrument to the board, or take it off. The board holds
+     * BOARD_SLOTS, so pinning a fifth evicts the oldest pin — the board is a
+     * choice about what you are watching this decade, and choices cost. */
+    togglePin(id) {
+      const cur = get().pinned
+      const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-BOARD_SLOTS)
+      savePins(next)
+      set({ pinned: next })
+    },
 
     newGame(seed) {
       // seed entropy comes from the browser, not the sim — the sim itself
