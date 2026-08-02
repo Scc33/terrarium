@@ -19,7 +19,6 @@ import {
   type CapacityBuild,
   type OutlaySplit,
   type RevenueSplit,
-  type TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 
@@ -106,9 +105,4 @@ export const fiscal: PipelineStep = {
       },
     }
   },
-}
-
-/** exported for the observation layer / UI treasury view */
-export function fiscalSnapshot(state: TrueState) {
-  return { ...state.gov.budget, debt: state.gov.debt, printed: state.gov.printed }
 }
