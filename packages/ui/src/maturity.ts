@@ -24,6 +24,12 @@ export interface InstrumentUnlock {
   indicators: IndicatorId[]
 }
 
+export interface InstrumentStatusCounts {
+  reporting: number
+  awaiting: number
+  unfunded: number
+}
+
 /** statistical capacity at which an instrument graduates to the terminal era */
 export const TERMINAL_AT = 0.5
 
@@ -58,6 +64,24 @@ export function deriveInstrumentAccess(pub: PublishedState): Record<IndicatorId,
     out[id] = accessForInstrument(id, pub.capacity.statistical, Boolean(pub.indicators[id]))
   }
   return out
+}
+
+/** A compact, honest census for wall chrome. "Live" used to mean terminal
+ * maturity here, even while analog instruments were visibly publishing
+ * returns. Count the access states the player can actually act on instead. */
+export function countInstrumentStatuses(instruments: readonly InstrumentAccess[]): InstrumentStatusCounts {
+  return instruments.reduce<InstrumentStatusCounts>((counts, instrument) => {
+    counts[instrument.availability] += 1
+    return counts
+  }, { reporting: 0, awaiting: 0, unfunded: 0 })
+}
+
+export function instrumentStatusSummary(counts: InstrumentStatusCounts): string {
+  const parts: string[] = []
+  if (counts.reporting > 0) parts.push(`${counts.reporting} REPORTING`)
+  if (counts.awaiting > 0) parts.push(`${counts.awaiting} PENDING`)
+  if (counts.unfunded > 0) parts.push(`${counts.unfunded} UNFITTED`)
+  return parts.join(' · ') || 'NO INSTRUMENTS'
 }
 
 /** The next distinct batch of surveys the statistical office will unlock. */

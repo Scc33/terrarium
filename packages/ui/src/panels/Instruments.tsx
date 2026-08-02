@@ -16,7 +16,7 @@
  */
 
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
-import { deriveInstrumentAccess } from '../maturity'
+import { countInstrumentStatuses, deriveInstrumentAccess, instrumentStatusSummary } from '../maturity'
 import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
 import { Gauge } from '../components/Gauge/Gauge'
 import { RackStrip } from '../components/RackStrip/RackStrip'
@@ -39,15 +39,15 @@ export function Instruments({
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
   const plan = planWall(pinned, INDICATOR_IDS)
-  const fittedCount = INDICATOR_IDS.filter((id) => access[id].availability !== 'unfunded').length
-  const liveCount = INDICATOR_IDS.filter((id) => access[id].maturity === 'terminal').length
+  const boardStatus = instrumentStatusSummary(countInstrumentStatuses(plan.board.map((id) => access[id])))
+  const rackStatus = instrumentStatusSummary(countInstrumentStatuses(plan.rack.map((id) => access[id])))
 
   return (
     <div className="instrument-wall grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
       <SectionBar
         title="WATCH BOARD"
         detail="The four instruments the cabinet is flying by"
-        aside={`${plan.board.length} / ${plan.board.length} PINNED`}
+        aside={boardStatus}
         inverted
       />
 
@@ -76,7 +76,7 @@ export function Instruments({
       <SectionBar
         title="INSTRUMENT RACK"
         detail="Select any strip to swap it onto the watch board"
-        aside={`${fittedCount} FITTED · ${liveCount} LIVE`}
+        aside={rackStatus}
         inverted
       />
 
