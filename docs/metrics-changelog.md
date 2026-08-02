@@ -11,8 +11,7 @@ ends of that function:
 
 Everything between them is the **pipeline** — an ordered fold of steps, versioned because
 reordering changes results. A schema bump is a golden-replay event (`pnpm test` →
-`pnpm diff-state` → `pnpm bless`). For the human-readable release notes see
-[CHANGELOG.md](../CHANGELOG.md).
+`pnpm diff-state` → `pnpm bless`).
 
 A note on *fog*: most outputs are **fogged** — published with a lag, noise, and revisions, and
 only if the statistical office is funded to the indicator's threshold (§6.1). A few are
