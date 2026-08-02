@@ -1,6 +1,6 @@
 /**
  * Instrument maturity is derived HERE, once, from PublishedState — never in
- * individual components (terrarium-design skill §component pattern). If a
+ * individual components. If a
  * threshold or a new tier arrives, this is the one place that changes.
  */
 

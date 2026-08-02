@@ -1,4 +1,4 @@
-/** The maturity switch — the terrarium-design skill's core component pattern. */
+/** The maturity switch — one instrument identity, rendered at its current era. */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import type { InstrumentAccess } from '../../maturity'

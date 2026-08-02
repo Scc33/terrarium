@@ -1,8 +1,8 @@
 /**
- * Terrarium design tokens — the terrarium-design skill is the spec.
+ * Terrarium design tokens — the shared visual language for every UI surface.
  * Tailwind v4: @theme is the config-file equivalent; the utility names it
- * generates (bg-dossier-paper, text-terminal-primary, font-dossier, …) match
- * the skill's tailwind.config.ts naming exactly.
+ * generates (bg-dossier-paper, text-terminal-primary, font-dossier, …) are
+ * the canonical token names used throughout the app.
  */
 
 @import 'tailwindcss';
