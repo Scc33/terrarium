@@ -3,6 +3,10 @@
 Economic policy game. Read `docs/tech-architecture.md` before touching structure.
 pnpm monorepo; built through M5.5.
 
+Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
+with the alternatives it beat and the costs it carries); `proposal-1.md` is the design doc
+whose § numbers ~65 code comments cite — don't renumber it. `docs/archive/` is unmaintained.
+
 ## Hard rules (mostly lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`
@@ -72,9 +76,13 @@ stylesheet, failing silently. Spell variants out as literals.
   ~7% deposed by 400q. Random policy 120q: ~24% deposed, no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~94%
+- `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
   branch). It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
+- **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the
+  `@typescript/native` alias, while the dependency literally named `typescript` is the TS 6
+  API that `typescript-eslint` needs — it throws on TS 7 rather than degrading. Don't
+  "fix" the alias; collapse it when typescript-eslint ships TS 7 support.
 
 ### Adding an indicator
 

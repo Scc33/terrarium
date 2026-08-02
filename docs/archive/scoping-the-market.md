@@ -1,5 +1,10 @@
 # Terrarium — Market Clearing Spec (M1)
- 
+
+> **ARCHIVED — historical, not current.** This spec was implemented; the live versions are
+> `engine/src/pipeline/prices.ts` and `production.ts`, with coefficients in
+> `engine/src/constants.ts`. The stability argument and worked example below still explain
+> *why* the damping and per-tick caps are shaped as they are. See [`README.md`](README.md).
+
 *Third doc in the set. The concrete tâtonnement loop and I/O table for the 5×5 economy, with a paper stability argument and a worked fuel-tax example (numbers verified numerically). Plus a filed note on the engine-as-MCP side quest.*
  
 ---

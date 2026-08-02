@@ -1,5 +1,9 @@
 # Untitled Economics Game — Design Notes
- 
+
+> **ARCHIVED — historical, not current.** The original brainstorm. Superseded by
+> [`../proposal-1.md`](../proposal-1.md), which restates these as decisions. Kept for
+> provenance; see [`README.md`](README.md).
+
 *Brainstorm write-up. Not a spec — a snapshot of decisions made and open questions.*
  
 ---
