@@ -41,6 +41,19 @@ test('financial overlay empty state', async ({ page }) => {
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
 
+test('modal paperwork contains and restores keyboard focus', async ({ page }) => {
+  await openGame(page)
+  const trigger = page.getByRole('button', { name: 'FINANCE' })
+  await trigger.click()
+  const dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
+  await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeFocused()
+  await page.keyboard.press('Shift+Tab')
+  expect(await page.evaluate('document.querySelector(\'[role="dialog"]\')?.contains(document.activeElement)')).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
+})
+
 test('tablet wall reflows to two instrument columns', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 })
   await openGame(page, false)
@@ -54,4 +67,21 @@ test('smaller laptop cabinet drawer', async ({ page }) => {
   await page.getByRole('button', { name: /OPEN CABINET/ }).click()
   await expect(page.getByRole('complementary', { name: 'Cabinet controls' })).toBeVisible()
   await expect(page).toHaveScreenshot('cabinet-drawer-1024.png')
+})
+
+test('cabinet drawer tabs support keyboard navigation and focus return', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 768 })
+  await openGame(page, false)
+  const trigger = page.getByRole('button', { name: /OPEN CABINET/ })
+  await trigger.click()
+  const dialog = page.getByRole('dialog', { name: 'Cabinet drawer' })
+  const revenue = dialog.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })
+  await expect(revenue).toBeFocused()
+  await revenue.press('End')
+  const institutions = dialog.getByRole('tab', { name: 'INSTITUTIONS LONG-TERM' })
+  await expect(institutions).toHaveAttribute('aria-selected', 'true')
+  await expect(institutions).toBeFocused()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toBeHidden()
+  await expect(trigger).toBeFocused()
 })

@@ -4,12 +4,21 @@
  * same focused drawer at smaller laptop and tablet widths.
  */
 
+import { useEffect, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, SliderField } from '../components/ui'
 import { NAMES } from '../components/labels'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
+import {
+  CABINET_NAVIGATION_KEYS,
+  CABINET_PANEL_ID,
+  cabinetGroupForKey,
+  cabinetTabId,
+  type CabinetGroup,
+  type CabinetNavigationKey,
+} from '../cabinetNavigation'
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -26,8 +35,6 @@ interface DialDef {
 }
 
 const spendMax = (pub: PublishedState) => Math.max(pub.treasury.revenue * 3, 10)
-
-export type CabinetGroup = 'TAXATION' | 'SPENDING' | 'MONEY' | 'SUBSIDIES' | 'STATE CAPACITY'
 
 interface DialGroup {
   group: Exclude<CabinetGroup, 'STATE CAPACITY'>
@@ -216,10 +223,14 @@ export function ControlRail({
   pub,
   openGroup,
   onOpenGroupChange,
+  focusRequest,
+  onClose,
 }: {
   pub: PublishedState
   openGroup: CabinetGroup
   onOpenGroupChange: (group: CabinetGroup) => void
+  focusRequest: number
+  onClose?: () => void
 }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
   const finiteCost = stagedCost !== null && Number.isFinite(stagedCost) ? stagedCost : null
@@ -230,16 +241,33 @@ export function ControlRail({
     : DIALS.find((candidate) => candidate.group === group)?.dials.filter((dial) => staged.has(`dial:${dial.path}`)).length ?? 0
   const fiscalTone = pub.treasury.balance < 0 ? 'text-terminal-alert' : 'text-dossier-paper'
 
+  useEffect(() => {
+    if (focusRequest > 0) document.getElementById(cabinetTabId(openGroup))?.focus()
+  }, [focusRequest, openGroup])
+
+  const onTabKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>, group: CabinetGroup) => {
+    if (!CABINET_NAVIGATION_KEYS.includes(event.key as CabinetNavigationKey)) return
+    event.preventDefault()
+    onOpenGroupChange(cabinetGroupForKey(group, event.key as CabinetNavigationKey))
+  }
+
   return (
-    <aside className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
+    <aside id="cabinet-controls" className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-dossier-paper/15 px-4 py-2.5">
         <div>
           <div className="font-dossier text-lg font-semibold leading-none text-dossier-paper">Cabinet desk</div>
           <div className="mt-1 font-mono text-[9px] tracking-[0.16em] text-dossier-brass">ORDERS FOR THE NEXT QUARTER</div>
         </div>
-        <Metric inverted label="POLITICAL CAPITAL" value={pub.politicalCapital.toFixed(1)} detail="AVAILABLE" tone="accent" className="items-end text-right" />
+        <div className="flex items-center gap-2">
+          <Metric inverted label="POLITICAL CAPITAL" value={pub.politicalCapital.toFixed(1)} detail="AVAILABLE" tone="accent" className="items-end text-right" />
+          {onClose && (
+            <Button onClick={onClose} variant="secondary" size="compact" className="xl:hidden" aria-label="Close cabinet drawer" title="Close cabinet (Esc)">
+              CLOSE <span aria-hidden="true">×</span>
+            </Button>
+          )}
+        </div>
       </div>
-      <div className="grid shrink-0 grid-cols-3 border-b border-dossier-paper/15" role="tablist" aria-label="Cabinet decision areas">
+      <div className="grid shrink-0 grid-cols-3 border-b border-dossier-paper/15" role="tablist" aria-label="Cabinet decision areas" aria-orientation="horizontal">
         {DIALS.map((group) => {
           const selected = openGroup === group.group
           const count = draftedIn(group.group)
@@ -248,8 +276,12 @@ export function ControlRail({
               key={group.group}
               type="button"
               role="tab"
+              id={cabinetTabId(group.group)}
+              aria-controls={CABINET_PANEL_ID}
               aria-selected={selected}
+              tabIndex={selected ? 0 : -1}
               onClick={() => onOpenGroupChange(group.group)}
+              onKeyDown={(event) => onTabKeyDown(event, group.group)}
               className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
                 selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
               }`}
@@ -264,8 +296,12 @@ export function ControlRail({
         <button
           type="button"
           role="tab"
+          id={cabinetTabId('STATE CAPACITY')}
+          aria-controls={CABINET_PANEL_ID}
           aria-selected={openGroup === 'STATE CAPACITY'}
+          tabIndex={openGroup === 'STATE CAPACITY' ? 0 : -1}
           onClick={() => onOpenGroupChange('STATE CAPACITY')}
+          onKeyDown={(event) => onTabKeyDown(event, 'STATE CAPACITY')}
           className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
             openGroup === 'STATE CAPACITY' ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
           }`}
@@ -276,7 +312,12 @@ export function ControlRail({
           </span>
         </button>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3" role="tabpanel">
+      <div
+        id={CABINET_PANEL_ID}
+        className="min-h-0 flex-1 overflow-y-auto px-3 py-3"
+        role="tabpanel"
+        aria-labelledby={cabinetTabId(openGroup)}
+      >
         {activeDials ? (
           <section>
             <div className="mb-2 border-b border-dossier-paper/15 pb-2">

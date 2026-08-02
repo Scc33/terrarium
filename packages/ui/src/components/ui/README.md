@@ -6,6 +6,7 @@ This folder is the shared, role-based interface layer for the game. Import from
 - `Button`, `SegmentedControl`, `SliderField`, and `DisclosureSection` cover game input and progressive disclosure.
 - `Metric`, `ProgressBar`, `SectionBar`, and `SectionHeading` cover dense information display.
 - `Panel`, `Modal`, `OverlayLayout`, and `EmptyState` establish layout and accessibility contracts.
+- `useFocusTrap` keeps temporary drawers and modal paperwork keyboard-contained and restores the invoking control when they close.
 - `ChartFrame` gives every analytical figure the same title, unit, current-value,
   legend, plot-region, and accessible-summary anatomy.
 - `LineChart`, `DonutChart`, and `StackedAreaChart` are exact-data visualizations;
