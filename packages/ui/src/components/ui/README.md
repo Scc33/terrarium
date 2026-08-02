@@ -3,7 +3,7 @@
 This folder is the shared, role-based interface layer for the game. Import from
 `components/ui` rather than reaching into an individual folder.
 
-- `Button`, `SegmentedControl`, and `SliderField` cover game input.
+- `Button`, `SegmentedControl`, `SliderField`, and `DisclosureSection` cover game input and progressive disclosure.
 - `Metric`, `ProgressBar`, and `SectionHeading` cover dense information display.
 - `Panel`, `Modal`, and `EmptyState` establish layout and accessibility contracts.
 - `LineChart`, `DonutChart`, and `StackedAreaChart` are exact-data visualizations;

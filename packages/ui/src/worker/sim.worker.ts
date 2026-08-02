@@ -10,6 +10,7 @@ import {
   init,
   step,
   IllegalActionError,
+  politicalCostOfAction,
   type ActionLog,
   type CountryParams,
   type TrueState,
@@ -86,15 +87,30 @@ function advance(actions: Parameters<typeof applyActions>[1]): void {
   publish()
 }
 
+function previewKey(action: Parameters<typeof applyActions>[1][number]): string {
+  return action.kind === 'setDial' ? `dial:${action.path}` : `cap:${action.target}`
+}
+
 function previewCost(actions: Parameters<typeof applyActions>[1]): void {
   if (!state) return
-  const before = state.politics.politicalCapital
+  const available = state.politics.politicalCapital
   try {
-    const after = applyActions(state, actions).politics.politicalCapital
-    post({ type: 'preview', cost: before - after, affordable: true })
+    const costs = Object.fromEntries(actions.map((action) => [previewKey(action), politicalCostOfAction(state!, action)]))
+    const cost = Object.values(costs).reduce((sum, value) => sum + value, 0)
+    // Legality and affordability are separate. Validate against an unlimited
+    // cabinet so an unaffordable proposal still gets an honest finite quote.
+    applyActions({ ...state, politics: { ...state.politics, politicalCapital: Number.POSITIVE_INFINITY } }, actions)
+    const affordable = cost <= available
+    post({
+      type: 'preview',
+      cost,
+      costs,
+      affordable,
+      error: affordable ? undefined : `Need ${cost.toFixed(1)} PC; ${available.toFixed(1)} available.`,
+    })
   } catch (e) {
     if (e instanceof IllegalActionError) {
-      post({ type: 'preview', cost: Infinity, affordable: false, error: e.message })
+      post({ type: 'preview', cost: Infinity, costs: {}, affordable: false, error: e.message })
     } else {
       throw e
     }

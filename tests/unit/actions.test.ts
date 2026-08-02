@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyActions, init, IllegalActionError, step } from '@terrarium/engine'
+import { applyActions, init, IllegalActionError, politicalCostOfAction, step } from '@terrarium/engine'
 import { standardCountry } from '@terrarium/fixtures'
 
 const fresh = () => init(standardCountry, 'actions-test')
@@ -10,6 +10,14 @@ describe('applyActions', () => {
     const s1 = applyActions(s0, [{ kind: 'setDial', path: 'taxRates.fuel', value: 0.3 }])
     expect(s1.gov.dials.taxRates.fuel).toBe(0.3)
     expect(s1.politics.politicalCapital).toBeLessThan(s0.politics.politicalCapital)
+  })
+
+  it('quotes the same political cost that application charges', () => {
+    const s0 = fresh()
+    const action = { kind: 'setDial', path: 'taxRates.fuel', value: 0.3 } as const
+    const quoted = politicalCostOfAction(s0, action)
+    const s1 = applyActions(s0, [action])
+    expect(s0.politics.politicalCapital - s1.politics.politicalCapital).toBeCloseTo(quoted)
   })
 
   it('rejects out-of-bounds dial values loudly', () => {

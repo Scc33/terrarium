@@ -1,6 +1,7 @@
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button/Button'
 export { EmptyState } from './EmptyState/EmptyState'
 export { DonutChart, type DonutChartProps } from './DonutChart/DonutChart'
+export { DisclosureSection } from './DisclosureSection/DisclosureSection'
 export { LineChart, type LineChartProps } from './LineChart/LineChart'
 export { Metric, type MetricProps, type MetricTone } from './Metric/Metric'
 export { Modal, type ModalSize } from './Modal/Modal'
