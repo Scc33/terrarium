@@ -68,7 +68,7 @@ export { generateParams }
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'
-export { applyAction, IllegalActionError } from './actions/apply'
+export { applyAction, politicalCostOfAction, IllegalActionError } from './actions/apply'
 export type { Action, ActionLog, DialPath, TurnActions } from './actions/types'
 export {
   SECTOR_IDS,

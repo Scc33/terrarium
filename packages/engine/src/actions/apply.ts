@@ -92,7 +92,9 @@ function spendPc(s: TrueState, cost: number, what: string): TrueState {
   }
 }
 
-export function applyAction(state: TrueState, action: Action): TrueState {
+/** Quote one order using the same validation and cost formula as application.
+ * The worker exposes this cost to the cabinet UI without exposing true state. */
+export function politicalCostOfAction(state: TrueState, action: Action): number {
   if (!state.politics.inPower) {
     throw new IllegalActionError('you have been deposed; the dials are no longer yours')
   }
@@ -108,8 +110,7 @@ export function applyAction(state: TrueState, action: Action): TrueState {
         )
       }
       const relChange = Math.abs(value - spec.get(state)) / spec.scale(state)
-      const cost = PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange
-      return spec.set(spendPc(state, cost, action.path), value)
+      return PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange
     }
     case 'investCapacity': {
       const { target, amount } = action
@@ -126,7 +127,21 @@ export function applyAction(state: TrueState, action: Action): TrueState {
       if (state.gov.capacity[target] + inFlight >= 0.95) {
         throw new IllegalActionError(`the ${target} ministry is already at full strength`)
       }
-      const s = spendPc(state, PC_COST_CAPACITY, `invest in ${target} capacity`)
+      return PC_COST_CAPACITY
+    }
+  }
+}
+
+export function applyAction(state: TrueState, action: Action): TrueState {
+  const cost = politicalCostOfAction(state, action)
+  switch (action.kind) {
+    case 'setDial': {
+      const spec = DIALS[action.path]
+      return spec.set(spendPc(state, cost, action.path), action.value)
+    }
+    case 'investCapacity': {
+      const { target, amount } = action
+      const s = spendPc(state, cost, `invest in ${target} capacity`)
       const points = amount / CAPACITY_COST_PER_POINT
       return {
         ...s,

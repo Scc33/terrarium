@@ -41,7 +41,9 @@ interface GameState {
   /** dial changes staged for this quarter, keyed by a stable action key */
   staged: Map<string, Action>
   stagedCost: number | null
+  stagedCosts: Record<string, number>
   stagedAffordable: boolean
+  previewError: string | null
   rejection: string | null
   advancing: boolean
   /** traced positions on the Narrow Corridor (published data only) */
@@ -98,10 +100,23 @@ export const useGame = create<GameState>((set, get) => {
         break
       }
       case 'preview':
-        set({ stagedCost: msg.affordable ? msg.cost : null, stagedAffordable: msg.affordable })
+        set({
+          stagedCost: msg.cost,
+          stagedCosts: msg.costs,
+          stagedAffordable: msg.affordable,
+          previewError: msg.error ?? null,
+        })
         break
       case 'rejected':
-        set({ published: msg.published, rejection: msg.message, advancing: false, staged: new Map(), stagedCost: null })
+        set({
+          published: msg.published,
+          rejection: msg.message,
+          advancing: false,
+          staged: new Map(),
+          stagedCost: null,
+          stagedCosts: {},
+          previewError: null,
+        })
         break
       case 'error':
         console.error('sim worker error:', msg.message)
@@ -115,7 +130,7 @@ export const useGame = create<GameState>((set, get) => {
   const refreshPreview = () => {
     const actions = [...get().staged.values()]
     if (actions.length === 0) {
-      set({ stagedCost: null, stagedAffordable: true })
+      set({ stagedCost: null, stagedCosts: {}, stagedAffordable: true, previewError: null })
     } else {
       send({ type: 'previewCost', actions })
     }
@@ -126,7 +141,9 @@ export const useGame = create<GameState>((set, get) => {
     save: null,
     staged: new Map(),
     stagedCost: null,
+    stagedCosts: {},
     stagedAffordable: true,
+    previewError: null,
     rejection: null,
     advancing: false,
     corridorTrail: [],
@@ -146,12 +163,12 @@ export const useGame = create<GameState>((set, get) => {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
-      set({ staged: new Map(), stagedCost: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
       send({ type: 'new', seed: s })
     },
 
     loadSave(save) {
-      set({ staged: new Map(), stagedCost: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
       send({ type: 'load', save })
     },
 
@@ -166,17 +183,23 @@ export const useGame = create<GameState>((set, get) => {
       const staged = new Map(get().staged)
       if (action === null) staged.delete(key)
       else staged.set(key, action)
-      set({ staged })
+      set({
+        staged,
+        stagedCost: null,
+        stagedCosts: {},
+        stagedAffordable: staged.size === 0,
+        previewError: null,
+      })
       refreshPreview()
     },
 
     clearStaged() {
-      set({ staged: new Map(), stagedCost: null, stagedAffordable: true })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, stagedAffordable: true, previewError: null })
     },
 
     advance() {
       const actions = [...get().staged.values()]
-      set({ advancing: true, staged: new Map(), stagedCost: null })
+      set({ advancing: true, staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null })
       send({ type: 'advance', actions })
     },
   }

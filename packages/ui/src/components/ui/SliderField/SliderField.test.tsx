@@ -11,6 +11,16 @@ describe('SliderField', () => {
   })
 
   it('marks staged values with the accent tone', () => {
-    expect(renderToStaticMarkup(<SliderField label="Tariff" displayValue="30%" dirty readOnly />)).toContain('text-dossier-brass')
+    const html = renderToStaticMarkup(<SliderField label="Tariff" displayValue="30%" currentDisplayValue="20%" changeDisplayValue="+10 PT" politicalCost={2.2} dirty readOnly onReset={() => {}} />)
+    expect(html).toContain('DRAFTED · 2.2 PC')
+    expect(html).toContain('WAS 20%')
+    expect(html).toContain('+10 PT')
+    expect(html).toContain('RESET')
+  })
+
+  it('offers labelled precision controls', () => {
+    const html = renderToStaticMarkup(<SliderField label="Tariff" displayValue="30%" onStep={() => {}} readOnly />)
+    expect(html).toContain('aria-label="Decrease Tariff"')
+    expect(html).toContain('aria-label="Increase Tariff"')
   })
 })
