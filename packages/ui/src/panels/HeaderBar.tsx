@@ -8,9 +8,9 @@ const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
 function HeaderGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <section className="flex shrink-0 flex-col gap-0.5 border-l border-dossier-paper/15 pl-3" aria-label={label}>
+    <section className="flex shrink-0 flex-col gap-0.5 border-l border-dossier-paper/15 pl-2.5" aria-label={label}>
       <span className="font-mono text-[8px] font-semibold tracking-[0.22em] text-dossier-brass/80">{label}</span>
-      <div className="flex items-baseline gap-3">{children}</div>
+      <div className="flex items-baseline gap-2">{children}</div>
     </section>
   )
 }
@@ -33,7 +33,7 @@ export function HeaderBar({
 }) {
   const t = pub.treasury
   return (
-    <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b border-dossier-brass/70 bg-[#294235] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.22)] sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
+    <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-dossier-brass/70 bg-[#294235] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.22)] sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
       <div className="flex min-w-[150px] items-center gap-3 border-r border-dossier-paper/15 pr-4">
         <div className="h-7 w-1 bg-dossier-brass" aria-hidden="true" />
         <div>
@@ -44,7 +44,7 @@ export function HeaderBar({
         </div>
       </div>
 
-      <div className="order-3 col-span-2 flex min-w-0 items-center gap-4 overflow-x-auto pb-0.5 [scrollbar-width:none] xl:order-none xl:col-span-1 xl:pb-0">
+      <div className="order-3 col-span-2 flex min-w-0 items-center gap-3 overflow-x-auto pb-0.5 [scrollbar-width:none] xl:order-none xl:col-span-1 xl:pb-0">
         <HeaderGroup label="POLITICAL">
           <Metric compact inverted label="CAPITAL" value={pub.politicalCapital.toFixed(0)} title="Political capital available for staged decisions." />
           <Metric compact inverted label={pub.inPower ? 'ELECTION' : 'STATUS'} value={pub.inPower ? `${pub.quartersToElection}Q` : 'DEPOSED'} tone={!pub.inPower || pub.quartersToElection <= 2 ? 'danger' : 'default'} title="Quarters until the electorate weighs in." />
