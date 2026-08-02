@@ -1,7 +1,15 @@
 # Terrarium — working notes for Claude
 
 Economic policy game per docs/ (read `docs/tech-architecture.md` before touching structure).
-pnpm monorepo; M0+M1 are built.
+pnpm monorepo; M0–M6 are built (schema 11).
+
+## The two halves
+
+The **economy** (M1–M5) and the **politics** (M6) are separate machines that meet in two
+places: `institutions` reads the economy to decide who has power, and the veto players price
+every action in `actions/apply.ts`. Keep that seam narrow. In particular the passive century
+baseline is an economy fact and M6 must not move it — the political layer is designed to bite
+only when the player does something political, and `pnpm batch --policy passive` is the check.
 
 ## UI design authority
 
@@ -27,7 +35,8 @@ them. Keep it that way; anything you push into a component becomes untestable he
 - **`ui/src/wallPlan.ts`** — how much room the war room has. The rack is fixed-height and
   complete, so the wall's minimum height is a NUMBER, and `tests/ui/wall-plan.test.ts`
   asserts it against a 1280×720 reference viewport. `rackHeadroom()` says how many more
-  indicators fit (24, today). When that hits zero the wall is full and the next indicator
+  indicators fit (20, today — M6's `unrest` took one). When that hits zero the wall is
+  full and the next indicator
   needs a real layout decision.
 - **`ui/src/domains.ts`** — the printed face of each dial: a FIXED per-indicator domain,
   measured with `pnpm ranges`, never derived from the trailing window. A face redrawn under
@@ -71,13 +80,14 @@ them. Keep it that way; anything you push into a component becomes untestable he
   `docs/metrics-changelog.md` (the engine's inputs/outputs contract — new indicators + their
   `fundedAt`, new levers/params, pipeline-order changes).
 - Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
-  `--policy passive --ticks 400`). Healthy M5 passive baseline: growth ≈ 2.5%/yr,
+  `--policy passive --ticks 400`). Healthy M5/M6 passive baseline: growth ≈ 2.5%/yr,
   inflation ≈ 0, u ≈ 12.4% century mean — the elevated u is the DESIGNED §8 youth-bulge
   bomb an unschooled do-nothing government earns (funding education absorbs it to ~7%
   and lifts growth past 3%). ~7% deposed by 400q, clustering at the aging endgame
   (median ~q336) — a functioning financial system is a mild stabilizer. Random policy
-  120q: ~24% deposed (self-inflicted banking crises claim a few more than pre-M5's ~22%),
-  no NaN, no price explosions.
+  120q: ~30% deposed (M6's coups on top of the pre-M6 ~24%; self-inflicted banking crises
+  claimed a few more than pre-M5's ~22%), no NaN, no price explosions. M6 deliberately left
+  the PASSIVE baseline untouched — if a politics change moves it, the seam has leaked.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 - `pnpm coverage` runs the suite with v8 coverage over the pure core (engine + observation);
@@ -105,6 +115,22 @@ order and the tests tell you the rest.
      rejects any instrument that spends >2 % of its life pegged against a rail;
    - `revision-stamp` fails if the fog stopped biting, or started biting everywhere.
 6. Verify in the browser at **1280×720** (below), because none of the above sees layout.
+
+### Adding an institution or a bloc
+
+Both id lists are total `Record`s across engine, observation and UI, so the build walks you
+through it. The parts that are NOT compile-enforced, and that M6 got wrong first time:
+
+1. `INSTITUTION_IDS` / `BLOC_IDS` in `state/schema.ts`; a stance row in **both** stance tables
+   in `actions/apply.ts` (`DIAL_STANCE` for levers, `REFORM_STANCE` for reforms).
+2. A bloc needs its POWER derived from the economy in `pipeline/institutions.ts` — never a
+   constant — and a `BLOC_FAVOR_BASE` entry **measured** so the 1946 settlement reads neutral.
+3. A bloc needs exactly one economic channel for its hostility, through machinery that already
+   exists (a risk premium, an investment factor, a wage move). A bloc that only taxes PC is
+   set dressing.
+4. `ui/src/components/labels.ts`: `BLOC_NAMES` + `BLOC_NOTES`, or `INSTITUTION_NAMES`.
+5. Re-measure. `tests/properties/institutions.test.ts` pins the claims; check the passive
+   baseline did not move.
 
 ### Verifying the wall
 
@@ -154,6 +180,32 @@ Both must be `false` / `0`. That one-liner is the whole regression test for the 
   The bank-capital cap is deliberately SLACK in booms (borrower demand is the binding limit)
   and only bites AFTER a crisis writes capital down — that post-crash cap IS the forced
   deleveraging (credit runs off for years, q overshoots below 1 — a lasting credit hangover).
+
+## Hard-won politics lessons (M6)
+
+- **Reference-dependence is the house style, and it is load-bearing.** Cohort approval judges
+  income against an EMA of itself; bloc favour judges policy against the 1946 settlement
+  (`BLOC_FAVOR_BASE`); revolutionary pressure judges hardship against experienced conditions.
+  Every one of these was a *bug fix*, not a flourish — absolute thresholds made a do-nothing
+  government inherit a capital strike, and pinned unrest so flat that reform windows and revolts
+  were both unreachable. If you add a new political response, centre it the same way and
+  **measure the resting value** before you pick the constant.
+- **A mechanic you cannot reach is not a mechanic.** Before shipping any threshold, measure the
+  distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
+  mechanics were dead on arrival at plausible-looking numbers.
+- **Suppression must cost something the boot cannot pay.** Repression damps grievance
+  *multiplicatively* (it can never zero it) and corridor strain is added *outside* that damping.
+  Subtract repression linearly and the extractive path becomes strictly dominant.
+- **Bloc power is DERIVED, never authored.** It is read off the economy each quarter — that is
+  what makes "a crisis is a political opening" fall out for free instead of being scripted.
+  What is authored is only what each bloc *wants*: a preference, the same primitive as a
+  consumption weight. Pillar 2 forbids scripting what a policy *does*, not knowing that a
+  landowner dislikes a land tax.
+- **The game never says no.** Blocs make levers expensive, never impossible — matching the
+  control rail's existing promise. A veto that hard-blocks would also silently break the M1
+  exit-criteria scripts.
+- **`pnpm diff-state --moved-only` on any schema-adding change.** New fields sort as infinite
+  relative change and bury the economics review the bless workflow depends on.
 
 ## Hard-won UI lessons (M5.5)
 

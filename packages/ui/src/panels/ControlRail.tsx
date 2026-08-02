@@ -5,8 +5,9 @@
  */
 
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
-import type { PublishedState } from '@terrarium/observation'
+import { INSTITUTION_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
+import { BLOC_NAMES, BLOC_NOTES, INSTITUTION_NAMES } from '../components/labels'
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -158,6 +159,98 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   )
 }
 
+/**
+ * The whip count (§4.3). Bloc power is read off the economy each quarter, so
+ * this is a live picture of who is actually in the room — and the bar shows
+ * EFFECTIVE power, i.e. after an organised society's check, because that is
+ * the number that actually prices your levers.
+ */
+function BlocRow({ bloc, pledged }: { bloc: PublishedState['blocs'][number]; pledged: boolean }) {
+  // −1 implacable … +1 in your pocket
+  const hostile = bloc.favor < -0.15
+  const friendly = bloc.favor > 0.15
+  return (
+    <div
+      className="grid grid-cols-[86px_1fr_52px] items-center gap-2"
+      title={`${BLOC_NOTES[bloc.id]}\n\nPower ${(bloc.power * 100).toFixed(0)} of 100 (${(bloc.effectivePower * 100).toFixed(0)} after society's check). Goodwill ${bloc.favor.toFixed(2)}.${pledged ? '\n\nYou owe them: everything they dislike costs double until the pledge expires.' : ''}`}
+    >
+      <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75">
+        {BLOC_NAMES[bloc.id]}
+        {pledged && <span className="text-dossier-brass"> ✦</span>}
+      </span>
+      {/* alerts on the felt rail use terminal-alert, not dossier-warn: oxblood
+          on deep green is a 1.08:1 contrast ratio, i.e. invisible. The rail's
+          rejection line already sets this precedent. */}
+      <div className="h-1.5 bg-dossier-paper/15">
+        <div
+          className={`h-full ${hostile ? 'bg-terminal-alert' : friendly ? 'bg-dossier-paper' : 'bg-dossier-brass'}`}
+          style={{ width: `${(bloc.effectivePower * 100).toFixed(0)}%` }}
+        />
+      </div>
+      <span
+        className={`text-right font-mono text-[11px] tabular-nums ${
+          hostile ? 'text-terminal-alert' : friendly ? 'text-dossier-paper' : 'text-dossier-paper/70'
+        }`}
+      >
+        {bloc.favor >= 0 ? '+' : ''}
+        {bloc.favor.toFixed(2)}
+      </span>
+    </div>
+  )
+}
+
+/** Layer 3 (§4.3): generational, ratcheting, contested. The price shown is
+ * what the engine will actually charge — veto premium and reform-window
+ * discount already in it — so the room's objection is legible before you pay. */
+function ReformRow({ id, pub }: { id: (typeof INSTITUTION_IDS)[number]; pub: PublishedState }) {
+  const { staged, stage } = useGame()
+  const key = `reform:${id}`
+  const stagedAction = staged.get(key)
+  const level = pub.institutions[id]
+  const cost = pub.reformCost[id]
+  const { name, note } = INSTITUTION_NAMES[id]
+
+  const button = (dir: 1 | -1) => {
+    const price = dir > 0 ? cost.up : cost.down
+    const isStaged = stagedAction?.kind === 'reform' && stagedAction.direction === dir
+    return (
+      <button
+        disabled={!pub.inPower || price === null}
+        title={
+          price === null
+            ? `${name} is already as ${dir > 0 ? 'broad' : 'narrow'} as it goes.`
+            : `${dir > 0 ? 'Broaden' : 'Roll back'} ${name} — ${price.toFixed(0)} PC.${pub.reformWindowOpen ? ' The country is in ferment: the window is open and the price is cut.' : ''}`
+        }
+        onClick={() => stage(key, isStaged ? null : { kind: 'reform', institution: id, direction: dir })}
+        className={`border px-1 py-0.5 font-mono text-[10px] tabular-nums ${
+          isStaged
+            ? 'border-dossier-brass bg-dossier-brass text-dossier-ink'
+            : 'border-dossier-paper/30 text-dossier-paper/80 hover:border-dossier-brass hover:text-dossier-brass'
+        } disabled:opacity-30`}
+      >
+        {dir > 0 ? '+' : '−'}
+        {price === null ? '' : price.toFixed(0)}
+      </button>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-[76px_1fr_auto_auto] items-center gap-1.5">
+      <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75" title={note}>
+        {name}
+      </span>
+      <div className="h-1.5 bg-dossier-paper/15" title={`${note}\n\nCurrently at ${(level * 100).toFixed(0)} of 100.`}>
+        <div
+          className={`h-full ${id === 'repression' ? 'bg-terminal-alert' : 'bg-dossier-brass'}`}
+          style={{ width: `${(level * 100).toFixed(0)}%` }}
+        />
+      </div>
+      {button(-1)}
+      {button(1)}
+    </div>
+  )
+}
+
 export function ControlRail({ pub }: { pub: PublishedState }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, rejection } = useGame()
 
@@ -179,6 +272,48 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
         <div className="flex flex-col gap-1.5">
           {CAPACITY_IDS.map((id) => (
             <CapacityRow key={id} id={id} pub={pub} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          <span className="font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-brass">
+            INSTITUTIONS
+          </span>
+          {pub.reformWindowOpen && (
+            <span
+              className="font-mono text-[9px] tracking-[0.1em] text-terminal-alert"
+              title="Revolutionary pressure has prised the window open: reforms the elites would otherwise veto are cheap right now, and the window closes as the country calms."
+            >
+              WINDOW OPEN
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          {INSTITUTION_IDS.map((id) => (
+            <ReformRow key={id} id={id} pub={pub} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-1.5 flex items-baseline justify-between gap-2">
+          <span className="font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-brass">
+            THE ROOM
+          </span>
+          {pub.pledge && (
+            <span
+              className="font-mono text-[9px] tracking-[0.1em] text-dossier-brass"
+              title={`You courted ${BLOC_NAMES[pub.pledge.bloc]} at the last election. Everything they dislike costs double for ${pub.pledge.quartersLeft} more quarters.`}
+            >
+              ✦ {BLOC_NAMES[pub.pledge.bloc].toUpperCase()} {pub.pledge.quartersLeft}Q
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          {pub.blocs.map((b) => (
+            <BlocRow key={b.id} bloc={b} pledged={pub.pledge?.bloc === b.id} />
           ))}
         </div>
       </section>

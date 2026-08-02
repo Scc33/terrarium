@@ -22,7 +22,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 10)
+## Current contract (schema 11)
 
 ### Inputs
 
@@ -44,12 +44,33 @@ contract, so it's called out below.
 | `policyRate` | annualized nominal rate |
 | `subsidies.<sector>` | money/quarter per sector |
 
-**Actions**: `setDial` (move a lever) · `investCapacity` (build a Layer-2 stock over 8 quarters).
+**Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
+| Stock | What it does |
+|---|---|
+| `suffrage` | closes the distance from the 1946 franchise to one-person-one-vote — rewrites the ballot weights the §3.4 score uses |
+| `press` | raises societal power |
+| `labor_rights` | raises societal power; makes `unions` a real bloc |
+| `courts` | raises societal power; the money interest approves |
+| `repression` | buys PC and lowers the electoral bar; sinks societal power, raises state power, walks the dot toward despotism |
 
-### Pipeline (14 ordered steps)
+**Actions**: `setDial` (move a lever) · `investCapacity` (build a Layer-2 stock over 8 quarters)
+· `reform` (move a Layer-3 stock by `REFORM_STEP`, ±1) · `campaign` (commit an election
+platform, only inside the 2-quarter campaign window).
+
+**Campaign platforms** (`PlatformId`): `record` · `largesse` (transfers +50 %, permanently) ·
+`coalition` (a bloc's machine, and its claim on you for a full term) · `suppression`
+(repression +0.15; the mandate is recorded as taken) · `franchise` (suffrage +0.2).
+
+Every `setDial` and `reform` is priced by the **veto players**: the PC cost is multiplied by
+`1 + VETO_COST_GAIN × Σ (effective bloc power × how much that bloc minds the move)`, doubled for
+a bloc you owe a pledge to, and discounted while a reform window is open. It is never infinite —
+the game does not say no, it lets you find out.
+
+### Pipeline (15 ordered steps)
 
 `shocks` → `demography` → `technology` → `world` → `finance` → `production` → `trade` →
-`fiscal` → `monetary` → `prices` → `labor` → `cohorts` → `statistics` → `politics`
+`fiscal` → `monetary` → `prices` → `labor` → `cohorts` → `institutions` → `statistics` →
+`politics`
 
 The **rest of world** is exogenous input, not a lever: four abstract partners run their own
 business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
@@ -82,6 +103,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
 | `credit_growth` | % / yr | 0.55 | v10 | growth of credit / annual GDP (leverage) |
+| `unrest` | idx | 0.40 | v11 | revolutionary pressure ×100 — what collated provincial reports would show |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
 additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
@@ -93,7 +115,15 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 |---|---|---|
 | `dials` | v1 | your own lever settings |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
-| `politics` | v1 | political capital, quarters to election, in-power, elections won |
+| `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v11) |
+| `institutions` | v11 | the five Layer-3 stocks, as set |
+| `reformCost` | v11 | PC each reform costs right now — veto premium and window discount already applied |
+| `reformWindowOpen` | v11 | whether pressure has prised the window open |
+| `blocs[]` | v11 | per bloc: power, favor, effective power (after society's check) |
+| `pledge` | v11 | the bloc courted at the last election, and quarters left on the claim |
+| `corridor` | v11 | state power, societal power, offset, half-width, in/out, and the full traced trail |
+| `campaign` | v11 | present only inside the campaign window: support, threshold, platform committed |
+| `lastElection` | v11 | the count: platform, support, swing, threshold, won, suppressed |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
@@ -108,12 +138,40 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | `prosperity`, `vsBaseline` | v4 | discounted geometric-mean consumption; vs the 1946 standard |
 | `prosperityRate` | v5* | annualized welfare growth over the tenure (%/yr) — what's graded |
 | `prosperityGrade`, `legitimacyGrade` | v5* | A–F; axes graded separately, never summed |
+| `electionsSuppressed` | v11 | mandates taken rather than won — shown beside `electionsWon`, never netted into it, and it caps the Legitimacy grade |
+| `corridorShare` | v11 | share of the tenure spent inside the corridor — the §3.3 **Position** axis |
+| `finalStatePower`, `finalSocietalPower` | v11 | where the dot finished |
+| `positionGrade` | v11 | A–F on Position: the third axis the design named, now real |
+| `deposedBy` | v11 | `'poll'` · `'revolt'` · `'coup'` · null |
 
 \* letter grades shipped after v5 without a schema bump.
 
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 11 — Politics as a game
+- **Pipeline +**: `institutions` step (after `cohorts`, before `statistics`) — societal power,
+  the veto players, revolutionary pressure. It runs before `statistics` so unrest can be
+  published, and before `politics` so the election reads the franchise it just rewrote.
+- **Inputs +**: `reform` and `campaign` actions; five Layer-3 institution stocks. Every existing
+  lever is now additionally priced by the veto players (see Inputs above) — the same dial can
+  cost 1× or 3× depending on who is in the room and whether society checks them.
+- **Outputs +**: `unrest` (fogged, unlock 0.40); `institutions`, `blocs[]`, `corridor`,
+  `campaign`, `lastElection`, `reformCost`, `pledge` (all exact — a government knows its own
+  constitution and its own whip count); corridor entry/exit, reform-window and
+  revolt/coup dispatches on the wire (exact). Report card gains the **Position** axis and
+  distinguishes mandates won from mandates taken.
+- **Internal state +**: `institutions` (stocks, societalPower, statePower, unrest, blocs,
+  pledge); `politics` gains `electionsSuppressed`, `deposedBy`, `campaign`, `lastElection`;
+  `score` gains `corridorQuarters` / `governedQuarters`.
+- **Societal power is now live**, so the §6.3 corridor dot genuinely moves — before v11 the
+  y-axis came from the country's fixed setup and the dot never left its starting point.
+- **Two new ways to lose power**: revolt (pressure past `REVOLT_AT`) and coup (elites you defied,
+  in a country whose society cannot check them). An organized society protects against the second.
+- Passive century baseline **unchanged** (≈2.5 %/yr, inflation ≈0, u ≈12.7 %, ~8 % deposed at
+  median q352) — the political layer only bites when the player does something political.
+  Random-policy 120q deposition 24 % → ~30 %, the added share almost entirely coups.
 
 ### schema 10 — The financial sector
 - **Pipeline +**: `finance` step (after `world`, before `production`). It reads last quarter's

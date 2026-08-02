@@ -8,6 +8,95 @@ The **schema version** (`packages/engine/src/state/schema.ts` → `SCHEMA_VERSIO
 the shape of `TrueState` or the pipeline order changes; each bump is a golden-replay event
 (`pnpm test` → `pnpm diff-state` review → `pnpm bless`).
 
+## [M6] — 2026-08-02 — Politics as a game (schema 11)
+
+The half of the pitch that wasn't built. Terrarium had an excellent simulation and a political
+system that was one line on the news wire; this milestone makes the politics playable, and the
+three pieces are one feature rather than three.
+
+### Added
+- **Societal power is a live state variable** (`institutions` step, §6.3). It is not a dial:
+  it is what a society's capacity to organize adds up to — who holds a ballot, whether they may
+  print and meet and sue, whether they can read, whether they live close enough together to act
+  together — net of inequality (elite capture hollows out formal rights) and net of the boot.
+  It moves at a generation's pace, so a reform passed today is a dot that drifts for a decade.
+- **Layer 3 (§4.3)**: five institution stocks — suffrage, press, labour rights, courts,
+  repression — moved by a new `reform` action. Extending the franchise rewrites the ballot
+  weights the §3.4 score uses, which is to say it edits the objective function the player is
+  being graded on.
+- **The veto players.** Four blocs — landed, industry, finance, labour — whose POWER is read off
+  the economy they own (agriculture's share of output, the credit stock, the government's own
+  debt, organized labour's legal standing). Nothing about that is authored, which is the point:
+  a crisis that guts a bloc's base is a political opening, and the levers it was guarding get
+  cheap. Their favour propagates through the ordinary economy — a capital strike is a risk
+  premium, an investment strike is the investment factor, a wage push is the wage move, an
+  aggrieved landed interest is a harvest that stops being reported.
+- **Reform windows.** Revolutionary pressure past `REFORM_WINDOW_AT` discounts reform sharply
+  and relieves the veto. Never let a good crisis go to waste, as a mechanic.
+- **The election is a scene**, not a wire line. Two quarters out the campaign opens with the
+  record as *published* (an election is fought on the figures in the newspaper — §3.4), the
+  arithmetic of the ballot box, and five ways to fight it, each mortgaging something different:
+  the budget (largesse), the levers (coalition), the corridor (suppression), or your own scoring
+  rubric (franchise). The count then gets its own scene.
+- **Two new ways to lose power**: revolt from below and a coup from above. An organized society
+  protects against the second — the corridor's central claim, as a mechanic.
+- **The report card's third axis.** Position grades the share of the tenure spent inside the
+  corridor: the path, not the endpoint. Legitimacy now distinguishes mandates won from mandates
+  taken, exactly as §3.3 asked — the two counts sit side by side and are never netted.
+- `unrest` joins the instrument ladder (fogged, unlocks at 0.40) with `THE WINDOW` printed on
+  its face, because the threshold is a rule the government knows even when its own position
+  against it is fogged.
+- `pnpm diff-state --moved-only` hides newly-added fields. On a schema-adding milestone every
+  new field diffs as an infinite relative change and crowds the genuinely moved economy out of
+  the top of the list — M6 added ~2,300 of them and the entire visible diff was noise, which
+  made the mandatory pre-bless economics review impossible to actually perform.
+
+### Changed
+- **The Narrow Corridor plot reads live coordinates and the dot moves.** Before M6 the y-axis
+  came from the country's fixed setup, so the game's signature visual drew a dot that never
+  left its starting point. The tile now says plainly where you stand, rings the dot when you
+  are outside the band, and the traced trail rides in `PublishedState` (built from the
+  statistics office's own worksheets) so it survives a save/reload.
+- Absorptive capacity is scaled by whether the incumbents are checked — the §4.3 extractive
+  ceiling. Capital widening is untouched, so forced industrialization still works and the
+  extractive path stays genuinely tempting; what it costs is catch-up (~2.47 vs ~2.82 attained
+  TFP over a century at equal capacity spending).
+- Pipeline is 15 steps: `institutions` sits after `cohorts` and before `statistics`.
+
+### Fixed
+- Bloc favour and revolutionary pressure are both **reference-dependent**, calibrated so the
+  1946 settlement reads as neutral. Without it a do-nothing government inherited a permanent
+  capital strike it had done nothing to earn, and unrest — measured against the textbook natural
+  rate while the designed §8 youth-bulge baseline sits at ~12.4 % — sat pinned at 0.21–0.34 for
+  the whole century, so reform windows never opened and revolts never fired. Both mechanics were
+  dead code.
+- Revolutionary pressure reads the hardship households *actually experienced* (which cohort
+  approval already aggregates) rather than rebuilding it from unemployment and headline
+  inflation. The old version was not merely duplicative but wrong-signed: a government that
+  impoverished people while the subsistence valve kept them nominally employed produced *less*
+  measured unrest than a passive one.
+- Repression damps grievance multiplicatively and only partly, and corridor strain is added
+  where the boot cannot reach it. Subtracted linearly, any amount of misery could be held at
+  zero pressure indefinitely and the extractive path had no downside but a letter grade.
+- The reform price quoted to the player is now the price they are charged. It was computed by
+  subtracting from `MAX_SAFE_INTEGER`, which is outside a double's mantissa, so the quote came
+  back rounded to the nearest whole number while the till kept the fraction.
+- Alerts on the felt control rail use `terminal-alert`, not `dossier-warn`: oxblood on deep
+  green is a 1.08:1 contrast ratio, i.e. invisible.
+
+### Balance
+The passive century is **unchanged by design** — growth ≈ 2.50 %/yr, inflation ≈ 0.1 %,
+u ≈ 12.7 %, ~9 % deposed at median q368 over 200×400q. The political layer is built to bite
+only when the player does something political, so a moved passive baseline means the seam
+between the two machines has leaked. Random policy 120q: ~30 % deposed (from ~24 %), the added
+share almost entirely coups; no NaN, no price explosions over 200 runs.
+
+A repressive century is genuinely tempting and genuinely dangerous: light repression (~0.20)
+costs almost no technology and carries ~18 % revolt risk over a century, while maxing the boot
+runs ~95 %. Under equal capacity spending a repressive government ends a century at ~2.47
+attained TFP against ~2.82 for one that reforms — the Soviet curve, discovered rather than
+capped.
+
 ## [M5.5] — 2026-08-01 — The wall you can actually read
 
 No schema change: the economy is bit-identical (`ELECTION_WIN_THRESHOLD` is newly exported

@@ -12,6 +12,7 @@ import {
   NORMAL_UTILIZATION,
   SUBSISTENCE_ABSORPTION_Q,
   SUBSISTENCE_CAP,
+  UNION_FAVOR_WAGE,
   WAGE_DEMAND_GAIN,
   WAGE_SLACK_GAIN,
   WAGE_INFLATION_PASSTHROUGH,
@@ -20,7 +21,7 @@ import {
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
 import type { PipelineStep } from './pipeline'
-import { laborForce, laborForOutput, totalLaborForce } from './derive'
+import { effectiveBlocPower, laborForce, laborForOutput, totalLaborForce } from './derive'
 
 export const labor: PipelineStep = {
   name: 'labor',
@@ -62,6 +63,13 @@ export const labor: PipelineStep = {
     const tfpTerm =
       Math.max(0, state.tech.tfpGrowthQ) * clamp(1 - 5 * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
     const slackTerm = WAGE_SLACK_GAIN * (NATURAL_UNEMPLOYMENT - uLast)
+    // §4.3: an aggrieved and legally organized labor movement does not petition,
+    // it bargains — and the wage push then runs through costs into prices like
+    // any other wage. Weak unions can be as angry as they like for nothing.
+    const wagePush =
+      UNION_FAVOR_WAGE *
+      Math.max(0, -state.institutions.blocs.unions.favor) *
+      effectiveBlocPower(state, 'unions')
     const newWages = sectorRecord((sid, i) => {
       const s = state.sectors[i]
       const tightness = (targets[i] - s.employment) / Math.max(s.employment, 1e-9)
@@ -69,7 +77,8 @@ export const labor: PipelineStep = {
         WAGE_DEMAND_GAIN * tightness +
           WAGE_INFLATION_PASSTHROUGH * flows.inflationQ +
           tfpTerm +
-          slackTerm,
+          slackTerm +
+          wagePush,
         -WAGE_MAX_DOWN,
         WAGE_MAX_UP,
       )

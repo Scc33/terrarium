@@ -9,18 +9,31 @@ import {
   BOND_MARKET_DEPTH,
   CAPACITY_DECAY_BY_ID,
   DEBT_CEILING,
+  FIN_FAVOR_DEPTH,
+  FIN_FAVOR_PREMIUM,
+  LAND_FAVOR_TAX,
   RISK_PREMIUM_SLOPE,
   taxEfficiency,
 } from '../constants'
 import { clamp, sumRecord } from '../math'
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityBuild, type TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
+import { effectiveBlocPower } from './derive'
 
 export const fiscal: PipelineStep = {
   name: 'fiscal',
   run(state) {
     const { gov, flows, market, io } = state
-    const eff = taxEfficiency(gov.capacity.tax)
+    // §4.3 the veto players reach the budget through two channels a treasury
+    // would recognize: an aggrieved landed interest whose harvest stops being
+    // reported, and a money interest that stops turning up to the auction
+    const landAnger =
+      Math.max(0, -state.institutions.blocs.landowners.favor) *
+      effectiveBlocPower(state, 'landowners')
+    const moneyAnger =
+      Math.max(0, -state.institutions.blocs.financiers.favor) *
+      effectiveBlocPower(state, 'financiers')
+    const eff = taxEfficiency(gov.capacity.tax) * (1 - LAND_FAVOR_TAX * landAnger)
     const tariffEff = 0.5 + 0.5 * gov.capacity.tax // customs posts are easy to man
     const fuelEff = 0.7 + 0.3 * gov.capacity.tax // excise at the depot, likewise
 
@@ -44,7 +57,9 @@ export const fiscal: PipelineStep = {
     // --- outlays ---
     const pipelineSpend = gov.pipeline.reduce((s, b) => s + b.moneyPerQtr, 0)
     const debtToGdp = gov.debt / Math.max(4 * flows.nominalGdp, 1e-9)
-    const riskPremium = Math.max(0, debtToGdp - 0.5) * RISK_PREMIUM_SLOPE
+    // a capital strike is not a scripted penalty: it is a yield
+    const riskPremium =
+      Math.max(0, debtToGdp - 0.5) * RISK_PREMIUM_SLOPE + FIN_FAVOR_PREMIUM * moneyAnger
     const interest = (gov.debt * (gov.dials.policyRate + riskPremium)) / 4
     const outlays =
       gov.dials.spending.transfers +
@@ -58,7 +73,10 @@ export const fiscal: PipelineStep = {
 
     // --- financing: bonds first, the press when markets close ---
     const deficit = Math.max(0, -balance)
-    const bondCapacity = debtToGdp > DEBT_CEILING ? 0 : BOND_MARKET_DEPTH * 4 * flows.nominalGdp * 0.25
+    const bondCapacity =
+      debtToGdp > DEBT_CEILING
+        ? 0
+        : BOND_MARKET_DEPTH * 4 * flows.nominalGdp * 0.25 * (1 - FIN_FAVOR_DEPTH * moneyAnger)
     const printedThisQtr = Math.max(0, deficit - bondCapacity)
     const borrowed = deficit - printedThisQtr
     const repaid = Math.min(Math.max(0, balance), gov.debt)

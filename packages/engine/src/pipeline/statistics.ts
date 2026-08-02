@@ -139,6 +139,14 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     fastLag: true, // markets mark to market same-quarter
   },
   {
+    id: 'unrest',
+    trueValue: (h, q) => h[q].unrest * 100,
+    baseSd: 12,
+    // the provincial governors always write in; somebody has to read the
+    // reports, collate them, and dare to put a number on the result
+    fundedAt: 0.4,
+  },
+  {
     id: 'credit_growth',
     trueValue: (h, q) => {
       const prev = q > 0 ? h[q - 1].creditToGdp : h[q].creditToGdp
@@ -155,7 +163,7 @@ const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
 const noiseScale = (cap: number) => 1 - 0.85 * cap
 
 function recordOf(state: TrueState): StatRecord {
-  const { flows, sectors, gov, external, ledger, finance } = state
+  const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   return {
     tick: state.meta.tick,
     realGdp: flows.realGdp,
@@ -177,6 +185,9 @@ function recordOf(state: TrueState): StatRecord {
     termsOfTrade: termsOfTrade(state),
     assetPrice: finance.assetPrice,
     creditToGdp: finance.creditToGdp,
+    unrest: inst.unrest,
+    statePower: inst.statePower,
+    societalPower: inst.societalPower,
     statCapacity: gov.capacity.statistical,
     satisfiedAgri: flows.satisfied.agri,
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),
@@ -277,6 +288,16 @@ const NEWS_RULES: Array<{
     texts: [
       'Importers scramble for foreign exchange.',
       'The central bank is said to be counting its gold twice.',
+    ],
+  },
+  {
+    // the street needs no statistical office to be visible from a window
+    when: (s) => s.unrest > 0.5,
+    tone: 'bad',
+    texts: [
+      'Students and strikers march on the ministries.',
+      'The gendarmerie asks for reinforcements it does not have.',
+      'Pamphlets circulate in the provinces that no censor has seen.',
     ],
   },
   {

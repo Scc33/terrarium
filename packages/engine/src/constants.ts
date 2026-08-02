@@ -4,7 +4,15 @@
  * 1946 economy (the M1 exit criterion (c)).
  */
 
-import type { CapacityId, CohortId, PartnerId, SectorId } from './state/schema'
+import type {
+  BlocId,
+  CapacityId,
+  CohortId,
+  InstitutionId,
+  PartnerId,
+  PlatformId,
+  SectorId,
+} from './state/schema'
 
 // ---------- production ----------
 export const CAPITAL_ELASTICITY = 0.35
@@ -440,7 +448,229 @@ export const ELECTION_WIN_THRESHOLD = 0.38
 export const PC_START = 20
 export const PC_MAX = 100
 
+/** a state that does not have to ask can act: repression buys freedom of
+ * manoeuvre, which is exactly why the extractive path is tempting (§4.3) */
+export const PC_REPRESSION_GAIN = 0.8
+/** …and a country in ferment eats a government's whole week */
+export const PC_UNREST_DRAG = 0.5
+
 // action costs (political capital)
 export const PC_COST_DIAL_BASE = 1
 export const PC_COST_DIAL_SLOPE = 12 // × relative magnitude of the change
 export const PC_COST_CAPACITY = 2
+/** Layer 3 is generational and contested: a reform costs more than a decade
+ * of ordinary policy — unless a crisis has prised the window open (§4.3) */
+export const PC_COST_REFORM = 26
+export const PC_COST_CAMPAIGN = 4
+
+// ---------- §4.3 institutions, §6.3 the corridor ----------
+// Societal power is the y-axis of the Narrow Corridor and, from M6, a live
+// state variable. It is not a dial: it is what a society's capacity to
+// organize adds up to — who holds the ballot, whether they may print, meet,
+// and sue, whether they can read, whether they live close enough together to
+// act together — net of how unequal the country is (elite capture hollows out
+// formal rights) and how hard the state is standing on them.
+export const SOC_ADJUST = 0.022 // per quarter toward target (half-life ≈ 8 years)
+export const SOC_BASE = 0.02
+export const SOC_FRANCHISE = 0.14 // × population-weighted enfranchisement
+export const SOC_PRESS = 0.12
+export const SOC_LABOR = 0.12
+export const SOC_COURTS = 0.1
+export const SOC_EDU = 0.15 // × education capacity: literacy mobilizes
+export const SOC_URBAN = 0.12 // × urban share: cities organize, villages don't
+export const SOC_INEQ = 0.5 // × Gini above neutral — elite capture
+export const SOC_GINI_NEUTRAL = 0.35
+export const SOC_REPRESSION = 0.35 // × the boot
+
+/** The x-axis: the Leviathan. The ministries you built, plus the coercive arm
+ * repression buys — a police state is a capable state, which is the whole
+ * reason despotism is a corner of this map and not just a bad outcome. */
+export const STATE_CAPACITY_WEIGHT = 0.75
+export const STATE_REPRESSION_WEIGHT = 0.35
+
+/** the corridor is the band |societal − state| ≤ this (the plot draws it) */
+export const CORRIDOR_HALF_WIDTH = 0.16
+
+/** Layer 3 stocks ratchet — but a boot has to be kept on the neck, and a
+ * state that keeps one erodes the press and the unions while it stands. */
+export const REPRESSION_DECAY_Q = 0.01
+export const INSTITUTION_EROSION_Q = 0.02 // × repression, on press and labor rights
+export const REFORM_STEP = 0.12 // how far one act of reform moves a stock
+/** §4.3 reform windows: revolutionary pressure is the only thing that prises
+ * open reforms elites would otherwise veto. Never let a good crisis go to waste. */
+export const REFORM_WINDOW_AT = 0.35 // unrest above which the window is open
+export const REFORM_WINDOW_DISCOUNT = 0.35 // × PC cost while it is
+export const REFORM_WINDOW_VETO_RELIEF = 0.6 // × bloc veto weight while it is
+
+/** how institutions start, as a function of development — a richer 1946
+ * country inherited more courts and more newspapers, not more suffrage */
+export const INSTITUTIONS_1946: Record<InstitutionId, { base: number; devGain: number }> = {
+  suffrage: { base: 0, devGain: 0 }, // params.enfranchisement IS the 1946 franchise
+  press: { base: 0.08, devGain: 0.35 },
+  labor_rights: { base: 0.05, devGain: 0.3 },
+  courts: { base: 0.12, devGain: 0.4 },
+  repression: { base: 0.16, devGain: -0.2 }, // poorer states lean harder on the boot
+}
+
+// ---------- revolutionary pressure ----------
+/**
+ * Anger arrives faster than it fades. The asymmetry is not decoration: it is
+ * what makes a crisis a WINDOW (§4.3) rather than a plateau — pressure spikes
+ * inside a year or two, prises the reform window open, and then takes most of
+ * a decade to bleed back down, which is exactly how long a government has to
+ * use it.
+ */
+export const UNREST_ADAPT_UP = 0.25
+export const UNREST_ADAPT_DOWN = 0.06
+export const UNREST_BASE = 0
+/**
+ * Pressure reads the hardship households ACTUALLY EXPERIENCED — which is
+ * exactly what cohort approval already aggregates (real income against habit,
+ * loss-averse; own-basket inflation; joblessness; queues for goods that never
+ * arrived). Rebuilding those terms here from unemployment and headline
+ * inflation was both duplication and wrong: a government that impoverishes
+ * people while the subsistence valve keeps them nominally "employed" produced
+ * LESS measured unrest than a do-nothing one, because open unemployment fell
+ * as families were pushed back onto the farm.
+ *
+ * The split is the mechanism. Discontent among people who hold a ballot is
+ * electoral pressure — they vote you out. Discontent among people who do not
+ * is revolutionary pressure, and it is weighted far higher here, which is what
+ * makes extending the franchise a genuine bargain rather than pure altruism:
+ * it converts the second kind into the first.
+ */
+export const UNREST_DISCONTENT = 0.22 // × the whole country's dissatisfaction
+export const UNREST_VOICELESS = 0.55 // × the part of it that holds no ballot
+export const UNREST_INEQ = 0.7 // × Gini above neutral
+export const UNREST_GINI_NEUTRAL = 0.38
+export const UNREST_CRISIS = 0.5 // × severity while a banking crisis runs
+/** The boot damps grievance MULTIPLICATIVELY and only partly: at full
+ * repression 45 % of the pressure is still there, waiting. The lid is not the
+ * pot. */
+export const UNREST_REPRESSION = 0.55
+/** …and the strain of sitting outside the corridor is added on top, where
+ * repression cannot reach it. This is what makes despotism dangerous rather
+ * than merely stagnant — the deeper you walk the dot into the despotic corner,
+ * the more pressure you generate that your own boot does not touch. */
+export const UNREST_DESPOTISM = 1.2 // × distance outside on the despotic side
+export const UNREST_ANARCHY = 0.35 // × distance outside on the anarchic side
+
+/** the street. Above the threshold, each quarter carries a hazard — this is
+ * the second way a government ends, and the one repression is buying off. */
+export const REVOLT_AT = 0.42
+export const REVOLT_P = 0.025 // per quarter per unit of unrest above the line
+/** the palace. Elites who have been defied and are not checked by an organized
+ * society do not campaign against you; they replace you. */
+export const COUP_AT = 0.35 // elite hostility above which the whispering starts
+export const COUP_P = 0.12
+
+// ---------- the veto players (§4.3) ----------
+/** Bloc POWER is read off the economy each quarter, never authored. A bloc
+ * whose base the cycle has just destroyed is a bloc that cannot veto — which
+ * is why a crisis is a political opening and not merely a disaster. */
+export const LAND_POWER_GAIN = 1.8 // × agriculture's share of gross output
+export const IND_POWER_GAIN = 1.1 // × manufacturing+energy+transport share
+export const FIN_POWER_CREDIT = 0.55 // × credit/GDP…
+export const FIN_POWER_DEBT = 0.35 // …and how much of your debt they hold
+export const UNION_POWER_GAIN = 2.2 // × labor rights × urban employment share
+
+/** an organized society is the check on the veto players — the corridor's
+ * whole claim, expressed as one multiplier */
+export const SOCIETY_CHECK = 0.8
+export const BLOC_FAVOR_ADAPT = 0.08
+/**
+ * Blocs judge a government against the country they woke up in, not against an
+ * abstract ideal — the same reference-dependence the cohorts already use for
+ * income (LOSS_AVERSION). Without this recentring the stance sums put every
+ * bloc's resting favor where the 1946 settlement happens to land, so a
+ * do-nothing government inherited a permanent capital strike and an unreported
+ * harvest it had done nothing to earn. Measured tick-0 over five generated
+ * countries (2026-08, dev 0.30–0.44) and negated, so the opening is neutral
+ * and every later reading is a verdict on YOUR policy.
+ */
+export const BLOC_FAVOR_BASE: Record<BlocId, number> = {
+  landowners: 0.41,
+  industrialists: 0.26,
+  financiers: 0.02,
+  unions: -0.27,
+}
+/** defying a bloc costs you its goodwill, in proportion to how much it minded */
+export const BLOC_DEFIANCE = 0.5
+/** the PC premium on a lever the room does not want moved */
+export const VETO_COST_GAIN = 2.5
+/** a courted bloc holds its claim this long, and prices its objections double */
+export const PLEDGE_QTRS = 16
+export const PLEDGE_VETO_MULT = 2
+
+/** what a hostile bloc actually does to you — one channel each, through the
+ * machinery that already exists rather than a scripted penalty */
+export const FIN_FAVOR_PREMIUM = 0.05 // capital strike: yield added to your debt
+export const FIN_FAVOR_DEPTH = 0.5 // …and the share of the bond market that closes
+export const IND_FAVOR_INVEST = 0.5 // investment strike: off the investment factor
+export const UNION_FAVOR_WAGE = 0.02 // wage push: added to the quarterly wage move
+export const LAND_FAVOR_TAX = 0.5 // the harvest goes unreported: off tax efficiency
+
+/** §4.3 the extractive ceiling, and it is NOT a cap you bump into: incumbents
+ * who face no organized society veto the creative destruction that would
+ * displace their rents, so the country cannot drink from the frontier as fast.
+ * Forced industrialization still works — capital widening is untouched. What
+ * dies is the transition. Neutral is calibrated to the 1946 opening, so this
+ * is a divergence mechanism, not a tax on everybody. */
+export const ELITE_CAPTURE_NEUTRAL = 0.4
+export const ELITE_VETO_ABSORB = 2.2
+export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
+/**
+ * What this does and does not do, honestly. It slows CATCH-UP: an economy
+ * whose incumbents face no organized society absorbs the frontier more slowly,
+ * so a century of despotism ends measurably further behind (attained TFP
+ * ~2.58 vs ~2.81 for a corridor government over 400 quarters, same capacity
+ * spending). Capital widening is untouched, so forced industrialization still
+ * works and the extractive path stays genuinely tempting.
+ *
+ * It does NOT reproduce the full §4.3 story of "new sectors cannot displace
+ * incumbents' rents", and a weighted-by-sector version was tried and removed:
+ * the engine's consumption weights are FIXED per cohort (no Engel shift), so
+ * the services share of output is pinned by demand and cannot move in response
+ * to productivity whatever the veto does. Making the transition itself
+ * blockable needs endogenous demand composition, which is a separate change.
+ */
+
+// ---------- the election as a scene (§3.1) ----------
+/** the swing each platform is worth, in approval points at the ballot box */
+export const PLATFORM_SWING: Record<PlatformId, number> = {
+  record: 0,
+  largesse: 0, // earned, not granted: see LARGESSE_SWING_GAIN
+  coalition: 0, // ditto, from the courted bloc's machine
+  suppression: 0.15,
+  franchise: 0.04, // the enthusiasm of a first vote; the re-weighting is the real effect
+}
+/** a pre-election giveaway: the transfers dial jumps by this share, and stays
+ * jumped — the hangover is that you have to walk it back yourself */
+export const LARGESSE_BUMP = 0.5
+export const LARGESSE_SWING_GAIN = 2.0 // × the extra spending as a share of GDP
+export const COALITION_SWING_GAIN = 0.18 // × the bloc's power × its goodwill
+export const SUPPRESSION_REPRESSION_STEP = 0.15
+export const FRANCHISE_SUFFRAGE_STEP = 0.2
+/** repression lowers the bar rather than raising your vote: an opposition
+ * that cannot campaign is an opposition that does not appear in the count */
+export const REPRESSION_VOTE_EDGE = 0.25
+/** what each platform costs you in the room */
+export const PLATFORM_BLOC_COST: Record<PlatformId, Partial<Record<BlocId, number>>> = {
+  record: {},
+  largesse: { financiers: -0.25 },
+  coalition: {}, // handled per-bloc: the courted gain, the rest resent
+  suppression: { unions: -0.4 },
+  franchise: { landowners: -0.35, industrialists: -0.2 },
+}
+export const COALITION_FAVOR_GAIN = 0.4
+export const COALITION_FAVOR_SNUB = -0.1
+
+/** §3.3 Position: the third axis, graded on the share of your tenure spent
+ * inside the corridor — the path, not the endpoint. Calibrated in M6 against
+ * measured centuries; see docs/metrics-changelog.md. */
+export const POSITION_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
+  { atLeast: 0.85, grade: 'A' },
+  { atLeast: 0.6, grade: 'B' },
+  { atLeast: 0.35, grade: 'C' },
+  { atLeast: 0.12, grade: 'D' },
+] // below: F — the country spent your whole tenure outside the corridor

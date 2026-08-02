@@ -148,6 +148,7 @@ export const cohorts: PipelineStep = {
       const welfareQ = meanLogConsumption(state)
       const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
       score = {
+        ...state.score,
         discountedWelfare: state.score.discountedWelfare + beta * welfareQ,
         discountWeight: state.score.discountWeight + beta,
         baselineWelfare: state.score.baselineWelfare ?? welfareQ,

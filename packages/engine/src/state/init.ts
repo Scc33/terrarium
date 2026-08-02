@@ -53,6 +53,7 @@ import {
   TECH_ATTAINED_DEV_GAIN,
 } from '../constants'
 import { vitalRates } from '../pipeline/demography'
+import { initialInstitutions } from '../pipeline/institutions'
 
 // baseline gross outputs / employment / capital for a 27.5M-person country
 // at development 0.35 (a mid-poor 1946 economy)
@@ -268,7 +269,10 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     printedThisQtr: 0,
   }
 
-  return {
+  // the constitution is opened last, against the economy this function just
+  // built — bloc power is read off agriculture's share, the credit stock and
+  // the debt, so it must not be guessed before those exist
+  const provisional: TrueState = {
     meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed },
     params,
     demography: initialDemography(params),
@@ -335,12 +339,29 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       },
       shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
+    institutions: {
+      stocks: { suffrage: 0, press: 0, labor_rights: 0, courts: 0, repression: 0 },
+      societalPower: 0,
+      statePower: 0,
+      unrest: 0,
+      blocs: {
+        landowners: { power: 0, favor: 0 },
+        industrialists: { power: 0, favor: 0 },
+        financiers: { power: 0, favor: 0 },
+        unions: { power: 0, favor: 0 },
+      },
+      pledge: null,
+    },
     politics: {
       politicalCapital: PC_START,
       quartersToElection: ELECTION_PERIOD,
       inPower: true,
       electionsWon: 0,
+      electionsSuppressed: 0,
       deposedAt: null,
+      deposedBy: null,
+      campaign: null,
+      lastElection: null,
     },
     ledger: {
       inflationExpectations: 0.03,
@@ -348,7 +369,15 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
     stats: { record: [], series: {}, news: [] },
-    score: { discountedWelfare: 0, discountWeight: 0, baselineWelfare: null },
+    score: {
+      discountedWelfare: 0,
+      discountWeight: 0,
+      baselineWelfare: null,
+      corridorQuarters: 0,
+      governedQuarters: 0,
+    },
     flows,
   }
+
+  return { ...provisional, institutions: initialInstitutions(provisional) }
 }

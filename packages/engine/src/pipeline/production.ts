@@ -14,6 +14,7 @@ import {
   DEPRECIATION_Q,
   FIN_CRUNCH_DRAG,
   FIN_INVEST_Q_GAIN,
+  IND_FAVOR_INVEST,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
   INVESTMENT_FACTOR_MAX,
@@ -29,7 +30,7 @@ import {
 import { clamp, leontiefGross, sectorRecord } from '../math'
 import { SECTOR_IDS, type CohortId } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { cohortCpi, effectivePrice, potentialOutput } from './derive'
+import { cohortCpi, effectiveBlocPower, effectivePrice, potentialOutput } from './derive'
 
 export const production: PipelineStep = {
   name: 'production',
@@ -75,6 +76,13 @@ export const production: PipelineStep = {
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)
     const fin = state.finance
+    // §4.3: capital that has decided against the government simply declines to
+    // build. An investment strike is the most ordinary thing in the world —
+    // nobody announces it, the order book just thins.
+    const investmentStrike =
+      IND_FAVOR_INVEST *
+      Math.max(0, -state.institutions.blocs.industrialists.favor) *
+      effectiveBlocPower(state, 'industrialists')
     const invFactor = clamp(
       1 +
         INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
@@ -84,7 +92,8 @@ export const production: PipelineStep = {
         INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) +
         // Tobin's q (§12): dear assets pull investment; a credit crunch freezes it
         FIN_INVEST_Q_GAIN * (fin.assetPrice - 1) -
-        (fin.crisisQtrsLeft > 0 ? FIN_CRUNCH_DRAG * fin.crisisSeverity : 0),
+        (fin.crisisQtrsLeft > 0 ? FIN_CRUNCH_DRAG * fin.crisisSeverity : 0) -
+        investmentStrike,
       0.5,
       INVESTMENT_FACTOR_MAX,
     )

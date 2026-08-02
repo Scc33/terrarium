@@ -20,6 +20,7 @@ import {
 import { clamp, sectorRecord } from '../math'
 import type { TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
+import { creativeDestruction } from './derive'
 
 /** annual frontier growth in force at a given quarter */
 export function frontierGrowthAt(tick: number): number {
@@ -29,22 +30,37 @@ export function frontierGrowthAt(tick: number): number {
   return g
 }
 
-/** how fast this country can drink from the frontier, 0..1 */
+/**
+ * How fast this country can drink from the frontier, 0..1.
+ *
+ * Schools first, openness second — and from M6, whether the incumbents will
+ * allow it (§4.3). Absorbing the frontier means new firms displacing old ones;
+ * an entrenched interest that faces no organized society vetoes exactly that,
+ * so the same schools buy less catch-up in a captured economy. Note what this
+ * does NOT touch: capital widening. Forced industrialization still works. What
+ * dies under an unchecked elite is the transition, which is why the extractive
+ * ceiling is a ceiling and not a wall — the player discovers the Soviet growth
+ * curve by driving into it.
+ */
 export function absorptiveCapacity(state: TrueState): number {
   const education = state.gov.capacity.education
   const opennessFactor =
     1 - ABSORB_OPENNESS_WEIGHT + ABSORB_OPENNESS_WEIGHT * clamp(state.params.openness, 0, 1.5) / 1.5
-  return clamp((ABSORB_BASE + ABSORB_EDU_GAIN * education) * opennessFactor, 0, 1)
+  return clamp(
+    (ABSORB_BASE + ABSORB_EDU_GAIN * education) * opennessFactor * creativeDestruction(state),
+    0,
+    1,
+  )
 }
 
 export const technology: PipelineStep = {
   name: 'technology',
   run(state) {
     const frontier = state.tech.frontier * (1 + frontierGrowthAt(state.meta.tick) / 4)
-    const absorption = absorptiveCapacity(state)
 
     // each sector chases its own slice of the frontier; the gap closes at a
-    // rate human capital allows, and everyone drips forward a little alone
+    // rate human capital allows, and at a rate the incumbents allow
+    const absorption = absorptiveCapacity(state)
     const attained = sectorRecord((sid) => {
       const target = Math.pow(frontier, TECH_EXPOSURE[sid])
       const a = state.tech.attained[sid]
