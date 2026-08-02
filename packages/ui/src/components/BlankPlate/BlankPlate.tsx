@@ -15,17 +15,22 @@ export function BlankPlate({ indicator }: { indicator: IndicatorId }) {
   const t = NAMES[indicator]
   return (
     <WallTile
-      className="border-2 border-dossier-brass bg-gradient-to-b from-[#c2a06b] to-dossier-brass"
-      bodyClassName="flex items-center justify-center px-2"
+      className="instrument-bay border border-dossier-brass/55 bg-[#172920]"
+      bodyClassName="flex items-center justify-center px-3 py-4"
     >
-      <div className="max-w-full border border-dossier-ink/40 px-3 py-3 text-center">
-        <div className="font-mono text-xs font-medium tracking-[0.25em] text-dossier-ink">{t.plate}</div>
-        <div className="mt-2 font-mono text-[10px] tracking-[0.15em] text-dossier-ink/70">
-          INSTRUMENT NOT FITTED
+      <div className="w-full max-w-[210px] border border-dossier-brass bg-gradient-to-b from-[#c8a977] to-dossier-brass px-3 py-3 text-center shadow-[0_5px_12px_rgba(0,0,0,0.24)]">
+        <div className="mb-2 flex items-center justify-center gap-2 font-mono text-[8px] tracking-[0.16em] text-dossier-ink/60">
+          <span className="h-1.5 w-1.5 border border-dossier-ink/50 bg-dossier-ink/15" aria-hidden="true" />
+          OFFLINE
+          <span className="h-1.5 w-1.5 border border-dossier-ink/50 bg-dossier-ink/15" aria-hidden="true" />
         </div>
-        <div className="mt-1 [overflow-wrap:anywhere] font-mono text-[10px] tracking-[0.15em] text-dossier-ink/70">
-          REQUIRES: {t.needs}
+        <div className="font-mono text-xs font-semibold tracking-[0.22em] text-dossier-ink">{t.plate}</div>
+        <div className="my-2 h-px bg-dossier-ink/25" aria-hidden="true" />
+        <div className="font-mono text-[8px] tracking-[0.14em] text-dossier-ink/55">SURVEY REQUIRED</div>
+        <div className="mt-1 [overflow-wrap:anywhere] font-mono text-[9px] font-medium tracking-[0.12em] text-dossier-ink/80">
+          {t.needs}
         </div>
+        <div className="mt-2 font-mono text-[7px] tracking-[0.1em] text-dossier-ink/45">CABINET → STATE CAPACITY</div>
       </div>
     </WallTile>
   )

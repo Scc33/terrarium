@@ -20,6 +20,7 @@ import { deriveMaturity } from '../maturity'
 import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
 import { Gauge } from '../components/Gauge/Gauge'
 import { RackStrip } from '../components/RackStrip/RackStrip'
+import { SectionBar } from '../components/ui'
 import { LedgerPanel } from './LedgerPanel'
 import { useGame } from '../store/gameStore'
 import { BOARD_SLOT_MIN_H, DOCKED_MIN_H, planWall } from '../wallPlan'
@@ -30,9 +31,18 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
   const plan = planWall(pinned, INDICATOR_IDS)
+  const fittedCount = INDICATOR_IDS.filter((id) => maturity[id] !== 'unmeasured').length
+  const liveCount = INDICATOR_IDS.filter((id) => maturity[id] === 'terminal').length
 
   return (
-    <div className="grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1.5fr)_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
+    <div className="grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
+      <SectionBar
+        title="WATCH BOARD"
+        detail="The four instruments the cabinet is flying by"
+        aside={`${plan.board.length} / ${plan.board.length} PINNED`}
+        inverted
+      />
+
       {/* THE BOARD — the dials you are actually flying by */}
       {/* the single explicit row matters: with auto rows a grid item's
           `h-full` resolves against its own content, which is how tiles used to
@@ -49,6 +59,13 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
         ))}
       </div>
 
+      <SectionBar
+        title="INSTRUMENT RACK"
+        detail="Select any strip to swap it onto the watch board"
+        aside={`${fittedCount} FITTED · ${liveCount} LIVE`}
+        inverted
+      />
+
       {/* THE RACK — the apparatus entire, fitted and unfitted alike */}
       <div
         className="grid min-w-0 gap-x-2 gap-y-1"
@@ -62,6 +79,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
             series={pub.indicators[id]}
             now={pub.tick}
             pinned={plan.board.includes(id)}
+            slot={plan.board.includes(id) ? plan.board.indexOf(id) + 1 : undefined}
             onPin={() => togglePin(id)}
           />
         ))}

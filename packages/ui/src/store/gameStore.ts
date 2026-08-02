@@ -5,7 +5,7 @@ import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, WorkerMessage } from '../worker/protocol'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
-import { BOARD_SLOTS, DEFAULT_PINS } from '../wallPlan'
+import { BOARD_SLOTS, DEFAULT_PINS, resolveBoard, toggleBoardPin } from '../wallPlan'
 
 const AUTOSAVE_KEY = 'autosave'
 /** which dials are on the board is a view preference, not part of the run —
@@ -21,7 +21,7 @@ function loadPins(): IndicatorId[] {
     // an old preference naming an indicator this build no longer has must
     // degrade to the defaults, never to a short board
     const pins = (JSON.parse(raw) as unknown[]).filter((id): id is IndicatorId => typeof id === 'string' && valid.has(id))
-    return pins.length ? pins.slice(-BOARD_SLOTS) : [...DEFAULT_PINS]
+    return pins.length ? resolveBoard(pins.slice(-BOARD_SLOTS), INDICATOR_IDS) : [...DEFAULT_PINS]
   } catch {
     return [...DEFAULT_PINS]
   }
@@ -154,7 +154,7 @@ export const useGame = create<GameState>((set, get) => {
      * choice about what you are watching this decade, and choices cost. */
     togglePin(id) {
       const cur = get().pinned
-      const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-BOARD_SLOTS)
+      const next = toggleBoardPin(cur, id, INDICATOR_IDS)
       savePins(next)
       set({ pinned: next })
     },

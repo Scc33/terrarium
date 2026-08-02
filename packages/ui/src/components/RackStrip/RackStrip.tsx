@@ -28,6 +28,8 @@ interface RackStripProps {
   series?: IndicatorSeries
   now: number
   pinned: boolean
+  /** one-based position on the watch board */
+  slot?: number
   onPin: () => void
 }
 
@@ -41,7 +43,7 @@ function Delta({ delta, digits, className }: { delta: number | null; digits: num
   )
 }
 
-export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: RackStripProps) {
+export function RackStrip({ indicator, maturity, series, now, pinned, slot, onPin }: RackStripProps) {
   const names = NAMES[indicator]
   const points = series ? shapeSeries(series, 24, now) : []
   const latest = points.length ? points[points.length - 1] : null
@@ -50,7 +52,7 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
     : null
 
   // one row, one height, whatever is inside it
-  const frame = 'flex w-full items-center gap-2 overflow-hidden border px-2 text-left'
+  const frame = 'group flex w-full items-center gap-2 overflow-hidden border pr-2 text-left'
   const skin =
     maturity === 'terminal'
       ? 'border-terminal-grid bg-terminal-bg text-terminal-primary hover:border-terminal-primary/60'
@@ -66,12 +68,21 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
       className={`${frame} ${skin} ${pinned ? 'ring-1 ring-inset ring-current' : ''}`}
       title={
         latest
-          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'unpin from' : 'put on'} the board.`
-          : `Not fitted. Fund ${names.needs.toLowerCase()} to bring this instrument online.`
+          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+          : `Not fitted. Fund ${names.needs.toLowerCase()} to bring this instrument online. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
       }
       aria-pressed={pinned}
     >
-      <span className="shrink-0 font-mono text-[9px] leading-none opacity-70">{pinned ? '◉' : '○'}</span>
+      <span
+        className={`flex h-full w-7 shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${
+          pinned
+            ? 'border-current bg-current/10'
+            : 'border-current/20 opacity-35 group-hover:opacity-70'
+        }`}
+        aria-hidden="true"
+      >
+        {pinned ? String(slot ?? 0).padStart(2, '0') : '+'}
+      </span>
       <span className="min-w-0 flex-1 truncate font-mono text-[10px] tracking-[0.06em]">{names.short}</span>
 
       {latest ? (
@@ -89,7 +100,7 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
           <span className="text-[9px] opacity-50">{latest.lag}Q</span>
         </span>
       ) : (
-        <span className="shrink-0 truncate font-mono text-[9px] tracking-[0.1em] opacity-70">{names.needs}</span>
+        <span className="max-w-[48%] shrink-0 truncate font-mono text-[9px] tracking-[0.1em] opacity-70">{names.needs}</span>
       )}
     </button>
   )

@@ -4,8 +4,9 @@ import { RackStrip } from './RackStrip'
 
 describe('RackStrip', () => {
   it('announces pin state', () => {
-    const html = renderToStaticMarkup(<RackStrip indicator="inflation" maturity="unmeasured" now={0} pinned onPin={() => {}} />)
+    const html = renderToStaticMarkup(<RackStrip indicator="inflation" maturity="unmeasured" now={0} pinned slot={2} onPin={() => {}} />)
     expect(html).toContain('aria-pressed="true"')
+    expect(html).toContain('02')
   })
 
   it('names the capability needed for an unfitted instrument', () => {
