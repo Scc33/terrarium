@@ -33,6 +33,28 @@ export type WorkingClassId = (typeof WORKING_CLASS_IDS)[number]
 export const CAPACITY_IDS = ['tax', 'statistical', 'administrative', 'education'] as const
 export type CapacityId = (typeof CAPACITY_IDS)[number]
 
+/** The two sides of the budget, disaggregated. Headline revenue and outlays
+ * hide the only fiscal question that matters — *which* tax, *which* programme —
+ * so both are kept as a split the treasury books exactly (§6.1: a government
+ * never needs a survey to know what it collected and what it voted). */
+export const REVENUE_SOURCE_IDS = ['income', 'corporate', 'tariff', 'fuel'] as const
+export type RevenueSourceId = (typeof REVENUE_SOURCE_IDS)[number]
+export type RevenueSplit = Record<RevenueSourceId, Money>
+
+/** `capacity` is the Layer-2 build pipeline; `interest` is the coupon bill.
+ * Neither is a dial you move this quarter — that they crowd out the ones you
+ * can is exactly what the breakdown is for. */
+export const OUTLAY_IDS = [
+  'transfers',
+  'procurement',
+  'investment',
+  'subsidies',
+  'capacity',
+  'interest',
+] as const
+export type OutlayId = (typeof OUTLAY_IDS)[number]
+export type OutlaySplit = Record<OutlayId, Money>
+
 export const INDICATOR_IDS = [
   'gdp_growth',
   'inflation',
@@ -330,6 +352,10 @@ export interface StatRecord {
   balance: Money
   debt: Money
   reserves: Money
+  /** and the same books disaggregated, so the century of composition is on
+   * the record: which taxes carried the state, what the money went to */
+  revenueBySource: RevenueSplit
+  outlaysByProgramme: OutlaySplit
 }
 
 export interface StatsOffice {
@@ -361,7 +387,12 @@ export interface TickFlows {
   tariffBase: Money
   /** subsidy money that actually reached each sector (post-leakage) */
   subsidyDelivered: Record<SectorId, number>
-  taxRevenue: { income: Money; corporate: Money; tariff: Money; fuel: Money }
+  /** receipts by tax, after capacity-gated collection — what each rate
+   * actually brought in, not what it was set to bring in */
+  revenueBySource: RevenueSplit
+  /** outlays by programme, as booked (money voted and paid, before delivery
+   * leakage — the treasury knows what it spent, not what arrived) */
+  outlaysByProgramme: OutlaySplit
   /** coupons paid to (domestic) bondholders this tick — income */
   debtInterest: Money
   /** principal redeemed this tick — a portfolio swap into savings, not income */
@@ -408,7 +439,7 @@ export interface TrueState {
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 10 // v10: the financial sector — credit, asset prices, banking crises
+export const SCHEMA_VERSION = 11 // v11: the budget, disaggregated — revenue by source, outlays by programme
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */

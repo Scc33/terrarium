@@ -29,6 +29,16 @@
   --color-wire-paper: #ecebe2;
   --color-wire-ink: #33312a;
 
+  /* shares of a whole, still in the dossier register: six inks a printer of
+     the period could actually mix, ordered for maximum separation on paper.
+     The budget's two sides use them today; output by sector is next. */
+  --color-share-1: #6e2a1f; /* oxblood */
+  --color-share-2: #3f6b57; /* verdigris */
+  --color-share-3: #b08d57; /* brass */
+  --color-share-4: #4a5f7a; /* slate */
+  --color-share-5: #6b4260; /* aniline plum */
+  --color-share-6: #2c2a24; /* ink */
+
   --font-dossier: 'Source Serif 4', Georgia, serif;
   --font-mono: 'IBM Plex Mono', monospace;
 }

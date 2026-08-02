@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 10)
+## Current contract (schema 11)
 
 ### Inputs
 
@@ -92,6 +92,8 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 |---|---|---|
 | `dials` | v1 | your own lever settings |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
+| ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
+| ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
@@ -113,6 +115,20 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 11 — The budget, itemised
+- **Outputs +**: `treasury.revenueBySource` / `.outlaysByProgramme`, and the same two splits on
+  every entry of `books[]` — **exact**, no fog, no unlock threshold. A government needs no survey
+  to know which tax it collected or what it voted the money to, so this is a book, not an
+  indicator, and it exists from quarter one at zero statistical capacity.
+- **Internal state +**: `StatRecord.revenueBySource` / `.outlaysByProgramme`;
+  `flows.taxRevenue` renamed to `flows.revenueBySource` and joined by `flows.outlaysByProgramme`.
+- **Inputs**: unchanged — no new lever. The breakdown is a *view* of levers you already have,
+  which is the point: the four tax dials and three spending dials were always there, and only
+  the headline total was ever reported back.
+- **Pipeline**: unchanged order; `fiscal` names the arithmetic it was already doing.
+- Economy **bit-identical to v10** (additive measurement only — same numbers, same order of
+  addition). Golden hashes moved for the version stamp and the two new recorded splits alone.
 
 ### schema 10 — The financial sector
 - **Pipeline +**: `finance` step (after `world`, before `production`). It reads last quarter's

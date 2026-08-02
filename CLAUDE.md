@@ -30,8 +30,8 @@ desktop sizes).
 
 The wall is **board + rack + docked**: up to `BOARD_SLOTS` pinned instruments at full size,
 then every instrument as a fixed-height strip, then ledger and corridor. Pins are a
-`localStorage` view preference, not part of the save. Three pure modules own the decisions so
-they can be tested — anything pushed into a component becomes untestable:
+`localStorage` view preference, not part of the save. Pure modules own the decisions so they
+can be tested — anything pushed into a component becomes untestable:
 
 - **`ui/src/wallPlan.ts`** — the height budget; the wall's minimum height is a NUMBER, pinned
   against 1280×720 by `tests/ui/wall-plan.test.ts`. `rackHeadroom()` says how many more
@@ -43,6 +43,14 @@ they can be tested — anything pushed into a component becomes untestable:
 - **`ui/src/components/WallTile.tsx`** — **every wall tile goes through it.** A tile fills its
   slot and clips; it never sizes to its content. It owns `overflow-hidden`, `minmax(0,1fr)`
   rows and `min-h-0` on the body.
+- **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
+  `InkPie` / `InkStack` paint what it returns and know nothing about budgets: reuse them
+  rather than hand-rolling a chart. Pure for the usual reason — a wedge that emits `NaN` into
+  its path draws nothing, which in review is indistinguishable from a category with no money
+  in it. `SHARE_INKS` stops at six, the widest split the books have; bucket a tail into
+  "other" rather than extend the ramp. The label/ink tables in `panels/LedgerOverlay.tsx` are
+  total `Record`s over the engine's id lists, so a new tax or spending line fails the build
+  until it has been named and given an ink.
 
 Layout bugs here are invisible in review AND in jsdom — a `flex-col` child missing `min-h-0`,
 an `h-full` SVG in an auto-height parent falling back to its viewBox ratio, a grid band with
