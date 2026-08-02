@@ -3,17 +3,20 @@
  * permanently. Connecting-tissue register: hand-drawn strategy-map linework,
  * its own quiet palette, neither dossier brass nor terminal phosphor.
  *
- * x = state capacity (the government's own stocks — known exactly).
- * y = societal power (from the country's setup: enfranchisement-weighted
- * population). Static until Layer 3 (M3) makes it move.
+ * x = state power: the ministries you built, plus the coercive arm repression
+ *     buys. y = societal power: what a society's capacity to organize adds up
+ *     to. From M6 BOTH are live engine state and the dot genuinely moves —
+ *     before M6 y came from the country's fixed setup and the dot never left
+ *     its starting point, which made the game's signature visual a decoration.
+ *
+ * Leaving the band is not cosmetic either: outside it, revolutionary pressure
+ * builds on the despotic side and the state cannot collect or deliver on the
+ * anarchic one, and the share of your tenure spent inside is the §3.3 Position
+ * grade. So the tile says plainly where you are and which way you are drifting.
  */
 
+import type { PublishedCorridor } from '@terrarium/observation'
 import { WallTile } from '../WallTile/WallTile'
-
-interface Trail {
-  x: number
-  y: number
-}
 
 // landscape: the corridor is docked in a wide, short bay, and a square
 // viewBox letterboxed itself into a third of the space it was given
@@ -34,23 +37,51 @@ function roughLine(x0: number, y0: number, x1: number, y1: number, segs = 6): st
   return 'M' + pts.join(' L')
 }
 
-export function CorridorPlot({ trail }: { trail: Trail[] }) {
+/** Where you stand, in the words a minister would use. */
+function standing(c: PublishedCorridor): { text: string; alarm: boolean } {
+  if (c.inCorridor) return { text: 'Within the corridor', alarm: false }
+  return c.offset > 0
+    ? { text: 'Outside — toward despotism', alarm: true }
+    : { text: 'Outside — toward anarchy', alarm: true }
+}
+
+export function CorridorPlot({ corridor }: { corridor: PublishedCorridor }) {
   const sx = (v: number) => PAD + v * (W - PAD - 12)
   const sy = (v: number) => H - PAD + v * (PAD + 12 - H)
-  const dot = trail[trail.length - 1]
+  // a century of quarters is more points than 340px of pencil can hold; the
+  // shape of the drift is the information, not every individual quarter
+  const step = Math.max(1, Math.ceil(corridor.trail.length / 120))
+  const trail = corridor.trail.filter((_, i) => i % step === 0 || i === corridor.trail.length - 1)
+  const dot = { x: corridor.statePower, y: corridor.societalPower }
+  const where = standing(corridor)
 
   return (
     <WallTile
       className="border border-map-line/60 bg-map-field"
       bodyClassName="p-1"
       header={
-        <div className="border-b border-map-line/30 px-3 py-1.5 font-dossier text-[11px] italic tracking-wide text-map-line">
-          The Narrow Corridor
+        <div className="flex items-baseline justify-between gap-2 border-b border-map-line/30 px-3 py-1.5">
+          <span className="font-dossier text-[11px] italic tracking-wide text-map-line">
+            The Narrow Corridor
+          </span>
+          <span
+            className={`shrink-0 font-mono text-[9px] tabular-nums tracking-wide ${
+              where.alarm ? 'text-dossier-warn' : 'text-map-line/70'
+            }`}
+          >
+            {corridor.offset >= 0 ? '+' : '−'}
+            {Math.abs(corridor.offset).toFixed(2)}
+          </span>
         </div>
       }
       footer={
-        <div className="border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic text-map-line/80">
-          Your nation drifts; the corridor does not wait.
+        <div
+          className={`truncate border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic ${
+            where.alarm ? 'text-dossier-warn' : 'text-map-line/80'
+          }`}
+          title="State power minus societal power. Inside the band, the two check each other; outside it, one has outrun the other."
+        >
+          {where.text}
         </div>
       }
     >
@@ -103,12 +134,31 @@ export function CorridorPlot({ trail }: { trail: Trail[] }) {
               opacity="0.65"
             />
           )}
-          {dot && (
-            <g>
-              <circle cx={sx(dot.x)} cy={sy(dot.y)} r="4" fill="var(--color-dossier-warn)" opacity="0.9" />
-              <circle cx={sx(dot.x)} cy={sy(dot.y)} r="7" fill="none" stroke="var(--color-dossier-warn)" strokeWidth="0.8" opacity="0.5" />
-            </g>
-          )}
+          <g>
+            <circle cx={sx(dot.x)} cy={sy(dot.y)} r="4" fill="var(--color-dossier-warn)" opacity="0.9" />
+            <circle
+              cx={sx(dot.x)}
+              cy={sy(dot.y)}
+              r="7"
+              fill="none"
+              stroke="var(--color-dossier-warn)"
+              strokeWidth="0.8"
+              opacity="0.5"
+            />
+            {/* outside the band the dot gets a ring you cannot miss: this is a
+                standing condition with consequences, not a passing reading */}
+            {!corridor.inCorridor && (
+              <circle
+                cx={sx(dot.x)}
+                cy={sy(dot.y)}
+                r="11"
+                fill="none"
+                stroke="var(--color-dossier-warn)"
+                strokeWidth="1.2"
+                strokeDasharray="3 2"
+              />
+            )}
+          </g>
         </svg>
     </WallTile>
   )

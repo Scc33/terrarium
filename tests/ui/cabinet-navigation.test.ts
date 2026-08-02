@@ -9,14 +9,17 @@ describe('cabinet navigation', () => {
   it('moves through the visual reading order and wraps', () => {
     expect(cabinetGroupForKey('TAXATION', 'ArrowRight')).toBe('SPENDING')
     expect(cabinetGroupForKey('SPENDING', 'ArrowDown')).toBe('MONEY')
-    expect(cabinetGroupForKey('TAXATION', 'ArrowLeft')).toBe('STATE CAPACITY')
-    expect(cabinetGroupForKey('STATE CAPACITY', 'ArrowRight')).toBe('TAXATION')
+    expect(cabinetGroupForKey('STATE CAPACITY', 'ArrowRight')).toBe('INSTITUTIONS')
+    // the cabinet wraps, so the ends meet — M6 added the last two groups
+    expect(cabinetGroupForKey('TAXATION', 'ArrowLeft')).toBe('THE ROOM')
+    expect(cabinetGroupForKey('THE ROOM', 'ArrowRight')).toBe('TAXATION')
   })
 
   it('supports edge jumps and stable aria ids', () => {
     expect(cabinetGroupForKey('MONEY', 'Home')).toBe('TAXATION')
-    expect(cabinetGroupForKey('MONEY', 'End')).toBe('STATE CAPACITY')
+    expect(cabinetGroupForKey('MONEY', 'End')).toBe('THE ROOM')
     expect(cabinetTabId('STATE CAPACITY')).toBe('cabinet-tab-state-capacity')
+    expect(cabinetTabId('INSTITUTIONS')).toBe('cabinet-tab-institutions')
     expect(CABINET_PANEL_ID).toBe('cabinet-tabpanel')
   })
 })

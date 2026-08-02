@@ -4,6 +4,11 @@ export const CABINET_GROUPS = [
   'MONEY',
   'SUBSIDIES',
   'STATE CAPACITY',
+  // Layer 3 (§4.3) and the veto players who price it. These sit last because
+  // they are the slowest things on the desk — a reform is generational, and
+  // the whip count is read, not set.
+  'INSTITUTIONS',
+  'THE ROOM',
 ] as const
 
 export type CabinetGroup = (typeof CABINET_GROUPS)[number]
@@ -24,6 +29,8 @@ const TAB_IDS: Record<CabinetGroup, string> = {
   MONEY: 'cabinet-tab-money',
   SUBSIDIES: 'cabinet-tab-subsidies',
   'STATE CAPACITY': 'cabinet-tab-state-capacity',
+  INSTITUTIONS: 'cabinet-tab-institutions',
+  'THE ROOM': 'cabinet-tab-the-room',
 }
 
 export const CABINET_PANEL_ID = 'cabinet-tabpanel'

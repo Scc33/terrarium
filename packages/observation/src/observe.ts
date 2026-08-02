@@ -8,15 +8,27 @@
  */
 
 import {
+  politicalCostOfAction,
+  BLOC_IDS,
+  CAMPAIGN_WINDOW,
+  CORRIDOR_HALF_WIDTH,
+  corridorOffset,
+  effectiveBlocPower,
+  electionThreshold,
   END_OF_HISTORY_TICK,
+  approvalIndex,
+  inCorridor,
   INDICATOR_IDS,
+  INSTITUTION_IDS,
   LEGITIMACY_GRADE_ELECTIONS,
+  POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
+  reformWindowOpen,
   totalLaborForce,
   WELFARE_DISCOUNT_Q,
   type TrueState,
 } from '@terrarium/engine'
-import type { Grade, IndicatorId, PublishedState, ReportCard } from './published'
+import type { Grade, IndicatorId, PublishedBloc, PublishedState, ReportCard } from './published'
 
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'GDP growth', unit: '% / yr' },
@@ -35,6 +47,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   terms_of_trade: { label: 'Terms of trade', unit: '1946=100' },
   asset_prices: { label: 'Asset prices', unit: '1946=100' },
   credit_growth: { label: 'Credit growth', unit: '% / yr' },
+  unrest: { label: 'Public order', unit: 'idx' },
 }
 
 /** Discounted effective duration of an n-quarter tenure — the denominator
@@ -63,19 +76,63 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
     (400 * (meanLog - score.baselineWelfare)) / Math.max(effectiveQuarters(quartersGoverned), 1)
   const prosperityGrade: Grade =
     PROSPERITY_GRADE_CUTS.find((c) => prosperityRate >= c.atLeast)?.grade ?? 'F'
-  const legitimacyGrade: Grade = politics.inPower
+
+  // §3.3 legitimacy is CONSENT, so a mandate taken by force cannot buy it.
+  // Suppressed elections are never netted against won ones — both numbers go
+  // on the card — but they do cap the grade, and enough of them make the
+  // question of how many elections you "won" beside the point.
+  const suppressed = politics.electionsSuppressed
+  const earned: Grade = politics.inPower
     ? 'A'
     : (LEGITIMACY_GRADE_ELECTIONS.find((c) => politics.electionsWon >= c.atLeast)?.grade ?? 'F')
+  const ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
+  const cap: Grade = suppressed === 0 ? 'A' : suppressed >= 3 ? 'F' : 'D'
+  const legitimacyGrade: Grade =
+    ORDER.indexOf(earned) >= ORDER.indexOf(cap) ? earned : cap
+
+  // §3.3 Position: the share of the tenure spent inside the corridor
+  const corridorShare =
+    score.governedQuarters > 0 ? score.corridorQuarters / score.governedQuarters : 0
+  const positionGrade: Grade =
+    POSITION_GRADE_CUTS.find((c) => corridorShare >= c.atLeast)?.grade ?? 'F'
+
   return {
     endedBy: politics.inPower ? 'history' : 'deposition',
     quartersGoverned,
     electionsWon: politics.electionsWon,
+    electionsSuppressed: suppressed,
     prosperity: Math.exp(meanLog),
     vsBaseline: Math.exp(meanLog - score.baselineWelfare),
     prosperityRate,
     prosperityGrade,
     legitimacyGrade,
+    corridorShare,
+    finalStatePower: state.institutions.statePower,
+    finalSocietalPower: state.institutions.societalPower,
+    positionGrade,
+    deposedBy: politics.deposedBy,
   }
+}
+
+/** What each reform would cost right now — the veto premium and the reform
+ * window already priced in. Delegates to the engine's own quote function, so
+ * the number the player reads cannot drift from the number they are charged.
+ * (An earlier version subtracted the post-action capital from a sentinel
+ * balance; at MAX_SAFE_INTEGER that subtraction fell outside a double's
+ * mantissa and quietly rounded the quote.) */
+function reformCosts(state: TrueState): PublishedState['reformCost'] {
+  const out = {} as PublishedState['reformCost']
+  for (const id of INSTITUTION_IDS) {
+    const priceOf = (direction: 1 | -1): number | null => {
+      try {
+        return politicalCostOfAction(state, { kind: 'reform', institution: id, direction })
+      } catch {
+        return null // already at the rail, or otherwise not on offer
+      }
+    }
+    out[id] = { up: priceOf(1), down: priceOf(-1) }
+  }
+  return out
 }
 
 export function observe(state: TrueState): PublishedState {
@@ -129,7 +186,46 @@ export function observe(state: TrueState): PublishedState {
     quartersToElection: state.politics.quartersToElection,
     inPower: state.politics.inPower,
     electionsWon: state.politics.electionsWon,
+    electionsSuppressed: state.politics.electionsSuppressed,
     news: state.stats.news,
+    institutions: { ...state.institutions.stocks },
+    reformWindowOpen: reformWindowOpen(state),
+    reformCost: reformCosts(state),
+    blocs: BLOC_IDS.map(
+      (id): PublishedBloc => ({
+        id,
+        power: state.institutions.blocs[id].power,
+        favor: state.institutions.blocs[id].favor,
+        effectivePower: effectiveBlocPower(state, id),
+      }),
+    ),
+    pledge: state.institutions.pledge ? { ...state.institutions.pledge } : null,
+    corridor: {
+      statePower: state.institutions.statePower,
+      societalPower: state.institutions.societalPower,
+      offset: corridorOffset(state),
+      halfWidth: CORRIDOR_HALF_WIDTH,
+      inCorridor: inCorridor(state),
+      // the traced path comes from the office's own worksheets, so it survives
+      // a save/reload the way the census does — the map is not a UI accident
+      trail: state.stats.record.map((r) => ({
+        tick: r.tick,
+        x: r.statePower,
+        y: r.societalPower,
+      })),
+    },
+    campaign:
+      state.politics.inPower &&
+      state.politics.quartersToElection <= CAMPAIGN_WINDOW &&
+      state.politics.quartersToElection > 0
+        ? {
+            quartersToElection: state.politics.quartersToElection,
+            committed: state.politics.campaign ? { ...state.politics.campaign } : null,
+            support: approvalIndex(state),
+            threshold: electionThreshold(state.institutions.stocks.repression),
+          }
+        : null,
+    lastElection: state.politics.lastElection ? { ...state.politics.lastElection } : null,
     reportCard: reportCardOf(state),
   }
 }

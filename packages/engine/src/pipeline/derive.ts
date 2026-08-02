@@ -2,13 +2,31 @@
 
 import {
   CAPITAL_ELASTICITY,
+  CORRIDOR_HALF_WIDTH,
+  ELITE_CAPTURE_NEUTRAL,
+  ELITE_VETO_ABSORB,
+  ELITE_ABSORB_CLAMP,
   EXPORT_BASE_SHARE,
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
   LIVING_STANDARD_1946,
   PARTICIPATION,
+  SOCIETY_CHECK,
+  STATE_CAPACITY_WEIGHT,
+  STATE_REPRESSION_WEIGHT,
 } from '../constants'
-import { COHORT_IDS, SECTOR_IDS, type CohortId, type Sector, type SectorId, type TrueState } from '../state/schema'
+import { clamp } from '../math'
+import {
+  BLOC_IDS,
+  CAPACITY_IDS,
+  COHORT_IDS,
+  SECTOR_IDS,
+  type BlocId,
+  type CohortId,
+  type Sector,
+  type SectorId,
+  type TrueState,
+} from '../state/schema'
 
 export function potentialOutput(s: Sector): number {
   return s.tfp * Math.pow(Math.max(s.capital, 1e-9), CAPITAL_ELASTICITY) * Math.pow(Math.max(s.employment, 1e-9), LABOR_ELASTICITY)
@@ -114,6 +132,136 @@ export function termsOfTrade(state: TrueState): number {
   }
   if (imp <= 1e-9 || imp0 <= 1e-9 || exp0 <= 1e-9) return 100
   return (100 * (exp / imp)) / (exp0 / imp0)
+}
+
+// ---------- §6.3 the Narrow Corridor, §4.3 the veto players ----------
+
+/** Population-weighted share of the country that holds a ballot. Suffrage
+ * reform moves the cohort weights, so this is also the number that decides
+ * WHOSE approval the §3.4 formula is scoring — the objective function the
+ * player can edit. */
+export function enfranchisementIndex(state: TrueState): number {
+  let people = 0
+  let voters = 0
+  for (const c of state.cohorts) {
+    people += c.size
+    voters += c.size * c.enfranchisement
+  }
+  return people > 1e-9 ? voters / people : 0
+}
+
+/**
+ * How unhappy the country is, and how much of that unhappiness has nowhere to
+ * go. Two population-weighted sums — note *population*, not enfranchisement:
+ * the electorate is who votes, but the street is everybody.
+ *
+ * `discontent` is the whole country's dissatisfaction. `voiceless` is the part
+ * of it held by people with no ballot, and it is the one that matters most for
+ * revolutionary pressure: a citizen who can vote you out does that instead.
+ * That asymmetry is what makes extending the franchise genuinely double-edged
+ * (§4.3) — it converts revolutionary pressure into electoral pressure, which
+ * is precisely the historical bargain suffrage extension was.
+ */
+export function discontentIndex(state: TrueState): { discontent: number; voiceless: number } {
+  let people = 0
+  let unhappy = 0
+  let unheard = 0
+  for (const c of state.cohorts) {
+    const d = 1 - c.approval
+    people += c.size
+    unhappy += c.size * d
+    unheard += c.size * d * (1 - c.enfranchisement)
+  }
+  if (people <= 1e-9) return { discontent: 0, voiceless: 0 }
+  return { discontent: unhappy / people, voiceless: unheard / people }
+}
+
+/** the share of the non-retired population living an urban life — cities are
+ * where a society organizes, which is why the transition moves the y-axis */
+export function urbanShare(state: TrueState): number {
+  const s = state.demography.classShares
+  return clamp(s.urban_workers + s.professionals + s.business_owners, 0, 1)
+}
+
+/** The corridor's x-axis: the Leviathan. What the ministries can do, plus the
+ * coercive arm — a police state is a CAPABLE state, which is exactly why
+ * despotism is a corner of this map rather than a synonym for failure. */
+export function statePower(state: TrueState): number {
+  const caps = CAPACITY_IDS.reduce((s, id) => s + state.gov.capacity[id], 0) / CAPACITY_IDS.length
+  return clamp(
+    STATE_CAPACITY_WEIGHT * caps + STATE_REPRESSION_WEIGHT * state.institutions.stocks.repression,
+    0,
+    1,
+  )
+}
+
+/** Signed distance from the corridor's centre line. Positive = the state has
+ * outrun its society (toward despotism); negative = society has outrun its
+ * state (toward anarchy). Zero is the middle of the road. */
+export function corridorOffset(state: TrueState): number {
+  return statePower(state) - state.institutions.societalPower
+}
+
+/** How far outside the corridor you are, on each side. Both zero while you
+ * are in it — this is the number every consequence of leaving reads. */
+export function corridorStrain(state: TrueState): { despotic: number; anarchic: number } {
+  const off = corridorOffset(state)
+  return {
+    despotic: Math.max(0, off - CORRIDOR_HALF_WIDTH),
+    anarchic: Math.max(0, -off - CORRIDOR_HALF_WIDTH),
+  }
+}
+
+export function inCorridor(state: TrueState): boolean {
+  return Math.abs(corridorOffset(state)) <= CORRIDOR_HALF_WIDTH
+}
+
+/** A bloc's power as it actually bears on the government: its clout, less
+ * whatever an organized society is able to check. This is the corridor's
+ * central claim in one expression — the same elites are far less able to veto
+ * you when the people can print, meet, sue and vote. */
+export function effectiveBlocPower(state: TrueState, id: BlocId): number {
+  const raw = state.institutions.blocs[id].power
+  return clamp(raw * (1 - SOCIETY_CHECK * state.institutions.societalPower), 0, 1)
+}
+
+/** How hostile the room is, weighted by who is actually in it. Only the
+ * incumbents count here: organized labor can strike, but it does not stage
+ * palace coups. */
+export function eliteHostility(state: TrueState): number {
+  let weight = 0
+  let hostile = 0
+  for (const id of BLOC_IDS) {
+    if (id === 'unions') continue
+    const p = effectiveBlocPower(state, id)
+    weight += p
+    hostile += p * Math.max(0, -state.institutions.blocs[id].favor)
+  }
+  return weight > 1e-9 ? hostile / weight : 0
+}
+
+/** §4.3 the extractive ceiling. The strongest incumbent, unchecked, is the one
+ * who vetoes creative destruction — so this reads the MAX, not the mean: it
+ * only takes one entrenched interest to keep the newcomers out. */
+export function eliteCapture(state: TrueState): number {
+  let max = 0
+  for (const id of BLOC_IDS) {
+    if (id === 'unions') continue
+    max = Math.max(max, effectiveBlocPower(state, id))
+  }
+  return max
+}
+
+/** The multiplier the extractive ceiling puts on absorptive capacity. Above 1
+ * for a country whose incumbents are checked, below 1 for one whose are not —
+ * calibrated so the 1946 opening is neutral, because this is a divergence
+ * mechanism and not a tax levied on everybody at the start. */
+export function creativeDestruction(state: TrueState): number {
+  return clamp(
+    1 + ELITE_VETO_ABSORB * (ELITE_CAPTURE_NEUTRAL - eliteCapture(state)),
+    ELITE_ABSORB_CLAMP[0],
+    ELITE_ABSORB_CLAMP[1],
+  )
 }
 
 /** Household own-basket price level for a cohort (base = 1). */

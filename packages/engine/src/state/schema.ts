@@ -55,6 +55,26 @@ export const OUTLAY_IDS = [
 export type OutlayId = (typeof OUTLAY_IDS)[number]
 export type OutlaySplit = Record<OutlayId, Money>
 
+/** Layer 3 (§4.3) — generational, ratcheting, contested. These are the stocks
+ * that edit your own objective function: `suffrage` rewrites the ballot
+ * weights the PC formula scores you on, `repression` buys the state's coercive
+ * arm at society's expense. Reform moves them a step at a time. */
+export const INSTITUTION_IDS = ['suffrage', 'press', 'labor_rights', 'courts', 'repression'] as const
+export type InstitutionId = (typeof INSTITUTION_IDS)[number]
+
+/** the veto players (§4.3). Not a scripted faction system: each bloc's POWER
+ * is read off the economy it owns, so a crisis that guts a bloc's base is a
+ * political opening — and the elites' hold on the levers loosens for free. */
+export const BLOC_IDS = ['landowners', 'industrialists', 'financiers', 'unions'] as const
+export type BlocId = (typeof BLOC_IDS)[number]
+
+/** how you fight the election (§3.1: hold a coalition together). Each is a
+ * real fork with a real bill: largesse mortgages the budget, coalition
+ * mortgages the levers, suppression mortgages the corridor, franchise
+ * mortgages your own scoring rubric. */
+export const PLATFORM_IDS = ['record', 'largesse', 'coalition', 'suppression', 'franchise'] as const
+export type PlatformId = (typeof PLATFORM_IDS)[number]
+
 export const INDICATOR_IDS = [
   'gdp_growth',
   'inflation',
@@ -72,6 +92,7 @@ export const INDICATOR_IDS = [
   'terms_of_trade',
   'asset_prices',
   'credit_growth',
+  'unrest',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
@@ -270,14 +291,73 @@ export interface FinanceState {
   crisisSeverity: number
 }
 
+// ---------- institutions (§4.3 Layer 3, §6.3 the corridor) ----------
+/** One veto player. `power` is DERIVED from the economy each quarter — the
+ * share of the country a bloc owns — so nothing about it is hand-authored;
+ * `favor` is how it feels about the government right now, and it is the thing
+ * that turns into a capital strike, a wage push, or a coup. */
+export interface Bloc {
+  /** clout, 0..1: read off the bloc's economic base */
+  power: Ratio
+  /** −1 (implacable) .. +1 (in your pocket) */
+  favor: number
+}
+
+export interface InstitutionState {
+  /** Layer-3 stocks, 0..1. Generational: reforms move them a step at a time */
+  stocks: Record<InstitutionId, Ratio>
+  /** §6.3 y-axis — society's capacity to organize and constrain the state.
+   * Slow: it tracks a target set by franchise, organization, education,
+   * urbanization, inequality and the boot, at a generation's pace. */
+  societalPower: Ratio
+  /** §6.3 x-axis — the Leviathan: the ministries you built, plus the
+   * coercive arm repression buys */
+  statePower: Ratio
+  /** §4.3 revolutionary pressure, 0..1. High pressure prises open reforms
+   * elites would otherwise veto — and can end you outright. */
+  unrest: Ratio
+  blocs: Record<BlocId, Bloc>
+  /** a bloc courted at the last election has a claim on you until this
+   * expires: everything they dislike costs double while the debt stands */
+  pledge: { bloc: BlocId; quartersLeft: Qtr } | null
+}
+
 // ---------- politics ----------
+/** What the last election actually was — the scene, kept so the UI can play
+ * it back rather than reduce it to one line on the wire. */
+export interface ElectionResult {
+  tick: Qtr
+  platform: PlatformId
+  /** the bloc courted, when the platform was `coalition` */
+  bloc: BlocId | null
+  /** enfranchisement-weighted approval going in */
+  support: Ratio
+  /** what the campaign itself was worth, in approval points */
+  swing: number
+  /** the bar you had to clear (repression lowers it) */
+  threshold: Ratio
+  won: boolean
+  /** won by suppressing the vote rather than winning it */
+  suppressed: boolean
+}
+
 export interface PoliticalState {
   politicalCapital: number
   quartersToElection: number
   inPower: boolean
   electionsWon: number
+  /** mandates taken by force rather than consent — graded separately (§3.3) */
+  electionsSuppressed: number
   /** the quarter the government fell; null while it stands */
   deposedAt: Qtr | null
+  /** how it ended: at the polls, or by the street / the palace */
+  deposedBy: 'poll' | 'revolt' | 'coup' | null
+  /** the platform committed to for the election now approaching. The swing is
+   * banked when the promise is made, not when the votes are counted — a
+   * giveaway is worth what it was worth on the day you announced it. */
+  campaign: { platform: PlatformId; bloc: BlocId | null; swing: number } | null
+  /** the last election, for the results scene */
+  lastElection: ElectionResult | null
 }
 
 // ---------- fragility ----------
@@ -339,6 +419,15 @@ export interface StatRecord {
   assetPrice: number
   /** credit outstanding / annual GDP — what a bank supervisor would tabulate */
   creditToGdp: number
+  /** revolutionary pressure, 0..1 — what the provincial governors' reports
+   * would add up to if anyone collated them (§4.3). Fogged like everything
+   * else: a state that cannot survey its own people cannot see the street. */
+  unrest: Ratio
+  /** the corridor's two coordinates (§6.3). Exact, not fogged: a government
+   * knows which ministries it built and which liberties it granted — the
+   * uncertainty in this game is about the economy, not about the constitution */
+  statePower: Ratio
+  societalPower: Ratio
   /** statistical capacity when measured: freezes lag, noise, existence */
   statCapacity: Ratio
   // rumor-mill inputs
@@ -424,6 +513,7 @@ export interface TrueState {
   market: MarketState
   gov: GovernmentState
   external: ExternalState
+  institutions: InstitutionState
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice
@@ -435,13 +525,23 @@ export interface TrueState {
     discountWeight: number // Σ β^t, for normalizing to an average
     /** quarter-zero welfare (mean log), the "vs 1946" yardstick */
     baselineWelfare: number | null
+    /** §3.3 Position: quarters of your tenure spent inside the corridor, and
+     * the tenure they are counted against. Accumulated as the run happens for
+     * the same reason welfare is — the path is the grade, not the endpoint. */
+    corridorQuarters: number
+    governedQuarters: number
   }
   flows: TickFlows
 }
 
-export const SCHEMA_VERSION = 11 // v11: the budget, disaggregated — revenue by source, outlays by programme
+// v11 was the disaggregated budget, which landed on master while this was in
+// flight; politics-as-a-game therefore becomes v12.
+export const SCHEMA_VERSION = 12 // v12: politics as a game — institutions, societal power, blocs, campaigns
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
+/** the campaign opens this many quarters before the vote: the scene needs a
+ * turn of its own, or the choice is made in the same breath as the result */
+export const CAMPAIGN_WINDOW = 2
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */
 export const END_OF_HISTORY_TICK = 416
 

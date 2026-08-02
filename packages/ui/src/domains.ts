@@ -24,7 +24,7 @@
  * expand but never shrinks back under the needle.
  */
 
-import { ELECTION_WIN_THRESHOLD } from '@terrarium/engine'
+import { ELECTION_WIN_THRESHOLD, REFORM_WINDOW_AT } from '@terrarium/engine'
 import type { IndicatorId } from '@terrarium/observation'
 
 export interface Domain {
@@ -63,6 +63,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   terms_of_trade: { lo: 85, hi: 115 },
   asset_prices: { lo: 50, hi: 130 },
   credit_growth: { lo: -30, hi: 30 },
+  unrest: { lo: 0, hi: 55 },
 }
 
 /**
@@ -76,6 +77,10 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   gdp_growth: { at: 0, label: 'FLAT' },
   inflation: { at: 0, label: 'STABLE' },
   credit_growth: { at: 0, label: 'FLAT' },
+  // where revolutionary pressure prises the reform window open (§4.3). A rule,
+  // not a reading — the government knows the threshold exactly and only its
+  // own position against it is fogged. That gap is the game.
+  unrest: { at: REFORM_WINDOW_AT * 100, label: 'THE WINDOW' },
 }
 
 /**

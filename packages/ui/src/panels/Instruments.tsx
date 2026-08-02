@@ -35,7 +35,6 @@ export function Instruments({
   onOpenCapacity: () => void
 }) {
   const access = deriveInstrumentAccess(pub)
-  const trail = useGame((s) => s.corridorTrail)
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
   const plan = planWall(pinned, INDICATOR_IDS)
@@ -104,7 +103,7 @@ export function Instruments({
         style={{ minHeight: DOCKED_MIN_H }}
       >
         <LedgerPanel pub={pub} onOpen={onLedger} />
-        <CorridorPlot trail={trail} />
+        <CorridorPlot corridor={pub.corridor} />
       </div>
     </div>
   )

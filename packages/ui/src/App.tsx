@@ -18,11 +18,23 @@ import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
 import { FinanceOverlay } from './panels/FinanceOverlay'
+import { ElectionOverlay } from './panels/ElectionOverlay'
+import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
 import { Button, useFocusTrap } from './components/ui'
 import type { CabinetGroup } from './cabinetNavigation'
 
-type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | 'census' | 'finance' | null
+type OverlayKind =
+  | 'ledger'
+  | 'wire'
+  | 'study'
+  | 'settings'
+  | 'verdict'
+  | 'census'
+  | 'finance'
+  | 'election'
+  | 'count'
+  | null
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
@@ -34,6 +46,8 @@ export default function App() {
   const cabinetDrawerRef = useRef<HTMLDivElement>(null)
   const cabinetReturnFocusRef = useRef<HTMLElement>(null)
   const hadCard = useRef(false)
+  const lastCampaignSeen = useRef<number | null>(null)
+  const lastCountSeen = useRef<number | null>(null)
   const closeCabinet = useCallback(() => setCabinetOpen(false), [])
 
   useFocusTrap({
@@ -89,6 +103,30 @@ export default function App() {
     const has = published?.reportCard !== undefined
     if (has && !hadCard.current) setOverlay('verdict')
     hadCard.current = has
+  }, [published])
+
+  // §3.1 the election is a scene, so it comes to the player rather than
+  // waiting to be found: the campaign opens itself the quarter it becomes
+  // available, and the count presents itself once when the votes are in.
+  // Each fires once per election — reopening on every advance would make the
+  // campaign a nag rather than a moment.
+  useEffect(() => {
+    if (!published) return
+    // keyed on the quarter the vote HAPPENS, not on the countdown, so the
+    // campaign opens once per election rather than once per advance
+    const c = published.campaign
+    const voteAt = c ? published.tick + c.quartersToElection : null
+    if (voteAt !== null && lastCampaignSeen.current !== voteAt) {
+      lastCampaignSeen.current = voteAt
+      setOverlay('election')
+      return
+    }
+    // the verdict outranks the count when a lost election ends the run
+    const r = published.lastElection
+    if (r && lastCountSeen.current !== r.tick && published.reportCard === undefined) {
+      lastCountSeen.current = r.tick
+      setOverlay('count')
+    }
   }, [published])
 
   if (!published) {
@@ -167,6 +205,8 @@ export default function App() {
       {overlay === 'settings' && <SettingsOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'census' && <CensusOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'finance' && <FinanceOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'election' && <ElectionOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'count' && <ElectionResultOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'verdict' && published.reportCard && (
         <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
       )}

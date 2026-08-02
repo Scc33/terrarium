@@ -1,7 +1,12 @@
 # Terrarium — working notes
 
 Economic policy game. Read `docs/tech-architecture.md` before touching structure.
-pnpm monorepo; built through M5.5.
+pnpm monorepo; built through M6.
+
+The **economy** and the **politics** are separate machines meeting in two places: `institutions`
+reads the economy to decide who has power, and the veto players price every action in
+`actions/apply.ts`. Keep that seam narrow. The passive century baseline is an economy fact —
+if a politics change moves it, the seam has leaked (`pnpm batch --policy passive` is the check).
 
 Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
 with the alternatives it beat and the costs it carries); `proposal-1.md` is the design doc
@@ -72,7 +77,8 @@ stylesheet, failing silently. Spell variants out as literals.
   `--policy passive --ticks 400`). Healthy passive baseline: growth ≈ 2.5%/yr, inflation ≈ 0,
   u ≈ 12.4% century mean (the elevated u is the DESIGNED §8 youth-bulge bomb an unschooled
   do-nothing government earns; funding education absorbs it to ~7% and lifts growth past 3%),
-  ~7% deposed by 400q. Random policy 120q: ~24% deposed, no NaN, no price explosions.
+  ~7% deposed by 400q. Random policy 120q: ~30% deposed (M6's coups on top of the pre-M6 ~24%),
+  no NaN, no price explosions. M6 deliberately left the PASSIVE baseline untouched.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 - `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
@@ -128,6 +134,23 @@ w.querySelectorAll('*').forEach(e=>{const r=e.getBoundingClientRect();if(r.botto
 return {scrolls:w.scrollHeight>b.height+1, belowFold:n}})()
 ```
 
+### Adding an institution or a bloc
+
+Both id lists are total `Record`s across engine, observation and UI, so the build walks you
+through most of it. What is NOT compile-enforced, and what M6 got wrong first time:
+
+1. `INSTITUTION_IDS` / `BLOC_IDS` in `state/schema.ts`; a stance row in **both** tables in
+   `actions/apply.ts` (`DIAL_STANCE` for levers, `REFORM_STANCE` for reforms).
+2. A bloc's POWER is derived from the economy in `pipeline/institutions.ts` — never a constant —
+   and needs a `BLOC_FAVOR_BASE` entry **measured** so the 1946 settlement reads neutral.
+3. A bloc needs exactly one economic channel for its hostility, through machinery that already
+   exists (a risk premium, an investment factor, a wage move). A bloc that only taxes PC is
+   set dressing.
+4. `ui/src/components/labels.ts`: `BLOC_NAMES` + `BLOC_NOTES`, or `INSTITUTION_NAMES`. A new
+   cabinet group also needs `CABINET_GROUPS` in `cabinetNavigation.ts`.
+5. Re-measure. `tests/properties/institutions.test.ts` pins the claims; check the passive
+   baseline did not move.
+
 ## Hard-won tuning lessons (violate at your peril)
 
 - Unit costs in the price step are computed at NORMAL_UTILIZATION, not realized output —
@@ -153,6 +176,29 @@ return {scrolls:w.scrollHeight>b.height+1, belowFold:n}})()
   — only a policy rate cut or a genuine profit surge inflates a bubble. The crisis a player
   gets is the one their own cheap money earned. The bank-capital cap is deliberately SLACK in
   booms and bites only after a crisis writes capital down — that IS the forced deleveraging.
+- **Political responses are reference-dependent, and it is load-bearing.** Cohort approval
+  judges income against an EMA of itself; bloc favour judges policy against the 1946 settlement
+  (`BLOC_FAVOR_BASE`); unrest judges hardship against experienced conditions. Each was a *bug
+  fix*: absolute thresholds made a do-nothing government inherit a capital strike, and pinned
+  unrest so flat that reform windows and revolts were both unreachable. Centre any new
+  political response the same way and **measure the resting value** before picking the constant.
+- **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
+  distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
+  mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the
+  hardship households *experienced* (cohort approval already aggregates it) — rebuilt from
+  unemployment it was wrong-signed, because the subsistence valve keeps the impoverished
+  nominally employed.
+- **Suppression must cost something the boot cannot pay.** Repression damps grievance
+  *multiplicatively* (never to zero) and corridor strain is added *outside* that damping.
+  Subtract it linearly and the extractive path becomes strictly dominant.
+- **Bloc power is DERIVED, never authored** — that is what makes "a crisis is a political
+  opening" fall out for free. What is authored is only what each bloc *wants*: a preference,
+  the same primitive as a consumption weight. And blocs make levers expensive, never
+  impossible — a hard veto would silently break the M1 exit-criteria scripts.
+- **`politicalCostOfAction` is the single source of truth for what an order costs.** Quote and
+  charge must never be computed twice; `observe.ts` publishes reform prices straight from it.
+- **`pnpm diff-state --moved-only` on any schema-adding change.** New fields sort as infinite
+  relative change and bury the economics review the bless workflow depends on.
 - **A warning that never turns off is not a warning.** The REVISED stamp once fired on ~67% of
   instrument-quarters. It now needs two gates (~10%): wrong by more than twice the band
   confessed ON THE FIRST PRINT, *and* far enough to visibly move the needle (6% of the dial).

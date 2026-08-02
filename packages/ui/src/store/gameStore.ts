@@ -47,8 +47,6 @@ interface GameState {
   previewError: string | null
   rejection: string | null
   advancing: boolean
-  /** traced positions on the Narrow Corridor (published data only) */
-  corridorTrail: Array<{ x: number; y: number }>
   /** instruments the player has put on the board, oldest pin first */
   pinned: IndicatorId[]
   /** dev only: the last true-state snapshot the worker was asked for */
@@ -67,42 +65,34 @@ interface GameState {
   inspectTruth(): void
 }
 
-/** one staged change per dial, one staged program per capacity target */
+/** one staged change per dial, one staged program per capacity target, one
+ * reform per institution, and exactly one campaign */
 function actionKey(a: Action): string {
-  return a.kind === 'setDial' ? `dial:${a.path}` : `cap:${a.target}`
+  switch (a.kind) {
+    case 'setDial':
+      return `dial:${a.path}`
+    case 'investCapacity':
+      return `cap:${a.target}`
+    case 'reform':
+      return `reform:${a.institution}`
+    case 'campaign':
+      return 'campaign'
+  }
 }
 
 export const useGame = create<GameState>((set, get) => {
   const worker = new SimWorker()
 
-  // corridor coordinates from published/setup data only: the government
-  // knows its own capacity stocks; societal power comes from the country's
-  // enfranchisement setup (static until Layer 3 makes it move)
-  const corridorPoint = (published: PublishedState, save: SaveFile) => {
-    const caps = Object.values(published.capacity)
-    const x = caps.reduce((a, b) => a + b, 0) / caps.length
-    let people = 0
-    let weight = 0
-    for (const [cid, size] of Object.entries(save.params.cohortSizes)) {
-      people += size
-      weight += size * (save.params.enfranchisement[cid as keyof typeof save.params.enfranchisement] ?? 0)
-    }
-    return { x, y: people > 0 ? weight / people : 0.5 }
-  }
+  // the corridor trail is no longer assembled here. Both coordinates are live
+  // engine state from M6, and the traced path rides along in PublishedState
+  // (built from the statistics office's own worksheets), so it survives a
+  // save/reload instead of restarting empty the way a store-local trail did.
 
   worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
     const msg = ev.data
     switch (msg.type) {
       case 'published': {
-        const point = corridorPoint(msg.published, msg.save)
-        const prevTrail = get().published && get().published!.tick < msg.published.tick ? get().corridorTrail : []
-        set({
-          published: msg.published,
-          save: msg.save,
-          advancing: false,
-          rejection: null,
-          corridorTrail: [...prevTrail, point].slice(-120),
-        })
+        set({ published: msg.published, save: msg.save, advancing: false, rejection: null })
         void dbPut(AUTOSAVE_KEY, msg.save)
         break
       }
@@ -157,7 +147,6 @@ export const useGame = create<GameState>((set, get) => {
     previewError: null,
     rejection: null,
     advancing: false,
-    corridorTrail: [],
     pinned: loadPins(),
     devTruth: null,
 
@@ -225,7 +214,9 @@ export const useGame = create<GameState>((set, get) => {
           stagedCosts: {},
           previewError: null,
           rejection: null,
-          corridorTrail: [],
+          // the corridor trail is no longer store-local: both coordinates are
+          // live engine state and the traced path rides in PublishedState, so
+          // a scenario load gets the right trail for free
           devTruth: null,
         })
         send({ type: 'dev:scenario', scenario })

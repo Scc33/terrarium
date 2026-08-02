@@ -1,8 +1,15 @@
 /**
  * §3.3 — the historians' verdict. A run ends (deposition or 2050) with a
  * report card whose axes are graded separately and never summed: one number
- * would secretly author a "correct" ideology. For v0.1 the card carries
- * Prosperity (discounted lived welfare) and Legitimacy-as-survival.
+ * would secretly author a "correct" ideology.
+ *
+ * From M6 all three axes the design named are here. Position is the one that
+ * makes the corridor mean something after the fact: it grades the share of the
+ * tenure spent inside the band, so the extractive path can score well on
+ * Legitimacy (you kept winning) and still be shown, in its own column, as a
+ * century spent outside the corridor. And Legitimacy now distinguishes
+ * mandates won from mandates taken, exactly as §3.3 asks — the two counts sit
+ * side by side and are never netted.
  */
 
 import type { Grade, PublishedState, ReportCard } from '@terrarium/observation'
@@ -96,12 +103,47 @@ export function ReportCardOverlay({
 
         <Axis name="LEGITIMACY" grade={card.legitimacyGrade}>
           <div className="font-mono text-sm tabular-nums text-dossier-ink">
-            {years} years governed · {card.electionsWon} election{card.electionsWon === 1 ? '' : 's'} won
+            {years} years governed · {card.electionsWon} election
+            {card.electionsWon === 1 ? '' : 's'} won
+            {card.electionsSuppressed > 0 && (
+              <span className="text-dossier-warn">
+                {' '}
+                · {card.electionsSuppressed} taken
+              </span>
+            )}
           </div>
           <p className="mt-2 font-dossier text-[12px] leading-snug text-dossier-ink/70">
-            {card.endedBy === 'deposition'
-              ? 'The electorate withdrew its consent. The country, of course, carries on.'
-              : 'The government stood when the historians closed the book.'}
+            {card.electionsSuppressed > 0
+              ? 'Mandates taken are recorded beside mandates won, and never subtracted from them — the ledger simply shows which is which, and consent is what this axis grades.'
+              : card.deposedBy === 'revolt'
+                ? 'The street ended it. Consent had been withdrawn long before anyone was asked.'
+                : card.deposedBy === 'coup'
+                  ? 'The men who owned the country decided they no longer owned the government.'
+                  : card.endedBy === 'deposition'
+                    ? 'The electorate withdrew its consent. The country, of course, carries on.'
+                    : 'The government stood when the historians closed the book.'}
+          </p>
+        </Axis>
+
+        <Axis name="POSITION" grade={card.positionGrade}>
+          <div className="flex items-baseline gap-3">
+            <span className="font-mono text-3xl font-semibold tabular-nums text-dossier-ink">
+              {(card.corridorShare * 100).toFixed(0)}%
+            </span>
+            <span className="font-dossier text-sm italic text-dossier-ink/70">
+              of your tenure inside the corridor
+            </span>
+          </div>
+          <div className="mt-1 font-mono text-[11px] tabular-nums text-dossier-ink/80">
+            finished at state {card.finalStatePower.toFixed(2)} · society{' '}
+            {card.finalSocietalPower.toFixed(2)}
+          </div>
+          <p className="mt-2 font-dossier text-[12px] leading-snug text-dossier-ink/70">
+            Where the dot sat, and the path it traced (§6.3). A state that outruns its society
+            ends in despotism and a society that outruns its state ends in anarchy; the narrow
+            band between them is the only place both stay honest. This axis grades the path, not
+            the destination — a century that ended well after eighty years outside the corridor
+            was not a century inside it.
           </p>
         </Axis>
 

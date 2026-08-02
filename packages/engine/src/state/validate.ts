@@ -3,7 +3,7 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
-import { SECTOR_IDS, type TrueState } from './schema'
+import { BLOC_IDS, INSTITUTION_IDS, SECTOR_IDS, type TrueState } from './schema'
 
 export class InvariantError extends Error {}
 
@@ -50,5 +50,32 @@ export function validate(state: TrueState): void {
   for (const [cid, v] of Object.entries(state.gov.capacity)) {
     finite(v, `capacity[${cid}]`)
     if (v < 0 || v > 1) throw new InvariantError(`capacity[${cid}] out of [0,1]`)
+  }
+  const inst = state.institutions
+  for (const id of INSTITUTION_IDS) {
+    finite(inst.stocks[id], `institutions.stocks[${id}]`)
+    if (inst.stocks[id] < 0 || inst.stocks[id] > 1) {
+      throw new InvariantError(`institutions.stocks[${id}] out of [0,1]`)
+    }
+  }
+  for (const [name, v] of [
+    ['societalPower', inst.societalPower],
+    ['statePower', inst.statePower],
+    ['unrest', inst.unrest],
+  ] as const) {
+    finite(v, `institutions.${name}`)
+    if (v < 0 || v > 1) throw new InvariantError(`institutions.${name} out of [0,1]`)
+  }
+  for (const id of BLOC_IDS) {
+    const b = inst.blocs[id]
+    finite(b.power, `blocs[${id}].power`)
+    finite(b.favor, `blocs[${id}].favor`)
+    if (b.power < 0 || b.power > 1) throw new InvariantError(`blocs[${id}].power out of [0,1]`)
+    if (b.favor < -1 || b.favor > 1) throw new InvariantError(`blocs[${id}].favor out of [-1,1]`)
+  }
+  for (const c of state.cohorts) {
+    if (c.enfranchisement < 0 || c.enfranchisement > 1) {
+      throw new InvariantError(`enfranchisement[${c.id}] out of [0,1]`)
+    }
   }
 }

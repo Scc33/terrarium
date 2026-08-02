@@ -26,6 +26,7 @@ import { monetary } from './monetary'
 import { prices } from './prices'
 import { labor } from './labor'
 import { cohorts } from './cohorts'
+import { institutions } from './institutions'
 import { statistics } from './statistics'
 import { politics } from './politics'
 
@@ -42,8 +43,9 @@ export const TICK_ORDER: PipelineStep[] = [
   prices, // tâtonnement with cost anchor
   labor, // employment, wages, capital accumulation
   cohorts, // incomes, savings, approval drifts toward experienced truth
+  institutions, // societal power, the veto players, revolutionary pressure — schema v11
   statistics, // the office measures, publishes, revises — schema v3
-  politics, // PC accrual from PUBLISHED numbers, elections every 16 ticks
+  politics, // PC accrual from PUBLISHED numbers, elections, revolt and coup
 ]
 
 export function runTick(state: TrueState): TrueState {

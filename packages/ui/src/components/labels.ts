@@ -9,7 +9,7 @@
  * until it has been named at every maturity and its survey has been named too.
  */
 
-import type { IndicatorId } from '@terrarium/observation'
+import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/observation'
 
 export interface IndicatorNames {
   /** dossier-era gauge header: the ministry's own wording, with units */
@@ -42,4 +42,57 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   terms_of_trade: { dossier: 'TERMS OF TRADE · IDX', terminal: 'TERMS.TRADE IDX', plate: 'TERMS OF TRADE', short: 'TERMS TRD.', needs: 'TRADE STATISTICS' },
   asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD' },
   credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION' },
+  unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS' },
+}
+
+/** The veto players, by the name a minister would use. Total over BlocId, so
+ * adding a bloc to the engine stops the UI building until it has been named. */
+export const BLOC_NAMES: Record<BlocId, string> = {
+  landowners: 'Landed',
+  industrialists: 'Industry',
+  financiers: 'Finance',
+  unions: 'Labour',
+}
+
+/** …and what each one actually is, for the whip count's tooltips. */
+export const BLOC_NOTES: Record<BlocId, string> = {
+  landowners:
+    'The landed interest. As strong as agriculture’s share of output — it fades as the country industrialises, and never forgives a land tax.',
+  industrialists:
+    'Factory and mill owners. Strength follows manufacturing, energy and transport. They mind corporate tax, dear money, fuel excise and labour rights.',
+  financiers:
+    'The money interest — banks and bondholders. Strength follows the credit stock and how much of your debt they hold. They mind inflation, the printing press, and a budget they do not believe.',
+  unions:
+    'Organised labour. Needs three things at once: the legal right to organise, an industrial workforce, and jobs to strike from. Weak in 1946 unless you legalise it.',
+}
+
+export const INSTITUTION_NAMES: Record<InstitutionId, { name: string; note: string }> = {
+  suffrage: {
+    name: 'Suffrage',
+    note: 'Who holds a ballot. Extending it rewrites the weights your approval is scored on — you are editing your own objective function — and converts revolutionary pressure into electoral pressure.',
+  },
+  press: {
+    name: 'Free press',
+    note: 'A society that can print can organise. Raises societal power; the landed interest would rather it did not.',
+  },
+  labor_rights: {
+    name: 'Labour rights',
+    note: 'The legal right to organise. Raises societal power and makes the unions a real bloc — which cuts both ways, because an aggrieved organised labour movement bargains rather than petitions.',
+  },
+  courts: {
+    name: 'Courts',
+    note: 'Judicial independence and secure property. Raises societal power, and capital likes it — the one reform the money interest will thank you for.',
+  },
+  repression: {
+    name: 'Repression',
+    note: 'The coercive arm. Buys political capital and lowers the electoral bar, damps unrest in the short run — and walks the corridor dot toward despotism, where the incumbents you never checked quietly stop letting the economy change.',
+  },
+}
+
+export const PLATFORM_NAMES: Record<PlatformId, string> = {
+  record: 'stood on the record',
+  largesse: 'opened the treasury',
+  coalition: 'courted a bloc',
+  suppression: 'cleared the ballot',
+  franchise: 'extended the franchise',
 }

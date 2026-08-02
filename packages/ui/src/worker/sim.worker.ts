@@ -90,7 +90,16 @@ function advance(actions: Parameters<typeof applyActions>[1]): void {
 }
 
 function previewKey(action: Parameters<typeof applyActions>[1][number]): string {
-  return action.kind === 'setDial' ? `dial:${action.path}` : `cap:${action.target}`
+  switch (action.kind) {
+    case 'setDial':
+      return `dial:${action.path}`
+    case 'investCapacity':
+      return `cap:${action.target}`
+    case 'reform':
+      return `reform:${action.institution}`
+    case 'campaign':
+      return 'campaign'
+  }
 }
 
 function previewCost(actions: Parameters<typeof applyActions>[1]): void {
