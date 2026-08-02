@@ -8,7 +8,7 @@
  * population). Static until Layer 3 (M3) makes it move.
  */
 
-import { WallTile } from './WallTile'
+import { WallTile } from '../WallTile/WallTile'
 
 interface Trail {
   x: number

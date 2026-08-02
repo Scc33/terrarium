@@ -6,7 +6,7 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal, OverlayLayout } from '../components/ui'
 import { shapeSeries } from '../components/series'
 
 const W = 460
@@ -88,8 +88,13 @@ export function StudyOverlay({ pub, onClose }: { pub: PublishedState; onClose: (
   }
 
   return (
-    <Overlay title="THE STUDY — PHILLIPS BOARD" onClose={onClose} wide>
-      {body}
-    </Overlay>
+    <Modal title="THE STUDY — PHILLIPS BOARD" onClose={onClose} size="wide">
+      <OverlayLayout
+        note="Each dot is one quarter as the statistical office printed it. The faint line preserves sequence: a loop through time can look like a stable trade-off when a cloud of disconnected points would not."
+        footer="PUBLISHED PRINTS ONLY · REVISIONS CHANGE THE RECORD"
+      >
+        {body}
+      </OverlayLayout>
+    </Modal>
   )
 }

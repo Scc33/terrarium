@@ -16,52 +16,83 @@
  */
 
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
-import { deriveMaturity } from '../maturity'
-import { CorridorPlot } from '../components/CorridorPlot'
-import { Gauge } from '../components/Gauge'
-import { RackStrip } from '../components/RackStrip'
+import { deriveInstrumentAccess } from '../maturity'
+import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
+import { Gauge } from '../components/Gauge/Gauge'
+import { RackStrip } from '../components/RackStrip/RackStrip'
+import { SectionBar } from '../components/ui'
 import { LedgerPanel } from './LedgerPanel'
 import { useGame } from '../store/gameStore'
 import { BOARD_SLOT_MIN_H, DOCKED_MIN_H, planWall } from '../wallPlan'
 
-export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: () => void }) {
-  const maturity = deriveMaturity(pub)
+export function Instruments({
+  pub,
+  onLedger,
+  onOpenCapacity,
+}: {
+  pub: PublishedState
+  onLedger: () => void
+  onOpenCapacity: () => void
+}) {
+  const access = deriveInstrumentAccess(pub)
   const trail = useGame((s) => s.corridorTrail)
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
   const plan = planWall(pinned, INDICATOR_IDS)
+  const fittedCount = INDICATOR_IDS.filter((id) => access[id].availability !== 'unfunded').length
+  const liveCount = INDICATOR_IDS.filter((id) => access[id].maturity === 'terminal').length
 
   return (
-    <div className="grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1.5fr)_auto_minmax(0,1fr)] gap-2 p-2">
+    <div className="instrument-wall grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
+      <SectionBar
+        title="WATCH BOARD"
+        detail="The four instruments the cabinet is flying by"
+        aside={`${plan.board.length} / ${plan.board.length} PINNED`}
+        inverted
+      />
+
       {/* THE BOARD — the dials you are actually flying by */}
       {/* the single explicit row matters: with auto rows a grid item's
           `h-full` resolves against its own content, which is how tiles used to
           demand more height than the band had and paint outside it */}
       <div
-        className="grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
+        className="instrument-board grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
         style={{
-          gridTemplateColumns: `repeat(${plan.board.length}, minmax(0, 1fr))`,
           minHeight: BOARD_SLOT_MIN_H,
         }}
       >
         {plan.board.map((id) => (
-          <Gauge key={id} indicator={id} maturity={maturity[id]} series={pub.indicators[id]} now={pub.tick} />
+          <Gauge
+            key={id}
+            indicator={id}
+            access={access[id]}
+            series={pub.indicators[id]}
+            now={pub.tick}
+            onOpenCapacity={access[id].availability === 'unfunded' ? onOpenCapacity : undefined}
+          />
         ))}
       </div>
 
+      <SectionBar
+        title="INSTRUMENT RACK"
+        detail="Select any strip to swap it onto the watch board"
+        aside={`${fittedCount} FITTED · ${liveCount} LIVE`}
+        inverted
+      />
+
       {/* THE RACK — the apparatus entire, fitted and unfitted alike */}
       <div
-        className="grid min-w-0 gap-x-2 gap-y-1"
-        style={{ gridTemplateColumns: `repeat(${plan.rackCols}, minmax(0, 1fr))` }}
+        className="instrument-rack grid min-w-0 gap-x-2 gap-y-1"
       >
         {plan.rack.map((id) => (
           <RackStrip
             key={id}
             indicator={id}
-            maturity={maturity[id]}
+            access={access[id]}
             series={pub.indicators[id]}
             now={pub.tick}
             pinned={plan.board.includes(id)}
+            slot={plan.board.includes(id) ? plan.board.indexOf(id) + 1 : undefined}
             onPin={() => togglePin(id)}
           />
         ))}
@@ -69,7 +100,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
 
       {/* DOCKED — the books you keep on yourself, and the map */}
       <div
-        className="grid min-h-0 min-w-0 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
+        className="instrument-docked grid min-h-0 min-w-0 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
         style={{ minHeight: DOCKED_MIN_H }}
       >
         <LedgerPanel pub={pub} onOpen={onLedger} />

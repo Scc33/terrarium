@@ -6,8 +6,8 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { InkLine } from '../components/InkLine'
-import { WallTile } from '../components/WallTile'
+import { LineChart } from '../components/ui'
+import { WallTile } from '../components/WallTile/WallTile'
 
 export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () => void }) {
   const books = pub.books.slice(-40)
@@ -35,7 +35,7 @@ export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () =
         </div>
       }
     >
-      <InkLine
+      <LineChart
         label={
           <>
             <span className="text-dossier-ink">REVENUE</span>

@@ -11,9 +11,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { donutSlices, type Share } from '../shares'
+import { donutSlices, type Share } from '../../../shares'
 
-interface Props {
+export interface DonutChartProps {
   shares: readonly Share[]
   /** how a value prints in the legend — the caller owns the unit */
   format: (value: number) => string
@@ -24,11 +24,14 @@ interface Props {
   emptyNote?: string
 }
 
-export function InkPie({ shares, format, size = 112, extra, emptyNote = 'NOTHING BOOKED' }: Props) {
+export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOTHING BOOKED' }: DonutChartProps) {
   const r = size / 2 - 1
   const slices = donutSlices(shares, { cx: size / 2, cy: size / 2, r, ri: r * 0.52 })
   const total = slices.reduce((s, x) => s + x.value, 0)
   const shareOf = new Map(slices.map((s) => [s.key, s.share]))
+  const reading = slices.length > 0
+    ? `Total ${format(total)}. ${slices.map((slice) => `${slice.label} ${(100 * slice.share).toFixed(1)} percent`).join('; ')}.`
+    : emptyNote
 
   return (
     <div className="flex min-w-0 items-center gap-3">
@@ -38,7 +41,10 @@ export function InkPie({ shares, format, size = 112, extra, emptyNote = 'NOTHING
           preserveAspectRatio="xMidYMid meet"
           className="block shrink-0"
           style={{ width: size, height: size }}
+          role="img"
+          aria-label={reading}
         >
+          <title>{reading}</title>
           {slices.map((s) => (
             <path key={s.key} d={s.path} fill={s.ink} fillRule="evenodd" stroke="var(--color-dossier-paper)" strokeWidth="0.8">
               <title>{`${s.label}: ${format(s.value)} (${(100 * s.share).toFixed(1)}%)`}</title>
@@ -79,6 +85,7 @@ export function InkPie({ shares, format, size = 112, extra, emptyNote = 'NOTHING
           </div>
         ))}
       </div>
+      <p className="sr-only">{reading}</p>
     </div>
   )
 }

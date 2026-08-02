@@ -9,9 +9,9 @@
  * Geometry lives in `../shares`; this file paints.
  */
 
-import { stackPlot, thin, type Share, type StackRow } from '../shares'
+import { stackPlot, thin, type Share, type StackRow } from '../../../shares'
 
-interface Props {
+export interface StackedAreaChartProps {
   rows: readonly StackRow[]
   /** draw order, and the colour pinned to each category */
   keys: readonly Share[]
@@ -25,7 +25,7 @@ interface Props {
 const W = 560
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
-export function InkStack({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0) }: Props) {
+export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0) }: StackedAreaChartProps) {
   const box = { w: W, h: height, padL: 30, padR: 6, padT: 6, padB: 14 }
   const plot = stackPlot(thin(rows, W / 2), keys, box, mode)
 
@@ -42,14 +42,16 @@ export function InkStack({ rows, keys, mode, markTick, height = 150, format = (v
 
   const ticks = mode === 'share' ? [0, 0.25, 0.5, 0.75, 1] : [0, plot.yMax / 2, plot.yMax]
   const label = (v: number) => (mode === 'share' ? `${(100 * v).toFixed(0)}%` : format(v))
+  const reading = `${mode === 'share' ? 'Share' : 'Level'} history from ${yearOf(plot.x0)} to ${yearOf(plot.x1)} for ${keys.map((key) => key.label).join(', ')}.`
 
   // width-governed like every other chart in the dossier register: the viewBox
   // sets the proportions, the container sets the size. Stretching to a fixed
   // pixel height instead would shear the axis labels.
   return (
-    <svg viewBox={`0 0 ${W} ${height}`} className="block w-full">
+    <svg viewBox={`0 0 ${W} ${height}`} className="block w-full" role="img" aria-label={reading}>
+      <title>{reading}</title>
       {plot.bands.map((b) => (
-        <path key={b.key} d={b.path} fill={b.ink} opacity="0.9" />
+        <path key={b.key} d={b.path} fill={b.ink} opacity="0.9"><title>{keys.find((key) => key.key === b.key)?.label ?? b.key}</title></path>
       ))}
       {/* the rules sit ON TOP of the bands — a gridline hidden under the ink
           it is there to measure is decoration */}

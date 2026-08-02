@@ -23,7 +23,7 @@ export type ClientMessage =
 
 export type WorkerMessage =
   | { type: 'published'; published: PublishedState; save: SaveFile }
-  | { type: 'preview'; cost: number; affordable: boolean; error?: string }
+  | { type: 'preview'; cost: number; costs: Record<string, number>; affordable: boolean; error?: string }
   | { type: 'rejected'; message: string; published: PublishedState }
   | { type: 'error'; message: string }
   // ---------- dev only: never posted from a production build ----------
