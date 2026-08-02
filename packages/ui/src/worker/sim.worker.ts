@@ -9,6 +9,7 @@ import {
   generateParams,
   init,
   step,
+  END_OF_HISTORY_TICK,
   IllegalActionError,
   politicalCostOfAction,
   type ActionLog,
@@ -16,7 +17,8 @@ import {
   type TrueState,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
-import type { ClientMessage, WorkerMessage } from './protocol'
+import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
+import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
 
 let state: TrueState | null = null
 let params: CountryParams | null = null
@@ -126,9 +128,81 @@ function previewCost(actions: Parameters<typeof applyActions>[1]): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// dev tooling. Guarded by `__DEV_TOOLS__`, which Vite substitutes with a
+// literal `false` in a production build, so the bundler drops both handlers and
+// everything they reach — the true-state serializer is not shipped to players.
+// ---------------------------------------------------------------------------
+
+/** display rounding: keep integers exact, cut float noise to something readable */
+function readable(n: number): number {
+  if (!Number.isFinite(n)) return n
+  return Number.isInteger(n) ? n : Number(n.toPrecision(6))
+}
+
+/**
+ * Reflect true state into anonymous label/value pairs (see `DevNode`). Generic
+ * on purpose: it names no field, so it needs no maintenance when the schema
+ * grows, and a new field on TrueState shows up in the inspector for free.
+ */
+function toTree(value: unknown, key: string): DevNode {
+  if (value === null || value === undefined) return { key, value: null }
+  if (typeof value === 'number') return { key, value: readable(value) }
+  if (typeof value === 'string' || typeof value === 'boolean') return { key, value }
+  if (Array.isArray(value)) {
+    return {
+      key,
+      // arrays of identified things (sectors, cohorts) read far better under
+      // their own id than under an index
+      children: value.map((v, i) => {
+        const id = v && typeof v === 'object' && 'id' in v ? String((v as { id: unknown }).id) : String(i)
+        return toTree(v, id)
+      }),
+    }
+  }
+  if (typeof value === 'object') {
+    return { key, children: Object.entries(value).map(([k, v]) => toTree(v, k)) }
+  }
+  return { key, value: String(value) }
+}
+
+function devInspect(): void {
+  if (!state) return
+  post({ type: 'dev:truth', tick: state.meta.tick, tree: toTree(state, 'state').children ?? [] })
+}
+
+/** Single entry point for every `dev:*` message, so one guard covers them all
+ * and a production build drops this function and everything it reaches. */
+function handleDev(msg: ClientMessage): void {
+  if (msg.type === 'dev:scenario') devScenario(msg.scenario)
+  else if (msg.type === 'dev:inspect') devInspect()
+}
+
+/**
+ * Build a country from scenario overrides and run it forward. This is a normal
+ * game in every respect — same init, same pipeline, same RNG — so the resulting
+ * save is a real save and the run is reproducible from the scenario alone.
+ */
+function devScenario(sc: DevScenario): void {
+  seed = sc.seed
+  params = applyScenario(generateParams(sc.seed), sc)
+  state = init(params, seed)
+  actionLog = []
+  const target = tickForYear(sc.year, END_OF_HISTORY_TICK)
+  while (state.meta.tick < target) state = step(state)
+  publish()
+}
+
 onmessage = (ev: MessageEvent<ClientMessage>) => {
   const msg = ev.data
   try {
+    // Vite substitutes a literal `false` here in production, so this branch —
+    // and `handleDev`, `devScenario`, `devInspect`, `toTree` with it — is dead
+    // code the bundler removes. Verified by `tests/ui/dev-build-strip.test.ts`.
+    if (__DEV_TOOLS__ && msg.type.startsWith('dev:')) {
+      handleDev(msg)
+      return
+    }
     switch (msg.type) {
       case 'new':
         startNew(msg.seed)

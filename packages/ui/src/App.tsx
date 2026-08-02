@@ -20,6 +20,7 @@ import { CensusOverlay } from './panels/CensusOverlay'
 import { FinanceOverlay } from './panels/FinanceOverlay'
 import { ElectionOverlay } from './panels/ElectionOverlay'
 import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
+import { DevConsole } from './panels/DevConsole'
 import { Button, useFocusTrap } from './components/ui'
 import type { CabinetGroup } from './cabinetNavigation'
 
@@ -39,6 +40,7 @@ export default function App() {
   const { published, newGame, loadAutosave } = useGame()
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   const [cabinetOpen, setCabinetOpen] = useState(false)
+  const [devOpen, setDevOpen] = useState(false)
   const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
   const [cabinetFocusRequest, setCabinetFocusRequest] = useState(0)
   const cabinetDrawerRef = useRef<HTMLDivElement>(null)
@@ -79,15 +81,22 @@ export default function App() {
         setOverlay(null)
         return
       }
+      // backtick opens the maintenance hatch. Dev builds only — in production
+      // `__DEV_TOOLS__` is a literal false and this branch is dropped.
+      if (__DEV_TOOLS__ && e.key === '`') {
+        e.preventDefault()
+        setDevOpen((o) => !o)
+        return
+      }
       if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
         const s = useGame.getState()
-        if (overlay === null && !s.advancing && s.published?.inPower) s.advance()
+        if (overlay === null && !devOpen && !s.advancing && s.published?.inPower) s.advance()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [overlay])
+  }, [overlay, devOpen])
 
   // the verdict presents itself exactly once, when the run ends
   useEffect(() => {
@@ -201,6 +210,7 @@ export default function App() {
       {overlay === 'verdict' && published.reportCard && (
         <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
       )}
+      {__DEV_TOOLS__ && devOpen && <DevConsole onClose={() => setDevOpen(false)} />}
     </div>
   )
 }

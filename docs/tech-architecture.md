@@ -1,376 +1,366 @@
-# Terrarium — Technical Architecture v0.1
- 
-*Companion to the design doc. Covers repo structure, engine state schema, the pipeline interface, RNG discipline, and test layout. TypeScript throughout. Everything here targets M0–M1; fields reserved for later milestones are marked.*
- 
+# Terrarium — Technical Architecture
+
+*How the code is actually arranged, as of schema 11 (M5.5). Companion to the design doc
+(`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
+
+*This doc describes what exists. Where a decision had live alternatives and lasting
+consequences, the reasoning lives in an ADR under `docs/adr/` rather than here — this file
+says **what**, the ADRs say **why**.*
+
 ---
- 
+
 ## 1. Repo Structure
- 
+
 Monorepo (pnpm workspaces). Dependency direction is law and is lint-enforced:
- 
+
 ```
 ui → observation → engine        (never the reverse)
 tests → everything
 ```
- 
+
 ```
 terrarium/
-├── package.json                  # pnpm workspace root
-├── pnpm-workspace.yaml
 ├── tsconfig.base.json
-├── eslint.config.js              # incl. import-boundary rules (see §1.1)
+├── eslint.config.js              # incl. import-boundary rules (§1.1)
+├── vitest.config.ts              # test include + coverage floor over the pure core
 │
 ├── packages/
 │   ├── engine/                   # THE SIM. Pure TS. Zero DOM, zero React, zero I/O.
 │   │   ├── src/
-│   │   │   ├── index.ts          # public API: init, step, applyActions
+│   │   │   ├── index.ts          # public API: init, applyActions, step, replay, saves
+│   │   │   ├── constants.ts      # EVERY behavioral constant (ADR-0007)
+│   │   │   ├── math.ts, hash.ts  # helpers; hashState for golden replays
 │   │   │   ├── state/
-│   │   │   │   ├── schema.ts     # all state interfaces (§3)
-│   │   │   │   ├── validate.ts   # invariant checks (dev builds only)
-│   │   │   │   └── init.ts       # country generation from params
-│   │   │   ├── pipeline/
-│   │   │   │   ├── pipeline.ts   # ordered step runner (§4)
-│   │   │   │   ├── production.ts # I/O table, sector output
-│   │   │   │   ├── prices.ts     # tâtonnement
-│   │   │   │   ├── labor.ts      # employment, wages
-│   │   │   │   ├── fiscal.ts     # tax collection (capacity-gated), spending
-│   │   │   │   ├── monetary.ts   # policy rate, money, inflation expectations
-│   │   │   │   ├── trade.ts      # one partner in M1
-│   │   │   │   ├── cohorts.ts    # income, consumption, savings, approval
-│   │   │   │   └── politics.ts   # PC income, elections
-│   │   │   ├── actions/
-│   │   │   │   ├── types.ts      # Action union (§5)
-│   │   │   │   └── apply.ts      # action → state mutation, legality checks
-│   │   │   └── rng/
-│   │   │       └── rng.ts        # seeded PRNG + substream derivation (§6)
-│   │   └── package.json
+│   │   │   │   ├── schema.ts     # all state interfaces + id lists + SCHEMA_VERSION
+│   │   │   │   ├── validate.ts   # invariant checks
+│   │   │   │   └── init.ts       # country generation; self-calibrating opening budget
+│   │   │   ├── pipeline/         # one file per step, in TICK_ORDER (§4)
+│   │   │   │   ├── pipeline.ts   # the ordered fold; TICK_ORDER lives here
+│   │   │   │   ├── shocks.ts demography.ts technology.ts world.ts finance.ts
+│   │   │   │   ├── production.ts trade.ts fiscal.ts monetary.ts prices.ts
+│   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
+│   │   │   │   └── derive.ts     # pure read-models over state (no step owns them)
+│   │   │   ├── actions/          # Action union + apply/legality
+│   │   │   └── rng/rng.ts        # seeded PRNG + substream derivation (§6)
+│   │   └── package.json          # no dependencies, by rule
 │   │
-│   ├── observation/              # The fog. (trueState, statCapacity, rng) → PublishedState
+│   ├── observation/              # PRESENTATION of the prints. Not measurement (ADR-0003).
 │   │   ├── src/
-│   │   │   ├── observe.ts        # noise, lag, revision schedule
+│   │   │   ├── observe.ts        # projects TrueState → PublishedState
 │   │   │   └── published.ts      # PublishedState types — the ONLY types ui may import
 │   │   └── package.json
 │   │
-│   ├── ui/                       # React app. Imports observation types only.
+│   ├── ui/                       # React app. See the terrarium-design skill for the spec.
 │   │   ├── src/
-│   │   │   ├── worker/           # engine host: runs sim in Web Worker
-│   │   │   │   ├── sim.worker.ts # owns trueState; emits PublishedState only
-│   │   │   │   └── protocol.ts   # worker message types
-│   │   │   ├── store/            # client state (zustand or similar), save/load
-│   │   │   ├── panels/           # instrument panel, corridor plot, policy drawer
-│   │   │   └── App.tsx
+│   │   │   ├── worker/           # the ONLY engine host (ADR-0004)
+│   │   │   │   ├── sim.worker.ts # owns TrueState; emits PublishedState only
+│   │   │   │   └── protocol.ts   # worker message types — the single shared contract
+│   │   │   ├── store/            # zustand game store + IndexedDB persistence
+│   │   │   ├── panels/           # header, rail, news wire, ledger, overlays
+│   │   │   ├── components/       # gauges, tiles, ink charts, labels
+│   │   │   ├── wallPlan.ts       # the height budget (pure, tested)
+│   │   │   ├── domains.ts        # FIXED per-indicator dial faces (ADR-0006)
+│   │   │   ├── shares.ts         # pie / stacked-band geometry (pure, tested)
+│   │   │   ├── maturity.ts       # diegetic per-instrument visual maturity
+│   │   │   └── devScenario.ts    # dev-console scenarios (pure, tested) — ADR-0010
 │   │   └── package.json
 │   │
 │   ├── runner/                   # headless batch runner (Node CLI)
-│   │   ├── src/
-│   │   │   ├── run.ts            # single run: seed + script → trajectory
-│   │   │   ├── batch.ts          # N seeds × M scripts, parallel via worker_threads
-│   │   │   ├── metrics.ts        # extract series from trajectories
-│   │   │   └── report.ts         # distribution summaries for balance targets
-│   │   └── package.json
+│   │   └── src/                  # run.ts · batch.ts · metrics.ts · report.ts
 │   │
 │   └── fixtures/                 # shared test data
-│       ├── countries/            # parameter vectors (procedural presets + real calib later)
-│       ├── scripts/              # named action scripts ("passive", "fuel-tax-q4", …)
-│       └── golden/               # golden replay snapshots (§7.1)
+│       ├── countries/standard.ts # parameter vectors
+│       └── scripts/scripts.ts    # named action scripts ("passive", "fuelTaxAtQ8", …)
 │
 ├── tests/
-│   ├── unit/                     # pure-function tests on pipeline steps
-│   ├── golden/                   # exact replay tests
+│   ├── unit/                     # pure-function tests (rng, leontief, hash, actions)
+│   ├── golden/                   # exact replay tests (§7.1)
 │   ├── properties/               # statistical claims across seeds (§7.2)
-│   └── e2e/                      # Playwright: wiring only (§7.3)
+│   ├── contract/                 # the UI↔engine data boundary (§1.1)
+│   └── ui/                       # pure UI modules — NOT rendered components (§7.4)
 │
 └── tools/
     ├── bless.ts                  # re-bless golden snapshots after intentional changes
-    └── diff-state.ts             # show which variables moved between two states
+    ├── diff-state.ts             # show which variables moved between two states
+    ├── golden-cases.ts           # the golden case table
+    └── indicator-ranges.ts       # `pnpm ranges` — measures a century for dial faces
 ```
- 
+
 ### 1.1 Boundary enforcement
-- `engine` package.json has **no dependencies** (a PRNG lib at most). ESLint `no-restricted-imports` bans `react`, `dom`, anything from `ui`/`observation`.
-- `ui` is banned from importing `engine/src/state/*`. If the UI can't name the type of a true value, it can't accidentally render it. The only leak path would be the worker protocol — so `protocol.ts` message payloads are typed exclusively with `PublishedState` and action types.
- 
+
+The dependency direction is enforced at two independent levels, because either alone leaks.
+
+**At the import boundary** (`eslint.config.js`):
+
+- `engine` has **no dependencies**. React, other `@terrarium/*` packages, and `console` are
+  banned inside it.
+- `Math.random` and `Date.now` are banned **repo-wide** — all randomness comes from the
+  seeded RNG (§6), and the sim never reads a wall clock.
+- `ui` may not import `engine/src/state/*` at all, and may not import the engine's
+  state-running functions (`init` / `step` / `replay` / `applyActions` / `runTick`) outside
+  `ui/src/worker/**`. Components may import constants and action/save *types*.
+- Even the worker uses the engine's public API, not its state internals.
+
+**At the data boundary** (`tests/contract/published-state.test.ts`): a lint rule stops you
+importing a true-state *type*, but not from posting a true-state *value* through a
+structurally-compatible channel. The contract test asserts what actually crosses the wire.
+
+If the UI can't name the type of a true value, it can't accidentally render it — and if it
+somehow obtains one anyway, the contract test fails.
+
 ---
- 
+
 ## 2. Core API
- 
+
 The whole engine is three functions:
- 
+
 ```ts
-// packages/engine/src/index.ts
-export function init(params: CountryParams, seed: Seed): TrueState;
-export function applyActions(s: TrueState, actions: Action[]): TrueState;
-export function step(s: TrueState): TrueState;          // one quarter
+export function init(params: CountryParams, seed: Seed): TrueState
+export function applyActions(s: TrueState, actions: Action[]): TrueState
+export function step(s: TrueState): TrueState          // one quarter
 ```
- 
-All pure: no globals, no Date.now(), no Math.random(). A game is:
- 
+
+All pure. A game is:
+
 ```ts
-let s = init(params, seed);
-for (const turn of actionLog) {
-  s = step(applyActions(s, turn.actions));
-}
+let s = init(params, seed)
+for (const turn of actionLog) s = step(applyActions(s, turn.actions))
 ```
- 
-The save file is literally `{version, params, seed, actionLog}`.
- 
+
+The save file is literally `{version, params, seed, actionLog, tick}` — state is *derived*,
+never stored (ADR-0001). `replay(save, untilTick?)` reconstructs any point in the run.
+
 ---
- 
+
 ## 3. State Schema
- 
-One root object. Plain data — no classes, no methods — so it's structured-clone-able across the worker boundary, hashable, and diffable.
- 
+
+One root object. Plain data — no classes, no methods — so it's structured-clone-able across
+the worker boundary, hashable, and diffable. `schema.ts` is the authority; this is the shape:
+
 ```ts
-// ---------- identity ----------
-type Qtr = number;                      // quarters since 1946Q1
-type Money = number;                    // real terms, base-year units
-type Ratio = number;                    // 0..1 unless noted
- 
 interface TrueState {
-  meta: {
-    schemaVersion: number;              // bump on any shape change
-    engineVersion: string;              // stamped into saves (see design doc §11)
-    tick: Qtr;
-    seed: Seed;
-  };
-  params: CountryParams;                // immutable after init
-  cohorts: Cohort[];                    // 5 in M1
-  sectors: Sector[];                    // 5 in M1
-  io: IOTable;                          // sectors × sectors, Leontief coefficients
-  market: MarketState;
-  gov: GovernmentState;
-  external: ExternalState;
-  politics: PoliticalState;
-  ledger: FragilityLedger;
-  // M3+: institutions: InstitutionState;
-  // M4+: demography: DemographyState; tech: TechState;
-}
- 
-// ---------- population ----------
-interface Cohort {
-  id: CohortId;                         // 'urban_workers' | 'rural_workers' | ...
-  size: number;                         // persons; static in M1, demographic in M4
-  employedIn: Partial<Record<SectorId, number>>;
-  wageIncome: Money;
-  transferIncome: Money;
-  savings: Money;
-  consumptionWeights: Record<SectorId, Ratio>;  // sums to 1; Engel-ish shifts later
-  approval: Ratio;                      // drifts toward experienced conditions
-  enfranchisement: Ratio;               // weight in PC formula; Layer 3 edits this
-}
- 
-// ---------- production ----------
-interface Sector {
-  id: SectorId;                         // 'agri' | 'manuf' | 'energy' | 'services' | 'transport'
-  capital: Money;                       // stock; depreciates
-  tfp: number;                          // productivity multiplier
-  employment: number;
-  output: Money;                        // this tick, at current prices
-  capacityUtilization: Ratio;
-  inventory: Money;
-  credit: Money;                        // RESERVED — always 0 until M5
-}
- 
-interface IOTable {
-  // coeff[i][j] = units of sector i input per unit of sector j output
-  coeff: number[][];
-}
- 
-// ---------- markets ----------
-interface MarketState {
-  prices: Record<SectorId, number>;     // index, base = 1.0
-  wages: Record<SectorId, number>;
-  excessDemand: Record<SectorId, number>; // last tick's, kept for damping
-  tatonnement: {
-    damping: number;                    // λ in Δp = λ·(ED/supply), clamped
-    maxMovePerTick: Ratio;              // hard cap, e.g. 0.15
-  };
-}
- 
-// ---------- government ----------
-interface GovernmentState {
-  dials: {                              // Layer 1 — the player's levers
-    taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio };
-    spending: { transfers: Money; procurement: Money; investment: Money };
-    policyRate: number;                 // annualized
-    subsidies: Partial<Record<SectorId, Money>>;
-  };
-  capacity: {                           // Layer 2 — slow stocks, 0..1 quality
-    tax: Ratio;                         // gates collection: revenue = base × f(taxCapacity)
-    statistical: Ratio;                 // consumed by observation layer
-    administrative: Ratio;             // gates program delivery (leakage)
-    // M2+: infrastructure, education, courts as separate stocks
-  };
-  budget: { revenue: Money; outlays: Money; balance: Money };
-  debt: Money;
-}
- 
-// ---------- external ----------
-interface ExternalState {
-  partners: TradingPartner[];           // 1 in M1
-  worldPrices: Record<SectorId, number>; // exogenous feed in M1; semi-endogenous M4
-  reserves: Money;
-  exchangeRate: number;
-}
- 
-// ---------- politics ----------
-interface PoliticalState {
-  politicalCapital: number;
-  quartersToElection: number;           // 16-turn cycle
-  inPower: boolean;
-  // M3+: revolutionaryPressure, elitePower, reformWindows
-}
- 
-// ---------- fragility ----------
-interface FragilityLedger {
-  inflationExpectations: number;        // adaptive in M1
-  debtToGdp: Ratio;                     // derived but cached for cheap reads
-  // M5+: creditGrowth, assetPriceIndex, bankLeverage
+  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed }
+  params: CountryParams        // immutable after init
+  demography: DemographyState  // the age pyramid; cohort sizes derive from it
+  tech: TechState              // global frontier + domestic attainment
+  finance: FinanceState        // credit, asset prices, bank capital
+  cohorts: Cohort[]            // 5
+  sectors: Sector[]            // 5: agri, manuf, energy, services, transport
+  io: IOTable                  // Leontief coefficients
+  market: MarketState
+  gov: GovernmentState         // dials, capacities, itemised budget, debt
+  external: ExternalState      // partners, world prices, reserves, exchange rate
+  politics: PoliticalState
+  ledger: FragilityLedger
+  stats: StatsOffice           // prints, revision history — the fog's own state
+  score: { discountedWelfare; discountWeight }   // §3.3, accumulated as the run happens
 }
 ```
- 
+
+Id lists in `schema.ts` are the single source of truth and are exported as `const` tuples, so
+downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
+
+`SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
+`INDICATOR_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` · `AGE_BANDS` · `PARTNER_IDS`
+
 **Schema rules:**
-1. Reserved fields ship at zero from day one (`Sector.credit`) — adding M5 must not reshape M1 saves.
-2. Everything derivable is either not stored or explicitly marked cached; `validate.ts` recomputes and asserts in dev builds.
-3. Any shape change bumps `schemaVersion` and gets a migration or an explicit "old saves die" decision.
- 
+
+1. Everything derivable is either not stored or explicitly marked cached; `validate.ts`
+   recomputes and asserts.
+2. Any shape change bumps `SCHEMA_VERSION` **and** gets an entry in `docs/metrics-changelog.md`
+   — that file is the engine's inputs/outputs contract over time.
+3. Reordering pipeline steps is a schema-version event too (§4), not just a shape change.
+
 ### 3.1 PublishedState (what the UI sees)
- 
+
 ```ts
-// packages/observation/src/published.ts
 interface PublishedState {
-  tick: Qtr;
-  indicators: Record<IndicatorId, IndicatorSeries>;  // only funded indicators present
-  dials: GovernmentState['dials'];      // you always know your own settings
-  politicalCapital: number;
-  news: NewsItem[];                     // qualitative signals; how fog stays playable
-}
- 
-interface IndicatorSeries {
-  points: Array<{
-    forQtr: Qtr;                        // period measured
-    publishedAt: Qtr;                   // period released (lag = publishedAt − forQtr)
-    value: number;
-    revision: number;                   // 0 = first print
-    errorBand: number;                  // shown if statCapacity high enough
-  }>;
+  tick: Qtr
+  country: string
+  indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear
+  dials: DialState                 // you always know your own settings
+  revenue: RevenueSplit            // the treasury keeps exact books on itself
+  outlays: OutlaySplit
+  news: NewsItem[]                 // qualitative signals; how the fog stays playable
+  reportCard?: ReportCard          // only once the run is over — no mid-run truth leak
 }
 ```
- 
-The observation layer is `observe(trueState, history, rng): PublishedState` — pure, seeded by a **substream the game rng never touches**, so fog noise doesn't perturb the economy.
- 
+
+A point in an `IndicatorSeries` is a `StatPrint` — the figure *exactly as released*, carrying
+`forQtr`, `publishedAt`, `value`, `revision`, and the error band the office confessed.
+
 ---
- 
-## 4. Pipeline Interface
- 
-Each subsystem is a step. The tick is an ordered fold:
- 
+
+## 4. Pipeline
+
+Each subsystem is a step. The tick is an ordered fold, and each step gets its own RNG
+substream keyed by its own name:
+
 ```ts
-interface PipelineStep {
-  name: string;                          // doubles as the RNG substream label
-  run(s: TrueState, rng: Rng): TrueState; // pure; returns next state
+export function runTick(state: TrueState): TrueState {
+  let s = state
+  for (const step of TICK_ORDER) s = step.run(s, rngFor(s.meta.seed, step.name, s.meta.tick))
+  return { ...s, meta: { ...s.meta, tick: s.meta.tick + 1 } }
 }
- 
-const TICK_ORDER: PipelineStep[] = [
-  production,   // output given prices, capital, labor, I/O table
-  trade,        // imports/exports at world vs domestic prices
-  fiscal,       // capacity-gated tax collection; spending execution w/ leakage
-  monetary,     // rate transmission, money, inflation expectations
-  prices,       // tâtonnement adjustment from excess demand
-  labor,        // (re)allocation, wage adjustment
-  cohorts,      // incomes, consumption, savings, approval drift toward experienced truth
-  politics,     // PC accrual, election check every 16 ticks
-];
 ```
- 
+
+`TICK_ORDER` (`pipeline/pipeline.ts`) — the comment on each line names the schema version that
+introduced it:
+
+| # | step | what it does |
+|---|------|--------------|
+| 1 | `shocks` | the crisis clock: ruptures land before anyone works |
+| 2 | `demography` | the pyramid ages; cohort sizes are derived from it |
+| 3 | `technology` | the frontier advances; attainment chases it |
+| 4 | `world` | partner cycles set export demand and world prices |
+| 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
+| 6 | `production` | output given prices, capital, labor, I/O table |
+| 7 | `trade` | books external flows, reserves, exchange rate |
+| 8 | `fiscal` | capacity-gated collection; spending with leakage |
+| 9 | `monetary` | expectations adapt; printing feeds them |
+| 10 | `prices` | tâtonnement with cost anchor |
+| 11 | `labor` | employment, wages, capital accumulation |
+| 12 | `cohorts` | incomes, savings, approval drifts toward experienced truth |
+| 13 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
+| 14 | `politics` | PC accrual from PUBLISHED numbers, elections every 16 ticks |
+
 **Rules:**
-- Order is explicit and versioned — reordering steps changes results, so it's a schema-version event.
+
+- Order is explicit and **versioned** — reordering changes results, so it's a schema-version
+  event (ADR-0005).
 - Steps communicate only through state. No side channels, no step-to-step calls.
-- **Adding a feature = adding a step (or a field a step reads).** M5's credit system is a new `credit` step inserted before `prices`, not edits scattered across five files.
-- Immutability: use structural sharing (spread or Immer inside the step) — return a new state, never mutate the input. Cheap at this scale (~few KB of state).
- 
+- `statistics` runs *before* `politics` on purpose: politics reads the published headline, not
+  the truth (§3.4). That ordering is the whole point of ADR-0003.
+- Adding a feature = adding a step (or a field a step reads), not edits scattered across five
+  files.
+- Immutability: return a new state, never mutate the input.
+
 ---
- 
+
 ## 5. Actions
- 
+
 ```ts
 type Action =
-  | { kind: 'setDial'; path: DialPath; value: number }       // Layer 1
-  | { kind: 'investCapacity'; target: CapacityId; amount: Money } // Layer 2
-  // M3+: | { kind: 'reform'; institution: InstitutionId; direction: 1 | -1 }
-  ;
- 
+  | { kind: 'setDial'; path: DialPath; value: number }              // Layer 1
+  | { kind: 'investCapacity'; target: CapacityId; amount: Money }   // Layer 2
+
 interface TurnActions { tick: Qtr; actions: Action[] }
-type ActionLog = TurnActions[];
+type ActionLog = TurnActions[]
 ```
- 
-`applyActions` validates legality (PC affordability, dial bounds) and **rejects loudly** — an illegal action in a replay means a bug or a version mismatch, never a silent skip.
- 
+
+`applyAction` validates legality (PC affordability, dial bounds) and **rejects loudly**
+(`IllegalActionError`) — an illegal action in a replay means a bug or a version mismatch,
+never a silent skip.
+
 ---
- 
+
 ## 6. RNG Discipline
- 
-Single biggest determinism footgun. Rules:
- 
-- One root seed. Every consumer derives a **named substream**: `rngFor(seed, stepName, tick)` (e.g. splitmix64 over a hash of the triple).
-- A step's draws are therefore isolated: adding a new step, or a draw inside one step, never shifts another step's sequence — golden tests for untouched systems keep passing.
-- The observation layer gets its own substream family (`obs:*`) so fog is reproducible but orthogonal to economic outcomes.
-- `Math.random` is lint-banned repo-wide.
- 
+
+The single biggest determinism footgun. Rules:
+
+- One root seed. Every consumer derives a **named substream**: `rngFor(seed, stepName, tick)`.
+- A step's draws are therefore isolated: adding a new step, or a draw inside an existing one,
+  never shifts another step's sequence — golden tests for untouched systems keep passing.
+- The fog draws from its own `obs:*` substream family, orthogonal to the economic RNG, so
+  measurement noise is reproducible without perturbing the economy (ADR-0002).
+- `Math.random` and `Date.now` are lint-banned repo-wide.
+
 ---
- 
+
 ## 7. Test Layout
- 
-Four layers, mapped to the strategy already agreed:
- 
+
 ### 7.1 Golden replays (`tests/golden/`)
-Fixture = `{name, countryFixture, seed, scriptFixture, expected: {stateHash, keySeries}}`. Runs in Node in milliseconds. `tools/bless.ts` regenerates after intentional changes; `tools/diff-state.ts` shows exactly which variables moved and by how much before you bless — the diff review *is* the economics review.
- 
+
+Case table in `tools/golden-cases.ts`; snapshots are state hashes plus key series. Runs in
+milliseconds. `pnpm diff-state` shows exactly which variables moved and by how much, then
+`pnpm bless` regenerates. **The diff review *is* the economics review** (ADR-0008).
+
 ### 7.2 Property suites (`tests/properties/`)
-Statistical claims over N seeds (N=200 default, 10k nightly via `runner`):
- 
-```ts
-propertyTest('fuel tax raises bread prices', {
-  script: scripts.fuelTaxAtQ8,
-  baseline: scripts.passive,
-  seeds: 200,
-  claim: (run, base) =>
-    quantile(0.95, seedsWhere(run.price('agri').after(8).gt(base.price('agri')))),
-});
-```
- 
-Standing invariants run inside every property suite: no NaN/Infinity, prices within per-tick caps, budget identity holds (revenue − outlays = Δdebt), replay determinism (run twice, hash-compare).
- 
-### 7.3 E2E (`tests/e2e/`)
-Playwright, ~a dozen tests, wiring only: lever click appends correct action to log; save → reload → identical PublishedState; unfunded indicator renders no chart.
- 
-### 7.4 Unit (`tests/unit/`)
-For genuinely tricky pure functions (tâtonnement clamping, tax-capacity curve). Thin layer — the economics claims live in 7.2.
- 
+
+Statistical claims over many seeds. `fuel-tax.test.ts` and `subsidy.test.ts` are the M1
+exit criteria — the design's load-bearing claims. *If a change breaks them, the change is
+wrong, not the test.* Standing invariants: no NaN/Infinity, prices within per-tick caps,
+budget identity holds, replay determinism (run twice, hash-compare).
+
+### 7.3 Contract (`tests/contract/`)
+
+`published-state.test.ts` guards the data boundary described in §1.1.
+
+### 7.3.1 Build output (`tests/ui/dev-build-strip.test.ts`)
+
+Builds the app for production and greps the bundle for the dev console. The only test that
+asserts on build output, because it is the only claim that is about the bundler (ADR-0010).
+
+### 7.4 UI (`tests/ui/`)
+
+Tests **pure modules, not rendered components**. jsdom has no layout engine, so a render test
+passes happily while the wall clips every figure it publishes. What is covered:
+`wall-plan` (the height budget against 1280×720), `gauge-domains` (re-measures a surveyed
+century and rejects a face an instrument spends >2% of its life pegged against),
+`revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry).
+
+Layout itself is verified **in a browser at 1280×720** — see CLAUDE.md for the check. There is
+no Playwright suite; that was planned in v0.1 and never built.
+
+### 7.5 Coverage
+
+`pnpm coverage` enforces an **80% floor** over the pure core (`engine` + `observation`) —
+currently ~99% statements. It is a floor to prevent regression; raise it, never lower it to
+green a build. The UI is deliberately excluded: it's verified in the browser, not here.
+
 ---
- 
+
 ## 8. Persistence (no backend)
- 
-- **Saves:** `{engineVersion, schemaVersion, params, seed, actionLog}` in IndexedDB (localStorage's 5MB limit is fine today but IndexedDB is async, structured-clone native, and won't need a migration later). A few KB per save.
-- **Autosave** = append the turn's actions to the open save every tick. Crash recovery is free replay.
-- **Export/import** as a JSON blob — doubles as the bug-report format: a report is a save file plus "look at Q83."
-- Replay cost is negligible (5×5 sim, ~400 ticks max), so no state snapshots needed in v0.1; revisit if load ever exceeds ~1s.
- 
+
+- **Saves:** `{version: {engine, schema}, params, seed, actionLog, tick}` in IndexedDB. A few
+  KB per save regardless of run length, because state is derived (ADR-0001).
+- **Autosave** = append the turn's actions to the open save every tick. Crash recovery is free
+  replay.
+- **Export/import** as a JSON blob — doubles as the bug-report format: a report is a save file
+  plus "look at Q83."
+- Replay cost is negligible (~7ms for a 60-quarter run), so no state snapshots are needed.
+
 ---
- 
+
 ## 9. Build & Tooling
- 
-- **pnpm + Vite** (ui), **tsup** or plain tsc for packages, **Vitest** everywhere (shares Vite config, runs engine tests in Node), **Playwright** for e2e.
-- **CI order:** typecheck → lint (incl. boundary rules) → unit → golden → property (N=200) → e2e. Nightly job: property at N=10k via `runner`, publishing distribution reports — this is the balance dashboard.
-- Worker built as a module worker via Vite's `?worker` import; `protocol.ts` is the single shared contract.
- 
+
+- **pnpm** workspaces, **Vite** for the UI, **Vitest** everywhere, packages consumed directly
+  as TS source via path aliases (no per-package build step).
+- **TypeScript 7** (the native Go compiler) does the typechecking. `typescript-eslint` has no
+  TS 7 support yet and hard-errors on it, so it gets the TS 6 API side-by-side: `typescript`
+  is aliased to `@typescript/typescript6` and TS 7 rides as `@typescript/native` — which is
+  what provides `tsc`. See ADR-0009; revisit when typescript-eslint ships TS 7 support.
+- Worker built as a module worker via Vite (`worker.format: 'es'`); `protocol.ts` is the
+  single shared contract.
+- **`__DEV_TOOLS__`** (defined in `vite.config.ts` from the vite command) gates anything that
+  must never reach a player — currently the dev console. Do **not** use `import.meta.env.DEV`
+  for this: it derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` produces a
+  bundle with the dev code still in it. See ADR-0010.
+- **CI order:** typecheck → lint → coverage → a 200×120 random-policy batch (no NaN, no price
+  explosions). Node 24.
+
+### 9.1 Commands
+
+| command | what it does |
+|---------|--------------|
+| `pnpm dev` | the UI dev server |
+| `pnpm test` | the whole suite |
+| `pnpm coverage` | suite + the 80% floor over the pure core |
+| `pnpm diff-state` | what moved between two states — read before blessing |
+| `pnpm bless` | re-bless golden snapshots after an intentional change |
+| `pnpm ranges` | measure a surveyed century; the input to dial faces |
+| `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |
+
 ---
- 
-## 10. M0 Definition of Done
- 
-1. `init/applyActions/step` exist with the §3 schema (fields may be inert).
-2. Worker host round-trips: UI sends actions, receives PublishedState (fog can be identity for now).
-3. Save = seed+log; load replays to identical stateHash.
-4. `runner` executes 1,000 random-policy runs, reports wall-time and NaN count.
-5. One golden test, one property test (determinism), one e2e test (click → action in log) — all green in CI.
- 
-Everything after this is economics, not infrastructure.
+
+## 10. Where the design lives
+
+- `proposal-1.md` — the working design doc. **Its § numbers are cited from ~65 code comments**
+  (`§3.4` political capital, `§8` demographics, `§9` technology, `§10` the world, `§12`
+  fragility). Renumbering it orphans them.
+- `metrics-changelog.md` — the engine's inputs/outputs contract, updated on every
+  `SCHEMA_VERSION` bump.
+- `docs/adr/` — architectural decisions with their alternatives and consequences.
+- `docs/archive/` — superseded documents, kept for provenance. Not maintained.
+- `CLAUDE.md` — the operating manual: hard rules, workflows, and the hard-won tuning lessons.
+- The `terrarium-design` skill — the spec for all `packages/ui` work.
