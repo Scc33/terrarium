@@ -18,15 +18,22 @@ import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
 import { FinanceOverlay } from './panels/FinanceOverlay'
+import { Button } from './components/ui'
 
 type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | 'census' | 'finance' | null
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
   const [overlay, setOverlay] = useState<OverlayKind>(null)
+  const [cabinetOpen, setCabinetOpen] = useState(false)
   const hadCard = useRef(false)
 
   useEffect(() => {
+    const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
+    if (visualSeed) {
+      newGame(visualSeed)
+      return
+    }
     void loadAutosave().then((found) => {
       if (!found) newGame()
     })
@@ -42,6 +49,7 @@ export default function App() {
       if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
       if (e.key === 'Escape') {
         setOverlay(null)
+        setCabinetOpen(false)
         return
       }
       if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -81,11 +89,29 @@ export default function App() {
         onFinance={() => setOverlay('finance')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
-      <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden">
-        <main className="min-h-[640px] min-w-0 lg:min-h-0 lg:overflow-hidden">
+      <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
+        <main className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
           <Instruments pub={published} onLedger={() => setOverlay('ledger')} />
         </main>
-        <ControlRail pub={published} />
+        {cabinetOpen && (
+          <button
+            type="button"
+            className="fixed inset-0 z-30 bg-[#090b09]/70 xl:hidden"
+            aria-label="Close cabinet"
+            onClick={() => setCabinetOpen(false)}
+          />
+        )}
+        <div className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full w-full max-w-[430px] shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}>
+          <ControlRail pub={published} />
+        </div>
+        <Button
+          variant="primary"
+          className="fixed bottom-10 right-3 z-20 gap-2 shadow-[4px_5px_0_rgba(0,0,0,0.28)] xl:hidden"
+          onClick={() => setCabinetOpen(true)}
+          aria-expanded={cabinetOpen}
+        >
+          OPEN CABINET <span className="border-l border-dossier-ink/25 pl-2">{published.politicalCapital.toFixed(0)} PC</span>
+        </Button>
       </div>
       <NewsWire pub={published} onOpen={() => setOverlay('wire')} />
 

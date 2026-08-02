@@ -42,14 +42,16 @@ export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, for
 
   const ticks = mode === 'share' ? [0, 0.25, 0.5, 0.75, 1] : [0, plot.yMax / 2, plot.yMax]
   const label = (v: number) => (mode === 'share' ? `${(100 * v).toFixed(0)}%` : format(v))
+  const reading = `${mode === 'share' ? 'Share' : 'Level'} history from ${yearOf(plot.x0)} to ${yearOf(plot.x1)} for ${keys.map((key) => key.label).join(', ')}.`
 
   // width-governed like every other chart in the dossier register: the viewBox
   // sets the proportions, the container sets the size. Stretching to a fixed
   // pixel height instead would shear the axis labels.
   return (
-    <svg viewBox={`0 0 ${W} ${height}`} className="block w-full">
+    <svg viewBox={`0 0 ${W} ${height}`} className="block w-full" role="img" aria-label={reading}>
+      <title>{reading}</title>
       {plot.bands.map((b) => (
-        <path key={b.key} d={b.path} fill={b.ink} opacity="0.9" />
+        <path key={b.key} d={b.path} fill={b.ink} opacity="0.9"><title>{keys.find((key) => key.key === b.key)?.label ?? b.key}</title></path>
       ))}
       {/* the rules sit ON TOP of the bands — a gridline hidden under the ink
           it is there to measure is decoration */}

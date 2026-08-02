@@ -38,7 +38,7 @@ export const CHROME = {
   wallPadding: 16,
   gap: 8,
   /** the control rail, at lg and up */
-  rail: 340,
+  rail: 384,
 } as const
 
 /** a board slot must be at least this tall for an analog gauge to be legible:

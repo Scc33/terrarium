@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import { OUTLAY_IDS, REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
-import { DonutChart, LineChart, Metric, Modal, SegmentedControl, StackedAreaChart } from '../components/ui'
+import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 
 /** The printed face of the budget. Both tables are total records, so the day
@@ -85,8 +85,9 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
 
   return (
     <Modal title="THE TREASURY LEDGER — FULL HISTORY, EXACT" onClose={onClose} size="wide">
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-dossier-ink/20 pb-2">
+      <OverlayLayout
+        summary={(
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <Metric label="REVENUE / QTR" value={money(t.revenue)} title="Everything the treasury actually collected this quarter." />
           <Metric label="OUTLAYS / QTR" value={money(t.outlays)} title="Everything it paid out this quarter, debt service included." />
           <Metric
@@ -102,9 +103,10 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             tone={t.printed > 0.5 ? 'danger' : undefined}
             title="Cumulative money-financed deficit — what the bond market would not absorb."
           />
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
+          </div>
+        )}
+        toolbar={(
+          <>
           <SegmentedControl
             label="Ledger side"
             value={side}
@@ -123,8 +125,17 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               { value: 'share', label: 'SHARES', title: 'Each quarter normalised to its own total — how the mix shifted, even as the totals grew tenfold.' },
             ]}
           />
-        </div>
-
+          </>
+        )}
+        note={(
+          <>
+            Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.
+            {t.printed > 0.5 && <span className="mt-1 block font-mono text-[9px] tracking-[0.08em] text-dossier-warn">THE MINT HAS PRINTED {t.printed.toFixed(1)} TO DATE. THE BOND MARKET NOTICED.</span>}
+          </>
+        )}
+        footer="EXACT TREASURY BOOKS · QUARTERLY · NEVER REVISED"
+      >
+        <div className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[352px_minmax(0,1fr)]">
           <div className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
@@ -160,20 +171,8 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           <LineChart label="DEBT OUTSTANDING" data={series((x) => x.debt)} height={78} />
           <LineChart label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
         </div>
-
-        <div className="font-dossier text-[12px] italic leading-relaxed text-dossier-ink/70">
-          Your own books are the only numbers in this building that arrive on time, un-revised,
-          and true. Everything else on the wall is an estimate — remember that when they disagree.
-          These are sums voted and paid, not sums that arrived: what survives delivery is a
-          question for the civil service, and it is not audited here.
-          {t.printed > 0.5 && (
-            <div className="mt-2 not-italic text-dossier-warn">
-              The mint has printed {t.printed.toFixed(1)} to date. The bond market noticed before
-              you did.
-            </div>
-          )}
         </div>
-      </div>
+      </OverlayLayout>
     </Modal>
   )
 }
