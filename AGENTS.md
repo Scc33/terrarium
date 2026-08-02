@@ -23,10 +23,9 @@ pnpm monorepo; built through M5.5.
 
 ## UI
 
-The **`terrarium-design` skill is the spec for all `packages/ui` work** — invoke it before
-touching any component (diegetic per-instrument maturity, `dossier-*` / `terminal-*` tokens,
-the quieter `map-*` / `wire-*` register, single-screen war room with no page scroll at
-desktop sizes).
+All `packages/ui` work follows the local visual language: diegetic per-instrument maturity,
+`dossier-*` / `terminal-*` tokens, the quieter `map-*` / `wire-*` register, and a
+single-screen war room with no page scroll at desktop sizes.
 
 The wall is **board + rack + docked**: up to `BOARD_SLOTS` pinned instruments at full size,
 then every instrument as a fixed-height strip, then ledger and corridor. Pins are a

@@ -16,7 +16,7 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import type { Maturity } from '../../maturity'
+import type { InstrumentAccess } from '../../maturity'
 import { gaugeDomain } from '../../domains'
 import { NAMES } from '../labels'
 import { quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
@@ -24,7 +24,7 @@ import { RACK_ROW_H } from '../../wallPlan'
 
 interface RackStripProps {
   indicator: IndicatorId
-  maturity: Maturity
+  access: InstrumentAccess
   series?: IndicatorSeries
   now: number
   pinned: boolean
@@ -43,8 +43,9 @@ function Delta({ delta, digits, className }: { delta: number | null; digits: num
   )
 }
 
-export function RackStrip({ indicator, maturity, series, now, pinned, slot, onPin }: RackStripProps) {
+export function RackStrip({ indicator, access, series, now, pinned, slot, onPin }: RackStripProps) {
   const names = NAMES[indicator]
+  const { maturity } = access
   const points = series ? shapeSeries(series, 24, now) : []
   const latest = points.length ? points[points.length - 1] : null
   const stamped = series
@@ -69,7 +70,9 @@ export function RackStrip({ indicator, maturity, series, now, pinned, slot, onPi
       title={
         latest
           ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
-          : `Not fitted. Fund ${names.needs.toLowerCase()} to bring this instrument online. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+          : access.availability === 'awaiting'
+            ? `${names.needs} is commissioned; its first return has not arrived. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+            : `Not fitted. Fund ${names.needs.toLowerCase()} by raising the statistical office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)}. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
       }
       aria-pressed={pinned}
     >
@@ -100,7 +103,11 @@ export function RackStrip({ indicator, maturity, series, now, pinned, slot, onPi
           <span className="text-[9px] opacity-50">{latest.lag}Q</span>
         </span>
       ) : (
-        <span className="max-w-[48%] shrink-0 truncate font-mono text-[9px] tracking-[0.1em] opacity-70">{names.needs}</span>
+        <span className="max-w-[52%] shrink-0 truncate font-mono text-[8px] tracking-[0.08em] opacity-75">
+          {access.availability === 'awaiting'
+            ? 'RETURN PENDING'
+            : `${names.needs} · ${Math.round(access.fundedAt * 100)}`}
+        </span>
       )}
     </button>
   )

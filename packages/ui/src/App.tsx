@@ -5,7 +5,7 @@
  * the wire's spike, the study, the records office.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGame } from './store/gameStore'
 import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
@@ -18,7 +18,8 @@ import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
 import { FinanceOverlay } from './panels/FinanceOverlay'
-import { Button } from './components/ui'
+import { Button, useFocusTrap } from './components/ui'
+import type { CabinetGroup } from './cabinetNavigation'
 
 type OverlayKind = 'ledger' | 'wire' | 'study' | 'settings' | 'verdict' | 'census' | 'finance' | null
 
@@ -26,7 +27,20 @@ export default function App() {
   const { published, newGame, loadAutosave } = useGame()
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   const [cabinetOpen, setCabinetOpen] = useState(false)
+  const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
+  const [cabinetFocusRequest, setCabinetFocusRequest] = useState(0)
+  const cabinetDrawerRef = useRef<HTMLDivElement>(null)
+  const cabinetReturnFocusRef = useRef<HTMLElement>(null)
   const hadCard = useRef(false)
+  const closeCabinet = useCallback(() => setCabinetOpen(false), [])
+
+  useFocusTrap({
+    active: cabinetOpen,
+    containerRef: cabinetDrawerRef,
+    initialFocusSelector: '[role="tab"][aria-selected="true"]',
+    onEscape: closeCabinet,
+    restoreFocusRef: cabinetReturnFocusRef,
+  })
 
   useEffect(() => {
     const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
@@ -49,7 +63,6 @@ export default function App() {
       if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
       if (e.key === 'Escape') {
         setOverlay(null)
-        setCabinetOpen(false)
         return
       }
       if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
@@ -79,6 +92,17 @@ export default function App() {
     )
   }
 
+  const openCabinet = (group?: CabinetGroup) => {
+    if (group) setCabinetGroup(group)
+    if (!window.matchMedia('(min-width: 1280px)').matches) {
+      cabinetReturnFocusRef.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+      setCabinetOpen(true)
+    }
+    setCabinetFocusRequest((request) => request + 1)
+  }
+
   return (
     <div className="grid h-full grid-rows-[auto_1fr_auto] bg-[#22382d]">
       <HeaderBar
@@ -91,24 +115,37 @@ export default function App() {
       />
       <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
         <main className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
-          <Instruments pub={published} onLedger={() => setOverlay('ledger')} />
+          <Instruments pub={published} onLedger={() => setOverlay('ledger')} onOpenCapacity={() => openCabinet('STATE CAPACITY')} />
         </main>
         {cabinetOpen && (
           <button
             type="button"
             className="fixed inset-0 z-30 bg-[#090b09]/70 xl:hidden"
             aria-label="Close cabinet"
-            onClick={() => setCabinetOpen(false)}
+            onClick={closeCabinet}
           />
         )}
-        <div className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full w-full max-w-[430px] shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}>
-          <ControlRail pub={published} />
+        <div
+          ref={cabinetDrawerRef}
+          role={cabinetOpen ? 'dialog' : undefined}
+          aria-modal={cabinetOpen ? 'true' : undefined}
+          aria-label={cabinetOpen ? 'Cabinet drawer' : undefined}
+          className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full min-h-0 w-full max-w-[430px] overflow-hidden shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}
+        >
+          <ControlRail
+            pub={published}
+            openGroup={cabinetGroup}
+            onOpenGroupChange={setCabinetGroup}
+            focusRequest={cabinetFocusRequest}
+            onClose={cabinetOpen ? closeCabinet : undefined}
+          />
         </div>
         <Button
           variant="primary"
           className="fixed bottom-10 right-3 z-20 gap-2 shadow-[4px_5px_0_rgba(0,0,0,0.28)] xl:hidden"
-          onClick={() => setCabinetOpen(true)}
+          onClick={() => openCabinet()}
           aria-expanded={cabinetOpen}
+          aria-controls="cabinet-controls"
         >
           OPEN CABINET <span className="border-l border-dossier-ink/25 pl-2">{published.politicalCapital.toFixed(0)} PC</span>
         </Button>

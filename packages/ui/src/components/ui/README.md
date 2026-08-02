@@ -6,6 +6,7 @@ This folder is the shared, role-based interface layer for the game. Import from
 - `Button`, `SegmentedControl`, `SliderField`, and `DisclosureSection` cover game input and progressive disclosure.
 - `Metric`, `ProgressBar`, `SectionBar`, and `SectionHeading` cover dense information display.
 - `Panel`, `Modal`, `OverlayLayout`, and `EmptyState` establish layout and accessibility contracts.
+- `useFocusTrap` keeps temporary drawers and modal paperwork keyboard-contained and restores the invoking control when they close.
 - `ChartFrame` gives every analytical figure the same title, unit, current-value,
   legend, plot-region, and accessible-summary anatomy.
 - `LineChart`, `DonutChart`, and `StackedAreaChart` are exact-data visualizations;
@@ -14,6 +15,11 @@ This folder is the shared, role-based interface layer for the game. Import from
 Every component lives in its own folder beside its server-rendered contract tests.
 Domain instruments such as `AnalogGauge` and `TerminalTicker` follow the same
 folder-and-test convention one level above, but are not generic library exports.
+
+Instrument access is derived once in `maturity.ts`: `unfunded`, `awaiting`, and
+`reporting` are separate states, and every unlock threshold comes from the same
+engine constant used by the statistics pipeline. Wall components receive that
+derived contract; they do not guess from the presence or absence of a series.
 
 ## Visual review
 
