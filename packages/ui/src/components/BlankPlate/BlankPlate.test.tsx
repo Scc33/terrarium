@@ -5,11 +5,14 @@ import { BlankPlate } from './BlankPlate'
 describe('BlankPlate', () => {
   it('names the instrument that is not fitted', () => {
     const html = renderToStaticMarkup(<BlankPlate indicator="inflation" />)
-    expect(html).toContain('INSTRUMENT NOT FITTED')
-    expect(html).toContain('REQUIRES:')
+    expect(html).toContain('OFFLINE')
+    expect(html).toContain('SURVEY REQUIRED')
+    expect(html).toContain('STATE CAPACITY')
   })
 
-  it('uses the brass unmeasured register', () => {
-    expect(renderToStaticMarkup(<BlankPlate indicator="unemployment" />)).toContain('from-[#c2a06b]')
+  it('puts the brass plate inside a quiet empty instrument bay', () => {
+    const html = renderToStaticMarkup(<BlankPlate indicator="unemployment" />)
+    expect(html).toContain('instrument-bay')
+    expect(html).toContain('from-[#c8a977]')
   })
 })
