@@ -3,6 +3,10 @@
 Economic policy game. Read `docs/tech-architecture.md` before touching structure.
 pnpm monorepo; built through M5.5.
 
+Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
+with the alternatives it beat and the costs it carries); `proposal-1.md` is the design doc
+whose § numbers ~65 code comments cite — don't renumber it. `docs/archive/` is unmaintained.
+
 ## Hard rules (mostly lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`
@@ -71,9 +75,13 @@ stylesheet, failing silently. Spell variants out as literals.
   ~7% deposed by 400q. Random policy 120q: ~24% deposed, no NaN, no price explosions.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~94%
+- `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
   branch). It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
+- **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the
+  `@typescript/native` alias, while the dependency literally named `typescript` is the TS 6
+  API that `typescript-eslint` needs — it throws on TS 7 rather than degrading. Don't
+  "fix" the alias; collapse it when typescript-eslint ships TS 7 support.
 
 ### Adding an indicator
 
@@ -90,6 +98,23 @@ Steps 3–4 are compile-enforced (both tables are total `Record<IndicatorId, …
    surveyed century and rejects a face an instrument spends >2% of its life pegged against,
    `revision-stamp` fails if the fog stopped biting or started biting everywhere.
 6. Verify in the browser at 1280×720 (below) — none of the above sees layout.
+
+### The dev console (ADR-0010)
+
+Backtick opens it in `pnpm dev`. Two tabs:
+
+- **SCENARIO** — seed, year, development, population scale, openness, starting capacities →
+  runs a real game to that year. Reaching 1975 with a well-surveyed country is one submission
+  instead of 116 clicks. Raise `statistical` to fit every instrument at once. There is no
+  "set GDP": state is derived from (params, seed, log), so you specify a country and let it
+  live. The logic is pure in `ui/src/devScenario.ts` — tested, not in the component.
+- **TRUTH** — what the fog is hiding, beside what the wall published. Arrives as an anonymous
+  tree (`DevNode`), so the UI still cannot *name* a true-state field.
+
+Gate anything that must never ship on **`__DEV_TOOLS__`**, never `import.meta.env.DEV` — the
+latter derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` ships the true-state
+serializer, and `--mode production` does not save you. `tests/ui/dev-build-strip.test.ts`
+builds the bundle and greps it; if that test goes, the guarantee goes with it.
 
 ### Verifying the wall
 

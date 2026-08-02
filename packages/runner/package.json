@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@terrarium/engine": "workspace:*",
-    "@terrarium/observation": "workspace:*",
-    "@terrarium/fixtures": "workspace:*"
+    "@terrarium/fixtures": "workspace:*",
+    "@terrarium/observation": "workspace:*"
   },
   "devDependencies": {
-    "tsx": "^4.19.2"
+    "tsx": "^4.23.2"
   }
 }
