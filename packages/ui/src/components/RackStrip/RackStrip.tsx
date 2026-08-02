@@ -16,11 +16,11 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import type { Maturity } from '../maturity'
-import { gaugeDomain } from '../domains'
-import { NAMES } from './labels'
-import { quarterDelta, shapeSeries, stampWorthyRevision } from './series'
-import { RACK_ROW_H } from '../wallPlan'
+import type { Maturity } from '../../maturity'
+import { gaugeDomain } from '../../domains'
+import { NAMES } from '../labels'
+import { quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
+import { RACK_ROW_H } from '../../wallPlan'
 
 interface RackStripProps {
   indicator: IndicatorId

@@ -1,7 +1,7 @@
-/** A plain exact-data line in ink on paper — for the treasury's own books,
- * which carry no fog and deserve no phosphor. */
+/** Compact line chart for exact data. Callers supply semantics; the chart
+ * supplies stable geometry, comparison support, and a readable empty state. */
 
-interface Props {
+export interface LineChartProps {
   data: Array<{ tick: number; value: number }>
   height?: number
   /** a node, not a string, so a caller can colour the series names in the
@@ -9,12 +9,15 @@ interface Props {
   label?: React.ReactNode
   /** color a second reference series (e.g. outlays against revenue) */
   compare?: Array<{ tick: number; value: number }>
+  primaryColor?: string
+  comparisonColor?: string
+  emptyLabel?: string
 }
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
-export function InkLine({ data, height = 84, label, compare }: Props) {
-  if (data.length < 2) return <div className="font-mono text-[10px] opacity-50">insufficient history</div>
+export function LineChart({ data, height = 84, label, compare, primaryColor = 'var(--color-dossier-ink)', comparisonColor = 'var(--color-dossier-warn)', emptyLabel = 'INSUFFICIENT HISTORY' }: LineChartProps) {
+  if (data.length < 2) return <div className="font-mono text-[10px] tracking-[0.12em] opacity-50">{emptyLabel}</div>
   const W = 260
   const H = height
   const PAD_L = 34
@@ -64,8 +67,8 @@ export function InkLine({ data, height = 84, label, compare }: Props) {
         <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.55">
           {qtrLabel(x1)}
         </text>
-        {compare && <path d={path(compare)} fill="none" stroke="var(--color-dossier-warn)" strokeWidth="1.1" opacity="0.8" />}
-        <path d={path(data)} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="1.2" />
+        {compare && <path d={path(compare)} fill="none" stroke={comparisonColor} strokeWidth="1.1" opacity="0.8" />}
+        <path d={path(data)} fill="none" stroke={primaryColor} strokeWidth="1.2" />
       </svg>
     </div>
   )

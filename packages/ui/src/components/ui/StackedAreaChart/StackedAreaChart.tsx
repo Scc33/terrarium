@@ -9,9 +9,9 @@
  * Geometry lives in `../shares`; this file paints.
  */
 
-import { stackPlot, thin, type Share, type StackRow } from '../shares'
+import { stackPlot, thin, type Share, type StackRow } from '../../../shares'
 
-interface Props {
+export interface StackedAreaChartProps {
   rows: readonly StackRow[]
   /** draw order, and the colour pinned to each category */
   keys: readonly Share[]
@@ -25,7 +25,7 @@ interface Props {
 const W = 560
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
-export function InkStack({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0) }: Props) {
+export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0) }: StackedAreaChartProps) {
   const box = { w: W, h: height, padL: 30, padR: 6, padT: 6, padB: 14 }
   const plot = stackPlot(thin(rows, W / 2), keys, box, mode)
 

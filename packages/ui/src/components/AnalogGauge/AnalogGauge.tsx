@@ -19,10 +19,10 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import { FACE_MARK, gaugeDomain, readNeedle } from '../domains'
-import { NAMES } from './labels'
-import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from './series'
-import { WallTile } from './WallTile'
+import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
+import { NAMES } from '../labels'
+import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
+import { WallTile } from '../WallTile/WallTile'
 
 // gauge geometry: 200×118 viewBox, arc centered at (100,100) r=78
 const CX = 100

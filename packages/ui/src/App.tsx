@@ -72,7 +72,7 @@ export default function App() {
   }
 
   return (
-    <div className="grid h-full grid-rows-[auto_1fr_auto] bg-dossier-felt">
+    <div className="grid h-full grid-rows-[auto_1fr_auto] bg-[#22382d]">
       <HeaderBar
         pub={published}
         onStudy={() => setOverlay('study')}
@@ -81,7 +81,7 @@ export default function App() {
         onFinance={() => setOverlay('finance')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
-      <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+      <div className="grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden">
         <main className="min-h-0 min-w-0 lg:overflow-hidden">
           <Instruments pub={published} onLedger={() => setOverlay('ledger')} />
         </main>

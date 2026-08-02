@@ -7,6 +7,7 @@
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
+import { Button, ProgressBar, SectionHeading, SliderField } from '../components/ui'
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -82,15 +83,11 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   const dirty = stagedAction !== undefined
 
   return (
-    <div className="grid grid-cols-[86px_1fr_52px] items-center gap-2">
-      <span
-        className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75 capitalize"
-        title={DIAL_TIPS[def.path] ?? `A quarterly subsidy paid to the ${def.label} sector. Most of it leaks through weak administration; all of it hits the budget.`}
-      >
-        {def.label}
-      </span>
-      <input
-        type="range"
+    <SliderField
+        label={def.label}
+        displayValue={def.fmt(value)}
+        dirty={dirty}
+        hint={DIAL_TIPS[def.path] ?? `A quarterly subsidy paid to the ${def.label} sector. Most of it leaks through weak administration; all of it hits the budget.`}
         min={def.min}
         max={def.max(pub)}
         step={def.step}
@@ -101,10 +98,6 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
           stage(key, Math.abs(v - current) < 1e-9 ? null : { kind: 'setDial', path: def.path, value: v })
         }}
       />
-      <span className={`text-right font-mono text-[11px] tabular-nums ${dirty ? 'text-dossier-brass' : 'text-dossier-paper'}`}>
-        {def.fmt(value)}
-      </span>
-    </div>
   )
 }
 
@@ -131,14 +124,12 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   const amount = Math.max(2, pub.treasury.revenue * 0.8)
   const maxed = pub.capacity[id] >= 0.95
   return (
-    <div className="grid grid-cols-[86px_1fr_52px] items-center gap-2">
+    <div className="grid grid-cols-[minmax(72px,0.75fr)_minmax(96px,1.4fr)_52px] items-center gap-2">
       <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75" title={CAP_TIPS[id]}>
         {CAP_LABELS[id]}
       </span>
-      <div className="h-1.5 bg-dossier-paper/15" title={`${CAP_TIPS[id]} Currently at ${(pub.capacity[id] * 100).toFixed(0)} of 100.`}>
-        <div className="h-full bg-dossier-brass" style={{ width: `${(pub.capacity[id] * 100).toFixed(0)}%` }} />
-      </div>
-      <button
+      <ProgressBar value={pub.capacity[id]} label={`${CAP_LABELS[id]} capacity`} />
+      <Button
         disabled={!pub.inPower || maxed}
         title={
           maxed
@@ -146,14 +137,12 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
             : `Fund a programme: ${amount.toFixed(1)} spread over 2 years, delivering capacity with a lag.${building ? ' One is already building.' : ''}`
         }
         onClick={() => stage(key, stagedAction ? null : { kind: 'investCapacity', target: id, amount })}
-        className={`border px-1 py-0.5 font-mono text-[10px] tabular-nums ${
-          stagedAction
-            ? 'border-dossier-brass bg-dossier-brass text-dossier-ink'
-            : 'border-dossier-paper/30 text-dossier-paper/80 hover:border-dossier-brass hover:text-dossier-brass'
-        } disabled:opacity-40`}
+        variant={stagedAction ? 'primary' : 'secondary'}
+        size="compact"
+        className="min-h-6 px-1 py-0 tracking-[0.08em]"
       >
         {maxed ? 'FULL' : stagedAction ? 'STAGED' : building ? 'BLDG+' : 'FUND'}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -162,11 +151,16 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, rejection } = useGame()
 
   return (
-    <aside className="flex flex-col gap-3 border-t-2 border-dossier-brass bg-dossier-felt px-3 py-2.5 lg:h-full lg:overflow-y-auto lg:border-l-2 lg:border-t-0">
+    <aside className="flex flex-col border-t border-dossier-brass/70 bg-[#294235] lg:h-full lg:overflow-y-auto lg:border-l lg:border-t-0" aria-label="Cabinet controls">
+      <div className="border-b border-dossier-paper/12 px-4 py-2.5">
+        <div className="font-dossier text-base font-semibold text-dossier-paper">Cabinet desk</div>
+        <div className="mt-0.5 font-mono text-[8px] tracking-[0.16em] text-dossier-paper/45">POLICY FOR NEXT QUARTER</div>
+      </div>
+      <div className="flex flex-col gap-3 px-4 py-2.5">
       {DIALS.map((g) => (
         <section key={g.group}>
-          <div className="mb-1.5 font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-brass">{g.group}</div>
-          <div className="flex flex-col gap-1.5">
+          <SectionHeading inverted aside={`${g.dials.length}`}>{g.group}</SectionHeading>
+          <div className="flex flex-col gap-1">
             {g.dials.map((d) => (
               <DialRow key={d.path} def={d} pub={pub} />
             ))}
@@ -175,15 +169,16 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
       ))}
 
       <section>
-        <div className="mb-1.5 font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-brass">STATE CAPACITY</div>
-        <div className="flex flex-col gap-1.5">
+        <SectionHeading inverted aside="LONG-TERM">STATE CAPACITY</SectionHeading>
+        <div className="flex flex-col gap-1">
           {CAPACITY_IDS.map((id) => (
             <CapacityRow key={id} id={id} pub={pub} />
           ))}
         </div>
       </section>
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-dossier-paper/20 pt-2.5">
+      </div>
+      <div className="sticky bottom-0 mt-auto flex flex-col gap-2 border-t border-dossier-brass/35 bg-[#22382d] px-4 py-2.5 shadow-[0_-8px_20px_rgba(0,0,0,0.16)]">
         {rejection && <div className="font-mono text-[10px] leading-snug text-terminal-alert">{rejection}</div>}
         <div className="font-mono text-[10px] tabular-nums text-dossier-paper/70">
           {staged.size === 0
@@ -193,17 +188,18 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
               : 'The cabinet will not wear this — not enough political capital.'}
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
             onClick={advance}
             disabled={advancing}
-            className="flex-1 border-2 border-dossier-brass bg-dossier-brass px-2 py-2 font-mono text-xs font-medium tracking-[0.2em] text-dossier-ink hover:bg-transparent hover:text-dossier-brass disabled:opacity-50"
+            variant="primary"
+            className="flex-1"
           >
             {advancing ? 'TURNING…' : 'ADVANCE QUARTER'}
-          </button>
+          </Button>
           {staged.size > 0 && (
-            <button onClick={clearStaged} className="border border-dossier-paper/30 px-2 font-mono text-[10px] text-dossier-paper/70 hover:border-dossier-paper">
+            <Button onClick={clearStaged} variant="secondary" size="compact">
               DISCARD
-            </button>
+            </Button>
           )}
         </div>
         {!pub.inPower && (

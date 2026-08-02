@@ -6,7 +6,7 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal } from '../components/ui'
 import { shapeSeries } from '../components/series'
 
 const W = 460
@@ -88,8 +88,8 @@ export function StudyOverlay({ pub, onClose }: { pub: PublishedState; onClose: (
   }
 
   return (
-    <Overlay title="THE STUDY — PHILLIPS BOARD" onClose={onClose} wide>
+    <Modal title="THE STUDY — PHILLIPS BOARD" onClose={onClose} size="wide">
       {body}
-    </Overlay>
+    </Modal>
   )
 }

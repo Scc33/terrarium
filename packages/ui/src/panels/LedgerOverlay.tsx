@@ -14,10 +14,7 @@
 import { useState } from 'react'
 import { OUTLAY_IDS, REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
-import { InkLine } from '../components/InkLine'
-import { InkPie } from '../components/InkPie'
-import { InkStack } from '../components/InkStack'
-import { Overlay } from '../components/Overlay'
+import { DonutChart, LineChart, Metric, Modal, SegmentedControl, StackedAreaChart } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 
 /** The printed face of the budget. Both tables are total records, so the day
@@ -57,46 +54,6 @@ function sharesOf<K extends string>(
 type Side = 'revenue' | 'outlays'
 type Mode = 'money' | 'share'
 
-function Toggle<T extends string>({
-  value,
-  options,
-  onChange,
-}: {
-  value: T
-  options: ReadonlyArray<{ value: T; label: string; title: string }>
-  onChange: (v: T) => void
-}) {
-  return (
-    <div className="flex">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          title={o.title}
-          onClick={() => onChange(o.value)}
-          className={`border px-2 py-0.5 font-mono text-[9px] tracking-[0.15em] ${
-            o.value === value
-              ? 'border-dossier-ink bg-dossier-ink text-dossier-paper'
-              : 'border-dossier-ink/30 text-dossier-ink/60 hover:border-dossier-ink hover:text-dossier-ink'
-          } -ml-px first:ml-0`}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function Figure({ label, value, tone, title }: { label: string; value: string; tone?: 'warn'; title: string }) {
-  return (
-    <div className="flex flex-col gap-0.5" title={title}>
-      <span className="font-mono text-[8.5px] tracking-[0.2em] text-dossier-ink/55">{label}</span>
-      <span className={`font-mono text-base font-semibold tabular-nums ${tone === 'warn' ? 'text-dossier-warn' : 'text-dossier-ink'}`}>
-        {value}
-      </span>
-    </div>
-  )
-}
-
 export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [side, setSide] = useState<Side>('revenue')
   const [mode, setMode] = useState<Mode>('money')
@@ -127,28 +84,29 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const series = (f: (x: (typeof books)[number]) => number) => books.map((x) => ({ tick: x.tick, value: f(x) }))
 
   return (
-    <Overlay title="THE TREASURY LEDGER — FULL HISTORY, EXACT" onClose={onClose} wide>
+    <Modal title="THE TREASURY LEDGER — FULL HISTORY, EXACT" onClose={onClose} size="wide">
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-dossier-ink/20 pb-2">
-          <Figure label="REVENUE / QTR" value={money(t.revenue)} title="Everything the treasury actually collected this quarter." />
-          <Figure label="OUTLAYS / QTR" value={money(t.outlays)} title="Everything it paid out this quarter, debt service included." />
-          <Figure
+          <Metric label="REVENUE / QTR" value={money(t.revenue)} title="Everything the treasury actually collected this quarter." />
+          <Metric label="OUTLAYS / QTR" value={money(t.outlays)} title="Everything it paid out this quarter, debt service included." />
+          <Metric
             label="BALANCE"
             value={(t.balance >= 0 ? '+' : '') + money(t.balance)}
-            tone={t.balance < 0 ? 'warn' : undefined}
+            tone={t.balance < 0 ? 'danger' : undefined}
             title="Revenue minus outlays. Deficits are sold to the bond market until it stops buying."
           />
-          <Figure label="DEBT" value={t.debt.toFixed(0)} title="Outstanding government debt." />
-          <Figure
+          <Metric label="DEBT" value={t.debt.toFixed(0)} title="Outstanding government debt." />
+          <Metric
             label="PRINTED"
             value={t.printed.toFixed(1)}
-            tone={t.printed > 0.5 ? 'warn' : undefined}
+            tone={t.printed > 0.5 ? 'danger' : undefined}
             title="Cumulative money-financed deficit — what the bond market would not absorb."
           />
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <Toggle
+          <SegmentedControl
+            label="Ledger side"
             value={side}
             onChange={setSide}
             options={[
@@ -156,7 +114,8 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               { value: 'outlays', label: 'OUTLAYS BY PROGRAMME', title: 'What the money is voted to.' },
             ]}
           />
-          <Toggle
+          <SegmentedControl
+            label="Chart mode"
             value={mode}
             onChange={setMode}
             options={[
@@ -172,7 +131,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               <span>THIS QUARTER</span>
               <span className="tabular-nums">{yearOf(pub.tick)}</span>
             </div>
-            <InkPie
+            <DonutChart
               shares={shares}
               format={money}
               extra={side === 'revenue' ? (s) => perPoint(s.key) : undefined}
@@ -192,14 +151,14 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             <div className="font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
               {mode === 'share' ? 'THE MIX, QUARTER BY QUARTER' : 'THE LEVELS, QUARTER BY QUARTER'}
             </div>
-            <InkStack rows={rows} keys={shares} mode={mode} markTick={pub.tick} format={money} height={158} />
+            <StackedAreaChart rows={rows} keys={shares} mode={mode} markTick={pub.tick} format={money} height={158} />
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-dossier-ink/20 pt-3 sm:grid-cols-3">
-          <InkLine label="BALANCE / QTR" data={series((x) => x.balance)} height={78} />
-          <InkLine label="DEBT OUTSTANDING" data={series((x) => x.debt)} height={78} />
-          <InkLine label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
+          <LineChart label="BALANCE / QTR" data={series((x) => x.balance)} height={78} />
+          <LineChart label="DEBT OUTSTANDING" data={series((x) => x.debt)} height={78} />
+          <LineChart label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
         </div>
 
         <div className="font-dossier text-[12px] italic leading-relaxed text-dossier-ink/70">
@@ -215,6 +174,6 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           )}
         </div>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

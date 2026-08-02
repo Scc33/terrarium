@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
@@ -222,7 +222,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const hasHistory = census.length >= 2
 
   return (
-    <Overlay title="THE NATIONAL CENSUS" onClose={onClose} wide>
+    <Modal title="THE NATIONAL CENSUS" onClose={onClose} size="wide">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* left: the story over time */}
         <div className="flex flex-col gap-3">
@@ -282,6 +282,6 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
       <p className="mt-4 text-center font-mono text-[9px] tracking-[0.2em] text-dossier-ink/50">
         HEADS ARE COUNTABLE. THE RATES BEHIND THEM ARE NOT.
       </p>
-    </Overlay>
+    </Modal>
   )
 }

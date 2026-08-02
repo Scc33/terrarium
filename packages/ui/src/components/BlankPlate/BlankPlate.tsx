@@ -8,8 +8,8 @@
  */
 
 import type { IndicatorId } from '@terrarium/observation'
-import { NAMES } from './labels'
-import { WallTile } from './WallTile'
+import { NAMES } from '../labels'
+import { WallTile } from '../WallTile/WallTile'
 
 export function BlankPlate({ indicator }: { indicator: IndicatorId }) {
   const t = NAMES[indicator]
@@ -18,12 +18,12 @@ export function BlankPlate({ indicator }: { indicator: IndicatorId }) {
       className="border-2 border-dossier-brass bg-gradient-to-b from-[#c2a06b] to-dossier-brass"
       bodyClassName="flex items-center justify-center px-2"
     >
-      <div className="border border-dossier-ink/40 px-4 py-3 text-center">
+      <div className="max-w-full border border-dossier-ink/40 px-3 py-3 text-center">
         <div className="font-mono text-xs font-medium tracking-[0.25em] text-dossier-ink">{t.plate}</div>
         <div className="mt-2 font-mono text-[10px] tracking-[0.15em] text-dossier-ink/70">
           INSTRUMENT NOT FITTED
         </div>
-        <div className="mt-1 font-mono text-[10px] tracking-[0.15em] text-dossier-ink/70">
+        <div className="mt-1 [overflow-wrap:anywhere] font-mono text-[10px] tracking-[0.15em] text-dossier-ink/70">
           REQUIRES: {t.needs}
         </div>
       </div>

@@ -9,7 +9,7 @@
  */
 
 import type { IndicatorPoint, NewsItem, PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { EmptyState, Modal, Panel } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
@@ -75,17 +75,10 @@ function FogLineChart({
   const ticks = [lo, baseline, hi].filter((v, i, a) => a.indexOf(v) === i)
 
   return (
-    <div className="border border-dossier-ink/25 bg-dossier-paper">
-      <div className="flex items-center justify-between border-b border-dossier-ink/20 px-2 py-1">
-        <span className="font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/70">
-          {title}
-        </span>
-        {funded && series.length > 0 && (
-          <span className="font-mono text-[10px] font-semibold tabular-nums" style={{ color: `var(--color-${color})` }}>
-            {series[series.length - 1].value.toFixed(1)}
-          </span>
-        )}
-      </div>
+    <Panel
+      title={title}
+      actions={funded && series.length > 0 ? <span className="font-mono text-[10px] font-semibold tabular-nums" style={{ color: `var(--color-${color})` }}>{series[series.length - 1].value.toFixed(1)}</span> : undefined}
+    >
       {funded ? (
         <svg viewBox={`0 0 ${CW} ${CH}`} className="block w-full">
           {ticks.map((v) => (
@@ -111,7 +104,7 @@ function FogLineChart({
           </text>
         </svg>
       ) : (
-        <div className="relative flex h-[128px] flex-col items-center justify-center gap-1 bg-gradient-to-b from-[#c2a06b] to-dossier-brass">
+        <div className="relative h-[128px] overflow-hidden">
           {/* the crashes still show through the brass — you knew they happened */}
           <svg viewBox={`0 0 ${CW} ${CH}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
             {crises.map((t, i) =>
@@ -120,16 +113,10 @@ function FogLineChart({
               ) : null,
             )}
           </svg>
-          <div className="z-10 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
-            NO RETURNS FILED
-          </div>
-          <div className="z-10 font-mono text-[9px] tracking-[0.15em] text-dossier-ink/70">REQUIRES: {needs}</div>
-          <div className="z-10 mt-1 max-w-[320px] text-center font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
-            {blurb}
-          </div>
+          <EmptyState title="NO RETURNS FILED" requirement={needs} compact>{blurb}</EmptyState>
         </div>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -151,7 +138,7 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
           : 'CREDIT STEADY'
 
   return (
-    <Overlay title="THE FINANCIAL SYSTEM" onClose={onClose} wide>
+    <Modal title="THE FINANCIAL SYSTEM" onClose={onClose} size="wide">
       <div className="mb-3 flex items-baseline justify-between">
         <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">
           {crises.length === 0
@@ -194,6 +181,6 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
       <p className="mt-4 text-center font-mono text-[9px] tracking-[0.2em] text-dossier-ink/50">
         THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS
       </p>
-    </Overlay>
+    </Modal>
   )
 }

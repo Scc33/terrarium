@@ -17,9 +17,9 @@
 
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { deriveMaturity } from '../maturity'
-import { CorridorPlot } from '../components/CorridorPlot'
-import { Gauge } from '../components/Gauge'
-import { RackStrip } from '../components/RackStrip'
+import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
+import { Gauge } from '../components/Gauge/Gauge'
+import { RackStrip } from '../components/RackStrip/RackStrip'
 import { LedgerPanel } from './LedgerPanel'
 import { useGame } from '../store/gameStore'
 import { BOARD_SLOT_MIN_H, DOCKED_MIN_H, planWall } from '../wallPlan'
@@ -32,7 +32,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
   const plan = planWall(pinned, INDICATOR_IDS)
 
   return (
-    <div className="grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1.5fr)_auto_minmax(0,1fr)] gap-2 p-2">
+    <div className="grid h-full min-h-0 min-w-0 grid-rows-[minmax(0,1.5fr)_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
       {/* THE BOARD — the dials you are actually flying by */}
       {/* the single explicit row matters: with auto rows a grid item's
           `h-full` resolves against its own content, which is how tiles used to

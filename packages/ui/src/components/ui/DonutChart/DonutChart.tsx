@@ -11,9 +11,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { donutSlices, type Share } from '../shares'
+import { donutSlices, type Share } from '../../../shares'
 
-interface Props {
+export interface DonutChartProps {
   shares: readonly Share[]
   /** how a value prints in the legend — the caller owns the unit */
   format: (value: number) => string
@@ -24,7 +24,7 @@ interface Props {
   emptyNote?: string
 }
 
-export function InkPie({ shares, format, size = 112, extra, emptyNote = 'NOTHING BOOKED' }: Props) {
+export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOTHING BOOKED' }: DonutChartProps) {
   const r = size / 2 - 1
   const slices = donutSlices(shares, { cx: size / 2, cy: size / 2, r, ri: r * 0.52 })
   const total = slices.reduce((s, x) => s + x.value, 0)
