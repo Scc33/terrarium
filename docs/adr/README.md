@@ -22,3 +22,4 @@ the old one and update the Status line of both.
 | [0007](0007-constants-in-one-file.md) | Every behavioral constant lives in one file | Accepted |
 | [0008](0008-golden-replays-are-the-economics-review.md) | Golden replays are the economics review | Accepted |
 | [0009](0009-typescript-7-side-by-side.md) | TypeScript 7 runs side-by-side with the TS 6 API | Accepted |
+| [0010](0010-dev-console.md) | The dev console shows truth without weakening the boundary | Accepted |

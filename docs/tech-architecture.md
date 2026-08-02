@@ -61,7 +61,8 @@ terrarium/
 │   │   │   ├── wallPlan.ts       # the height budget (pure, tested)
 │   │   │   ├── domains.ts        # FIXED per-indicator dial faces (ADR-0006)
 │   │   │   ├── shares.ts         # pie / stacked-band geometry (pure, tested)
-│   │   │   └── maturity.ts       # diegetic per-instrument visual maturity
+│   │   │   ├── maturity.ts       # diegetic per-instrument visual maturity
+│   │   │   └── devScenario.ts    # dev-console scenarios (pure, tested) — ADR-0010
 │   │   └── package.json
 │   │
 │   ├── runner/                   # headless batch runner (Node CLI)
@@ -285,6 +286,11 @@ budget identity holds, replay determinism (run twice, hash-compare).
 
 `published-state.test.ts` guards the data boundary described in §1.1.
 
+### 7.3.1 Build output (`tests/ui/dev-build-strip.test.ts`)
+
+Builds the app for production and greps the bundle for the dev console. The only test that
+asserts on build output, because it is the only claim that is about the bundler (ADR-0010).
+
 ### 7.4 UI (`tests/ui/`)
 
 Tests **pure modules, not rendered components**. jsdom has no layout engine, so a render test
@@ -326,6 +332,10 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   what provides `tsc`. See ADR-0009; revisit when typescript-eslint ships TS 7 support.
 - Worker built as a module worker via Vite (`worker.format: 'es'`); `protocol.ts` is the
   single shared contract.
+- **`__DEV_TOOLS__`** (defined in `vite.config.ts` from the vite command) gates anything that
+  must never reach a player — currently the dev console. Do **not** use `import.meta.env.DEV`
+  for this: it derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` produces a
+  bundle with the dev code still in it. See ADR-0010.
 - **CI order:** typecheck → lint → coverage → a 200×120 random-policy batch (no NaN, no price
   explosions). Node 24.
 

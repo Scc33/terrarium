@@ -100,6 +100,23 @@ Steps 3–4 are compile-enforced (both tables are total `Record<IndicatorId, …
    `revision-stamp` fails if the fog stopped biting or started biting everywhere.
 6. Verify in the browser at 1280×720 (below) — none of the above sees layout.
 
+### The dev console (ADR-0010)
+
+Backtick opens it in `pnpm dev`. Two tabs:
+
+- **SCENARIO** — seed, year, development, population scale, openness, starting capacities →
+  runs a real game to that year. Reaching 1975 with a well-surveyed country is one submission
+  instead of 116 clicks. Raise `statistical` to fit every instrument at once. There is no
+  "set GDP": state is derived from (params, seed, log), so you specify a country and let it
+  live. The logic is pure in `ui/src/devScenario.ts` — tested, not in the component.
+- **TRUTH** — what the fog is hiding, beside what the wall published. Arrives as an anonymous
+  tree (`DevNode`), so the UI still cannot *name* a true-state field.
+
+Gate anything that must never ship on **`__DEV_TOOLS__`**, never `import.meta.env.DEV` — the
+latter derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` ships the true-state
+serializer, and `--mode production` does not save you. `tests/ui/dev-build-strip.test.ts`
+builds the bundle and greps it; if that test goes, the guarantee goes with it.
+
 ### Verifying the wall
 
 `tests/ui/` tests pure modules, not rendered components: jsdom has no layout engine, so a

@@ -2,10 +2,11 @@ import { create } from 'zustand'
 import type { Action, SaveFile } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
-import type { ClientMessage, WorkerMessage } from '../worker/protocol'
+import type { ClientMessage, DevNode, WorkerMessage } from '../worker/protocol'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
 import { BOARD_SLOTS, DEFAULT_PINS } from '../wallPlan'
+import type { DevScenario } from '../devScenario'
 
 const AUTOSAVE_KEY = 'autosave'
 /** which dials are on the board is a view preference, not part of the run —
@@ -48,6 +49,8 @@ interface GameState {
   corridorTrail: Array<{ x: number; y: number }>
   /** instruments the player has put on the board, oldest pin first */
   pinned: IndicatorId[]
+  /** dev only: the last true-state snapshot the worker was asked for */
+  devTruth: { tick: number; tree: DevNode[] } | null
 
   newGame(seed?: string): void
   loadSave(save: SaveFile): void
@@ -56,6 +59,10 @@ interface GameState {
   clearStaged(): void
   advance(): void
   togglePin(id: IndicatorId): void
+  /** dev only: build a country from overrides and run it to a year */
+  runScenario(scenario: DevScenario): void
+  /** dev only: ask the worker what's actually true right now */
+  inspectTruth(): void
 }
 
 /** one staged change per dial, one staged program per capacity target */
@@ -107,6 +114,10 @@ export const useGame = create<GameState>((set, get) => {
         console.error('sim worker error:', msg.message)
         set({ rejection: msg.message, advancing: false })
         break
+      default:
+        if (__DEV_TOOLS__ && msg.type === 'dev:truth') {
+          set({ devTruth: { tick: msg.tick, tree: msg.tree } })
+        }
     }
   }
 
@@ -131,6 +142,7 @@ export const useGame = create<GameState>((set, get) => {
     advancing: false,
     corridorTrail: [],
     pinned: loadPins(),
+    devTruth: null,
 
     /** Pin an instrument to the board, or take it off. The board holds
      * BOARD_SLOTS, so pinning a fifth evicts the oldest pin — the board is a
@@ -178,6 +190,19 @@ export const useGame = create<GameState>((set, get) => {
       const actions = [...get().staged.values()]
       set({ advancing: true, staged: new Map(), stagedCost: null })
       send({ type: 'advance', actions })
+    },
+
+    // both guarded so a production build drops the bodies — the dev channel
+    // should not merely be unreachable in production, it should not exist
+    runScenario(scenario) {
+      if (__DEV_TOOLS__) {
+        set({ staged: new Map(), stagedCost: null, rejection: null, corridorTrail: [], devTruth: null })
+        send({ type: 'dev:scenario', scenario })
+      }
+    },
+
+    inspectTruth() {
+      if (__DEV_TOOLS__) send({ type: 'dev:inspect' })
     },
   }
 })
