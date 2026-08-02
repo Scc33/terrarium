@@ -16,7 +16,7 @@
  */
 
 import type { PublishedCorridor } from '@terrarium/observation'
-import { WallTile } from './WallTile'
+import { WallTile } from '../WallTile/WallTile'
 
 // landscape: the corridor is docked in a wide, short bay, and a square
 // viewBox letterboxed itself into a third of the space it was given

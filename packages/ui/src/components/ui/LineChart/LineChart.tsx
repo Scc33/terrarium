@@ -1,7 +1,7 @@
-/** A plain exact-data line in ink on paper — for the treasury's own books,
- * which carry no fog and deserve no phosphor. */
+/** Compact line chart for exact data. Callers supply semantics; the chart
+ * supplies stable geometry, comparison support, and a readable empty state. */
 
-interface Props {
+export interface LineChartProps {
   data: Array<{ tick: number; value: number }>
   height?: number
   /** a node, not a string, so a caller can colour the series names in the
@@ -9,12 +9,17 @@ interface Props {
   label?: React.ReactNode
   /** color a second reference series (e.g. outlays against revenue) */
   compare?: Array<{ tick: number; value: number }>
+  primaryColor?: string
+  comparisonColor?: string
+  emptyLabel?: string
+  /** Plain-language reading exposed beside the visual for assistive tech. */
+  summary?: string
 }
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
-export function InkLine({ data, height = 84, label, compare }: Props) {
-  if (data.length < 2) return <div className="font-mono text-[10px] opacity-50">insufficient history</div>
+export function LineChart({ data, height = 84, label, compare, primaryColor = 'var(--color-dossier-ink)', comparisonColor = 'var(--color-dossier-warn)', emptyLabel = 'INSUFFICIENT HISTORY', summary }: LineChartProps) {
+  if (data.length < 2) return <div className="flex min-h-14 items-center justify-center border border-dashed border-dossier-ink/20 font-mono text-[9px] tracking-[0.12em] opacity-55">{emptyLabel}</div>
   const W = 260
   const H = height
   const PAD_L = 34
@@ -35,6 +40,8 @@ export function InkLine({ data, height = 84, label, compare }: Props) {
   const path = (xs: Array<{ tick: number; value: number }>) =>
     xs.map((d, i) => `${i === 0 ? 'M' : 'L'}${sx(d.tick).toFixed(1)},${sy(d.value).toFixed(1)}`).join(' ')
   const zeroVisible = lo < 0 && hi > 0
+  const latest = data[data.length - 1]
+  const reading = summary ?? `Series from ${qtrLabel(x0)} to ${qtrLabel(x1)}. Latest value ${latest.value.toFixed(1)}; observed range ${lo.toFixed(1)} to ${hi.toFixed(1)}.`
 
   return (
     <div>
@@ -46,7 +53,8 @@ export function InkLine({ data, height = 84, label, compare }: Props) {
           </span>
         </div>
       )}
-      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full">
+      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={reading}>
+        <title>{reading}</title>
         <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />
         <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />
         {zeroVisible && (
@@ -64,9 +72,15 @@ export function InkLine({ data, height = 84, label, compare }: Props) {
         <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.55">
           {qtrLabel(x1)}
         </text>
-        {compare && <path d={path(compare)} fill="none" stroke="var(--color-dossier-warn)" strokeWidth="1.1" opacity="0.8" />}
-        <path d={path(data)} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="1.2" />
+        {compare && <path d={path(compare)} fill="none" stroke={comparisonColor} strokeWidth="1.1" opacity="0.8" />}
+        <path d={path(data)} fill="none" stroke={primaryColor} strokeWidth="1.2" />
+        {data.map((point) => (
+          <circle key={point.tick} cx={sx(point.tick)} cy={sy(point.value)} r="1.8" fill={primaryColor} opacity="0.01">
+            <title>{`${qtrLabel(point.tick)}: ${point.value.toFixed(1)}`}</title>
+          </circle>
+        ))}
       </svg>
+      <p className="sr-only">{reading}</p>
     </div>
   )
 }

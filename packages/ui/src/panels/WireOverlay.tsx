@@ -1,14 +1,14 @@
 /** The full dispatch spike — every rumor the wire ever carried. */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal } from '../components/ui'
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
 export function WireOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
   const items = [...pub.news].reverse()
   return (
-    <Overlay title="THE WIRE — ALL DISPATCHES" onClose={onClose}>
+    <Modal title="THE WIRE — ALL DISPATCHES" onClose={onClose}>
       <div className="bg-wire-paper p-3">
         {items.length === 0 && (
           <div className="font-mono text-[11px] text-wire-ink/60">+++ ALL QUIET, ALWAYS +++</div>
@@ -32,6 +32,6 @@ export function WireOverlay({ pub, onClose }: { pub: PublishedState; onClose: ()
           ))}
         </div>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

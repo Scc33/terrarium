@@ -16,18 +16,20 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import type { Maturity } from '../maturity'
-import { gaugeDomain } from '../domains'
-import { NAMES } from './labels'
-import { quarterDelta, shapeSeries, stampWorthyRevision } from './series'
-import { RACK_ROW_H } from '../wallPlan'
+import type { InstrumentAccess } from '../../maturity'
+import { gaugeDomain } from '../../domains'
+import { NAMES } from '../labels'
+import { quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
+import { RACK_ROW_H } from '../../wallPlan'
 
 interface RackStripProps {
   indicator: IndicatorId
-  maturity: Maturity
+  access: InstrumentAccess
   series?: IndicatorSeries
   now: number
   pinned: boolean
+  /** one-based position on the watch board */
+  slot?: number
   onPin: () => void
 }
 
@@ -41,8 +43,9 @@ function Delta({ delta, digits, className }: { delta: number | null; digits: num
   )
 }
 
-export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: RackStripProps) {
+export function RackStrip({ indicator, access, series, now, pinned, slot, onPin }: RackStripProps) {
   const names = NAMES[indicator]
+  const { maturity } = access
   const points = series ? shapeSeries(series, 24, now) : []
   const latest = points.length ? points[points.length - 1] : null
   const stamped = series
@@ -50,7 +53,7 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
     : null
 
   // one row, one height, whatever is inside it
-  const frame = 'flex w-full items-center gap-2 overflow-hidden border px-2 text-left'
+  const frame = 'group flex w-full items-center gap-2 overflow-hidden border pr-2 text-left'
   const skin =
     maturity === 'terminal'
       ? 'border-terminal-grid bg-terminal-bg text-terminal-primary hover:border-terminal-primary/60'
@@ -66,12 +69,23 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
       className={`${frame} ${skin} ${pinned ? 'ring-1 ring-inset ring-current' : ''}`}
       title={
         latest
-          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'unpin from' : 'put on'} the board.`
-          : `Not fitted. Fund ${names.needs.toLowerCase()} to bring this instrument online.`
+          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+          : access.availability === 'awaiting'
+            ? `${names.needs} is commissioned; its first return has not arrived. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+            : `Not fitted. Fund ${names.needs.toLowerCase()} by raising the statistical office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)}. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
       }
       aria-pressed={pinned}
     >
-      <span className="shrink-0 font-mono text-[9px] leading-none opacity-70">{pinned ? '◉' : '○'}</span>
+      <span
+        className={`flex h-full w-7 shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${
+          pinned
+            ? 'border-current bg-current/10'
+            : 'border-current/20 opacity-35 group-hover:opacity-70'
+        }`}
+        aria-hidden="true"
+      >
+        {pinned ? String(slot ?? 0).padStart(2, '0') : '+'}
+      </span>
       <span className="min-w-0 flex-1 truncate font-mono text-[10px] tracking-[0.06em]">{names.short}</span>
 
       {latest ? (
@@ -89,7 +103,11 @@ export function RackStrip({ indicator, maturity, series, now, pinned, onPin }: R
           <span className="text-[9px] opacity-50">{latest.lag}Q</span>
         </span>
       ) : (
-        <span className="shrink-0 truncate font-mono text-[9px] tracking-[0.1em] opacity-70">{names.needs}</span>
+        <span className="max-w-[52%] shrink-0 truncate font-mono text-[8px] tracking-[0.08em] opacity-75">
+          {access.availability === 'awaiting'
+            ? 'RETURN PENDING'
+            : `${names.needs} · ${Math.round(access.fundedAt * 100)}`}
+        </span>
       )}
     </button>
   )

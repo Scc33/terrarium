@@ -1,8 +1,8 @@
 /**
- * Terrarium design tokens — the terrarium-design skill is the spec.
+ * Terrarium design tokens — the shared visual language for every UI surface.
  * Tailwind v4: @theme is the config-file equivalent; the utility names it
- * generates (bg-dossier-paper, text-terminal-primary, font-dossier, …) match
- * the skill's tailwind.config.ts naming exactly.
+ * generates (bg-dossier-paper, text-terminal-primary, font-dossier, …) are
+ * the canonical token names used throughout the app.
  */
 
 @import 'tailwindcss';
@@ -29,6 +29,16 @@
   --color-wire-paper: #ecebe2;
   --color-wire-ink: #33312a;
 
+  /* shares of a whole, still in the dossier register: six inks a printer of
+     the period could actually mix, ordered for maximum separation on paper.
+     The budget's two sides use them today; output by sector is next. */
+  --color-share-1: #6e2a1f; /* oxblood */
+  --color-share-2: #3f6b57; /* verdigris */
+  --color-share-3: #b08d57; /* brass */
+  --color-share-4: #4a5f7a; /* slate */
+  --color-share-5: #6b4260; /* aniline plum */
+  --color-share-6: #2c2a24; /* ink */
+
   --font-dossier: 'Source Serif 4', Georgia, serif;
   --font-mono: 'IBM Plex Mono', monospace;
 }
@@ -40,10 +50,31 @@ body,
 }
 
 body {
+  margin: 0;
   background: var(--color-dossier-felt);
   color: var(--color-dossier-ink);
   font-family: var(--font-dossier);
   font-size: 14px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-dossier-brass);
+  color: var(--color-dossier-ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 /* every numeral, both eras, one face */
@@ -57,16 +88,22 @@ button {
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  height: 2px;
-  background: color-mix(in srgb, var(--color-dossier-brass) 45%, transparent);
+  height: 3px;
+  background: color-mix(in srgb, var(--color-dossier-brass) 62%, transparent);
   outline: none;
+  width: 100%;
+  cursor: ew-resize;
+}
+
+input[type='range']:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-dossier-felt), 0 0 0 3px var(--color-dossier-brass);
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: var(--color-dossier-brass);
   border: 1px solid var(--color-dossier-ink);
@@ -76,6 +113,74 @@ input[type='range']::-webkit-slider-thumb {
 input[type='range']:disabled::-webkit-slider-thumb {
   opacity: 0.4;
   cursor: default;
+}
+
+input[type='range']::-moz-range-track {
+  height: 2px;
+  background: color-mix(in srgb, var(--color-dossier-brass) 45%, transparent);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--color-dossier-brass);
+  border: 1px solid var(--color-dossier-ink);
+}
+
+* {
+  scrollbar-color: color-mix(in srgb, var(--color-dossier-brass) 55%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+/* empty wall bays stay visibly physical without competing with live readings */
+.instrument-bay {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-dossier-brass) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-dossier-brass) 5%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* The full war room is four bays wide. Below small-laptop width it becomes a
+   deliberate two-row board with a three-column rack instead of squeezing the
+   instruments until their labels and controls clip. */
+.instrument-board,
+.instrument-rack {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1023px) {
+  .instrument-wall {
+    height: auto;
+    min-height: 980px;
+    grid-template-rows: auto minmax(420px, 1fr) auto auto minmax(180px, 0.55fr);
+  }
+
+  .instrument-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(200px, 1fr));
+  }
+
+  .instrument-rack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .instrument-wall {
+    min-height: 1240px;
+    grid-template-rows: auto minmax(500px, 1fr) auto auto minmax(340px, 0.7fr);
+  }
+
+  .instrument-rack,
+  .instrument-docked {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .instrument-docked {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(160px, 1fr));
+  }
 }
 
 @keyframes cursor-blink {

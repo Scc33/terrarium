@@ -26,6 +26,7 @@ import {
   rackColumns,
   rackHeadroom,
   resolveBoard,
+  toggleBoardPin,
   wallBudgetPx,
   wallFits,
 } from '../../packages/ui/src/wallPlan'
@@ -105,6 +106,17 @@ describe('the board is always exactly full', () => {
   it('honours the player’s pins before the defaults', () => {
     const pins: IndicatorId[] = ['gini', 'birth_rate', 'death_rate', 'asset_prices']
     expect(resolveBoard(pins, INDICATOR_IDS)).toEqual(pins)
+  })
+
+  it('swaps a selected instrument out instead of immediately backfilling it', () => {
+    const next = toggleBoardPin(DEFAULT_PINS, 'gdp_growth', INDICATOR_IDS)
+    expect(next).toHaveLength(BOARD_SLOTS)
+    expect(next).not.toContain('gdp_growth')
+  })
+
+  it('puts a newly selected instrument in the newest board slot', () => {
+    const next = toggleBoardPin(DEFAULT_PINS, 'gini', INDICATOR_IDS)
+    expect(next).toEqual(['inflation', 'unemployment', 'approval', 'gini'])
   })
 
   it('every default pin is a real indicator', () => {

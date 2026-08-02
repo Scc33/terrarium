@@ -16,7 +16,13 @@ import {
   taxEfficiency,
 } from '../constants'
 import { clamp, sumRecord } from '../math'
-import { CAPACITY_IDS, SECTOR_IDS, type CapacityBuild, type TrueState } from '../state/schema'
+import {
+  CAPACITY_IDS,
+  SECTOR_IDS,
+  type CapacityBuild,
+  type OutlaySplit,
+  type RevenueSplit,
+} from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { effectiveBlocPower } from './derive'
 
@@ -46,28 +52,30 @@ export const fiscal: PipelineStep = {
     for (let j = 0; j < SECTOR_IDS.length; j++) {
       energyUse += io.coeff[eIdx][j] * state.sectors[j].output
     }
-    const taxRevenue = {
+    const revenueBySource: RevenueSplit = {
       income: wageBase * gov.dials.taxRates.income * eff,
       corporate: profitBase * gov.dials.taxRates.corporate * eff,
       tariff: flows.tariffBase * gov.dials.taxRates.tariff * tariffEff,
       fuel: market.prices.energy * energyUse * gov.dials.taxRates.fuel * fuelEff,
     }
-    const revenue = taxRevenue.income + taxRevenue.corporate + taxRevenue.tariff + taxRevenue.fuel
+    const revenue = sumRecord(revenueBySource)
 
     // --- outlays ---
-    const pipelineSpend = gov.pipeline.reduce((s, b) => s + b.moneyPerQtr, 0)
     const debtToGdp = gov.debt / Math.max(4 * flows.nominalGdp, 1e-9)
-    // a capital strike is not a scripted penalty: it is a yield
+    // a capital strike is not a scripted penalty: it is a yield, and it shows
+    // up in the itemised books as a fatter interest line
     const riskPremium =
       Math.max(0, debtToGdp - 0.5) * RISK_PREMIUM_SLOPE + FIN_FAVOR_PREMIUM * moneyAnger
-    const interest = (gov.debt * (gov.dials.policyRate + riskPremium)) / 4
-    const outlays =
-      gov.dials.spending.transfers +
-      gov.dials.spending.procurement +
-      gov.dials.spending.investment +
-      sumRecord(gov.dials.subsidies) +
-      pipelineSpend +
-      interest
+    const outlaysByProgramme: OutlaySplit = {
+      transfers: gov.dials.spending.transfers,
+      procurement: gov.dials.spending.procurement,
+      investment: gov.dials.spending.investment,
+      subsidies: sumRecord(gov.dials.subsidies),
+      capacity: gov.pipeline.reduce((s, b) => s + b.moneyPerQtr, 0),
+      interest: (gov.debt * (gov.dials.policyRate + riskPremium)) / 4,
+    }
+    const interest = outlaysByProgramme.interest
+    const outlays = sumRecord(outlaysByProgramme)
 
     const balance = revenue - outlays
 
@@ -106,12 +114,14 @@ export const fiscal: PipelineStep = {
       ledger: { ...state.ledger, debtToGdp },
       // coupons are bondholder income; redemptions go back into their
       // savings — a surplus is neither money destroyed nor a spending spree
-      flows: { ...flows, taxRevenue, printedThisQtr, debtInterest: interest, debtPrincipal: repaid },
+      flows: {
+        ...flows,
+        revenueBySource,
+        outlaysByProgramme,
+        printedThisQtr,
+        debtInterest: interest,
+        debtPrincipal: repaid,
+      },
     }
   },
-}
-
-/** exported for the observation layer / UI treasury view */
-export function fiscalSnapshot(state: TrueState) {
-  return { ...state.gov.budget, debt: state.gov.debt, printed: state.gov.printed }
 }

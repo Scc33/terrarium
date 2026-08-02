@@ -10,7 +10,11 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: [
+      'tests/**/*.test.ts',
+      'packages/ui/src/components/**/*.test.tsx',
+      'packages/ui/src/dev/**/*.test.tsx',
+    ],
     environment: 'node',
     testTimeout: 60_000,
     coverage: {

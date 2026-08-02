@@ -13,7 +13,7 @@
  */
 
 import type { Grade, PublishedState, ReportCard } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal, Panel } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
@@ -37,7 +37,7 @@ function GradeStamp({ grade }: { grade: Grade }) {
 
 function Axis({ name, grade, children }: { name: string; grade: Grade; children: React.ReactNode }) {
   return (
-    <section className="border border-dossier-ink/25 p-3">
+    <Panel bodyClassName="p-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-2 font-mono text-[9px] font-medium tracking-[0.3em] text-dossier-ink/60">
@@ -47,7 +47,7 @@ function Axis({ name, grade, children }: { name: string; grade: Grade; children:
         </div>
         <GradeStamp grade={grade} />
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -63,7 +63,7 @@ export function ReportCardOverlay({
   const endYear = yearOf(card.quartersGoverned)
   const years = Math.max(1, Math.round(card.quartersGoverned / 4))
   return (
-    <Overlay title="THE HISTORIANS' VERDICT" onClose={onClose}>
+    <Modal title="THE HISTORIANS' VERDICT" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div className="text-center">
           <div className="font-dossier text-2xl font-semibold text-dossier-ink">{pub.country}</div>
@@ -151,6 +151,6 @@ export function ReportCardOverlay({
           AXES ARE GRADED SEPARATELY. THEY ARE NEVER SUMMED.
         </p>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

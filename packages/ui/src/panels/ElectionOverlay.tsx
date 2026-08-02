@@ -23,7 +23,7 @@
  */
 
 import type { BlocId, PlatformId, PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal } from '../components/ui'
 import { useGame } from '../store/gameStore'
 import { BLOC_NAMES } from '../components/labels'
 
@@ -120,7 +120,7 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
   const margin = campaign.support - campaign.threshold
 
   return (
-    <Overlay title="THE CAMPAIGN" onClose={onClose} wide>
+    <Modal title="THE CAMPAIGN" onClose={onClose} size="wide">
       <div className="flex flex-col gap-4">
         <div className="text-center">
           <div className="font-dossier text-2xl font-semibold text-dossier-ink">
@@ -256,6 +256,6 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
             : 'A PLATFORM IS COMMITTED WHEN THE QUARTER TURNS.'}
         </p>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

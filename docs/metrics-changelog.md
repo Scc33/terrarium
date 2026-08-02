@@ -11,8 +11,7 @@ ends of that function:
 
 Everything between them is the **pipeline** — an ordered fold of steps, versioned because
 reordering changes results. A schema bump is a golden-replay event (`pnpm test` →
-`pnpm diff-state` → `pnpm bless`). For the human-readable release notes see
-[CHANGELOG.md](../CHANGELOG.md).
+`pnpm diff-state` → `pnpm bless`).
 
 A note on *fog*: most outputs are **fogged** — published with a lag, noise, and revisions, and
 only if the statistical office is funded to the indicator's threshold (§6.1). A few are
@@ -22,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 11)
+## Current contract (schema 12)
 
 ### Inputs
 
@@ -103,7 +102,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
 | `credit_growth` | % / yr | 0.55 | v10 | growth of credit / annual GDP (leverage) |
-| `unrest` | idx | 0.40 | v11 | revolutionary pressure ×100 — what collated provincial reports would show |
+| `unrest` | idx | 0.40 | v12 | revolutionary pressure ×100 — what collated provincial reports would show |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
 additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
@@ -115,15 +114,17 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 |---|---|---|
 | `dials` | v1 | your own lever settings |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
-| `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v11) |
-| `institutions` | v11 | the five Layer-3 stocks, as set |
-| `reformCost` | v11 | PC each reform costs right now — veto premium and window discount already applied |
-| `reformWindowOpen` | v11 | whether pressure has prised the window open |
-| `blocs[]` | v11 | per bloc: power, favor, effective power (after society's check) |
-| `pledge` | v11 | the bloc courted at the last election, and quarters left on the claim |
-| `corridor` | v11 | state power, societal power, offset, half-width, in/out, and the full traced trail |
-| `campaign` | v11 | present only inside the campaign window: support, threshold, platform committed |
-| `lastElection` | v11 | the count: platform, support, swing, threshold, won, suppressed |
+| ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
+| ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
+| `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |
+| `institutions` | v12 | the five Layer-3 stocks, as set |
+| `reformCost` | v12 | PC each reform costs right now — veto premium and window discount already applied |
+| `reformWindowOpen` | v12 | whether pressure has prised the window open |
+| `blocs[]` | v12 | per bloc: power, favor, effective power (after society's check) |
+| `pledge` | v12 | the bloc courted at the last election, and quarters left on the claim |
+| `corridor` | v12 | state power, societal power, offset, half-width, in/out, and the full traced trail |
+| `campaign` | v12 | present only inside the campaign window: support, threshold, platform committed |
+| `lastElection` | v12 | the count: platform, support, swing, threshold, won, suppressed |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
@@ -138,11 +139,11 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | `prosperity`, `vsBaseline` | v4 | discounted geometric-mean consumption; vs the 1946 standard |
 | `prosperityRate` | v5* | annualized welfare growth over the tenure (%/yr) — what's graded |
 | `prosperityGrade`, `legitimacyGrade` | v5* | A–F; axes graded separately, never summed |
-| `electionsSuppressed` | v11 | mandates taken rather than won — shown beside `electionsWon`, never netted into it, and it caps the Legitimacy grade |
-| `corridorShare` | v11 | share of the tenure spent inside the corridor — the §3.3 **Position** axis |
-| `finalStatePower`, `finalSocietalPower` | v11 | where the dot finished |
-| `positionGrade` | v11 | A–F on Position: the third axis the design named, now real |
-| `deposedBy` | v11 | `'poll'` · `'revolt'` · `'coup'` · null |
+| `electionsSuppressed` | v12 | mandates taken rather than won — shown beside `electionsWon`, never netted into it, and it caps the Legitimacy grade |
+| `corridorShare` | v12 | share of the tenure spent inside the corridor — the §3.3 **Position** axis |
+| `finalStatePower`, `finalSocietalPower` | v12 | where the dot finished |
+| `positionGrade` | v12 | A–F on Position: the third axis the design named, now real |
+| `deposedBy` | v12 | `'poll'` · `'revolt'` · `'coup'` · null |
 
 \* letter grades shipped after v5 without a schema bump.
 
@@ -150,7 +151,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 
 ## Version history — what each release added to the contract
 
-### schema 11 — Politics as a game
+### schema 12 — Politics as a game
 - **Pipeline +**: `institutions` step (after `cohorts`, before `statistics`) — societal power,
   the veto players, revolutionary pressure. It runs before `statistics` so unrest can be
   published, and before `politics` so the election reads the franchise it just rewrote.
@@ -165,13 +166,27 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 - **Internal state +**: `institutions` (stocks, societalPower, statePower, unrest, blocs,
   pledge); `politics` gains `electionsSuppressed`, `deposedBy`, `campaign`, `lastElection`;
   `score` gains `corridorQuarters` / `governedQuarters`.
-- **Societal power is now live**, so the §6.3 corridor dot genuinely moves — before v11 the
+- **Societal power is now live**, so the §6.3 corridor dot genuinely moves — before v12 the
   y-axis came from the country's fixed setup and the dot never left its starting point.
 - **Two new ways to lose power**: revolt (pressure past `REVOLT_AT`) and coup (elites you defied,
   in a country whose society cannot check them). An organized society protects against the second.
 - Passive century baseline **unchanged** (≈2.5 %/yr, inflation ≈0, u ≈12.7 %, ~8 % deposed at
   median q352) — the political layer only bites when the player does something political.
   Random-policy 120q deposition 24 % → ~30 %, the added share almost entirely coups.
+
+### schema 11 — The budget, itemised
+- **Outputs +**: `treasury.revenueBySource` / `.outlaysByProgramme`, and the same two splits on
+  every entry of `books[]` — **exact**, no fog, no unlock threshold. A government needs no survey
+  to know which tax it collected or what it voted the money to, so this is a book, not an
+  indicator, and it exists from quarter one at zero statistical capacity.
+- **Internal state +**: `StatRecord.revenueBySource` / `.outlaysByProgramme`;
+  `flows.taxRevenue` renamed to `flows.revenueBySource` and joined by `flows.outlaysByProgramme`.
+- **Inputs**: unchanged — no new lever. The breakdown is a *view* of levers you already have,
+  which is the point: the four tax dials and three spending dials were always there, and only
+  the headline total was ever reported back.
+- **Pipeline**: unchanged order; `fiscal` names the arithmetic it was already doing.
+- Economy **bit-identical to v10** (additive measurement only — same numbers, same order of
+  addition). Golden hashes moved for the version stamp and the two new recorded splits alone.
 
 ### schema 10 — The financial sector
 - **Pipeline +**: `finance` step (after `world`, before `production`). It reads last quarter's

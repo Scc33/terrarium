@@ -232,7 +232,49 @@ function spendPc(s: TrueState, cost: number, what: string): TrueState {
   }
 }
 
-export function applyAction(state: TrueState, action: Action): TrueState {
+/** The room's objection to a dial move, at the size it is actually being made. */
+function dialObjections(state: TrueState, path: DialPath, value: number): Record<BlocId, number> {
+  const spec = DIALS[path]
+  const delta = value - spec.get(state)
+  return objections(DIAL_STANCE[path], Math.sign(delta), Math.abs(delta) / spec.scale(state))
+}
+
+/** …and to a reform, which is always a full step. */
+function reformObjections(institution: InstitutionId, direction: 1 | -1): Record<BlocId, number> {
+  return objections(REFORM_STANCE[institution], direction, 1)
+}
+
+/** How far a reform would actually move the stock, clamped to the rails.
+ * Throws when there is no move left to make, so the quote and the application
+ * agree about what is on offer. */
+function reformTarget(state: TrueState, institution: InstitutionId, direction: 1 | -1): number {
+  const current = state.institutions.stocks[institution]
+  if (current === undefined) throw new IllegalActionError(`unknown institution: ${institution}`)
+  const target = clamp(current + direction * REFORM_STEP, 0, 1)
+  if (Math.abs(target - current) < 1e-9) {
+    throw new IllegalActionError(
+      `${institution} is already as ${direction > 0 ? 'broad' : 'narrow'} as it goes`,
+    )
+  }
+  return target
+}
+
+/** Validate a campaign order. Shared by the quote and the application so a
+ * platform that cannot be announced is never priced. */
+function checkCampaign(state: TrueState, action: Extract<Action, { kind: 'campaign' }>): void {
+  const { politics: pol } = state
+  if (pol.quartersToElection > CAMPAIGN_WINDOW || pol.quartersToElection <= 0) {
+    throw new IllegalActionError('there is no election to fight yet')
+  }
+  if (pol.campaign) throw new IllegalActionError('the platform is already announced')
+  if (action.platform === 'coalition' && !action.bloc) {
+    throw new IllegalActionError('a coalition platform must name the bloc being courted')
+  }
+}
+
+/** Quote one order using the same validation and cost formula as application.
+ * The worker exposes this cost to the cabinet UI without exposing true state. */
+export function politicalCostOfAction(state: TrueState, action: Action): number {
   if (!state.politics.inPower) {
     throw new IllegalActionError('you have been deposed; the dials are no longer yours')
   }
@@ -247,12 +289,12 @@ export function applyAction(state: TrueState, action: Action): TrueState {
           `${action.path}=${value} out of bounds [${spec.min}, ${spec.max(state).toFixed(2)}]`,
         )
       }
-      const delta = value - spec.get(state)
-      const relChange = Math.abs(delta) / spec.scale(state)
-      const objection = objections(DIAL_STANCE[action.path], Math.sign(delta), relChange)
-      const cost =
-        (PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange) * vetoMultiplier(state, objection)
-      return spec.set(applyObjections(spendPc(state, cost, action.path), objection), value)
+      const relChange = Math.abs(value - spec.get(state)) / spec.scale(state)
+      // …and then the room prices it (§4.3)
+      return (
+        (PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange) *
+        vetoMultiplier(state, dialObjections(state, action.path, action.value))
+      )
     }
     case 'investCapacity': {
       const { target, amount } = action
@@ -269,7 +311,38 @@ export function applyAction(state: TrueState, action: Action): TrueState {
       if (state.gov.capacity[target] + inFlight >= 0.95) {
         throw new IllegalActionError(`the ${target} ministry is already at full strength`)
       }
-      const s = spendPc(state, PC_COST_CAPACITY, `invest in ${target} capacity`)
+      return PC_COST_CAPACITY
+    }
+    case 'reform': {
+      const { institution, direction } = action
+      reformTarget(state, institution, direction) // validates; the rails are part of the quote
+      const windowOpen = reformWindowOpen(state)
+      return (
+        PC_COST_REFORM *
+        vetoMultiplier(state, reformObjections(institution, direction), windowOpen) *
+        (windowOpen ? REFORM_WINDOW_DISCOUNT : 1)
+      )
+    }
+    case 'campaign': {
+      checkCampaign(state, action)
+      return PC_COST_CAMPAIGN
+    }
+  }
+}
+
+export function applyAction(state: TrueState, action: Action): TrueState {
+  const cost = politicalCostOfAction(state, action)
+  switch (action.kind) {
+    case 'setDial': {
+      const spec = DIALS[action.path]
+      // defiance is not free: goodwill is spent in proportion to how much they
+      // minded, and earned when the lever moves their way
+      const objection = dialObjections(state, action.path, action.value)
+      return spec.set(applyObjections(spendPc(state, cost, action.path), objection), action.value)
+    }
+    case 'investCapacity': {
+      const { target, amount } = action
+      const s = spendPc(state, cost, `invest in ${target} capacity`)
       const points = amount / CAPACITY_COST_PER_POINT
       return {
         ...s,
@@ -289,21 +362,11 @@ export function applyAction(state: TrueState, action: Action): TrueState {
     }
     case 'reform': {
       const { institution, direction } = action
-      const current = state.institutions.stocks[institution]
-      if (current === undefined) throw new IllegalActionError(`unknown institution: ${institution}`)
-      const target = clamp(current + direction * REFORM_STEP, 0, 1)
-      if (Math.abs(target - current) < 1e-9) {
-        throw new IllegalActionError(
-          `${institution} is already as ${direction > 0 ? 'broad' : 'narrow'} as it goes`,
-        )
-      }
-      const windowOpen = reformWindowOpen(state)
-      const objection = objections(REFORM_STANCE[institution], direction, 1)
-      const cost =
-        PC_COST_REFORM *
-        vetoMultiplier(state, objection, windowOpen) *
-        (windowOpen ? REFORM_WINDOW_DISCOUNT : 1)
-      const s = applyObjections(spendPc(state, cost, `reform ${institution}`), objection)
+      const target = reformTarget(state, institution, direction)
+      const s = applyObjections(
+        spendPc(state, cost, `reform ${institution}`),
+        reformObjections(institution, direction),
+      )
       return {
         ...s,
         institutions: {
@@ -313,16 +376,8 @@ export function applyAction(state: TrueState, action: Action): TrueState {
       }
     }
     case 'campaign': {
-      const { politics: pol } = state
-      if (pol.quartersToElection > CAMPAIGN_WINDOW || pol.quartersToElection <= 0) {
-        throw new IllegalActionError('there is no election to fight yet')
-      }
-      if (pol.campaign) throw new IllegalActionError('the platform is already announced')
       const platform: PlatformId = action.platform
-      if (platform === 'coalition' && !action.bloc) {
-        throw new IllegalActionError('a coalition platform must name the bloc being courted')
-      }
-      let s = spendPc(state, PC_COST_CAMPAIGN, `campaign on ${platform}`)
+      let s = spendPc(state, cost, `campaign on ${platform}`)
       let swing = PLATFORM_SWING[platform]
       const bloc = action.bloc ?? null
 

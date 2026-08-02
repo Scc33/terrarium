@@ -68,7 +68,7 @@ export { generateParams }
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'
-export { applyAction, IllegalActionError } from './actions/apply'
+export { applyAction, politicalCostOfAction, IllegalActionError } from './actions/apply'
 export type { Action, ActionLog, DialPath, TurnActions } from './actions/types'
 export {
   SECTOR_IDS,
@@ -79,6 +79,8 @@ export {
   BLOC_IDS,
   PLATFORM_IDS,
   CAMPAIGN_WINDOW,
+  REVENUE_SOURCE_IDS,
+  OUTLAY_IDS,
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
   ENGINE_VERSION,
@@ -101,8 +103,12 @@ export type {
   NewsItem,
   PlatformId,
   PoliticalState,
+  OutlayId,
+  OutlaySplit,
   Qtr,
   Ratio,
+  RevenueSourceId,
+  RevenueSplit,
   Sector,
   SectorId,
   StatPrint,
@@ -139,6 +145,7 @@ export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
   CORRIDOR_HALF_WIDTH,
   ELECTION_WIN_THRESHOLD,
+  INDICATOR_FUNDED_AT,
   LEGITIMACY_GRADE_ELECTIONS,
   PC_COST_CAMPAIGN,
   PC_COST_REFORM,

@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import type { SaveFile } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Button, Modal } from '../components/ui'
 import { useGame } from '../store/gameStore'
 
 export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
@@ -21,20 +21,19 @@ export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose
     URL.revokeObjectURL(url)
   }
 
-  const btn =
-    'w-full border border-dossier-ink/30 px-3 py-2 text-left font-mono text-[11px] tracking-[0.15em] text-dossier-ink hover:border-dossier-ink hover:bg-dossier-ink hover:text-dossier-paper'
-
   return (
-    <Overlay title="RECORDS OFFICE" onClose={onClose}>
+    <Modal title="RECORDS OFFICE" onClose={onClose}>
       <div className="flex flex-col gap-2">
-        <button className={btn} onClick={exportSave} title="Download this game as a JSON file — it is just the seed and your decisions, and replays exactly.">
+        <Button fullWidth className="justify-start text-left" onClick={exportSave} title="Download this game as a JSON file — it is just the seed and your decisions, and replays exactly.">
           EXPORT SAVE — seed + decision log, a few KB, perfectly replayable
-        </button>
-        <button className={btn} onClick={() => fileInput.current?.click()} title="Load a previously exported save file.">
+        </Button>
+        <Button fullWidth className="justify-start text-left" onClick={() => fileInput.current?.click()} title="Load a previously exported save file.">
           IMPORT SAVE — resume a filed game
-        </button>
-        <button
-          className={btn}
+        </Button>
+        <Button
+          fullWidth
+          variant="danger"
+          className="justify-start text-left"
           onClick={() => {
             newGame()
             onClose()
@@ -42,7 +41,7 @@ export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose
           title="Abandon this country and draw a fresh one. The current game is overwritten on the next autosave."
         >
           NEW COUNTRY — abandon {pub.country} and draw another
-        </button>
+        </Button>
         <input
           ref={fileInput}
           type="file"
@@ -63,6 +62,6 @@ export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose
           export and send it with a note about which quarter to look at.
         </div>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

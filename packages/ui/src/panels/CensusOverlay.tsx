@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { ChartFrame, Modal, OverlayLayout } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
@@ -73,20 +73,22 @@ function TransitionChart({
           .join(' ') +
         'Z'
       : null
+  const latestBirth = birth[birth.length - 1]?.value
+  const latestDeath = death[death.length - 1]?.value
+  const summary = funded
+    ? `Vital rates from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest published birth rate ${latestBirth?.toFixed(1) ?? 'unavailable'} and death rate ${latestDeath?.toFixed(1) ?? 'unavailable'} per thousand per year.`
+    : 'Birth and death rates are unavailable because civil registration is not funded.'
 
   return (
-    <div className="border border-dossier-ink/25 bg-dossier-paper">
-      <div className="flex items-center justify-between border-b border-dossier-ink/20 px-2 py-1">
-        <span className="font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/70">
-          THE VITAL RATES · PER 1000 / YR
-        </span>
-        {funded && (
-          <span className="flex items-center gap-2 font-mono text-[8px] tracking-[0.1em]">
-            <span className="text-dossier-felt">● BIRTHS</span>
-            <span className="text-dossier-warn">● DEATHS</span>
-          </span>
-        )}
-      </div>
+    <ChartFrame
+      title="THE VITAL RATES"
+      detail="PER 1,000 / YEAR · PUBLISHED ESTIMATES"
+      summary={summary}
+      legend={funded ? [
+        { label: 'BIRTHS', color: 'var(--color-dossier-felt)' },
+        { label: 'DEATHS', color: 'var(--color-dossier-warn)' },
+      ] : []}
+    >
       {funded ? (
         <svg viewBox={`0 0 ${RW} ${RH}`} className="block w-full">
           {/* frame + gridlines every 10 */}
@@ -127,7 +129,7 @@ function TransitionChart({
           </div>
         </div>
       )}
-    </div>
+    </ChartFrame>
   )
 }
 
@@ -151,17 +153,20 @@ function PopulationStrip({
   const sy = (v: number) => 4 + ((popMax - v) / popMax) * (PH - 8)
   const line = census.map((c, i) => `${i === 0 ? 'M' : 'L'}${sx(c.tick).toFixed(1)},${sy(c.population).toFixed(1)}`).join(' ')
   const area = `${line} L${sx(census[census.length - 1].tick).toFixed(1)},${PH} L${sx(census[0].tick).toFixed(1)},${PH} Z`
+  const latest = census[census.length - 1]
   return (
-    <div className="border border-dossier-ink/25 bg-dossier-paper">
-      <div className="border-b border-dossier-ink/20 px-2 py-1 font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/70">
-        HEAD COUNT · MILLIONS · EXACT
-      </div>
+    <ChartFrame
+      title="HEAD COUNT"
+      detail="MILLIONS · EXACT"
+      value={`${latest.population.toFixed(1)}M`}
+      summary={`Exact population count from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest count ${latest.population.toFixed(1)} million.`}
+    >
       <svg viewBox={`0 0 ${PW} ${PH}`} className="block w-full">
         <path d={area} fill="var(--color-dossier-ink)" opacity="0.08" />
         <path d={line} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="1.4" />
         <line x1={sx(markTick)} x2={sx(markTick)} y1={2} y2={PH - 2} stroke="var(--color-dossier-brass)" strokeWidth="1" strokeDasharray="2 2" opacity="0.8" />
       </svg>
-    </div>
+    </ChartFrame>
   )
 }
 
@@ -222,18 +227,20 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const hasHistory = census.length >= 2
 
   return (
-    <Overlay title="THE NATIONAL CENSUS" onClose={onClose} wide>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <Modal title="THE NATIONAL CENSUS" onClose={onClose} size="wide">
+      <OverlayLayout
+        summary={(
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-mono text-2xl font-semibold tabular-nums text-dossier-ink">{pub.population.total.toFixed(1)}M</span>
+            <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
+          </div>
+        )}
+        note="The census counts heads exactly. Birth and death rates are estimates from civil registration, so they can lag and revise. Scrub the age pyramid to see the population structure that today’s headline total conceals."
+        footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
+      >
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* left: the story over time */}
         <div className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between">
-            <span className="font-mono text-2xl font-semibold tabular-nums text-dossier-ink">
-              {pub.population.total.toFixed(1)}M
-            </span>
-            <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">
-              LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}
-            </span>
-          </div>
           {hasHistory ? (
             <>
               <TransitionChart birth={birth} death={death} xMin={xMin} xMax={xMax} markTick={shown.tick} />
@@ -277,11 +284,8 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             </span>
           </div>
         </div>
-      </div>
-
-      <p className="mt-4 text-center font-mono text-[9px] tracking-[0.2em] text-dossier-ink/50">
-        HEADS ARE COUNTABLE. THE RATES BEHIND THEM ARE NOT.
-      </p>
-    </Overlay>
+        </div>
+      </OverlayLayout>
+    </Modal>
   )
 }

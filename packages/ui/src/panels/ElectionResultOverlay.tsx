@@ -8,7 +8,7 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { Modal } from '../components/ui'
 import { BLOC_NAMES, PLATFORM_NAMES } from '../components/labels'
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -26,7 +26,7 @@ export function ElectionResultOverlay({
   const total = r.support + r.swing
 
   return (
-    <Overlay title="THE COUNT" onClose={onClose}>
+    <Modal title="THE COUNT" onClose={onClose}>
       <div className="flex flex-col gap-4">
         <div className="text-center">
           <div
@@ -92,6 +92,6 @@ export function ElectionResultOverlay({
               : 'The electorate has withdrawn its consent. The country, of course, carries on without you.'}
         </p>
       </div>
-    </Overlay>
+    </Modal>
   )
 }

@@ -38,7 +38,7 @@ export const CHROME = {
   wallPadding: 16,
   gap: 8,
   /** the control rail, at lg and up */
-  rail: 340,
+  rail: 384,
 } as const
 
 /** a board slot must be at least this tall for an analog gauge to be legible:
@@ -48,6 +48,8 @@ export const BOARD_SLOT_MIN_H = 200
 export const RACK_ROW_H = 26
 /** the ledger's sparkline and the corridor plot both need real estate */
 export const DOCKED_MIN_H = 150
+/** compact labels above the watch board and the complete instrument rack */
+export const SECTION_BAR_H = 20
 /** how many instruments the board holds */
 export const BOARD_SLOTS = 4
 /** a rack strip narrower than this cannot show label + figure + delta */
@@ -101,6 +103,25 @@ export function resolveBoard(pinned: readonly IndicatorId[], all: readonly Indic
   return board
 }
 
+/**
+ * A rack press always produces an honest board change. Adding a fifth item
+ * evicts the oldest pin; removing a visible item pulls in the first instrument
+ * not already on the board. The board never appears to ignore an "unpin" just
+ * because a default pin was immediately backfilled.
+ */
+export function toggleBoardPin(
+  pinned: readonly IndicatorId[],
+  id: IndicatorId,
+  all: readonly IndicatorId[],
+): IndicatorId[] {
+  const board = resolveBoard(pinned, all)
+  if (!board.includes(id)) return [...board, id].slice(-BOARD_SLOTS)
+
+  const remaining = board.filter((candidate) => candidate !== id)
+  const replacement = all.find((candidate) => candidate !== id && !remaining.includes(candidate))
+  return replacement ? [...remaining, replacement] : remaining
+}
+
 export function planWall(
   pinned: readonly IndicatorId[],
   all: readonly IndicatorId[],
@@ -113,7 +134,12 @@ export function planWall(
     rack: all,
     rackCols,
     rackRows,
-    requiredH: BOARD_SLOT_MIN_H + RACK_ROW_H * rackRows + DOCKED_MIN_H + CHROME.gap * 2,
+    requiredH:
+      BOARD_SLOT_MIN_H +
+      RACK_ROW_H * rackRows +
+      DOCKED_MIN_H +
+      SECTION_BAR_H * 2 +
+      CHROME.gap * 4,
   }
 }
 

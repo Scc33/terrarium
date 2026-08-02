@@ -8,7 +8,7 @@
  */
 
 import {
-  applyAction,
+  politicalCostOfAction,
   BLOC_IDS,
   CAMPAIGN_WINDOW,
   CORRIDOR_HALF_WIDTH,
@@ -115,25 +115,17 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
 }
 
 /** What each reform would cost right now — the veto premium and the reform
- * window already priced in. Computed by asking `applyAction` itself with an
- * unlimited-PC copy, so the number the player reads can never drift from the
- * number they are charged. */
+ * window already priced in. Delegates to the engine's own quote function, so
+ * the number the player reads cannot drift from the number they are charged.
+ * (An earlier version subtracted the post-action capital from a sentinel
+ * balance; at MAX_SAFE_INTEGER that subtraction fell outside a double's
+ * mantissa and quietly rounded the quote.) */
 function reformCosts(state: TrueState): PublishedState['reformCost'] {
-  // 1e6, not MAX_SAFE_INTEGER: subtracting a ~30-point cost from 9.007e15
-  // lands outside a double's mantissa, so the quoted price came back rounded
-  // to the nearest whole number while the charge kept its fraction. A price
-  // tag that disagrees with the till is exactly the bug this indirection was
-  // supposed to make impossible. PC is capped at PC_MAX, so 1e6 is ample.
-  const rich: TrueState = {
-    ...state,
-    politics: { ...state.politics, politicalCapital: 1e6 },
-  }
   const out = {} as PublishedState['reformCost']
   for (const id of INSTITUTION_IDS) {
     const priceOf = (direction: 1 | -1): number | null => {
       try {
-        const after = applyAction(rich, { kind: 'reform', institution: id, direction })
-        return rich.politics.politicalCapital - after.politics.politicalCapital
+        return politicalCostOfAction(state, { kind: 'reform', institution: id, direction })
       } catch {
         return null // already at the rail, or otherwise not on offer
       }
@@ -156,7 +148,13 @@ export function observe(state: TrueState): PublishedState {
     country: state.params.name,
     indicators,
     dials: structuredClone(state.gov.dials),
-    treasury: { ...state.gov.budget, debt: state.gov.debt, printed: state.gov.printed },
+    treasury: {
+      ...state.gov.budget,
+      debt: state.gov.debt,
+      printed: state.gov.printed,
+      revenueBySource: { ...state.flows.revenueBySource },
+      outlaysByProgramme: { ...state.flows.outlaysByProgramme },
+    },
     capacity: { ...state.gov.capacity },
     capacityBuilding: state.gov.pipeline.map((b) => ({ target: b.target, remaining: b.remaining })),
     books: state.stats.record.map((r) => ({
@@ -166,6 +164,8 @@ export function observe(state: TrueState): PublishedState {
       balance: r.balance,
       debt: r.debt,
       reserves: r.reserves,
+      revenueBySource: { ...r.revenueBySource },
+      outlaysByProgramme: { ...r.outlaysByProgramme },
     })),
     population: {
       // census-grade facts: heads are countable without a statistical office

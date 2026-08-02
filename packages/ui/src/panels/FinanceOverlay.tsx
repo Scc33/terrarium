@@ -9,7 +9,7 @@
  */
 
 import type { IndicatorPoint, NewsItem, PublishedState } from '@terrarium/observation'
-import { Overlay } from '../components/Overlay'
+import { ChartFrame, EmptyState, Modal, OverlayLayout } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
@@ -73,19 +73,19 @@ function FogLineChart({
     .join(' ')
   // a few round gridline values across the domain
   const ticks = [lo, baseline, hi].filter((v, i, a) => a.indexOf(v) === i)
+  const latest = series[series.length - 1]
+  const summary = funded
+    ? `${title}. Latest value ${latest.value.toFixed(1)}. Recorded range ${Math.min(...vals).toFixed(1)} to ${Math.max(...vals).toFixed(1)}. ${crises.length} crisis markers in the full record.`
+    : `${title}. No series is available because the government has not funded ${needs.toLowerCase()}. ${crises.length} publicly known crisis markers remain visible.`
 
   return (
-    <div className="border border-dossier-ink/25 bg-dossier-paper">
-      <div className="flex items-center justify-between border-b border-dossier-ink/20 px-2 py-1">
-        <span className="font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/70">
-          {title}
-        </span>
-        {funded && series.length > 0 && (
-          <span className="font-mono text-[10px] font-semibold tabular-nums" style={{ color: `var(--color-${color})` }}>
-            {series[series.length - 1].value.toFixed(1)}
-          </span>
-        )}
-      </div>
+    <ChartFrame
+      title={title}
+      detail={funded ? 'PUBLISHED RETURNS' : `REQUIRES ${needs}`}
+      value={funded && latest ? <span style={{ color: `var(--color-${color})` }}>{latest.value.toFixed(1)}</span> : '—'}
+      legend={crises.length ? [{ label: 'CRISIS', color: 'var(--color-dossier-warn)', dashed: true }] : []}
+      summary={summary}
+    >
       {funded ? (
         <svg viewBox={`0 0 ${CW} ${CH}`} className="block w-full">
           {ticks.map((v) => (
@@ -111,7 +111,7 @@ function FogLineChart({
           </text>
         </svg>
       ) : (
-        <div className="relative flex h-[128px] flex-col items-center justify-center gap-1 bg-gradient-to-b from-[#c2a06b] to-dossier-brass">
+        <div className="relative h-[128px] overflow-hidden">
           {/* the crashes still show through the brass — you knew they happened */}
           <svg viewBox={`0 0 ${CW} ${CH}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
             {crises.map((t, i) =>
@@ -120,16 +120,10 @@ function FogLineChart({
               ) : null,
             )}
           </svg>
-          <div className="z-10 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
-            NO RETURNS FILED
-          </div>
-          <div className="z-10 font-mono text-[9px] tracking-[0.15em] text-dossier-ink/70">REQUIRES: {needs}</div>
-          <div className="z-10 mt-1 max-w-[320px] text-center font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
-            {blurb}
-          </div>
+          <EmptyState title="NO RETURNS FILED" requirement={needs} compact>{blurb}</EmptyState>
         </div>
       )}
-    </div>
+    </ChartFrame>
   )
 }
 
@@ -151,49 +145,49 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
           : 'CREDIT STEADY'
 
   return (
-    <Overlay title="THE FINANCIAL SYSTEM" onClose={onClose} wide>
-      <div className="mb-3 flex items-baseline justify-between">
-        <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">
-          {crises.length === 0
-            ? 'NO BANKING CRISIS ON RECORD'
-            : `${crises.length} BANKING CRISI${crises.length === 1 ? 'S' : 'ES'} SINCE 1946`}
-        </span>
-        <span className="font-mono text-[10px] font-semibold tracking-[0.15em] text-dossier-ink/80">
-          {leverageWord}
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <FogLineChart
-          title="ASSET PRICES · 1946=100 · THE BUBBLE"
-          series={asset}
-          color="dossier-felt"
-          baseline={100}
-          yPad={12}
-          crises={crises}
-          xMin={xMin}
-          xMax={xMax}
-          needs="EXCHANGE BOARD"
-          blurb="What capital sells for. When it floats far above what it earns, that is a bubble — and only the exchange quotes it."
-        />
-        <FogLineChart
-          title="CREDIT GROWTH · % / YR OF GDP · THE LEVERAGE"
-          series={credit}
-          color="dossier-brass"
-          baseline={0}
-          yFloor={-6}
-          yPad={4}
-          crises={crises}
-          xMin={xMin}
-          xMax={xMax}
-          needs="BANK SUPERVISION"
-          blurb="How fast debt outruns the economy. Sustained and high is fragility building — the supervisor's ledger is the only place you see it coming."
-        />
-      </div>
-
-      <p className="mt-4 text-center font-mono text-[9px] tracking-[0.2em] text-dossier-ink/50">
-        THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS
-      </p>
-    </Overlay>
+    <Modal title="THE FINANCIAL SYSTEM" onClose={onClose} size="wide">
+      <OverlayLayout
+        summary={(
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">
+              {crises.length === 0
+                ? 'NO BANKING CRISIS ON RECORD'
+                : `${crises.length} BANKING CRISI${crises.length === 1 ? 'S' : 'ES'} SINCE 1946`}
+            </span>
+            <span className="font-mono text-[10px] font-semibold tracking-[0.15em] text-dossier-ink/80">{leverageWord}</span>
+          </div>
+        )}
+        note="A crash is public: runs, closures, and sudden stops always reach the wire. The dangerous build-up is different. Asset quotes require an exchange board; leverage requires bank supervision. Fund the institutions before you need the warning."
+        footer="THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS"
+      >
+        <div className="flex flex-col gap-3">
+          <FogLineChart
+            title="ASSET PRICES · THE BUBBLE"
+            series={asset}
+            color="dossier-felt"
+            baseline={100}
+            yPad={12}
+            crises={crises}
+            xMin={xMin}
+            xMax={xMax}
+            needs="EXCHANGE BOARD"
+            blurb="What capital sells for. When it floats far above what it earns, that is a bubble — and only the exchange quotes it."
+          />
+          <FogLineChart
+            title="CREDIT GROWTH · THE LEVERAGE"
+            series={credit}
+            color="dossier-brass"
+            baseline={0}
+            yFloor={-6}
+            yPad={4}
+            crises={crises}
+            xMin={xMin}
+            xMax={xMax}
+            needs="BANK SUPERVISION"
+            blurb="How fast debt outruns the economy. Sustained and high is fragility building — the supervisor's ledger is the only place you see it coming."
+          />
+        </div>
+      </OverlayLayout>
+    </Modal>
   )
 }

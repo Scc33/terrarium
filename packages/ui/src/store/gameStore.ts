@@ -5,7 +5,7 @@ import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, WorkerMessage } from '../worker/protocol'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
-import { BOARD_SLOTS, DEFAULT_PINS } from '../wallPlan'
+import { BOARD_SLOTS, DEFAULT_PINS, resolveBoard, toggleBoardPin } from '../wallPlan'
 
 const AUTOSAVE_KEY = 'autosave'
 /** which dials are on the board is a view preference, not part of the run —
@@ -21,7 +21,7 @@ function loadPins(): IndicatorId[] {
     // an old preference naming an indicator this build no longer has must
     // degrade to the defaults, never to a short board
     const pins = (JSON.parse(raw) as unknown[]).filter((id): id is IndicatorId => typeof id === 'string' && valid.has(id))
-    return pins.length ? pins.slice(-BOARD_SLOTS) : [...DEFAULT_PINS]
+    return pins.length ? resolveBoard(pins.slice(-BOARD_SLOTS), INDICATOR_IDS) : [...DEFAULT_PINS]
   } catch {
     return [...DEFAULT_PINS]
   }
@@ -41,7 +41,9 @@ interface GameState {
   /** dial changes staged for this quarter, keyed by a stable action key */
   staged: Map<string, Action>
   stagedCost: number | null
+  stagedCosts: Record<string, number>
   stagedAffordable: boolean
+  previewError: string | null
   rejection: string | null
   advancing: boolean
   /** instruments the player has put on the board, oldest pin first */
@@ -88,10 +90,23 @@ export const useGame = create<GameState>((set, get) => {
         break
       }
       case 'preview':
-        set({ stagedCost: msg.affordable ? msg.cost : null, stagedAffordable: msg.affordable })
+        set({
+          stagedCost: msg.cost,
+          stagedCosts: msg.costs,
+          stagedAffordable: msg.affordable,
+          previewError: msg.error ?? null,
+        })
         break
       case 'rejected':
-        set({ published: msg.published, rejection: msg.message, advancing: false, staged: new Map(), stagedCost: null })
+        set({
+          published: msg.published,
+          rejection: msg.message,
+          advancing: false,
+          staged: new Map(),
+          stagedCost: null,
+          stagedCosts: {},
+          previewError: null,
+        })
         break
       case 'error':
         console.error('sim worker error:', msg.message)
@@ -105,7 +120,7 @@ export const useGame = create<GameState>((set, get) => {
   const refreshPreview = () => {
     const actions = [...get().staged.values()]
     if (actions.length === 0) {
-      set({ stagedCost: null, stagedAffordable: true })
+      set({ stagedCost: null, stagedCosts: {}, stagedAffordable: true, previewError: null })
     } else {
       send({ type: 'previewCost', actions })
     }
@@ -116,7 +131,9 @@ export const useGame = create<GameState>((set, get) => {
     save: null,
     staged: new Map(),
     stagedCost: null,
+    stagedCosts: {},
     stagedAffordable: true,
+    previewError: null,
     rejection: null,
     advancing: false,
     pinned: loadPins(),
@@ -126,7 +143,7 @@ export const useGame = create<GameState>((set, get) => {
      * choice about what you are watching this decade, and choices cost. */
     togglePin(id) {
       const cur = get().pinned
-      const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id].slice(-BOARD_SLOTS)
+      const next = toggleBoardPin(cur, id, INDICATOR_IDS)
       savePins(next)
       set({ pinned: next })
     },
@@ -135,12 +152,12 @@ export const useGame = create<GameState>((set, get) => {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
-      set({ staged: new Map(), stagedCost: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
       send({ type: 'new', seed: s })
     },
 
     loadSave(save) {
-      set({ staged: new Map(), stagedCost: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
       send({ type: 'load', save })
     },
 
@@ -155,17 +172,23 @@ export const useGame = create<GameState>((set, get) => {
       const staged = new Map(get().staged)
       if (action === null) staged.delete(key)
       else staged.set(key, action)
-      set({ staged })
+      set({
+        staged,
+        stagedCost: null,
+        stagedCosts: {},
+        stagedAffordable: staged.size === 0,
+        previewError: null,
+      })
       refreshPreview()
     },
 
     clearStaged() {
-      set({ staged: new Map(), stagedCost: null, stagedAffordable: true })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, stagedAffordable: true, previewError: null })
     },
 
     advance() {
       const actions = [...get().staged.values()]
-      set({ advancing: true, staged: new Map(), stagedCost: null })
+      set({ advancing: true, staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null })
       send({ type: 'advance', actions })
     },
   }

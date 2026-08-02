@@ -2,17 +2,16 @@
  * and the treasury's exact books inline (the only numbers you get raw). */
 
 import type { PublishedState } from '@terrarium/observation'
+import { Button, Metric } from '../components/ui'
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
-function Fig({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function HeaderGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <span className="flex items-baseline gap-1.5">
-      <span className="font-mono text-[9px] tracking-[0.15em] text-dossier-paper/50">{label}</span>
-      <span className={`font-mono text-xs tabular-nums ${warn ? 'text-terminal-alert' : 'text-dossier-paper'}`}>
-        {value}
-      </span>
-    </span>
+    <section className="flex shrink-0 flex-col gap-0.5 border-l border-dossier-paper/15 pl-3" aria-label={label}>
+      <span className="font-mono text-[8px] font-semibold tracking-[0.22em] text-dossier-brass/80">{label}</span>
+      <div className="flex items-baseline gap-3">{children}</div>
+    </section>
   )
 }
 
@@ -33,73 +32,56 @@ export function HeaderBar({
   onVerdict?: () => void
 }) {
   const t = pub.treasury
-  const hBtn =
-    'border border-dossier-paper/25 px-2 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-paper/70 hover:border-dossier-brass hover:text-dossier-brass'
   return (
-    <header className="flex min-w-0 items-center gap-5 overflow-hidden border-b-2 border-dossier-brass bg-dossier-felt px-4 py-2">
-      <div className="flex items-baseline gap-3">
-        <span className="font-dossier text-lg font-semibold tracking-wide text-dossier-paper">
-          {pub.country}
-        </span>
-        <span className="font-mono text-xs tabular-nums text-dossier-brass">{qtrLabel(pub.tick)}</span>
+    <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b border-dossier-brass/70 bg-[#294235] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.22)] sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <div className="flex min-w-[150px] items-center gap-3 border-r border-dossier-paper/15 pr-4">
+        <div className="h-7 w-1 bg-dossier-brass" aria-hidden="true" />
+        <div>
+          <div className="font-dossier text-base font-semibold leading-none tracking-wide text-dossier-paper sm:text-lg">
+            {pub.country}
+          </div>
+          <div className="mt-1 font-mono text-[9px] tabular-nums tracking-[0.14em] text-dossier-brass">{qtrLabel(pub.tick)}</div>
+        </div>
       </div>
-      <div className="h-5 w-px bg-dossier-paper/20" />
-      <span title="Political capital — spent on every dial change and programme. Earned from enfranchisement-weighted approval.">
-        <Fig label="POL.CAP" value={pub.politicalCapital.toFixed(0)} />
-      </span>
-      {pub.inPower ? (
-        <span title="Quarters until the electorate weighs in. Approval below the line means the dials stop being yours.">
-          <Fig label="ELECTION" value={`${pub.quartersToElection}Q`} warn={pub.quartersToElection <= 2} />
-        </span>
-      ) : (
-        <span className="font-mono text-xs font-medium tracking-[0.2em] text-terminal-alert">DEPOSED</span>
-      )}
-      <button
-        onClick={onCensus}
-        className="cursor-pointer hover:opacity-80"
-        title="Census figures: total population and labour force (millions), live — the transition is underway. Click for the age pyramid."
-      >
-        <Fig label="POP/LF" value={`${pub.population.total.toFixed(1)}/${pub.population.laborForce.toFixed(1)}M`} />
-      </button>
-      <div className="h-5 w-px bg-dossier-paper/20" />
-      <div className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto">
-        <span title="Tax revenue collected this quarter — gated by tax administration capacity, not by the true size of the economy.">
-          <Fig label="REV" value={t.revenue.toFixed(1)} />
-        </span>
-        <span title="All spending this quarter: programmes, subsidies, capacity building, and debt interest.">
-          <Fig label="OUT" value={t.outlays.toFixed(1)} />
-        </span>
-        <span title="Revenue minus outlays. Persistent deficits become debt; deficits the bond market won't fund become printing.">
-          <Fig label="BAL" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} warn={t.balance < 0} />
-        </span>
-        <span title="Outstanding government debt. Interest costs rise with the debt burden.">
-          <Fig label="DEBT" value={t.debt.toFixed(0)} />
-        </span>
-        <span title="Money the mint has created to cover deficits the bond market refused. Feeds inflation expectations directly.">
-          <Fig label="PRINTED" value={t.printed.toFixed(1)} warn={t.printed > 0.5} />
-        </span>
-        <span title="Foreign-exchange reserves. When they run out, the currency depreciates and imports get dearer.">
-          <Fig label="FX RES" value={pub.reserves.toFixed(1)} warn={pub.reserves < 2} />
-        </span>
+
+      <div className="order-3 col-span-2 flex min-w-0 items-center gap-4 overflow-x-auto pb-0.5 [scrollbar-width:none] xl:order-none xl:col-span-1 xl:pb-0">
+        <HeaderGroup label="POLITICAL">
+          <Metric compact inverted label="CAPITAL" value={pub.politicalCapital.toFixed(0)} title="Political capital available for staged decisions." />
+          <Metric compact inverted label={pub.inPower ? 'ELECTION' : 'STATUS'} value={pub.inPower ? `${pub.quartersToElection}Q` : 'DEPOSED'} tone={!pub.inPower || pub.quartersToElection <= 2 ? 'danger' : 'default'} title="Quarters until the electorate weighs in." />
+        </HeaderGroup>
+        <HeaderGroup label="DEMOGRAPHY">
+          <button type="button" onClick={onCensus} className="shrink-0 text-left hover:opacity-75 focus-visible:outline-2 focus-visible:outline-dossier-brass" title="Open the national census.">
+            <Metric compact inverted label="POP / LABOUR" value={`${pub.population.total.toFixed(1)} / ${pub.population.laborForce.toFixed(1)}M`} />
+          </button>
+        </HeaderGroup>
+        <HeaderGroup label="TREASURY">
+          <Metric compact inverted label="REV / OUT" value={`${t.revenue.toFixed(1)} / ${t.outlays.toFixed(1)}`} />
+          <Metric compact inverted label="BALANCE" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} tone={t.balance < 0 ? 'danger' : 'default'} />
+          <Metric compact inverted label="DEBT" value={t.debt.toFixed(0)} />
+          <div className="hidden lg:block">
+            <Metric compact inverted label="FX RESERVES" value={pub.reserves.toFixed(1)} tone={pub.reserves < 2 ? 'danger' : 'default'} />
+          </div>
+          {t.printed > 0.05 && <Metric compact inverted label="PRINTED" value={t.printed.toFixed(1)} tone="danger" />}
+        </HeaderGroup>
       </div>
-      {onVerdict && (
-        <button
-          onClick={onVerdict}
-          className="border border-dossier-warn px-2 py-1 font-mono text-[9px] tracking-[0.2em] text-dossier-warn hover:bg-dossier-warn hover:text-dossier-paper"
-          title="The historians' verdict on your run."
-        >
-          VERDICT
-        </button>
-      )}
-      <button onClick={onFinance} className={hBtn} title="The financial system: the asset-price bubble and the leverage build-up — and the banking crises they earned.">
-        FINANCE
-      </button>
-      <button onClick={onStudy} className={hBtn} title="The Study: analysis drawn from your published statistics — the Phillips board.">
-        STUDY
-      </button>
-      <button onClick={onSettings} className={hBtn} title="Records office: export, import, new country.">
-        RECORDS
-      </button>
+
+      <nav className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
+        {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
+        <Button onClick={onFinance} variant="secondary" size="compact" title="The financial system.">FINANCE</Button>
+        <Button onClick={onStudy} variant="secondary" size="compact" title="The Study.">STUDY</Button>
+        <Button onClick={onSettings} variant="secondary" size="compact" title="Records office.">RECORDS</Button>
+      </nav>
+      <details className="relative justify-self-end xl:hidden">
+        <summary className="flex min-h-8 list-none items-center border border-dossier-paper/30 px-2.5 font-mono text-[9px] font-medium tracking-[0.15em] text-dossier-paper marker:hidden hover:border-dossier-brass hover:text-dossier-brass">
+          OFFICES <span className="ml-2 text-dossier-brass" aria-hidden="true">▾</span>
+        </summary>
+        <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
+          {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
+          <Button onClick={onFinance} variant="secondary" size="compact">FINANCE</Button>
+          <Button onClick={onStudy} variant="secondary" size="compact">STUDY</Button>
+          <Button onClick={onSettings} variant="secondary" size="compact">RECORDS</Button>
+        </nav>
+      </details>
     </header>
   )
 }

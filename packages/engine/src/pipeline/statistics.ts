@@ -9,6 +9,7 @@
  */
 
 import { rngFor, type Seed } from '../rng/rng'
+import { INDICATOR_FUNDED_AT } from '../constants'
 import type {
   IndicatorId,
   NewsItem,
@@ -26,8 +27,6 @@ interface IndicatorSpec {
   baseSd: number // first-print noise, in indicator units, at zero capacity
   /** if set, baseSd is a fraction of the true value (level series) */
   relativeSd?: boolean
-  /** minimum statistical capacity for the series to exist at all */
-  fundedAt: number
   /** GDP only: attach level estimates to each print */
   withLevels?: boolean
   /** price boards are read off the market same-quarter: always lag 1,
@@ -43,21 +42,18 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
       return prev > 1e-9 ? (Math.pow(h[q].realGdp / prev, 4) - 1) * 100 : 0
     },
     baseSd: 2.5,
-    fundedAt: 0, // customs receipts and guesswork — you always get *something*
     withLevels: true,
   },
   {
     id: 'inflation',
     trueValue: (h, q) => h[q].inflationQ * 4 * 100,
     baseSd: 3.0,
-    fundedAt: 0.08, // somebody has to walk the markets writing down prices
   },
   {
     id: 'price_food',
     trueValue: (h, q) => h[q].priceFood * 100,
     baseSd: 0.04,
     relativeSd: true,
-    fundedAt: 0.2, // a price bureau: clerks copying the market boards
     fastLag: true,
   },
   {
@@ -65,86 +61,71 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     trueValue: (h, q) => h[q].priceFuel * 100,
     baseSd: 0.04,
     relativeSd: true,
-    fundedAt: 0.2, // same clerks, the depot price list
     fastLag: true,
   },
   {
     id: 'unemployment',
     trueValue: (h, q) => h[q].unemployment * 100,
     baseSd: 2.0,
-    fundedAt: 0.35, // requires a labor force survey
   },
   {
     id: 'payrolls',
     trueValue: (h, q) => h[q].payrolls,
     baseSd: 0.05,
     relativeSd: true,
-    fundedAt: 0.3, // an establishment survey
   },
   {
     id: 'capital_stock',
     trueValue: (h, q) => h[q].capitalTotal,
     baseSd: 0.05,
     relativeSd: true,
-    fundedAt: 0.3, // a census of industry
   },
   {
     id: 'conf_consumer',
     trueValue: (h, q) => h[q].confConsumer * 100,
     baseSd: 5,
-    fundedAt: 0.45, // door-to-door sentiment surveys are a luxury
   },
   {
     id: 'conf_business',
     trueValue: (h, q) => h[q].confBusiness * 100,
     baseSd: 5,
-    fundedAt: 0.45,
   },
   {
     id: 'approval',
     trueValue: (h, q) => h[q].approvalIndex * 100,
     baseSd: 6,
-    fundedAt: 0.25, // field polling: clipboards on doorsteps nationwide
   },
   {
     id: 'gini',
     trueValue: (h, q) => h[q].gini * 100,
     baseSd: 3,
-    fundedAt: 0.55, // a full household income & expenditure survey
   },
   {
     id: 'birth_rate',
     trueValue: (h, q) => h[q].birthRate,
     baseSd: 2.5,
-    fundedAt: 0.3, // a civil registry: every birth recorded at the parish
   },
   {
     id: 'death_rate',
     trueValue: (h, q) => h[q].deathRate,
     baseSd: 2,
-    fundedAt: 0.3, // …and every death — vital registration, the old duty
   },
   {
     id: 'terms_of_trade',
     trueValue: (h, q) => h[q].termsOfTrade,
     baseSd: 2.5,
-    fundedAt: 0.4, // customs statisticians compiling the trade accounts
   },
   {
     id: 'asset_prices',
     trueValue: (h, q) => h[q].assetPrice * 100,
     baseSd: 0.05,
     relativeSd: true,
-    fundedAt: 0.45, // a stock/property price board — the exchanges quote it
     fastLag: true, // markets mark to market same-quarter
   },
   {
     id: 'unrest',
     trueValue: (h, q) => h[q].unrest * 100,
     baseSd: 12,
-    // the provincial governors always write in; somebody has to read the
-    // reports, collate them, and dare to put a number on the result
-    fundedAt: 0.4,
   },
   {
     id: 'credit_growth',
@@ -153,7 +134,6 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
       return prev > 1e-9 ? (Math.pow(h[q].creditToGdp / prev, 4) - 1) * 100 : 0
     },
     baseSd: 4,
-    fundedAt: 0.55, // bank supervision: a returns office reading the ledgers
   },
 ]
 
@@ -198,6 +178,8 @@ function recordOf(state: TrueState): StatRecord {
     balance: gov.budget.balance,
     debt: gov.debt,
     reserves: external.reserves,
+    revenueBySource: { ...flows.revenueBySource },
+    outlaysByProgramme: { ...flows.outlaysByProgramme },
   }
 }
 
@@ -216,7 +198,7 @@ function printsDue(
       const q = publishedAt - lag - REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
-      if (cap < spec.fundedAt) continue // the survey didn't exist that quarter
+      if (cap < INDICATOR_FUNDED_AT[spec.id]) continue // the survey didn't exist that quarter
       if ((spec.fastLag ? 1 : lagFor(cap)) !== lag) continue
       const truth = spec.trueValue(record, q)
       const sd =

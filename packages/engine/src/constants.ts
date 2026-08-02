@@ -8,6 +8,7 @@ import type {
   BlocId,
   CapacityId,
   CohortId,
+  IndicatorId,
   InstitutionId,
   PartnerId,
   PlatformId,
@@ -136,6 +137,30 @@ export const RISK_PREMIUM_SLOPE = 0.06 // adds to interest as debt/GDP grows pas
 // ---------- capacity (Layer 2) ----------
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
+/** Minimum statistical-office strength required to produce each series.
+ * This is exported because the wall must explain the exact institution the
+ * simulation is waiting for; one table keeps that promise from drifting. */
+export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
+  gdp_growth: 0,
+  inflation: 0.08,
+  price_food: 0.2,
+  price_fuel: 0.2,
+  unemployment: 0.35,
+  payrolls: 0.3,
+  capital_stock: 0.3,
+  conf_consumer: 0.45,
+  conf_business: 0.45,
+  approval: 0.25,
+  gini: 0.55,
+  birth_rate: 0.3,
+  death_rate: 0.3,
+  terms_of_trade: 0.4,
+  asset_prices: 0.45,
+  credit_growth: 0.55,
+  // the provincial governors always write in; somebody has to read the
+  // reports, collate them, and dare to put a number on the result
+  unrest: 0.4,
+}
 /** neglect is a policy — but it rots institutions fast and people slowly:
  * a taught generation stays taught for a working lifetime */
 export const CAPACITY_DECAY_BY_ID: Record<CapacityId, number> = {

@@ -14,10 +14,10 @@
 
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import { gaugeDomain } from '../domains'
-import { NAMES } from './labels'
-import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from './series'
-import { WallTile } from './WallTile'
+import { gaugeDomain } from '../../domains'
+import { NAMES } from '../labels'
+import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from '../series'
+import { WallTile } from '../WallTile/WallTile'
 
 // The viewBox aspect is chosen to match a board slot, not to be a tidy
 // number. The SVG scales with `preserveAspectRatio="meet"`, so a wide, short
