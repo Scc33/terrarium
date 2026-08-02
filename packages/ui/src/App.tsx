@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useGame } from './store/gameStore'
 import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
-import { ControlRail } from './panels/ControlRail'
+import { ControlRail, type CabinetGroup } from './panels/ControlRail'
 import { NewsWire } from './panels/NewsWire'
 import { LedgerOverlay } from './panels/LedgerOverlay'
 import { WireOverlay } from './panels/WireOverlay'
@@ -26,6 +26,7 @@ export default function App() {
   const { published, newGame, loadAutosave } = useGame()
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   const [cabinetOpen, setCabinetOpen] = useState(false)
+  const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
   const hadCard = useRef(false)
 
   useEffect(() => {
@@ -79,6 +80,11 @@ export default function App() {
     )
   }
 
+  const openCapacity = () => {
+    setCabinetGroup('STATE CAPACITY')
+    setCabinetOpen(true)
+  }
+
   return (
     <div className="grid h-full grid-rows-[auto_1fr_auto] bg-[#22382d]">
       <HeaderBar
@@ -91,7 +97,7 @@ export default function App() {
       />
       <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
         <main className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
-          <Instruments pub={published} onLedger={() => setOverlay('ledger')} />
+          <Instruments pub={published} onLedger={() => setOverlay('ledger')} onOpenCapacity={openCapacity} />
         </main>
         {cabinetOpen && (
           <button
@@ -101,8 +107,8 @@ export default function App() {
             onClick={() => setCabinetOpen(false)}
           />
         )}
-        <div className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full w-full max-w-[430px] shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}>
-          <ControlRail pub={published} />
+        <div className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full min-h-0 w-full max-w-[430px] overflow-hidden shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}>
+          <ControlRail pub={published} openGroup={cabinetGroup} onOpenGroupChange={setCabinetGroup} />
         </div>
         <Button
           variant="primary"

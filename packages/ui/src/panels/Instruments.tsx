@@ -16,7 +16,7 @@
  */
 
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
-import { deriveMaturity } from '../maturity'
+import { deriveInstrumentAccess } from '../maturity'
 import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
 import { Gauge } from '../components/Gauge/Gauge'
 import { RackStrip } from '../components/RackStrip/RackStrip'
@@ -25,14 +25,22 @@ import { LedgerPanel } from './LedgerPanel'
 import { useGame } from '../store/gameStore'
 import { BOARD_SLOT_MIN_H, DOCKED_MIN_H, planWall } from '../wallPlan'
 
-export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: () => void }) {
-  const maturity = deriveMaturity(pub)
+export function Instruments({
+  pub,
+  onLedger,
+  onOpenCapacity,
+}: {
+  pub: PublishedState
+  onLedger: () => void
+  onOpenCapacity: () => void
+}) {
+  const access = deriveInstrumentAccess(pub)
   const trail = useGame((s) => s.corridorTrail)
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
   const plan = planWall(pinned, INDICATOR_IDS)
-  const fittedCount = INDICATOR_IDS.filter((id) => maturity[id] !== 'unmeasured').length
-  const liveCount = INDICATOR_IDS.filter((id) => maturity[id] === 'terminal').length
+  const fittedCount = INDICATOR_IDS.filter((id) => access[id].availability !== 'unfunded').length
+  const liveCount = INDICATOR_IDS.filter((id) => access[id].maturity === 'terminal').length
 
   return (
     <div className="instrument-wall grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
@@ -54,7 +62,14 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
         }}
       >
         {plan.board.map((id) => (
-          <Gauge key={id} indicator={id} maturity={maturity[id]} series={pub.indicators[id]} now={pub.tick} />
+          <Gauge
+            key={id}
+            indicator={id}
+            access={access[id]}
+            series={pub.indicators[id]}
+            now={pub.tick}
+            onOpenCapacity={access[id].availability === 'unfunded' ? onOpenCapacity : undefined}
+          />
         ))}
       </div>
 
@@ -73,7 +88,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
           <RackStrip
             key={id}
             indicator={id}
-            maturity={maturity[id]}
+            access={access[id]}
             series={pub.indicators[id]}
             now={pub.tick}
             pinned={plan.board.includes(id)}

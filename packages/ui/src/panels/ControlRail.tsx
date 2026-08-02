@@ -4,12 +4,12 @@
  * same focused drawer at smaller laptop and tablet widths.
  */
 
-import { useState } from 'react'
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, SliderField } from '../components/ui'
 import { NAMES } from '../components/labels'
+import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -27,7 +27,7 @@ interface DialDef {
 
 const spendMax = (pub: PublishedState) => Math.max(pub.treasury.revenue * 3, 10)
 
-type CabinetGroup = 'TAXATION' | 'SPENDING' | 'MONEY' | 'SUBSIDIES' | 'STATE CAPACITY'
+export type CabinetGroup = 'TAXATION' | 'SPENDING' | 'MONEY' | 'SUBSIDIES' | 'STATE CAPACITY'
 
 interface DialGroup {
   group: Exclude<CabinetGroup, 'STATE CAPACITY'>
@@ -169,10 +169,11 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   const building = pub.capacityBuilding.find((b) => b.target === id)
   const amount = Math.max(2, pub.treasury.revenue * 0.8)
   const maxed = pub.capacity[id] >= 0.95
-  const lockedSurveys = id === 'statistical'
-    ? INDICATOR_IDS.filter((indicator) => !pub.indicators[indicator]).map((indicator) => NAMES[indicator].needs)
-    : []
-  const uniqueLocked = [...new Set(lockedSurveys)]
+  const instrumentAccess = deriveInstrumentAccess(pub)
+  const awaitingCount = id === 'statistical'
+    ? INDICATOR_IDS.filter((indicator) => instrumentAccess[indicator].availability === 'awaiting').length
+    : 0
+  const nextUnlock = id === 'statistical' ? nextInstrumentUnlock(pub.capacity.statistical) : null
   return (
     <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
@@ -193,9 +194,11 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
         </Button>
       </div>
       <p className="mt-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/70">{CAP_EFFECTS[id]}</p>
-      {id === 'statistical' && uniqueLocked.length > 0 && (
+      {id === 'statistical' && (nextUnlock || awaitingCount > 0) && (
         <div className="mt-1.5 border-l border-dossier-brass/60 pl-2 font-mono text-[8px] leading-relaxed tracking-[0.08em] text-dossier-brass">
-          {uniqueLocked.length} SURVEY OFFICES STILL UNFUNDED · NEXT RETURNS INCLUDE {uniqueLocked.slice(0, 2).join(' + ')}
+          {awaitingCount > 0 && `${awaitingCount} COMMISSIONED · RETURNS PENDING`}
+          {awaitingCount > 0 && nextUnlock && <span aria-hidden="true"> · </span>}
+          {nextUnlock && `NEXT @ ${Math.round(nextUnlock.fundedAt * 100)} · ${nextUnlock.indicators.map((indicator) => NAMES[indicator].short).join(' + ')}`}
         </div>
       )}
       <div className={`mt-1 font-mono text-[8px] tracking-[0.08em] ${stagedAction ? 'text-dossier-brass' : 'text-dossier-paper/40'}`}>
@@ -209,9 +212,16 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   )
 }
 
-export function ControlRail({ pub }: { pub: PublishedState }) {
+export function ControlRail({
+  pub,
+  openGroup,
+  onOpenGroupChange,
+}: {
+  pub: PublishedState
+  openGroup: CabinetGroup
+  onOpenGroupChange: (group: CabinetGroup) => void
+}) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
-  const [openGroup, setOpenGroup] = useState<CabinetGroup>('TAXATION')
   const finiteCost = stagedCost !== null && Number.isFinite(stagedCost) ? stagedCost : null
   const capitalAfter = finiteCost === null ? null : pub.politicalCapital - finiteCost
   const activeDials = DIALS.find((group) => group.group === openGroup)
@@ -239,7 +249,7 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => setOpenGroup(group.group)}
+              onClick={() => onOpenGroupChange(group.group)}
               className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
                 selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
               }`}
@@ -255,7 +265,7 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
           type="button"
           role="tab"
           aria-selected={openGroup === 'STATE CAPACITY'}
-          onClick={() => setOpenGroup('STATE CAPACITY')}
+          onClick={() => onOpenGroupChange('STATE CAPACITY')}
           className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
             openGroup === 'STATE CAPACITY' ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
           }`}

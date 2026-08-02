@@ -26,6 +26,14 @@ test('cabinet draft review', async ({ page }) => {
   await expect(page).toHaveScreenshot('cabinet-draft.png')
 })
 
+test('unfitted instrument routes to its capacity investment', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('button', { name: 'Open Institutions to fund LABOUR FORCE SURVEY' }).click()
+  await expect(page.getByRole('tabpanel')).toContainText('BUILD THE STATE THAT DELIVERS THE POLICY')
+  await expect(page.getByRole('button', { name: 'ADVANCE QUARTER' })).toBeVisible()
+  await expect(page).toHaveScreenshot('instrument-capacity-route.png')
+})
+
 test('financial overlay empty state', async ({ page }) => {
   await openGame(page)
   await page.getByRole('button', { name: 'FINANCE' }).click()

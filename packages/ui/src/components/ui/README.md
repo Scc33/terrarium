@@ -15,6 +15,11 @@ Every component lives in its own folder beside its server-rendered contract test
 Domain instruments such as `AnalogGauge` and `TerminalTicker` follow the same
 folder-and-test convention one level above, but are not generic library exports.
 
+Instrument access is derived once in `maturity.ts`: `unfunded`, `awaiting`, and
+`reporting` are separate states, and every unlock threshold comes from the same
+engine constant used by the statistics pipeline. Wall components receive that
+derived contract; they do not guess from the presence or absence of a series.
+
 ## Visual review
 
 In development, `/?gallery=1` opens the deterministic component gallery. It

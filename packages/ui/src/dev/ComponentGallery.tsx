@@ -13,6 +13,7 @@ import {
   SliderField,
 } from '../components/ui'
 import { SHARE_INKS } from '../shares'
+import { BlankPlate } from '../components/BlankPlate/BlankPlate'
 
 const TREND = [
   { tick: 0, value: 100 },
@@ -107,6 +108,17 @@ export function ComponentGallery() {
           <EmptyState title="NO RETURNS FILED" requirement="BANK SUPERVISION">Fund the supervisor before the leverage becomes legible.</EmptyState>
           <EmptyState title="RECORD TOO SHORT" compact>Advance several quarters to establish a trend.</EmptyState>
         </Panel>
+
+        <div className="lg:col-span-2">
+          <Panel tone="felt" title="INSTRUMENT ACCESS STATES" bodyClassName="grid gap-3 p-3 sm:grid-cols-2">
+            <div className="h-52">
+              <BlankPlate indicator="unemployment" currentCapacity={0.18} fundedAt={0.35} onOpenCapacity={() => undefined} />
+            </div>
+            <div className="h-52">
+              <BlankPlate indicator="inflation" availability="awaiting" currentCapacity={0.18} fundedAt={0.08} />
+            </div>
+          </Panel>
+        </div>
 
         <div className="lg:col-span-2">
           <Panel title="OVERLAY INFORMATION ARCHITECTURE" bodyClassName="p-4">
