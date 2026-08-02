@@ -91,7 +91,13 @@ export function observe(state: TrueState): PublishedState {
     country: state.params.name,
     indicators,
     dials: structuredClone(state.gov.dials),
-    treasury: { ...state.gov.budget, debt: state.gov.debt, printed: state.gov.printed },
+    treasury: {
+      ...state.gov.budget,
+      debt: state.gov.debt,
+      printed: state.gov.printed,
+      revenueBySource: { ...state.flows.revenueBySource },
+      outlaysByProgramme: { ...state.flows.outlaysByProgramme },
+    },
     capacity: { ...state.gov.capacity },
     capacityBuilding: state.gov.pipeline.map((b) => ({ target: b.target, remaining: b.remaining })),
     books: state.stats.record.map((r) => ({
@@ -101,6 +107,8 @@ export function observe(state: TrueState): PublishedState {
       balance: r.balance,
       debt: r.debt,
       reserves: r.reserves,
+      revenueBySource: { ...r.revenueBySource },
+      outlaysByProgramme: { ...r.outlaysByProgramme },
     })),
     population: {
       // census-grade facts: heads are countable without a statistical office

@@ -40,6 +40,22 @@ them. Keep it that way; anything you push into a component becomes untestable he
   a tile that sizes to its content instead of its slot is how M3–M5 shipped a wall that
   painted its own figures underneath the tile below and showed needles with no numbers.
 
+### Shares of a whole (schema 11) — the same trade, one layer up
+
+`ui/src/shares.ts` is the pie/stacked-band geometry, pure and pinned by
+`tests/ui/shares.test.ts`; `InkPie` and `InkStack` paint what it returns and know nothing
+about budgets, so **reuse them** rather than hand-rolling a second chart when output by
+sector wants one. The reason it's a module and not a component: a wedge that emits `NaN`
+into its path draws nothing at all, and in review that is indistinguishable from a category
+with no money in it.
+
+Two things to know before adding to it. `SHARE_INKS` has six entries because six is the
+widest split the books have and a seventh slice stops being readable — bucket the tail into
+"other" instead of extending the ramp. And the per-category label/ink tables in
+`panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so adding a tax or
+a spending line **fails the build until it has been named and given an ink** — the same
+compile-enforcement `domains.ts` puts on dial faces.
+
 ## Hard rules (lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`

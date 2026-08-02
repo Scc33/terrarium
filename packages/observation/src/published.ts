@@ -7,10 +7,19 @@
  * their presentation.
  */
 
-import type { CapacityId, DialState, IndicatorId, NewsItem, Qtr, StatPrint } from '@terrarium/engine'
+import type {
+  CapacityId,
+  DialState,
+  IndicatorId,
+  NewsItem,
+  OutlaySplit,
+  Qtr,
+  RevenueSplit,
+  StatPrint,
+} from '@terrarium/engine'
 
-export { INDICATOR_IDS } from '@terrarium/engine'
-export type { IndicatorId, NewsItem }
+export { INDICATOR_IDS, OUTLAY_IDS, REVENUE_SOURCE_IDS } from '@terrarium/engine'
+export type { IndicatorId, NewsItem, OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 
 /** A published figure, exactly as the office released it. */
 export type IndicatorPoint = StatPrint
@@ -48,13 +57,16 @@ export interface PublishedState {
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
   /** you always know your own settings */
   dials: DialState
-  /** the treasury keeps exact books on itself */
+  /** the treasury keeps exact books on itself — including *which* tax paid
+   * for *which* programme, the question a headline balance cannot answer */
   treasury: {
     revenue: number
     outlays: number
     balance: number
     debt: number
     printed: number
+    revenueBySource: RevenueSplit
+    outlaysByProgramme: OutlaySplit
   }
   capacity: Record<CapacityId, number>
   capacityBuilding: Array<{ target: CapacityId; remaining: Qtr }>
@@ -66,6 +78,10 @@ export interface PublishedState {
     balance: number
     debt: number
     reserves: number
+    /** the composition, quarter by quarter: a century of it is the only way
+     * to see a tax base erode or an interest bill eat the budget */
+    revenueBySource: RevenueSplit
+    outlaysByProgramme: OutlaySplit
   }>
   /** census-grade facts — live from M4 on: the transition is the century */
   population: { total: number; laborForce: number; pyramid: number[] }

@@ -8,6 +8,43 @@ The **schema version** (`packages/engine/src/state/schema.ts` → `SCHEMA_VERSIO
 the shape of `TrueState` or the pipeline order changes; each bump is a golden-replay event
 (`pnpm test` → `pnpm diff-state` review → `pnpm bless`).
 
+## [schema 11] — 2026-08-02 — The budget, itemised
+
+The economy is **bit-identical to schema 10** — the hashes moved because the state now carries
+two more recorded values per quarter and a new version stamp, and for no other reason. (Proof,
+if a future milestone wants it: unwind the stamp and drop the two new splits and the golden
+states hash back to their v10 values exactly.) The pipeline order is unchanged.
+
+### Added
+- **The treasury's books, disaggregated.** `revenueBySource` (income · corporate · tariff ·
+  fuel) and `outlaysByProgramme` (transfers · procurement · public works · subsidies ·
+  ministries · debt service) are now computed in the `fiscal` step, filed every quarter in the
+  statistical record, and published — **exact, no fog**, like every other book a government
+  keeps on itself. A century of composition is on the record from quarter one.
+- **The ledger overlay is now a fiscal instrument rather than five line charts.** One side of
+  the books at a time: a pie for this quarter's mix, the same colours stacked across the whole
+  century beside it, in either **levels** (how much there was) or **shares** (each quarter
+  normalised to its own total — the only way to read a mix across a century in which the totals
+  grow tenfold). A tax cut now has somewhere to show up.
+- **Take per point of rate**, printed beside each tax: receipts ÷ the rate you set — this
+  quarter's *base*, which is the closest the books come to answering "what happens if I cut
+  this". Labelled as a measurement, not a forecast, because it isn't one: the base moves when
+  the rate does, and `tests/properties/budget-composition.test.ts` pins that it does, so the
+  caveat can never quietly become a lie.
+- **`InkPie` / `InkStack`** — shares of a whole, in the dossier register, both reusable and
+  deliberately ignorant of what a budget is. Output by sector is the next thing that wants them.
+- **`ui/src/shares.ts`** — the pie and band geometry as a pure module (M5.5's lesson: a wedge
+  that emits `NaN` into its path draws nothing and looks, in review, exactly like a category
+  with no money in it). `tests/ui/shares.test.ts` pins it.
+- **Six categorical inks** (`--color-share-1…6`) — the widest split the books have. Past six a
+  pie stops being readable; bucket the tail instead of adding a seventh.
+
+### Changed
+- `flows.taxRevenue` → `flows.revenueBySource`, and the outlay arithmetic that was inline in the
+  `fiscal` step is now a named split. Same numbers, same order of addition.
+- `LedgerOverlay` moved out of `panels/LedgerPanel.tsx` into its own file; the docked wall tile
+  is untouched (two lines and three totals is all that bay affords).
+
 ## [M5.5] — 2026-08-01 — The wall you can actually read
 
 No schema change: the economy is bit-identical (`ELECTION_WIN_THRESHOLD` is newly exported
