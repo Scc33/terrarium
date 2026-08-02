@@ -1,14 +1,15 @@
 /**
- * The right rail: every lever, always available, always visible — plus the
- * advance control. Compact ministry hardware on felt; the game never says
- * no, it lets you find out.
+ * The cabinet workspace: one decision domain at a time, with the draft and
+ * enact flow pinned below it. It is a right rail on full desktops and the
+ * same focused drawer at smaller laptop and tablet widths.
  */
 
 import { useState } from 'react'
 import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terrarium/engine'
-import type { PublishedState } from '@terrarium/observation'
+import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
-import { Button, DisclosureSection, Metric, ProgressBar, SliderField } from '../components/ui'
+import { Button, Metric, ProgressBar, SliderField } from '../components/ui'
+import { NAMES } from '../components/labels'
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -26,9 +27,22 @@ interface DialDef {
 
 const spendMax = (pub: PublishedState) => Math.max(pub.treasury.revenue * 3, 10)
 
-const DIALS: Array<{ group: string; dials: DialDef[] }> = [
+type CabinetGroup = 'TAXATION' | 'SPENDING' | 'MONEY' | 'SUBSIDIES' | 'STATE CAPACITY'
+
+interface DialGroup {
+  group: Exclude<CabinetGroup, 'STATE CAPACITY'>
+  tab: string
+  brief: string
+  question: string
+  dials: DialDef[]
+}
+
+const DIALS: DialGroup[] = [
   {
     group: 'TAXATION',
+    tab: 'REVENUE',
+    brief: 'Choose who finances the state. Collection strength decides how much of each posted rate reaches the treasury.',
+    question: 'Who carries the tax burden?',
     dials: [
       { path: 'taxRates.income', label: 'Income', get: (p) => p.dials.taxRates.income, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
       { path: 'taxRates.corporate', label: 'Corporate', get: (p) => p.dials.taxRates.corporate, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
@@ -38,6 +52,9 @@ const DIALS: Array<{ group: string; dials: DialDef[] }> = [
   },
   {
     group: 'SPENDING',
+    tab: 'SPENDING',
+    brief: 'Set the quarterly programme mix. The civil service determines how much reaches the country, but the books pay the full amount.',
+    question: 'Where should the next quarter go?',
     dials: [
       { path: 'spending.transfers', label: 'Transfers', get: (p) => p.dials.spending.transfers, min: 0, max: spendMax, step: 0.1, fmt: money },
       { path: 'spending.procurement', label: 'Procurement', get: (p) => p.dials.spending.procurement, min: 0, max: spendMax, step: 0.1, fmt: money },
@@ -46,12 +63,18 @@ const DIALS: Array<{ group: string; dials: DialDef[] }> = [
   },
   {
     group: 'MONEY',
+    tab: 'CENTRAL BANK',
+    brief: 'Set the price of money. Investment, the bond market, exchange reserves, and financial risk all listen.',
+    question: 'How tight should money be?',
     dials: [
       { path: 'policyRate', label: 'Policy rate', get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
     ],
   },
   {
     group: 'SUBSIDIES',
+    tab: 'INDUSTRY',
+    brief: 'Direct quarterly support to particular sectors. Subsidies can relieve a bottleneck, but they are recurring claims on the budget.',
+    question: 'Which industries get support?',
     dials: SECTOR_IDS.map((sid) => ({
       path: `subsidies.${sid}` as DialPath,
       label: sid,
@@ -132,6 +155,13 @@ const CAP_TIPS: Record<CapacityId, string> = {
     'Human capital: sets how fast the country can absorb the world technology frontier, and schooling pulls fertility down. Slow to build, slower to matter — and the only way out of the middle.',
 }
 
+const CAP_EFFECTS: Record<CapacityId, string> = {
+  tax: 'More of every posted tax rate is actually collected.',
+  statistical: 'Fits new wall instruments, then shortens lags and narrows error bands.',
+  administrative: 'More programme spending survives delivery instead of leaking away.',
+  education: 'Raises technology absorption and steadily changes the demographic future.',
+}
+
 function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   const { staged, stagedCosts, stage } = useGame()
   const key = `cap:${id}`
@@ -139,11 +169,15 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   const building = pub.capacityBuilding.find((b) => b.target === id)
   const amount = Math.max(2, pub.treasury.revenue * 0.8)
   const maxed = pub.capacity[id] >= 0.95
+  const lockedSurveys = id === 'statistical'
+    ? INDICATOR_IDS.filter((indicator) => !pub.indicators[indicator]).map((indicator) => NAMES[indicator].needs)
+    : []
+  const uniqueLocked = [...new Set(lockedSurveys)]
   return (
-    <div className={`border-l-2 px-2 py-1.5 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.06]' : 'border-transparent'}`}>
+    <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="truncate font-mono text-[10px] tracking-wide text-dossier-paper/75" title={CAP_TIPS[id]}>{CAP_LABELS[id]}</span>
-        <span className="font-mono text-[9px] tabular-nums text-dossier-paper/55">{(pub.capacity[id] * 100).toFixed(0)} / 100</span>
+        <span className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper" title={CAP_TIPS[id]}>{CAP_LABELS[id]}</span>
+        <span className="font-mono text-[10px] font-semibold tabular-nums text-dossier-brass">{(pub.capacity[id] * 100).toFixed(0)} / 100</span>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_70px] items-center gap-2">
         <ProgressBar value={pub.capacity[id]} label={`${CAP_LABELS[id]} capacity`} />
@@ -158,6 +192,12 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
           {maxed ? 'FULL' : stagedAction ? 'RESET' : 'FUND'}
         </Button>
       </div>
+      <p className="mt-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/70">{CAP_EFFECTS[id]}</p>
+      {id === 'statistical' && uniqueLocked.length > 0 && (
+        <div className="mt-1.5 border-l border-dossier-brass/60 pl-2 font-mono text-[8px] leading-relaxed tracking-[0.08em] text-dossier-brass">
+          {uniqueLocked.length} SURVEY OFFICES STILL UNFUNDED · NEXT RETURNS INCLUDE {uniqueLocked.slice(0, 2).join(' + ')}
+        </div>
+      )}
       <div className={`mt-1 font-mono text-[8px] tracking-[0.08em] ${stagedAction ? 'text-dossier-brass' : 'text-dossier-paper/40'}`}>
         {stagedAction
           ? `DRAFTED · ${(stagedCosts[key] ?? 2).toFixed(1)} PC · ${amount.toFixed(1)} TOTAL · ${(amount / 8).toFixed(1)} / QTR · 8Q DELIVERY`
@@ -171,58 +211,92 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
 
 export function ControlRail({ pub }: { pub: PublishedState }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
-  const [openGroup, setOpenGroup] = useState<string | null>('TAXATION')
+  const [openGroup, setOpenGroup] = useState<CabinetGroup>('TAXATION')
   const finiteCost = stagedCost !== null && Number.isFinite(stagedCost) ? stagedCost : null
   const capitalAfter = finiteCost === null ? null : pub.politicalCapital - finiteCost
-  const toggle = (group: string) => setOpenGroup((current) => current === group ? null : group)
+  const activeDials = DIALS.find((group) => group.group === openGroup)
+  const draftedIn = (group: CabinetGroup) => group === 'STATE CAPACITY'
+    ? CAPACITY_IDS.filter((id) => staged.has(`cap:${id}`)).length
+    : DIALS.find((candidate) => candidate.group === group)?.dials.filter((dial) => staged.has(`dial:${dial.path}`)).length ?? 0
+  const fiscalTone = pub.treasury.balance < 0 ? 'text-terminal-alert' : 'text-dossier-paper'
 
   return (
-    <aside className="flex flex-col border-t border-dossier-brass/70 bg-[#294235] lg:h-full lg:overflow-y-auto lg:border-l lg:border-t-0" aria-label="Cabinet controls">
-      <div className="flex items-center justify-between gap-4 border-b border-dossier-paper/12 px-4 py-2.5">
+    <aside className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
+      <div className="flex shrink-0 items-center justify-between gap-4 border-b border-dossier-paper/15 px-4 py-2.5">
         <div>
-          <div className="font-dossier text-base font-semibold text-dossier-paper">Cabinet desk</div>
-          <div className="mt-0.5 font-mono text-[8px] tracking-[0.16em] text-dossier-paper/45">POLICY FOR NEXT QUARTER</div>
+          <div className="font-dossier text-lg font-semibold leading-none text-dossier-paper">Cabinet desk</div>
+          <div className="mt-1 font-mono text-[9px] tracking-[0.16em] text-dossier-brass">ORDERS FOR THE NEXT QUARTER</div>
         </div>
-        <Metric compact inverted label="AVAILABLE" value={`${pub.politicalCapital.toFixed(1)} PC`} tone="accent" />
+        <Metric inverted label="POLITICAL CAPITAL" value={pub.politicalCapital.toFixed(1)} detail="AVAILABLE" tone="accent" className="items-end text-right" />
       </div>
-      <div className="flex flex-col gap-2 px-3 py-2">
-      {DIALS.map((g) => (
-        <DisclosureSection
-          key={g.group}
-          title={g.group}
-          open={openGroup === g.group}
-          onToggle={() => toggle(g.group)}
-          aside={(() => {
-            const count = g.dials.filter((dial) => staged.has(`dial:${dial.path}`)).length
-            return count > 0 ? `${count} DRAFTED` : `${g.dials.length} CONTROL${g.dials.length === 1 ? '' : 'S'}`
-          })()}
+      <div className="grid shrink-0 grid-cols-3 border-b border-dossier-paper/15" role="tablist" aria-label="Cabinet decision areas">
+        {DIALS.map((group) => {
+          const selected = openGroup === group.group
+          const count = draftedIn(group.group)
+          return (
+            <button
+              key={group.group}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setOpenGroup(group.group)}
+              className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+                selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
+              }`}
+            >
+              <span className="block text-[9px] font-semibold tracking-[0.1em]">{group.tab}</span>
+              <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${selected ? 'text-dossier-ink/55' : count ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
+                {count ? `${count} DRAFTED` : `${group.dials.length} CONTROL${group.dials.length === 1 ? '' : 'S'}`}
+              </span>
+            </button>
+          )
+        })}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={openGroup === 'STATE CAPACITY'}
+          onClick={() => setOpenGroup('STATE CAPACITY')}
+          className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+            openGroup === 'STATE CAPACITY' ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
+          }`}
         >
-          <div className="flex flex-col gap-1">
-            {g.dials.map((d) => (
-              <DialRow key={d.path} def={d} pub={pub} />
-            ))}
-          </div>
-        </DisclosureSection>
-      ))}
-
-      <DisclosureSection
-        title="STATE CAPACITY"
-        open={openGroup === 'STATE CAPACITY'}
-        onToggle={() => toggle('STATE CAPACITY')}
-        aside={CAPACITY_IDS.some((id) => staged.has(`cap:${id}`)) ? `${CAPACITY_IDS.filter((id) => staged.has(`cap:${id}`)).length} DRAFTED` : 'LONG-TERM'}
-      >
-        <div className="flex flex-col gap-1">
-          {CAPACITY_IDS.map((id) => (
-            <CapacityRow key={id} id={id} pub={pub} />
-          ))}
-        </div>
-      </DisclosureSection>
-
+          <span className="block text-[9px] font-semibold tracking-[0.1em]">INSTITUTIONS</span>
+          <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${openGroup === 'STATE CAPACITY' ? 'text-dossier-ink/55' : draftedIn('STATE CAPACITY') ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
+            {draftedIn('STATE CAPACITY') ? `${draftedIn('STATE CAPACITY')} DRAFTED` : 'LONG-TERM'}
+          </span>
+        </button>
       </div>
-      <div className="sticky bottom-0 mt-auto flex flex-col gap-2 border-t border-dossier-brass/35 bg-[#22382d] px-4 py-2.5 shadow-[0_-8px_20px_rgba(0,0,0,0.16)]">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3" role="tabpanel">
+        {activeDials ? (
+          <section>
+            <div className="mb-2 border-b border-dossier-paper/15 pb-2">
+              <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-dossier-brass">{activeDials.question.toUpperCase()}</div>
+              <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">{activeDials.brief}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              {activeDials.dials.map((dial) => <DialRow key={dial.path} def={dial} pub={pub} />)}
+            </div>
+          </section>
+        ) : (
+          <section>
+            <div className="mb-2 border-b border-dossier-paper/15 pb-2">
+              <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-dossier-brass">BUILD THE STATE THAT DELIVERS THE POLICY</div>
+              <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">Capacity programmes take eight quarters. They make taxes collectible, programmes deliverable, instruments legible, and growth sustainable.</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              {CAPACITY_IDS.map((id) => <CapacityRow key={id} id={id} pub={pub} />)}
+            </div>
+          </section>
+        )}
+      </div>
+      <div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-dossier-brass/45 bg-[#1d3027] px-4 py-2.5 shadow-[0_-8px_20px_rgba(0,0,0,0.2)]">
         {(rejection || previewError) && <div className="border-l-2 border-terminal-alert pl-2 font-mono text-[9px] leading-snug text-terminal-alert">{rejection ?? previewError}</div>}
         {staged.size === 0 ? (
-          <div className="font-mono text-[9px] tracking-[0.08em] text-dossier-paper/55">NO ORDERS DRAFTED · MOVE A CONTROL TO BEGIN</div>
+          <div className="grid grid-cols-3 gap-2 font-mono text-[8px] tracking-[0.08em]">
+            <span className="text-dossier-brass">1 · SHAPE ORDERS</span>
+            <span className="text-dossier-paper/40">2 · REVIEW COST</span>
+            <span className="text-dossier-paper/40">3 · ENACT</span>
+          </div>
         ) : (
           <div>
             <div className="mb-1.5 flex items-center justify-between font-mono text-[9px] tracking-[0.08em]">
@@ -250,6 +324,11 @@ export function ControlRail({ pub }: { pub: PublishedState }) {
               CLEAR DRAFT
             </Button>
           )}
+        </div>
+        <div className="flex items-center justify-between font-mono text-[8px] tracking-[0.08em] text-dossier-paper/45">
+          <span className={fiscalTone}>CURRENT BALANCE {(pub.treasury.balance >= 0 ? '+' : '') + pub.treasury.balance.toFixed(1)}</span>
+          <span>{pub.quartersToElection}Q TO ELECTION</span>
+          <span>SPACE TO ADVANCE</span>
         </div>
         {!pub.inPower && (
           <div className="font-dossier text-[11px] italic leading-snug text-dossier-paper/60">

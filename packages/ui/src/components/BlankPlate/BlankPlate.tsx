@@ -30,7 +30,7 @@ export function BlankPlate({ indicator }: { indicator: IndicatorId }) {
         <div className="mt-1 [overflow-wrap:anywhere] font-mono text-[9px] font-medium tracking-[0.12em] text-dossier-ink/80">
           {t.needs}
         </div>
-        <div className="mt-2 font-mono text-[7px] tracking-[0.1em] text-dossier-ink/45">CABINET → STATE CAPACITY</div>
+        <div className="mt-2 border-t border-dossier-ink/20 pt-1.5 font-mono text-[7px] font-medium tracking-[0.1em] text-dossier-ink/60">UNLOCK: STATE CAPACITY → STATISTICAL OFFICE</div>
       </div>
     </WallTile>
   )

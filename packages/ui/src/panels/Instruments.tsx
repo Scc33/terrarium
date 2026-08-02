@@ -35,7 +35,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
   const liveCount = INDICATOR_IDS.filter((id) => maturity[id] === 'terminal').length
 
   return (
-    <div className="grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
+    <div className="instrument-wall grid h-full min-h-0 min-w-0 grid-rows-[auto_minmax(0,1.5fr)_auto_auto_minmax(0,1fr)] gap-2 bg-[#22382d] p-2.5">
       <SectionBar
         title="WATCH BOARD"
         detail="The four instruments the cabinet is flying by"
@@ -48,9 +48,8 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
           `h-full` resolves against its own content, which is how tiles used to
           demand more height than the band had and paint outside it */}
       <div
-        className="grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
+        className="instrument-board grid min-h-0 min-w-0 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
         style={{
-          gridTemplateColumns: `repeat(${plan.board.length}, minmax(0, 1fr))`,
           minHeight: BOARD_SLOT_MIN_H,
         }}
       >
@@ -68,8 +67,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
 
       {/* THE RACK — the apparatus entire, fitted and unfitted alike */}
       <div
-        className="grid min-w-0 gap-x-2 gap-y-1"
-        style={{ gridTemplateColumns: `repeat(${plan.rackCols}, minmax(0, 1fr))` }}
+        className="instrument-rack grid min-w-0 gap-x-2 gap-y-1"
       >
         {plan.rack.map((id) => (
           <RackStrip
@@ -87,7 +85,7 @@ export function Instruments({ pub, onLedger }: { pub: PublishedState; onLedger: 
 
       {/* DOCKED — the books you keep on yourself, and the map */}
       <div
-        className="grid min-h-0 min-w-0 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
+        className="instrument-docked grid min-h-0 min-w-0 grid-cols-2 grid-rows-[minmax(0,1fr)] gap-2 overflow-hidden"
         style={{ minHeight: DOCKED_MIN_H }}
       >
         <LedgerPanel pub={pub} onOpen={onLedger} />

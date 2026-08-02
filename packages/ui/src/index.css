@@ -88,8 +88,8 @@ button {
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  height: 2px;
-  background: color-mix(in srgb, var(--color-dossier-brass) 45%, transparent);
+  height: 3px;
+  background: color-mix(in srgb, var(--color-dossier-brass) 62%, transparent);
   outline: none;
   width: 100%;
   cursor: ew-resize;
@@ -102,8 +102,8 @@ input[type='range']:focus-visible {
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: var(--color-dossier-brass);
   border: 1px solid var(--color-dossier-ink);
@@ -121,8 +121,8 @@ input[type='range']::-moz-range-track {
 }
 
 input[type='range']::-moz-range-thumb {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--color-dossier-brass);
   border: 1px solid var(--color-dossier-ink);
@@ -139,6 +139,48 @@ input[type='range']::-moz-range-thumb {
     linear-gradient(color-mix(in srgb, var(--color-dossier-brass) 5%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in srgb, var(--color-dossier-brass) 5%, transparent) 1px, transparent 1px);
   background-size: 16px 16px;
+}
+
+/* The full war room is four bays wide. Below small-laptop width it becomes a
+   deliberate two-row board with a three-column rack instead of squeezing the
+   instruments until their labels and controls clip. */
+.instrument-board,
+.instrument-rack {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1023px) {
+  .instrument-wall {
+    height: auto;
+    min-height: 980px;
+    grid-template-rows: auto minmax(420px, 1fr) auto auto minmax(180px, 0.55fr);
+  }
+
+  .instrument-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(200px, 1fr));
+  }
+
+  .instrument-rack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .instrument-wall {
+    min-height: 1240px;
+    grid-template-rows: auto minmax(500px, 1fr) auto auto minmax(340px, 0.7fr);
+  }
+
+  .instrument-rack,
+  .instrument-docked {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .instrument-docked {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(160px, 1fr));
+  }
 }
 
 @keyframes cursor-blink {
