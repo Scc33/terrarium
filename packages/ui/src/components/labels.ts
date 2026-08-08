@@ -9,6 +9,7 @@
  * until it has been named at every maturity and its survey has been named too.
  */
 
+import type { CohortId } from '@terrarium/engine'
 import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/observation'
 
 export interface IndicatorNames {
@@ -43,6 +44,17 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD' },
   credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION' },
   unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS' },
+}
+
+/** The classes the country is made of, as a ministry's paperwork would list
+ * them. Total over CohortId for the same reason the tables above are: a new
+ * class in the engine stops the UI building until somebody has named it. */
+export const COHORT_NAMES: Record<CohortId, string> = {
+  retirees: 'Retirees',
+  rural_workers: 'Rural workers',
+  urban_workers: 'Urban workers',
+  professionals: 'Professionals',
+  business_owners: 'Business owners',
 }
 
 /** The veto players, by the name a minister would use. Total over BlocId, so
