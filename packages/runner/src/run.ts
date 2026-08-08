@@ -5,6 +5,7 @@
 
 import {
   applyActions,
+  createCountryParams,
   generateParams,
   hashState,
   init,
@@ -15,6 +16,7 @@ import {
   type Action,
   type ActionLog,
   type CountryParams,
+  type CountryScenarioId,
   type Rng,
   type SectorId,
   type TrueState,
@@ -36,6 +38,9 @@ export interface TrajectoryPoint {
 
 export interface RunResult {
   seed: string
+  /** scenario recipe used to create params; custom marks an explicit vector */
+  countryId: CountryScenarioId | 'baseline' | 'custom'
+  country: string
   ticks: number
   trajectory: TrajectoryPoint[]
   finalState: TrueState
@@ -51,6 +56,8 @@ export interface RunOptions {
   ticks: number
   script?: ActionLog
   params?: CountryParams
+  /** ignored when an explicit params vector is supplied */
+  country?: CountryScenarioId
   /** if set, generates actions on the fly (random-policy runs) */
   policy?: (state: TrueState, rng: Rng, tick: number) => Action[]
   /** tolerate illegal scripted/policy actions by skipping them (default true;
@@ -77,7 +84,8 @@ function point(s: TrueState): TrajectoryPoint {
 }
 
 export function runOne(opts: RunOptions): RunResult {
-  const params = opts.params ?? generateParams(opts.seed)
+  const countryId = opts.params ? 'custom' : (opts.country ?? 'baseline')
+  const params = opts.params ?? (opts.country ? createCountryParams(opts.country, opts.seed) : generateParams(opts.seed))
   const byTick = new Map<number, Action[]>()
   for (const t of opts.script ?? []) byTick.set(t.tick, t.actions)
   const lenient = opts.lenient !== false
@@ -112,6 +120,8 @@ export function runOne(opts: RunOptions): RunResult {
 
   return {
     seed: opts.seed,
+    countryId,
+    country: params.name,
     ticks: opts.ticks,
     trajectory,
     finalState: s,

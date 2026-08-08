@@ -49,21 +49,21 @@ export interface Reading {
 export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   gdp_growth: { lo: -15, hi: 15 },
   inflation: { lo: -15, hi: 15 },
-  price_food: { lo: 60, hi: 130 },
+  price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },
   unemployment: { lo: 0, hi: 25 },
-  payrolls: { lo: 0, hi: 25 },
+  payrolls: { lo: 0, hi: 50 },
   capital_stock: 'ratchet',
   conf_consumer: { lo: 20, hi: 80 },
   conf_business: { lo: 20, hi: 90 },
   approval: { lo: 20, hi: 80 },
-  gini: { lo: 30, hi: 55 },
+  gini: { lo: 20, hi: 60 },
   birth_rate: { lo: 0, hi: 45 },
   death_rate: { lo: 0, hi: 30 },
   terms_of_trade: { lo: 85, hi: 115 },
-  asset_prices: { lo: 50, hi: 130 },
+  asset_prices: { lo: 50, hi: 140 },
   credit_growth: { lo: -30, hi: 30 },
-  unrest: { lo: 0, hi: 55 },
+  unrest: { lo: 0, hi: 60 },
 }
 
 /**

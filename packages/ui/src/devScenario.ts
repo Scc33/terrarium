@@ -13,7 +13,7 @@
  * and arithmetic pushed into a component is arithmetic nobody can test.
  */
 
-import type { CapacityId, CountryParams } from '@terrarium/engine'
+import type { CapacityId, CountryParams, CountryScenarioId } from '@terrarium/engine'
 
 /** quarters since 1946Q1 is the engine's clock; this is its human face */
 export const YEAR_ZERO = 1946
@@ -32,11 +32,13 @@ export function tickForYear(year: number, endOfHistory: number): number {
 
 export interface DevScenario {
   seed: string
+  /** curated or procedural opening recipe before overrides are applied */
+  country?: CountryScenarioId
   /** calendar year to fast-forward to; 1946 means "don't run at all" */
   year: number
   /** multiplies every cohort — a bigger or smaller country */
   populationScale?: number
-  /** 0..1; scales starting capital, TFP and capacities */
+  /** 0.05..1; scales starting capital, TFP and capacities */
   development?: number
   /** trade exposure multiplier */
   openness?: number
@@ -56,7 +58,7 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
 export function applyScenario(base: CountryParams, sc: DevScenario): CountryParams {
   const next: CountryParams = { ...base }
 
-  if (sc.development !== undefined) next.development = clamp01(sc.development)
+  if (sc.development !== undefined) next.development = Math.max(0.05, clamp01(sc.development))
   if (sc.openness !== undefined) next.openness = Math.max(0, sc.openness)
 
   if (sc.capacities) {

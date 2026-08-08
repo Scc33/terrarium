@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Action, SaveFile } from '@terrarium/engine'
+import type { Action, CountryScenarioId, SaveFile } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, DevNode, WorkerMessage } from '../worker/protocol'
@@ -52,7 +52,7 @@ interface GameState {
   /** dev only: the last true-state snapshot the worker was asked for */
   devTruth: { tick: number; tree: DevNode[] } | null
 
-  newGame(seed?: string): void
+  newGame(country: CountryScenarioId, seed?: string): void
   loadSave(save: SaveFile): void
   loadAutosave(): Promise<boolean>
   stage(key: string, action: Action | null): void
@@ -160,12 +160,12 @@ export const useGame = create<GameState>((set, get) => {
       set({ pinned: next })
     },
 
-    newGame(seed) {
+    newGame(country, seed) {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
-      send({ type: 'new', seed: s })
+      send({ type: 'new', seed: s, country })
     },
 
     loadSave(save) {

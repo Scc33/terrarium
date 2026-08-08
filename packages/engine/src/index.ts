@@ -10,7 +10,7 @@
 import { applyAction } from './actions/apply'
 import type { Action, ActionLog } from './actions/types'
 import { runTick } from './pipeline/pipeline'
-import { init as initState, generateParams } from './state/init'
+import { init as initState } from './state/init'
 import {
   ENGINE_VERSION,
   SCHEMA_VERSION,
@@ -64,7 +64,26 @@ export function replay(save: SaveFile, untilTick?: number): TrueState {
 }
 
 // ---------- re-exports ----------
-export { generateParams }
+export {
+  COUNTRY_ARCHETYPE_IDS,
+  COUNTRY_CATALOG,
+  CURATED_COUNTRY_IDS,
+  MERIDIA_PARAMS,
+  InvalidCountryError,
+  countryProfile,
+  createCountryParams,
+  generateParams,
+  generateCountryParams,
+  validateCountryParams,
+} from './countries'
+export type {
+  CountryArchetypeId,
+  CountryDifficulty,
+  CountryProfile,
+  CountryScenarioId,
+  CuratedCountryId,
+  ProceduralCountryOptions,
+} from './countries'
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'
@@ -93,6 +112,7 @@ export type {
   Cohort,
   CohortId,
   CountryParams,
+  CountryStructure,
   DialState,
   ElectionResult,
   GovernmentState,

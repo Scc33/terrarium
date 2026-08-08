@@ -5,7 +5,7 @@
  * tick 1 doesn't open with a shock.
  */
 
-import { rngFor, type Seed } from '../rng/rng'
+import type { Seed } from '../rng/rng'
 import {
   adminEffectiveness,
   taxEfficiency,
@@ -54,6 +54,7 @@ import {
 } from '../constants'
 import { vitalRates } from '../pipeline/demography'
 import { initialInstitutions } from '../pipeline/institutions'
+import { validateCountryParams } from '../countries'
 
 // baseline gross outputs / employment / capital for a 27.5M-person country
 // at development 0.35 (a mid-poor 1946 economy)
@@ -116,51 +117,40 @@ function initialDemography(params: CountryParams): DemographyState {
   }
 }
 
-const NAMES = ['Arcadia', 'Meridia', 'Costona', 'Veltravia', 'Kestrel', 'Oranga', 'Sellandia', 'Tavor']
-
-/** Sample a plausible country from parameter space (procedural mode). */
-export function generateParams(seed: Seed): CountryParams {
-  const rng = rngFor(seed, 'genParams', 0)
-  const popScale = rng.range(0.85, 1.15)
-  const cohortSizes = {
-    rural_workers: 12 * popScale * rng.range(0.9, 1.1),
-    urban_workers: 8 * popScale * rng.range(0.9, 1.1),
-    professionals: 3 * popScale * rng.range(0.9, 1.1),
-    business_owners: 1.5 * popScale,
-    retirees: 3 * popScale * rng.range(0.9, 1.1),
-  }
-  return {
-    name: NAMES[Math.floor(rng.next() * NAMES.length)],
-    development: rng.range(0.28, 0.45),
-    openness: rng.range(0.8, 1.2),
-    capacities: {
-      tax: rng.range(0.18, 0.3),
-      statistical: rng.range(0.12, 0.25),
-      administrative: rng.range(0.22, 0.35),
-      education: rng.range(0.12, 0.28),
-    },
-    cohortSizes,
-    enfranchisement: {
-      rural_workers: 0.6,
-      urban_workers: 0.8,
-      professionals: 1,
-      business_owners: 1,
-      retirees: 0.9,
-    },
-    // the standard 1946 shape, scaled to this country's class structure
-    pyramid: synthPyramid(cohortSizes),
-  }
+/** Reweight a standard sector vector while preserving its aggregate. The
+ * country changes shape here, not scale — population and development remain
+ * the sole owners of scale. The no-structure branch stays bit-identical to
+ * schema 12 for old saves and Meridia's golden baseline. */
+function reweight(
+  base: Record<SectorId, number>,
+  mix: Record<SectorId, number> | undefined,
+): Record<SectorId, number> {
+  if (!mix) return base
+  const before = SECTOR_IDS.reduce((sum, id) => sum + base[id], 0)
+  const weighted = sectorRecord((id) => base[id] * mix[id])
+  const after = SECTOR_IDS.reduce((sum, id) => sum + weighted[id], 0)
+  return sectorRecord((id) => (weighted[id] * before) / Math.max(after, 1e-9))
 }
 
 export function init(params: CountryParams, seed: Seed): TrueState {
+  validateCountryParams(params)
   const totalPop = Object.values(params.cohortSizes).reduce((a, b) => a + b, 0)
   const popScale = totalPop / BASE_POP
   const devScale = params.development / BASE_DEVELOPMENT
 
   // targets scaled by population; development scales productivity (via solved tfp)
-  const gross = sectorRecord((id) => BASE_GROSS[id] * popScale * devScale)
-  const employment = sectorRecord((id) => BASE_EMPLOYMENT[id] * popScale)
-  const capital = sectorRecord((id) => BASE_CAPITAL[id] * popScale * devScale)
+  const gross = reweight(
+    sectorRecord((id) => BASE_GROSS[id] * popScale * devScale),
+    params.structure?.outputMix,
+  )
+  const employment = reweight(
+    sectorRecord((id) => BASE_EMPLOYMENT[id] * popScale),
+    params.structure?.employmentMix,
+  )
+  const capital = reweight(
+    sectorRecord((id) => BASE_CAPITAL[id] * popScale * devScale),
+    params.structure?.capitalMix,
+  )
 
   // solve tfp so potential output = target / initial utilization
   const tfp = sectorRecord(
@@ -180,7 +170,8 @@ export function init(params: CountryParams, seed: Seed): TrueState {
   // of annual GDP, spread across sectors by capital, banks capitalized to
   // their target so no crunch and no boom until policy or the world moves it
   const annualGdp0 = 4 * gdp0
-  const creditOutstanding0 = CREDIT_BASE * annualGdp0
+  const creditToGdp0 = params.structure?.creditToGdp ?? CREDIT_BASE
+  const creditOutstanding0 = creditToGdp0 * annualGdp0
   const capitalTotal0 = SECTOR_IDS.reduce((s, id) => s + capital[id], 0)
 
   // the government starts spending what its narrow tax base actually
@@ -199,7 +190,8 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     wageBill0 * 0.15 * taxEff +
     profits0 * 0.2 * taxEff +
     importsValue * 0.1 * (0.5 + 0.5 * params.capacities.tax)
-  const debt0 = 0.3 * gdp0 * 4 // 30% of annual GDP
+  const debtToGdp0 = params.structure?.debtToGdp ?? 0.3
+  const debt0 = debtToGdp0 * gdp0 * 4
   const interest0 = (debt0 * 0.04) / 4
   // a small structural deficit is period-realistic and sustainable
   const grossBudget0 = Math.max(0, 1.05 * revenue0 - interest0)
@@ -298,7 +290,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       assetPrice: 1,
       bankCapital: BANK_TARGET_RATIO * creditOutstanding0,
       creditOutstanding: creditOutstanding0,
-      creditToGdp: CREDIT_BASE,
+      creditToGdp: creditToGdp0,
       creditGrowth: 0,
       crisisQtrsLeft: 0,
       crisisSeverity: 0,
@@ -339,7 +331,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     },
     external: {
       worldPrices: sectorRecord(() => 1),
-      reserves: importsValue * RESERVES_INIT_QTRS,
+      reserves: importsValue * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
       exchangeRate: 1,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
@@ -373,7 +365,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     },
     ledger: {
       inflationExpectations: 0.03,
-      debtToGdp: 0.3,
+      debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
     stats: { record: [], series: {}, news: [] },

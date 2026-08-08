@@ -1,7 +1,9 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 11 (M5.5). Companion to the design doc
+*How the code is actually arranged, as of schema 13. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
+
+Country recipe and calibration workflow: `docs/country-scenarios.md`.
 
 *This doc describes what exists. Where a decision had live alternatives and lasting
 consequences, the reasoning lives in an ADR under `docs/adr/` rather than here — this file
@@ -28,6 +30,7 @@ terrarium/
 │   ├── engine/                   # THE SIM. Pure TS. Zero DOM, zero React, zero I/O.
 │   │   ├── src/
 │   │   │   ├── index.ts          # public API: init, applyActions, step, replay, saves
+│   │   │   ├── countries.ts      # curated + deterministic procedural country recipes
 │   │   │   ├── constants.ts      # EVERY behavioral constant (ADR-0007)
 │   │   │   ├── math.ts, hash.ts  # helpers; hashState for golden replays
 │   │   │   ├── state/
@@ -112,12 +115,14 @@ somehow obtains one anyway, the contract test fails.
 
 ## 2. Core API
 
-The whole engine is three functions:
+The live engine is three functions; country recipes materialize their immutable input:
 
 ```ts
 export function init(params: CountryParams, seed: Seed): TrueState
 export function applyActions(s: TrueState, actions: Action[]): TrueState
 export function step(s: TrueState): TrueState          // one quarter
+export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams
+export function generateCountryParams(seed: Seed, options?): CountryParams
 ```
 
 All pure. A game is:

@@ -16,6 +16,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import { COUNTRY_CATALOG } from '@terrarium/engine'
 import { INDICATOR_IDS, type IndicatorId } from '@terrarium/observation'
 import {
   FACE_MARK,
@@ -145,8 +146,9 @@ describe('the faces fit the economy the engine actually produces', () => {
     const total = new Map<IndicatorId, number>()
     const pegged = new Map<IndicatorId, number>()
 
-    for (const seed of SURVEY_SEEDS) {
-      eachQuarter(seed, SURVEY_TICKS, (pub, tick) => {
+    for (const country of COUNTRY_CATALOG) {
+      for (const seed of SURVEY_SEEDS.slice(0, 2)) {
+        eachQuarter(`${seed}-${country.id}`, SURVEY_TICKS, (pub, tick) => {
         for (const id of INDICATOR_IDS) {
           const series = pub.indicators[id]
           if (!series) continue
@@ -159,7 +161,8 @@ describe('the faces fit the economy the engine actually produces', () => {
             if (readNeedle(domain, p.value).pegged) pegged.set(id, (pegged.get(id) ?? 0) + 1)
           }
         }
-      })
+        }, country.id)
+      }
     }
 
     expect(total.size, 'the surveyed century published nothing').toBeGreaterThan(10)

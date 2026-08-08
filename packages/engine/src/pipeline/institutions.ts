@@ -271,10 +271,11 @@ function unrestTarget(state: TrueState, gini: number): number {
  */
 export function initialInstitutions(provisional: TrueState): InstitutionState {
   const dev = provisional.params.development
+  const inherited = provisional.params.structure?.institutions
   const stocks = Object.fromEntries(
     INSTITUTION_IDS.map((id) => [
       id,
-      clamp(INSTITUTIONS_1946[id].base + INSTITUTIONS_1946[id].devGain * dev, 0, 1),
+      inherited?.[id] ?? clamp(INSTITUTIONS_1946[id].base + INSTITUTIONS_1946[id].devGain * dev, 0, 1),
     ]),
   ) as Record<InstitutionId, number>
 

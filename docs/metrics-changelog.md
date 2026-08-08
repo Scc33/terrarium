@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 12)
+## Current contract (schema 13)
 
 ### Inputs
 
@@ -34,6 +34,7 @@ contract, so it's called out below.
 | `cohortSizes` | persons (millions) per social cohort |
 | `enfranchisement` | ballot weight per cohort |
 | `pyramid` | 1946 age structure, 17 five-year bands *(added v6)* |
+| `structure` | optional normalized sector composition, opening debt/credit/reserves, and inherited institutions *(added v13; omitted means the historical Meridia defaults)* |
 
 **Policy levers** (`DialState`, set via the `setDial` action)
 | Lever | Range |
@@ -150,6 +151,19 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 13 — Country scenarios and structural openings
+- **Inputs +**: optional `CountryParams.structure`: normalized `outputMix`, `employmentMix`, and
+  `capitalMix` records over all five sectors; opening `debtToGdp`, `creditToGdp`, and
+  `reserveCoverage`; inherited institution stocks. Old saves omit the block and retain the exact
+  schema-12 opening.
+- **Scenario catalogue +**: five curated countries and one bounded procedural recipe. Recipes
+  materialize params before `init`; the materialized vector, not the recipe id, remains the save's
+  source of truth.
+- **Runner +**: `pnpm batch -- --country <id|all>`; `all` reports the balance and stability matrix
+  by scenario. Omitting `--country` retains the historical generated-baseline sampling frame.
+- **Pipeline**: unchanged. Meridia's economy is bit-identical to schema 12; golden hashes move for
+  the schema version stamp alone. Other countries use the same steps and differ only in inputs.
 
 ### schema 12 — Politics as a game
 - **Pipeline +**: `institutions` step (after `cohorts`, before `statistics`) — societal power,

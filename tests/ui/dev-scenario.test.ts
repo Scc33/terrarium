@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { END_OF_HISTORY_TICK, generateParams, hashState, init, step } from '@terrarium/engine'
+import { END_OF_HISTORY_TICK, createCountryParams, generateParams, hashState, init, step } from '@terrarium/engine'
 import {
   applyScenario,
   DEFAULT_SCENARIO,
@@ -58,7 +58,7 @@ describe('applyScenario', () => {
 
   it('clamps ratios into range instead of trusting the form', () => {
     expect(applyScenario(base, { seed: 'x', year: 1946, development: 5 }).development).toBe(1)
-    expect(applyScenario(base, { seed: 'x', year: 1946, development: -2 }).development).toBe(0)
+    expect(applyScenario(base, { seed: 'x', year: 1946, development: -2 }).development).toBe(0.05)
     expect(
       applyScenario(base, { seed: 'x', year: 1946, capacities: { statistical: 99 } }).capacities.statistical,
     ).toBe(1)
@@ -98,7 +98,7 @@ describe('applyScenario', () => {
 
 describe('a scenario is a real, reproducible game', () => {
   const run = (sc: DevScenario) => {
-    let s = init(applyScenario(generateParams(sc.seed), sc), sc.seed)
+    let s = init(applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc), sc.seed)
     const target = tickForYear(sc.year, END_OF_HISTORY_TICK)
     while (s.meta.tick < target) s = step(s)
     return s
@@ -106,6 +106,10 @@ describe('a scenario is a real, reproducible game', () => {
 
   it('lands on the year it was asked for', () => {
     expect(yearOfTick(run({ seed: 'repro', year: 1975 }).meta.tick)).toBe(1975)
+  })
+
+  it('can start from a curated country before applying overrides', () => {
+    expect(run({ seed: 'curated', country: 'oranga', year: 1946 }).params.name).toBe('Oranga')
   })
 
   it('replays to an identical state — the same scenario is the same country', () => {
