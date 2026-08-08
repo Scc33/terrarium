@@ -14,6 +14,21 @@ measured and don't yet believe** (open questions with evidence attached — read
 re-deriving one); `proposal-1.md` is the design doc whose § numbers ~65 code comments cite —
 don't renumber it. `docs/archive/` is unmaintained.
 
+## Skills
+
+Procedures live in `.agents/skills/`, symlinked to `.claude/skills` and `.codex/skills` so
+Claude Code and Codex share one copy. Both auto-load them by `description`; **read the skill
+before starting one of these tasks** rather than working from this file's summary.
+
+| Skill | For |
+|---|---|
+| `add-indicator` | a new published metric, or a dial face that has drifted |
+| `economics-review` | any engine change: reading the state diff, the baselines, `pnpm bless` |
+| `add-bloc-or-institution` | the politics layer — power, favour, veto pricing |
+| `terrarium-ui` | anything in `packages/ui` — tokens, the wall, charts, layout contracts |
+| `verify-the-wall` | proving a UI change fits, in a real browser at 1280×720 |
+| `document-a-decision` | choosing between an ADR, an investigation, and a tuning lesson |
+
 ## Hard rules (mostly lint-enforced, but know why)
 
 - `packages/engine` is pure: no DOM, no React, no other workspace packages, no `Math.random`
@@ -50,37 +65,35 @@ can be tested — anything pushed into a component becomes untestable:
   derived from the trailing window (a face redrawn under its own needle makes needle position
   meaningless). Off-scale pegs at the rail with a chevron — going off the dial is information.
   Only `capital_stock` ratchets, monotonically.
-- **`ui/src/components/WallTile.tsx`** — **every wall tile goes through it.** A tile fills its
-  slot and clips; it never sizes to its content. It owns `overflow-hidden`, `minmax(0,1fr)`
-  rows and `min-h-0` on the body.
+- **`ui/src/components/WallTile/WallTile.tsx`** — **every wall tile goes through it.** A tile
+  fills its slot and clips; it never sizes to its content. It owns `overflow-hidden`,
+  `minmax(0,1fr)` rows and `min-h-0` on the body. Its module comment lists the four ways this
+  breaks, all of which shipped at least once.
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
-  `InkPie` / `InkStack` paint what it returns and know nothing about budgets: reuse them
-  rather than hand-rolling a chart. Pure for the usual reason — a wedge that emits `NaN` into
-  its path draws nothing, which in review is indistinguishable from a category with no money
-  in it. `SHARE_INKS` stops at six, the widest split the books have; bucket a tail into
-  "other" rather than extend the ramp. The label/ink tables in `panels/LedgerOverlay.tsx` are
-  total `Record`s over the engine's id lists, so a new tax or spending line fails the build
-  until it has been named and given an ink.
+  `DonutChart` / `StackedAreaChart` (in `components/ui`) paint what it returns and know nothing
+  about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a
+  wedge that emits `NaN` into its path draws nothing, which in review is indistinguishable from
+  a category with no money in it. `SHARE_INKS` stops at six, the widest split the books have;
+  bucket a tail into "other" rather than extend the ramp. The label/ink tables in
+  `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
+  spending line fails the build until it has been named and given an ink.
 
-Layout bugs here are invisible in review AND in jsdom — a `flex-col` child missing `min-h-0`,
-an `h-full` SVG in an auto-height parent falling back to its viewBox ratio, a grid band with
-implicit `auto` rows — so the browser check below is not optional. Also: Tailwind scans source
-*text*, so a template-literal class (`grid-rows-[${rows}]`) exists in the DOM and in no
-stylesheet, failing silently. Spell variants out as literals.
+Import shared primitives from `components/ui`, never by reaching into a folder.
+
+Layout bugs here are invisible in review AND in jsdom, and Tailwind scans source *text* — so a
+template-literal class (`grid-rows-[${rows}]`) exists in the DOM and in no stylesheet, failing
+silently. Spell variants out as literals. **`terrarium-ui` skill** has the full contract;
+**`verify-the-wall` skill** is how you prove it, and it is not optional.
 
 ## Workflows
 
-- Engine change → `pnpm test` breaks golden replays → `pnpm diff-state` and review what moved
-  (that review IS the economics review) → `pnpm bless` if intentional.
+- Engine change or balance work → **`economics-review` skill**. `pnpm bless` overwrites the
+  goldens with whatever the engine now produces and cannot tell an improvement from a broken
+  economy, so the diff review IS the economics review (ADR-0008). The skill carries the passive
+  and random-policy baselines; keep them there rather than copying them back here.
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
   pipeline-order changes).
-- Balance work → `pnpm batch -- --runs 1000 --ticks 120 --policy random` (and
-  `--policy passive --ticks 400`). Healthy passive baseline: growth ≈ 2.5%/yr, inflation ≈ 0,
-  u ≈ 12.4% century mean (the elevated u is the DESIGNED §8 youth-bulge bomb an unschooled
-  do-nothing government earns; funding education absorbs it to ~7% and lifts growth past 3%),
-  ~7% deposed by 400q. Random policy 120q: ~30% deposed (M6's coups on top of the pre-M6 ~24%),
-  no NaN, no price explosions. M6 deliberately left the PASSIVE baseline untouched.
 - The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 - `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
@@ -93,19 +106,9 @@ stylesheet, failing silently. Spell variants out as literals.
 
 ### Adding an indicator
 
-Steps 3–4 are compile-enforced (both tables are total `Record<IndicatorId, …>`).
-
-1. `engine`: add to `INDICATOR_IDS` + a spec in `pipeline/statistics.ts` (with its `fundedAt`
-   capacity gate). Schema-version event → `metrics-changelog.md`.
-2. `observation`: a `PRESENTATION` entry (label + unit).
-3. `ui/src/components/labels.ts`: a `NAMES` entry — four names. Keep `short` to 10 characters
-   or the rack truncates it.
-4. `ui/src/domains.ts`: an `INDICATOR_FACE` entry. Run **`pnpm ranges`** and take a face
-   covering roughly p01–p99, rounded outward; let the extremes peg.
-5. `pnpm test` — `wall-plan` fails if the wall is out of room, `gauge-domains` re-measures a
-   surveyed century and rejects a face an instrument spends >2% of its life pegged against,
-   `revision-stamp` fails if the fog stopped biting or started biting everywhere.
-6. Verify in the browser at 1280×720 (below) — none of the above sees layout.
+→ **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
+checks, but `INDICATOR_SPECS` is an **array**, so a missing spec compiles clean and the
+instrument simply never publishes.
 
 ### The dev console (ADR-0010)
 
@@ -126,32 +129,15 @@ builds the bundle and greps it; if that test goes, the guarantee goes with it.
 
 ### Verifying the wall
 
-`tests/ui/` tests pure modules, not rendered components: jsdom has no layout engine, so a
-render test passes happily while the wall clips every figure it publishes. After any wall
-change, run the dev server, size to 1280×720, and confirm both values are `false` / `0`:
-
-```js
-(()=>{const w=document.querySelector('main > div'),b=w.getBoundingClientRect();let n=0;
-w.querySelectorAll('*').forEach(e=>{const r=e.getBoundingClientRect();if(r.bottom>b.bottom+1&&r.height>0)n++});
-return {scrolls:w.scrollHeight>b.height+1, belowFold:n}})()
-```
+→ **`verify-the-wall` skill.** `tests/ui/` tests pure modules, not rendered components: jsdom
+has no layout engine, so a render test passes happily while the wall clips every figure it
+publishes. The dev server at 1280×720 is the only thing that sees layout.
 
 ### Adding an institution or a bloc
 
-Both id lists are total `Record`s across engine, observation and UI, so the build walks you
-through most of it. What is NOT compile-enforced, and what M6 got wrong first time:
-
-1. `INSTITUTION_IDS` / `BLOC_IDS` in `state/schema.ts`; a stance row in **both** tables in
-   `actions/apply.ts` (`DIAL_STANCE` for levers, `REFORM_STANCE` for reforms).
-2. A bloc's POWER is derived from the economy in `pipeline/institutions.ts` — never a constant —
-   and needs a `BLOC_FAVOR_BASE` entry **measured** so the 1946 settlement reads neutral.
-3. A bloc needs exactly one economic channel for its hostility, through machinery that already
-   exists (a risk premium, an investment factor, a wage move). A bloc that only taxes PC is
-   set dressing.
-4. `ui/src/components/labels.ts`: `BLOC_NAMES` + `BLOC_NOTES`, or `INSTITUTION_NAMES`. A new
-   cabinet group also needs `CABINET_GROUPS` in `cabinetNavigation.ts`.
-5. Re-measure. `tests/properties/institutions.test.ts` pins the claims; check the passive
-   baseline did not move.
+→ **`add-bloc-or-institution` skill.** The id lists are total `Record`s and the build walks you
+through most of it — but `Stance` is a **`Partial`** over `BlocId`, so a new bloc compiles
+perfectly with no opinion about anything in the game. That is what M6 got wrong first time.
 
 ## Hard-won tuning lessons (violate at your peril)
 
