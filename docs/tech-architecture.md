@@ -366,6 +366,8 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 - `metrics-changelog.md` — the engine's inputs/outputs contract, updated on every
   `SCHEMA_VERSION` bump.
 - `docs/adr/` — architectural decisions with their alternatives and consequences.
+- `docs/investigations/` — open questions about the model, with the measurements that raised
+  them. Evidence, not decisions.
 - `docs/archive/` — superseded documents, kept for provenance. Not maintained.
 - `CLAUDE.md` — the operating manual: hard rules, workflows, and the hard-won tuning lessons.
 - The `terrarium-design` skill — the spec for all `packages/ui` work.
