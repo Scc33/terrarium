@@ -14,13 +14,23 @@
  *     back to its viewBox aspect ratio and becomes 400 px tall in a 175 px
  *     bay (this is what happened to the corridor plot);
  *   - a grid band with implicit `auto` rows, where a child's `h-full`
- *     resolves against its own content instead of the band.
+ *     resolves against its own content instead of the band;
+ *   - and the same mistake one axis over: definite ROWS but an implicit
+ *     `auto` COLUMN, which resolves to max-content. The widest child — in
+ *     practice the footer's figure line — then sets a track wider than the
+ *     tile, every sibling stretches to it, and `overflow-hidden` quietly
+ *     shears off the right-hand edge of all of them. This is why a gauge's
+ *     upper-bound label vanished the moment a dial needed three digits
+ *     instead of two, while two-digit dials had hidden it for four
+ *     milestones. `min-w-0` on the root does NOT prevent it: that constrains
+ *     the tile against its own parent, not the tile's column track against
+ *     its content.
  *
- * All three are invisible in review and invisible in jsdom — they only show
+ * All four are invisible in review and invisible in jsdom — they only show
  * up as content painted outside the card, underneath the tile below, which
  * is exactly how the wall spent M3–M5 hiding every figure it published. So
- * the fix is structural: use this component, get definite rows, `min-h-0` on
- * the body, and `overflow-hidden` on the root, for free.
+ * the fix is structural: use this component, get definite rows and columns,
+ * `min-h-0` on the body, and `overflow-hidden` on the root, for free.
  *
  * Tiles are sized by `../wallPlan`, which is where "does the war room fit on
  * one screen" is computed and asserted. If you are adding a tile, add it
@@ -65,7 +75,9 @@ const ROWS = {
 
 export function WallTile({ className = '', header, footer, children, bodyClassName = '', onClick, title }: WallTileProps) {
   const rows = ROWS[header && footer ? 'both' : header ? 'header' : footer ? 'footer' : 'neither']
-  const root = `grid h-full min-h-0 min-w-0 overflow-hidden ${rows} ${className}`
+  // one definite column, for the same reason the rows are definite: the
+  // implicit `auto` track sizes to max-content and takes every sibling with it
+  const root = `grid h-full min-h-0 min-w-0 overflow-hidden grid-cols-[minmax(0,1fr)] ${rows} ${className}`
   const body = <div className={`relative min-h-0 min-w-0 ${bodyClassName}`}>{children}</div>
 
   if (onClick) {

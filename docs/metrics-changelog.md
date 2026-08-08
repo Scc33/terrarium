@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 13)
+## Current contract (schema 14)
 
 ### Inputs
 
@@ -99,6 +99,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
+| `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
@@ -151,6 +152,23 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 14 — Household income gets a level
+- **Outputs +**: `income_real` — real household income per head, population-weighted and
+  deflated by each cohort's own basket, indexed to the country's own 1946 value (unlock 0.45,
+  ratcheting dial face). The Gini beside it is a *shape*: it reports the same 42 points for a
+  country three times richer than it was, so on its own it can neither congratulate a good
+  century nor condemn a wasted one. This is the level it was missing.
+- **Worksheet +**: `StatRecord.incomeMeanReal`.
+- **Not added, deliberately**: a median indicator. `realIncomePerHead()` computes the grouped
+  median because it is the same traversal, but median-over-mean moves *against* the Gini under
+  redistribution (measured: 80.4 → 77.4 while the Gini correctly falls, because the multiplier
+  lifts the top in absolute terms faster than the middle household). Distribution belongs in
+  the household budget survey as cohort levels. `tests/properties/household-income.test.ts`
+  pins the counter-example so the obvious companion gauge is not added without meeting it.
+- **Pipeline**: unchanged. No economic value moved — `pnpm diff-state --moved-only` reports
+  `meta.schemaVersion` alone; golden hashes move for the version stamp and the new worksheet
+  column.
 
 ### schema 13 — Country scenarios and structural openings
 - **Inputs +**: optional `CountryParams.structure`: normalized `outputMix`, `employmentMix`, and

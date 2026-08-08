@@ -152,6 +152,8 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   conf_business: 0.45,
   approval: 0.25,
   gini: 0.55,
+  // national accounts and a price index between them give you the average
+  income_real: 0.45,
   birth_rate: 0.3,
   death_rate: 0.3,
   terms_of_trade: 0.4,

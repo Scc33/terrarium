@@ -145,6 +145,7 @@ export {
   totalLaborForce,
   approvalIndex,
   giniIndex,
+  realIncomePerHead,
   meanLogConsumption,
   livingStandard,
   corridorOffset,

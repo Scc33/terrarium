@@ -87,6 +87,7 @@ export const INDICATOR_IDS = [
   'conf_business',
   'approval',
   'gini',
+  'income_real',
   'birth_rate',
   'death_rate',
   'terms_of_trade',
@@ -425,6 +426,10 @@ export interface StatRecord {
   priceFuel: number
   /** income Gini across cohorts, 0..1 — what a household survey would find */
   gini: Ratio
+  /** real household income per head, population-weighted, base-year units.
+   * A LEVEL here; the published indicator indexes it against its own 1946
+   * value. The level is the thing the Gini beside it cannot carry. */
+  incomeMeanReal: Money
   /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
   birthRate: number
   deathRate: number
@@ -556,7 +561,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 13 // v13: replayable country structures and scenario catalogue
+export const SCHEMA_VERSION = 14 // v14: household income — the level and the median the Gini could not carry
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
