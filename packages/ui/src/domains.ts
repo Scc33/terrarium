@@ -58,6 +58,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   conf_business: { lo: 20, hi: 90 },
   approval: { lo: 20, hi: 80 },
   gini: { lo: 20, hi: 60 },
+  income_real: 'ratchet',
   birth_rate: { lo: 0, hi: 45 },
   death_rate: { lo: 0, hi: 30 },
   terms_of_trade: { lo: 85, hi: 115 },

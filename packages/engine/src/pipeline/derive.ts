@@ -115,6 +115,58 @@ export function giniIndex(state: TrueState): number {
   return Math.max(0, 1 - areaTwice)
 }
 
+/**
+ * Real household income per head, two ways: the average, and the household in
+ * the middle. Same income definition the Gini tabulates (wages + transfers +
+ * profits), deflated by each cohort's OWN basket — the same real-income notion
+ * `pipeline/cohorts.ts` judges approval against, so the instrument and the
+ * political response are measuring one quantity rather than two.
+ *
+ * Only the MEAN is published (`income_real`). It carries the level a Gini
+ * cannot: a shape statistic reports the same 42 points for a country three
+ * times richer than it was.
+ *
+ * The median is computed here — it is the same traversal — but is deliberately
+ * NOT an indicator, and the reason is worth keeping next to the code. Median
+ * over mean looks like the obvious companion gauge and measures the wrong
+ * thing: raising transfers to the poorest cohorts lowers it (80.4 → 77.4 on a
+ * measured 60-quarter run) while the Gini correctly falls, because the
+ * multiplier lifts the top in absolute terms faster than it lifts the middle
+ * household. A dial that worsens when the player redistributes is worse than
+ * no dial. Distribution belongs in the household budget survey, as cohort
+ * levels, where nothing has to be compressed into one directional number.
+ *
+ * The median is a GROUPED one — the cohort the 50th population percentile
+ * falls in — for the same reason `giniIndex` is a grouped lower bound: the
+ * model holds no within-cohort dispersion, so interpolating inside the
+ * containing cohort would invent a spread that does not exist.
+ */
+export function realIncomePerHead(state: TrueState): { mean: number; median: number } {
+  const groups = state.cohorts
+    .filter((c) => c.size > 1e-9)
+    .map((c) => ({
+      pop: c.size,
+      perHead:
+        (c.wageIncome + c.transferIncome + c.profitIncome) /
+        Math.max(cohortCpi(state, c.id), 1e-9) /
+        c.size,
+    }))
+    .sort((a, b) => a.perHead - b.perHead)
+  const popTotal = groups.reduce((s, g) => s + g.pop, 0)
+  if (popTotal <= 1e-9) return { mean: 0, median: 0 }
+  const mean = groups.reduce((s, g) => s + g.perHead * g.pop, 0) / popTotal
+  let cum = 0
+  let median = groups[groups.length - 1].perHead
+  for (const g of groups) {
+    cum += g.pop
+    if (cum >= 0.5 * popTotal) {
+      median = g.perHead
+      break
+    }
+  }
+  return { mean, median }
+}
+
 /** Terms of trade: the world price of your export basket relative to your
  * import basket, indexed to 1946 (=100). Falls when the things you buy
  * abroad (energy, machinery) outrun the things you sell. */

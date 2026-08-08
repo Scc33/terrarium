@@ -18,7 +18,7 @@ import type {
   TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { approvalIndex, effectivePrice, giniIndex, termsOfTrade } from './derive'
+import { approvalIndex, effectivePrice, giniIndex, realIncomePerHead, termsOfTrade } from './derive'
 
 interface IndicatorSpec {
   id: IndicatorId
@@ -101,6 +101,16 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 3,
   },
   {
+    // The LEVEL, against the 1946 household. This is the thing the Gini
+    // beside it cannot say: a shape statistic reports the same 42 points for
+    // a country three times richer than it was, so on its own it can neither
+    // congratulate a good century nor condemn a wasted one.
+    id: 'income_real',
+    trueValue: (h, q) => (h[0].incomeMeanReal > 1e-12 ? (100 * h[q].incomeMeanReal) / h[0].incomeMeanReal : 100),
+    baseSd: 0.05,
+    relativeSd: true,
+  },
+  {
     id: 'birth_rate',
     trueValue: (h, q) => h[q].birthRate,
     baseSd: 2.5,
@@ -158,6 +168,7 @@ function recordOf(state: TrueState): StatRecord {
     priceFood: effectivePrice(state, 'agri'),
     priceFuel: effectivePrice(state, 'energy'),
     gini: giniIndex(state),
+    incomeMeanReal: realIncomePerHead(state).mean,
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
     population: state.demography.pyramid.reduce((s, n) => s + n, 0),
