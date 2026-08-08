@@ -117,6 +117,26 @@ export interface CountryParams {
    * Optional for saves from before M4 — init synthesizes one to match
    * cohortSizes when absent. */
   pyramid?: number[]
+  /** Optional structural opening conditions. Saves from before schema 13 omit
+   * this block and receive the historical Meridia defaults. Multipliers are
+   * relative to the standard 1946 sector mix and are normalized by init, so
+   * they change composition without silently changing the country's scale. */
+  structure?: CountryStructure
+}
+
+/** What differs between countries beyond size and development. This remains
+ * immutable input — no live state is smuggled into a scenario, and a save is
+ * still fully replayable from (params, seed, actionLog). */
+export interface CountryStructure {
+  outputMix: Record<SectorId, number>
+  employmentMix: Record<SectorId, number>
+  capitalMix: Record<SectorId, number>
+  /** opening stocks, expressed against annual GDP or quarterly imports */
+  debtToGdp: number
+  creditToGdp: number
+  reserveCoverage: number
+  /** constitutional inheritance before the first reform */
+  institutions: Record<InstitutionId, Ratio>
 }
 
 // ---------- demography (§8: the century IS the transition window) ----------
@@ -536,7 +556,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 12 // v12: politics as a game — institutions, societal power, blocs, campaigns
+export const SCHEMA_VERSION = 13 // v13: replayable country structures and scenario catalogue
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

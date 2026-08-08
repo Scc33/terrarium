@@ -13,14 +13,14 @@ function line(label: string, s: ReturnType<typeof summarize>): void {
 
 export function printReport(
   batch: BatchResult,
-  meta: { runs: number; ticks: number; policy: string },
+  meta: { runs: number; ticks: number; policy: string; country?: string },
 ): void {
   const { runs, wallMs } = batch
   const nanRuns = runs.filter((r) => r.nanCount > 0)
   const explodedRuns = runs.filter((r) => r.priceExplosions > 0)
   const deposed = runs.filter((r) => r.deposedAt !== null)
 
-  console.log(`terrarium batch: ${meta.runs} runs × ${meta.ticks} ticks, policy=${meta.policy}`)
+  console.log(`terrarium batch: ${meta.runs} runs × ${meta.ticks} ticks, policy=${meta.policy}, country=${meta.country ?? 'baseline'}`)
   console.log(
     `  wall time: ${(wallMs / 1000).toFixed(1)}s  (${(wallMs / meta.runs).toFixed(1)} ms/run)`,
   )
@@ -38,6 +38,18 @@ export function printReport(
     'final debt/GDP',
     summarize(runs.map((r) => r.trajectory[r.trajectory.length - 1].debtToGdp)),
   )
+  const countryIds = [...new Set(runs.map((run) => run.countryId))]
+  if (countryIds.length > 1) {
+    console.log('  country matrix:')
+    for (const id of countryIds) {
+      const group = runs.filter((run) => run.countryId === id)
+      const unstable = group.filter((run) => run.nanCount > 0 || run.priceExplosions > 0).length
+      const fell = group.filter((run) => run.deposedAt !== null).length
+      console.log(
+        `    ${id.padEnd(12)} n=${String(group.length).padStart(4)}  unstable=${String(unstable).padStart(3)}  deposed=${((100 * fell) / group.length).toFixed(0).padStart(3)}%  growth=${fmt(summarize(group.map(cagr)).p50).padStart(6)}  inflation=${fmt(summarize(group.map(meanAnnualInflation)).p50).padStart(7)}  u=${fmt(summarize(group.map(meanUnemployment)).p50).padStart(6)}`,
+      )
+    }
+  }
   if (nanRuns.length > 0) {
     console.log(`  first NaN seeds: ${nanRuns.slice(0, 5).map((r) => r.seed).join(', ')}`)
   }

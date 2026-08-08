@@ -7,12 +7,12 @@
  * cannot become a hole in it — see `DevNode`.
  */
 
-import type { Action, SaveFile } from '@terrarium/engine'
+import type { Action, CountryScenarioId, SaveFile } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import type { DevScenario } from '../devScenario'
 
 export type ClientMessage =
-  | { type: 'new'; seed: string }
+  | { type: 'new'; seed: string; country: CountryScenarioId }
   | { type: 'load'; save: SaveFile }
   | { type: 'advance'; actions: Action[] }
   | { type: 'previewCost'; actions: Action[] }

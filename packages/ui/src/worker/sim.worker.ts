@@ -6,7 +6,7 @@
 import {
   applyActions,
   createSave,
-  generateParams,
+  createCountryParams,
   init,
   step,
   END_OF_HISTORY_TICK,
@@ -14,6 +14,7 @@ import {
   politicalCostOfAction,
   type ActionLog,
   type CountryParams,
+  type CountryScenarioId,
   type TrueState,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
@@ -36,9 +37,9 @@ function publish(): void {
   })
 }
 
-function startNew(newSeed: string): void {
+function startNew(newSeed: string, country: CountryScenarioId): void {
   seed = newSeed
-  params = generateParams(seed)
+  params = createCountryParams(country, seed)
   state = init(params, seed)
   actionLog = []
   publish()
@@ -185,7 +186,7 @@ function handleDev(msg: ClientMessage): void {
  */
 function devScenario(sc: DevScenario): void {
   seed = sc.seed
-  params = applyScenario(generateParams(sc.seed), sc)
+  params = applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc)
   state = init(params, seed)
   actionLog = []
   const target = tickForYear(sc.year, END_OF_HISTORY_TICK)
@@ -205,7 +206,7 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     }
     switch (msg.type) {
       case 'new':
-        startNew(msg.seed)
+        startNew(msg.seed, msg.country)
         break
       case 'load':
         load(msg.save)

@@ -6,8 +6,16 @@ import type { PublishedState } from '@terrarium/observation'
 import { Button, Modal } from '../components/ui'
 import { useGame } from '../store/gameStore'
 
-export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
-  const { save, loadSave, newGame } = useGame()
+export function SettingsOverlay({
+  pub,
+  onClose,
+  onNewCountry,
+}: {
+  pub: PublishedState
+  onClose: () => void
+  onNewCountry: () => void
+}) {
+  const { save, loadSave } = useGame()
   const fileInput = useRef<HTMLInputElement>(null)
 
   const exportSave = () => {
@@ -34,13 +42,10 @@ export function SettingsOverlay({ pub, onClose }: { pub: PublishedState; onClose
           fullWidth
           variant="danger"
           className="justify-start text-left"
-          onClick={() => {
-            newGame()
-            onClose()
-          }}
-          title="Abandon this country and draw a fresh one. The current game is overwritten on the next autosave."
+          onClick={onNewCountry}
+          title="Choose another posting. This run remains intact until a new country is confirmed."
         >
-          NEW COUNTRY — abandon {pub.country} and draw another
+          NEW COUNTRY — choose another posting
         </Button>
         <input
           ref={fileInput}

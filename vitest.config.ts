@@ -14,6 +14,7 @@ export default defineConfig({
       'tests/**/*.test.ts',
       'packages/ui/src/components/**/*.test.tsx',
       'packages/ui/src/dev/**/*.test.tsx',
+      'packages/ui/src/panels/**/*.test.tsx',
     ],
     environment: 'node',
     testTimeout: 60_000,

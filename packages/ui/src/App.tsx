@@ -21,6 +21,7 @@ import { FinanceOverlay } from './panels/FinanceOverlay'
 import { ElectionOverlay } from './panels/ElectionOverlay'
 import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
+import { CountrySelect } from './panels/CountrySelect'
 import { Button, useFocusTrap } from './components/ui'
 import type { CabinetGroup } from './cabinetNavigation'
 
@@ -34,10 +35,12 @@ type OverlayKind =
   | 'finance'
   | 'election'
   | 'count'
+  | 'country'
   | null
 
 export default function App() {
   const { published, newGame, loadAutosave } = useGame()
+  const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   const [cabinetOpen, setCabinetOpen] = useState(false)
   const [devOpen, setDevOpen] = useState(false)
@@ -61,11 +64,11 @@ export default function App() {
   useEffect(() => {
     const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
     if (visualSeed) {
-      newGame(visualSeed)
+      newGame('procedural', visualSeed)
       return
     }
     void loadAutosave().then((found) => {
-      if (!found) newGame()
+      if (!found) setStartup('selecting')
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -130,6 +133,16 @@ export default function App() {
   }, [published])
 
   if (!published) {
+    if (startup === 'selecting') {
+      return (
+        <CountrySelect
+          onStart={(country, seed) => {
+            setStartup('loading')
+            newGame(country, seed)
+          }}
+        />
+      )
+    }
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-dossier-felt">
         <div className="font-mono text-[10px] tracking-[0.4em] text-dossier-brass">MINISTRY OF NATIONAL ECONOMY</div>
@@ -202,13 +215,28 @@ export default function App() {
       {overlay === 'ledger' && <LedgerOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'wire' && <WireOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'settings' && <SettingsOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'settings' && (
+        <SettingsOverlay
+          pub={published}
+          onClose={() => setOverlay(null)}
+          onNewCountry={() => setOverlay('country')}
+        />
+      )}
       {overlay === 'census' && <CensusOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'finance' && <FinanceOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'election' && <ElectionOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'count' && <ElectionResultOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'verdict' && published.reportCard && (
         <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
+      )}
+      {overlay === 'country' && (
+        <CountrySelect
+          onCancel={() => setOverlay(null)}
+          onStart={(country, seed) => {
+            newGame(country, seed)
+            setOverlay(null)
+          }}
+        />
       )}
       {__DEV_TOOLS__ && devOpen && <DevConsole onClose={() => setDevOpen(false)} />}
     </div>

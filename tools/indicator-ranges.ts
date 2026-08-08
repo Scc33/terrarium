@@ -21,11 +21,14 @@
 
 import {
   applyActions,
+  COUNTRY_CATALOG,
+  createCountryParams,
   generateParams,
   init,
   INDICATOR_IDS,
   step,
   type CapacityId,
+  type CountryScenarioId,
   type IndicatorId,
   type TrueState,
 } from '@terrarium/engine'
@@ -34,30 +37,39 @@ import { observe } from '@terrarium/observation'
 const CAPACITIES: readonly CapacityId[] = ['tax', 'statistical', 'administrative', 'education']
 const SEEDS = Number(process.env.RANGE_SEEDS ?? 12)
 const TICKS = Number(process.env.RANGE_TICKS ?? 400)
+const requested = process.env.RANGE_COUNTRY ?? 'all'
+const countries: Array<CountryScenarioId | 'baseline'> = requested === 'all'
+  ? COUNTRY_CATALOG.map((country) => country.id)
+  : requested === 'baseline'
+    ? ['baseline']
+    : [requested as CountryScenarioId]
 
 const values = new Map<IndicatorId, number[]>()
 for (const id of INDICATOR_IDS) values.set(id, [])
 
-for (let i = 0; i < SEEDS; i++) {
-  const seed = `range-${i}`
-  let s: TrueState = init(generateParams(seed), seed)
-  for (let t = 0; t < TICKS; t++) {
-    if (t % 8 === 0) {
-      for (const target of CAPACITIES) {
-        try {
-          s = applyActions(s, [{ kind: 'investCapacity', target, amount: 2 }])
-        } catch {
-          // unaffordable this quarter; the survey simply waits
+for (const country of countries) {
+  for (let i = 0; i < SEEDS; i++) {
+    const seed = `range-${country}-${i}`
+    const params = country === 'baseline' ? generateParams(seed) : createCountryParams(country, seed)
+    let s: TrueState = init(params, seed)
+    for (let t = 0; t < TICKS; t++) {
+      if (t % 8 === 0) {
+        for (const target of CAPACITIES) {
+          try {
+            s = applyActions(s, [{ kind: 'investCapacity', target, amount: 2 }])
+          } catch {
+            // unaffordable this quarter; the survey simply waits
+          }
         }
       }
-    }
-    s = step(s)
-    const pub = observe(s)
-    for (const id of INDICATOR_IDS) {
-      const series = pub.indicators[id]
-      if (!series) continue
-      for (const p of series.points) {
-        if (p.publishedAt === t && Number.isFinite(p.value)) values.get(id)!.push(p.value)
+      s = step(s)
+      const pub = observe(s)
+      for (const id of INDICATOR_IDS) {
+        const series = pub.indicators[id]
+        if (!series) continue
+        for (const p of series.points) {
+          if (p.publishedAt === t && Number.isFinite(p.value)) values.get(id)!.push(p.value)
+        }
       }
     }
   }
@@ -65,7 +77,7 @@ for (let i = 0; i < SEEDS; i++) {
 
 const q = (xs: number[], f: number) => xs[Math.min(xs.length - 1, Math.max(0, Math.floor(f * xs.length)))]
 
-console.log(`${SEEDS} fully-surveyed countries × ${TICKS} quarters\n`)
+console.log(`${SEEDS} seeds × ${countries.length} scenario(s) × ${TICKS} quarters (${countries.join(', ')})\n`)
 console.log(
   'indicator'.padEnd(16) +
     ['min', 'p01', 'p25', 'p50', 'p75', 'p99', 'max'].map((h) => h.padStart(9)).join(''),

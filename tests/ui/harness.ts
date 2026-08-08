@@ -22,7 +22,16 @@
  * built every survey and kept it.
  */
 
-import { applyActions, generateParams, init, step, type CapacityId, type TrueState } from '@terrarium/engine'
+import {
+  applyActions,
+  createCountryParams,
+  generateParams,
+  init,
+  step,
+  type CapacityId,
+  type CountryScenarioId,
+  type TrueState,
+} from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 
@@ -40,8 +49,9 @@ export function eachQuarter(
   seed: string,
   ticks: number,
   visit: (pub: PublishedState, tick: number) => void,
+  country?: CountryScenarioId,
 ): void {
-  const params = generateParams(seed)
+  const params = country ? createCountryParams(country, seed) : generateParams(seed)
   let s: TrueState = init(params, seed)
   for (let t = 0; t < ticks; t++) {
     if (t % 8 === 0) {

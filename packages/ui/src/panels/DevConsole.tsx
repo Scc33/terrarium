@@ -22,6 +22,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { COUNTRY_CATALOG, type CountryScenarioId } from '@terrarium/engine'
 import { useGame } from '../store/gameStore'
 import type { DevNode } from '../worker/protocol'
 import { DEFAULT_SCENARIO, YEAR_ZERO, tickLabel, type DevScenario } from '../devScenario'
@@ -134,6 +135,18 @@ export function DevConsole({ onClose }: { onClose: () => void }) {
               the country its opening conditions and a year; the economy gets there by living.
             </p>
 
+            <Field label="COUNTRY RECIPE" hint="Choose a fixed country or the bounded procedural generator.">
+              <select
+                className={inputCls}
+                value={sc.country ?? 'procedural'}
+                onChange={(e) => set('country', e.target.value as CountryScenarioId)}
+              >
+                {COUNTRY_CATALOG.map((country) => (
+                  <option key={country.id} value={country.id}>{country.name} — {country.byline}</option>
+                ))}
+              </select>
+            </Field>
+
             <Field label="SEED" hint="Same seed + same scenario = same run, always.">
               <input className={inputCls} value={sc.seed} onChange={(e) => set('seed', e.target.value)} />
             </Field>
@@ -149,12 +162,12 @@ export function DevConsole({ onClose }: { onClose: () => void }) {
               />
             </Field>
 
-            <Field label="DEVELOPMENT — blank = random" hint="0..1. Scales starting capital, TFP and capacities.">
+            <Field label="DEVELOPMENT — blank = recipe" hint="0.05..1. Scales starting capital, TFP and capacities.">
               <input
                 className={inputCls}
                 type="number"
                 step="0.05"
-                min={0}
+                min={0.05}
                 max={1}
                 placeholder="(generated)"
                 value={sc.development ?? ''}
@@ -174,7 +187,7 @@ export function DevConsole({ onClose }: { onClose: () => void }) {
               />
             </Field>
 
-            <Field label="OPENNESS — blank = random" hint="Trade exposure multiplier.">
+            <Field label="OPENNESS — blank = recipe" hint="Trade exposure multiplier.">
               <input
                 className={inputCls}
                 type="number"
