@@ -14,6 +14,7 @@ import {
   SOCIETY_CHECK,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
+  taxEfficiency,
 } from '../constants'
 import { clamp } from '../math'
 import {
@@ -83,6 +84,38 @@ export function meanLogConsumption(state: TrueState): number {
     popSum += c.size
   }
   return popSum > 1e-9 ? logSum / popSum : 0
+}
+
+/** Annualized real household consumption per person. Each cohort's nominal
+ * spend is deflated by its own basket before aggregation, so a fuel shock
+ * reaches the people who actually buy fuel rather than an invented average
+ * consumer. Population and cohort sizes are both in millions, so the scale
+ * cancels to the model's real output units per person. */
+export function realConsumptionPerCapita(state: TrueState): number {
+  let realConsumption = 0
+  let population = 0
+  for (const c of state.cohorts) {
+    realConsumption += state.flows.cohortSpend[c.id] / cohortCpi(state, c.id)
+    population += c.size
+  }
+  return population > 1e-9 ? (4 * realConsumption) / population : 0
+}
+
+/** Household saving as a share of current disposable income. Principal
+ * redemptions are excluded: exchanging a bond for a deposit changes the
+ * portfolio but is not income. A negative rate is genuine dissaving. */
+export function householdSavingRate(state: TrueState): number {
+  const incomeTaxEff = state.gov.dials.taxRates.income * taxEfficiency(state.gov.capacity.tax)
+  const disposableIncome = state.cohorts.reduce(
+    (sum, c) =>
+      sum + c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome,
+    0,
+  )
+  const consumption = state.cohorts.reduce(
+    (sum, c) => sum + state.flows.cohortSpend[c.id],
+    0,
+  )
+  return disposableIncome > 1e-9 ? (disposableIncome - consumption) / disposableIncome : 0
 }
 
 /** The living standard as a LEVEL, against the standard 1946 country —

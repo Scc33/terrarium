@@ -20,7 +20,7 @@
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
-import { NAMES } from '../labels'
+import { complementReading, NAMES } from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { WallTile } from '../WallTile/WallTile'
 
@@ -75,10 +75,14 @@ export function AnalogGauge({
   const frac = (v: number) => readNeedle(domain, v).frac
   const stamped = stampWorthyRevision(points, domain)
   const mark = FACE_MARK[indicator]
+  const complement = complementReading(indicator, latest.value)
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
 
   const header = (
-    <div className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
+    <div
+      className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink"
+      title={NAMES[indicator].note}
+    >
       <span className="truncate">{NAMES[indicator].dossier}</span>
       {latest.levels && (
         <span
@@ -86,6 +90,11 @@ export function AnalogGauge({
           title="The office's estimate of the GDP level behind that growth figure: real (base-year prices) and nominal (current prices)."
         >
           R{latest.levels.real.toFixed(0)}·N{latest.levels.nominal.toFixed(0)}
+        </span>
+      )}
+      {!latest.levels && complement && (
+        <span className="shrink-0 font-mono text-[9px] tracking-normal tabular-nums text-dossier-ink/60">
+          {complement}
         </span>
       )}
     </div>

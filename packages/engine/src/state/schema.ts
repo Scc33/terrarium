@@ -77,6 +77,10 @@ export type PlatformId = (typeof PLATFORM_IDS)[number]
 
 export const INDICATOR_IDS = [
   'gdp_growth',
+  'gdp_per_capita',
+  'consumption_per_capita',
+  'household_saving_rate',
+  'government_demand_share',
   'inflation',
   'price_food',
   'price_fuel',
@@ -413,6 +417,14 @@ export interface StatRecord {
   tick: Qtr
   realGdp: Money
   nominalGdp: Money
+  /** annualized real national output per person */
+  realGdpPerCapita: number
+  /** annualized real household consumption per person, own baskets deflated */
+  realConsumptionPerCapita: number
+  /** disposable income not consumed this quarter; may be negative in a drawdown */
+  householdSavingRate: number
+  /** government procurement + public investment as a share of domestic demand */
+  governmentDemandShare: Ratio
   inflationQ: number
   unemployment: Ratio
   payrolls: number // millions, ex-agri
@@ -497,6 +509,10 @@ export interface TickFlows {
   cohortSpend: Record<CohortId, number>
   /** private + public investment demand, real */
   investmentReal: number
+  /** household consumption + private investment, at base prices */
+  privateDomesticDemandReal: number
+  /** delivered procurement + public investment, at base prices */
+  governmentDomesticDemandReal: number
   /** value of imports at border prices (tariff base) */
   tariffBase: Money
   /** subsidy money that actually reached each sector (post-leakage) */
@@ -561,7 +577,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 14 // v14: household income — the level and the median the Gini could not carry
+export const SCHEMA_VERSION = 15 // v15: per-capita and household national-accounts instruments
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

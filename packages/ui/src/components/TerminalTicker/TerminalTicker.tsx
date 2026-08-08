@@ -15,7 +15,7 @@
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { gaugeDomain } from '../../domains'
-import { NAMES } from '../labels'
+import { complementReading, NAMES } from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from '../series'
 import { WallTile } from '../WallTile/WallTile'
 
@@ -46,6 +46,7 @@ export function TerminalTicker({
   const points = shapeSeries(series, fullHistory ? Number.MAX_SAFE_INTEGER : 40, now)
   if (points.length < 2) return null
   const latest = points[points.length - 1]
+  const complement = complementReading(indicator, latest.value, 2)
 
   const x0 = points[0].forQtr
   const x1 = Math.max(latest.forQtr, x0 + 4)
@@ -88,7 +89,10 @@ export function TerminalTicker({
     <WallTile
       className="border border-terminal-grid bg-terminal-bg"
       header={
-      <div className="flex items-baseline justify-between gap-2 border-b border-terminal-grid px-2.5 py-1">
+      <div
+        className="flex items-baseline justify-between gap-2 border-b border-terminal-grid px-2.5 py-1"
+        title={NAMES[indicator].note}
+      >
         <span className="flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
           {NAMES[indicator].terminal}
           <button
@@ -110,6 +114,7 @@ export function TerminalTicker({
           )}
           {latest.value.toFixed(2)}
           {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
+          {complement && <span className="ml-2 opacity-60">{complement}</span>}
           {(() => {
             const d = quarterDelta(points)
             if (d === null || Math.abs(d) < 0.005) return null

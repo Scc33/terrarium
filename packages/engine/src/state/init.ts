@@ -249,6 +249,8 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       number
     >,
     investmentReal: 0,
+    privateDomesticDemandReal: 0,
+    governmentDomesticDemandReal: 0,
     tariffBase: 0,
     subsidyDelivered: sectorRecord(() => 0),
     revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0 },

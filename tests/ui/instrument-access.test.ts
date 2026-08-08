@@ -38,7 +38,7 @@ describe('instrument access', () => {
   it('groups the next survey threshold into one cabinet milestone', () => {
     expect(nextInstrumentUnlock(0.18)).toEqual({
       fundedAt: 0.2,
-      indicators: ['price_food', 'price_fuel'],
+      indicators: ['government_demand_share', 'price_food', 'price_fuel'],
     })
     expect(nextInstrumentUnlock(0.55)).toBeNull()
   })

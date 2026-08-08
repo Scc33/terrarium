@@ -14,11 +14,14 @@ export interface LineChartProps {
   emptyLabel?: string
   /** Plain-language reading exposed beside the visual for assistive tech. */
   summary?: string
+  /** Fill a definite-height parent instead of taking height from the SVG's
+   * width/viewBox ratio. Used by docked wall tiles, whose slot is the budget. */
+  fill?: boolean
 }
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
-export function LineChart({ data, height = 84, label, compare, primaryColor = 'var(--color-dossier-ink)', comparisonColor = 'var(--color-dossier-warn)', emptyLabel = 'INSUFFICIENT HISTORY', summary }: LineChartProps) {
+export function LineChart({ data, height = 84, label, compare, primaryColor = 'var(--color-dossier-ink)', comparisonColor = 'var(--color-dossier-warn)', emptyLabel = 'INSUFFICIENT HISTORY', summary, fill = false }: LineChartProps) {
   if (data.length < 2) return <div className="flex min-h-14 items-center justify-center border border-dashed border-dossier-ink/20 font-mono text-[9px] tracking-[0.12em] opacity-55">{emptyLabel}</div>
   const W = 260
   const H = height
@@ -44,7 +47,7 @@ export function LineChart({ data, height = 84, label, compare, primaryColor = 'v
   const reading = summary ?? `Series from ${qtrLabel(x0)} to ${qtrLabel(x1)}. Latest value ${latest.value.toFixed(1)}; observed range ${lo.toFixed(1)} to ${hi.toFixed(1)}.`
 
   return (
-    <div>
+    <div className={fill ? 'flex h-full min-h-0 flex-col' : undefined}>
       {label && (
         <div className="mb-0.5 flex items-baseline justify-between">
           <span className="font-mono text-[9px] tracking-[0.2em] text-dossier-ink/70">{label}</span>
@@ -53,7 +56,13 @@ export function LineChart({ data, height = 84, label, compare, primaryColor = 'v
           </span>
         </div>
       )}
-      <svg viewBox={`0 0 ${W} ${H}`} className="block w-full" role="img" aria-label={reading}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className={fill ? 'block min-h-0 w-full flex-1' : 'block w-full'}
+        role="img"
+        aria-label={reading}
+      >
         <title>{reading}</title>
         <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />
         <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />

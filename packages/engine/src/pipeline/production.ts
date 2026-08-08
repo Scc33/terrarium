@@ -102,6 +102,14 @@ export const production: PipelineStep = {
       (gov.dials.spending.investment * adminEff) /
       ((market.prices.manuf + market.prices.services) / 2)
     const investmentReal = privateInvReal + govInvReal
+    // National-accounts ownership split. Transfers and subsidies are not
+    // government final demand: they finance household consumption and firm
+    // receipts respectively. Net exports are external, so they sit outside
+    // this deliberately complementary domestic-demand split.
+    const privateDomesticDemandReal =
+      SECTOR_IDS.reduce((sum, sid) => sum + householdDemand[sid], 0) + privateInvReal
+    const governmentDomesticDemandReal =
+      SECTOR_IDS.reduce((sum, sid) => sum + procurementReal[sid], 0) + govInvReal
     const invDemand = sectorRecord((sid) =>
       sid === 'manuf' ? 0.6 * investmentReal : sid === 'services' ? 0.4 * investmentReal : 0,
     )
@@ -201,6 +209,8 @@ export const production: PipelineStep = {
         householdDemand,
         cohortSpend,
         investmentReal,
+        privateDomesticDemandReal,
+        governmentDomesticDemandReal,
         subsidyDelivered,
         nominalGdp,
         realGdp,

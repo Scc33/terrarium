@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 14)
+## Current contract (schema 15)
 
 ### Inputs
 
@@ -87,11 +87,14 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 
 | Indicator | Unit | Unlocks at | Since | Underlying truth |
 |---|---|---:|---|---|
-| `gdp_growth` | % / yr | 0.00 | v1 | real GDP growth (+ level estimates) |
+| `gdp_growth` | % / yr | 0.00 | v1 | **real** GDP growth (+ real and nominal level estimates) |
+| `gdp_per_capita` | real / head / yr | 0.00 | v15 | annualized real GDP ÷ census population |
 | `inflation` | % / yr | 0.08 | v1 | quarterly CPI inflation ×4 |
 | `price_food` | 1946=100 | 0.20 | v5 | effective agri price |
 | `price_fuel` | 1946=100 | 0.20 | v5 | effective energy price (incl. fuel excise) |
+| `government_demand_share` | % domestic demand | 0.20 | v15 | delivered procurement + public investment ÷ domestic demand; private is the complement |
 | `approval` | % | 0.25 | v3 | enfranchisement-weighted approval |
+| `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
 | `capital_stock` | index | 0.30 | v1.5 | total capital stock |
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
@@ -100,6 +103,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
+| `household_saving_rate` | % disposable income | 0.45 | v15 | disposable income not consumed; consumption is the complement |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
@@ -152,6 +156,22 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 15 — Per-capita and household national accounts
+- **Outputs +**: `gdp_per_capita` (fogged, unlock 0.00), `consumption_per_capita` (0.25),
+  `household_saving_rate` (0.45), and `government_demand_share` (0.20). The wall derives the
+  complementary consumption and private-demand shares from the same prints, so each pair always
+  sums to 100 even while the underlying print is revised.
+- **Clarification**: `gdp_growth` is now labelled **real GDP growth** throughout the UI. Its
+  arithmetic was already real: annualized quarter-over-quarter growth of `realGdp`; nominal GDP
+  is carried only as a level estimate beside the headline.
+- **Accounting boundary**: government demand is delivered procurement plus public investment;
+  private demand is household consumption plus private investment. Transfers and subsidies are
+  not counted twice, and net exports sit outside this complementary domestic-demand split.
+- **Internal state +**: the statistics worksheet records the four measured truths; `TickFlows`
+  records private and government domestic demand at base prices.
+- **Pipeline**: unchanged. The economic path and passive baseline are unchanged; this is additive
+  measurement on orthogonal `obs:*` substreams plus the schema stamp.
 
 ### schema 14 — Household income gets a level
 - **Outputs +**: `income_real` — real household income per head, population-weighted and

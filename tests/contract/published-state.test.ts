@@ -108,6 +108,12 @@ describe('the published-state contract (§1.1)', () => {
       'baselineWelfare',
       'statCapacity',
       'satisfiedAgri',
+      'realGdpPerCapita',
+      'realConsumptionPerCapita',
+      'householdSavingRate',
+      'governmentDemandShare',
+      'privateDomesticDemandReal',
+      'governmentDomesticDemandReal',
     ]
     for (const f of forbidden) expect(keys.has(f), `LEAKED true-state field: ${f}`).toBe(false)
   })

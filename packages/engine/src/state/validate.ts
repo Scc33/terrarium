@@ -45,8 +45,16 @@ export function validate(state: TrueState): void {
   finite(state.ledger.inflationExpectations, 'inflationExpectations')
   finite(state.flows.realGdp, 'realGdp')
   finite(state.flows.nominalGdp, 'nominalGdp')
+  finite(state.flows.privateDomesticDemandReal, 'privateDomesticDemandReal')
+  finite(state.flows.governmentDomesticDemandReal, 'governmentDomesticDemandReal')
   if (state.gov.debt < 0) throw new InvariantError('debt < 0')
   if (state.flows.realGdp < 0) throw new InvariantError('realGdp < 0')
+  if (state.flows.privateDomesticDemandReal < 0) {
+    throw new InvariantError('privateDomesticDemandReal < 0')
+  }
+  if (state.flows.governmentDomesticDemandReal < 0) {
+    throw new InvariantError('governmentDomesticDemandReal < 0')
+  }
   for (const [cid, v] of Object.entries(state.gov.capacity)) {
     finite(v, `capacity[${cid}]`)
     if (v < 0 || v > 1) throw new InvariantError(`capacity[${cid}] out of [0,1]`)
