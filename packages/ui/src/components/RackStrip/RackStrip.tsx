@@ -69,7 +69,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
       className={`${frame} ${skin} ${pinned ? 'ring-1 ring-inset ring-current' : ''}`}
       title={
         latest
-          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+          ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late.${names.note ? ` ${names.note}` : ''} Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
           : access.availability === 'awaiting'
             ? `${names.needs} is commissioned; its first return has not arrived. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
             : `Not fitted. Fund ${names.needs.toLowerCase()} by raising the statistical office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)}. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`

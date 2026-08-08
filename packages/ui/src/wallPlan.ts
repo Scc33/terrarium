@@ -19,8 +19,8 @@
  * The rack is fixed-height and complete, so it costs a known number of
  * pixels. The board and the docked band are flexible and absorb the slack.
  * That makes "does the war room fit on one screen" a number this module can
- * compute — and `tests/ui/wall-plan.test.ts` asserts it, so the day M6 adds
- * four more indicators the build tells you whether the wall still fits
+ * compute — and `tests/ui/wall-plan.test.ts` asserts it, so the day a milestone
+ * adds more indicators the build tells you whether the wall still fits
  * instead of silently clipping them.
  */
 

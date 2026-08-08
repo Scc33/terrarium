@@ -48,6 +48,10 @@ export interface Reading {
  */
 export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   gdp_growth: { lo: -15, hi: 15 },
+  gdp_per_capita: { lo: 0, hi: 120 },
+  consumption_per_capita: { lo: 0, hi: 90 },
+  household_saving_rate: { lo: -10, hi: 20 },
+  government_demand_share: { lo: 0, hi: 20 },
   inflation: { lo: -15, hi: 15 },
   price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },
@@ -76,6 +80,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
 export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string }>> = {
   approval: { at: ELECTION_WIN_THRESHOLD * 100, label: 'THE LINE' },
   gdp_growth: { at: 0, label: 'FLAT' },
+  household_saving_rate: { at: 0, label: 'DRAWDOWN' },
   inflation: { at: 0, label: 'STABLE' },
   credit_growth: { at: 0, label: 'FLAT' },
   // where revolutionary pressure prises the reform window open (§4.3). A rule,

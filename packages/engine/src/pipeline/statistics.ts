@@ -18,7 +18,15 @@ import type {
   TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { approvalIndex, effectivePrice, giniIndex, realIncomePerHead, termsOfTrade } from './derive'
+import {
+  approvalIndex,
+  effectivePrice,
+  giniIndex,
+  householdSavingRate,
+  realConsumptionPerCapita,
+  realIncomePerHead,
+  termsOfTrade,
+} from './derive'
 
 interface IndicatorSpec {
   id: IndicatorId
@@ -43,6 +51,30 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     },
     baseSd: 2.5,
     withLevels: true,
+  },
+  {
+    id: 'gdp_per_capita',
+    trueValue: (h, q) => h[q].realGdpPerCapita,
+    baseSd: 0.035,
+    relativeSd: true,
+  },
+  {
+    id: 'consumption_per_capita',
+    trueValue: (h, q) => h[q].realConsumptionPerCapita,
+    baseSd: 0.05,
+    relativeSd: true,
+  },
+  {
+    id: 'household_saving_rate',
+    trueValue: (h, q) => h[q].householdSavingRate * 100,
+    baseSd: 3,
+  },
+  {
+    id: 'government_demand_share',
+    trueValue: (h, q) => h[q].governmentDemandShare * 100,
+    // One side comes from exact treasury books; the office is estimating the
+    // private denominator, not discovering government purchases from scratch.
+    baseSd: 1,
   },
   {
     id: 'inflation',
@@ -154,10 +186,17 @@ const noiseScale = (cap: number) => 1 - 0.85 * cap
 
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
+  const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
+  const domesticDemand = flows.privateDomesticDemandReal + flows.governmentDomesticDemandReal
   return {
     tick: state.meta.tick,
     realGdp: flows.realGdp,
     nominalGdp: flows.nominalGdp,
+    realGdpPerCapita: population > 1e-9 ? (4 * flows.realGdp) / population : 0,
+    realConsumptionPerCapita: realConsumptionPerCapita(state),
+    householdSavingRate: householdSavingRate(state),
+    governmentDemandShare:
+      domesticDemand > 1e-9 ? flows.governmentDomesticDemandReal / domesticDemand : 0,
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
@@ -171,7 +210,7 @@ function recordOf(state: TrueState): StatRecord {
     incomeMeanReal: realIncomePerHead(state).mean,
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
-    population: state.demography.pyramid.reduce((s, n) => s + n, 0),
+    population,
     pyramid: [...state.demography.pyramid],
     termsOfTrade: termsOfTrade(state),
     assetPrice: finance.assetPrice,

@@ -46,6 +46,7 @@ export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () =
         data={books.map((b) => ({ tick: b.tick, value: b.revenue }))}
         compare={books.map((b) => ({ tick: b.tick, value: b.outlays }))}
         height={70}
+        fill
       />
     </WallTile>
   )

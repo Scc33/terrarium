@@ -24,10 +24,18 @@ export interface IndicatorNames {
   short: string
   /** the capacity that has to exist before this instrument does */
   needs: string
+  /** what the number means when its accounting boundary is not obvious */
+  note?: string
+  /** an accounting complement displayed beside the measured share */
+  complement?: string
 }
 
 export const NAMES: Record<IndicatorId, IndicatorNames> = {
-  gdp_growth: { dossier: 'GDP GROWTH · %/YR', terminal: 'GDP.GROWTH %/YR', plate: 'GDP GROWTH', short: 'GDP GROWTH', needs: 'NATIONAL ACCOUNTS' },
+  gdp_growth: { dossier: 'REAL GDP GROWTH · %/YR', terminal: 'REAL.GDP.GRW %/YR', plate: 'REAL GDP GROWTH', short: 'REAL GDP', needs: 'NATIONAL ACCOUNTS', note: 'Annualized quarter-over-quarter growth in output at base-year prices. Inflation cannot raise this reading.' },
+  gdp_per_capita: { dossier: 'REAL GDP PER HEAD · /YR', terminal: 'REAL.GDP.PC /YR', plate: 'REAL GDP PER HEAD', short: 'GDP / HEAD', needs: 'NATIONAL ACCOUNTS', note: 'Annualized real GDP divided by the census head count: output growth after population growth is removed.' },
+  consumption_per_capita: { dossier: 'REAL CONSUMPTION PER HEAD · /YR', terminal: 'REAL.CONS.PC /YR', plate: 'REAL CONSUMPTION PER HEAD', short: 'CONS/HEAD', needs: 'HOUSEHOLD ACCOUNTS', note: 'Annualized household spending per person, deflated using each class’s own consumption basket.' },
+  household_saving_rate: { dossier: 'HOUSEHOLD SAVING · % DISPOSABLE', terminal: 'HH.SAVE %DISP', plate: 'HOUSEHOLD SAVING RATE', short: 'HH SAVING', needs: 'HOUSEHOLD ACCOUNTS', note: 'Disposable household income not consumed this quarter. Negative means households drew down savings; bond principal is excluded from income.', complement: 'SPEND' },
+  government_demand_share: { dossier: 'GOVERNMENT / PRIVATE DEMAND · %', terminal: 'GOV/PRIVATE DEMAND %', plate: 'GOVERNMENT / PRIVATE DEMAND', short: 'GOVT SHARE', needs: 'NATIONAL ACCOUNTS', note: 'Government procurement and public investment as a share of domestic demand. The complement is private consumption and investment; transfers, subsidies, and net exports are not double-counted.', complement: 'PRIVATE' },
   inflation: { dossier: 'INFLATION · %/YR', terminal: 'CPI.INFL %/YR', plate: 'INFLATION', short: 'INFLATION', needs: 'PRICE COLLECTION' },
   price_food: { dossier: 'FOOD PRICES · 1946=100', terminal: 'PX.FOOD IDX', plate: 'FOOD PRICES', short: 'FOOD PRICE', needs: 'PRICE BUREAU' },
   price_fuel: { dossier: 'FUEL PRICES · 1946=100', terminal: 'PX.FUEL IDX', plate: 'FUEL PRICES', short: 'FUEL PRICE', needs: 'PRICE BUREAU' },
@@ -45,6 +53,14 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD' },
   credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION' },
   unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS' },
+}
+
+/** Saving/consumption and government/private are two sides of one accounting
+ * identity, not separate noisy instruments. Keep the complement derived from
+ * the same print so the wall can never claim the pair sums to 99 or 103. */
+export function complementReading(indicator: IndicatorId, value: number, digits = 1): string | null {
+  const label = NAMES[indicator].complement
+  return label ? `${label} ${(100 - value).toFixed(digits)}` : null
 }
 
 /** The classes the country is made of, as a ministry's paperwork would list

@@ -142,6 +142,10 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
  * simulation is waiting for; one table keeps that promise from drifting. */
 export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   gdp_growth: 0,
+  gdp_per_capita: 0,
+  consumption_per_capita: 0.25,
+  household_saving_rate: 0.45,
+  government_demand_share: 0.2,
   inflation: 0.08,
   price_food: 0.2,
   price_fuel: 0.2,
