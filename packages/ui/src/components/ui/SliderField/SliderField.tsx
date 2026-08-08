@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 
 export interface SliderFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string
@@ -10,6 +10,10 @@ export interface SliderFieldProps extends Omit<InputHTMLAttributes<HTMLInputElem
   politicalCost?: number
   onStep?: (direction: -1 | 1) => void
   onReset?: () => void
+  /** anything the dial owes the player about the order they have drafted —
+   * rendered inside the field, below the was/change line, and only while it
+   * is dirty. A clean dial has drafted nothing to explain. */
+  detail?: ReactNode
 }
 
 export function SliderField({
@@ -22,6 +26,7 @@ export function SliderField({
   politicalCost,
   onStep,
   onReset,
+  detail,
   id,
   className = '',
   disabled,
@@ -52,6 +57,7 @@ export function SliderField({
           {onReset && <button type="button" onClick={onReset} className="tracking-[0.1em] text-dossier-paper/55 hover:text-dossier-paper">RESET</button>}
         </div>
       )}
+      {dirty && detail}
     </div>
   )
 }

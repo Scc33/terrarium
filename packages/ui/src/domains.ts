@@ -24,7 +24,7 @@
  * expand but never shrinks back under the needle.
  */
 
-import { ELECTION_WIN_THRESHOLD, REFORM_WINDOW_AT } from '@terrarium/engine'
+import { ELECTION_WIN_THRESHOLD, NATURAL_UNEMPLOYMENT, REFORM_WINDOW_AT } from '@terrarium/engine'
 import type { IndicatorId } from '@terrarium/observation'
 
 export interface Domain {
@@ -81,6 +81,11 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   // not a reading — the government knows the threshold exactly and only its
   // own position against it is fogged. That gap is the game.
   unrest: { at: REFORM_WINDOW_AT * 100, label: 'THE WINDOW' },
+  // the Phillips anchor the wage step bargains around: the slack a moving
+  // economy carries even at full employment. Marking it splits one number
+  // into two readings the player otherwise has to know the constant to make
+  // — needle at the line is churn, needle to the right of it is a slump.
+  unemployment: { at: NATURAL_UNEMPLOYMENT * 100, label: 'FRICTIONAL' },
 }
 
 /**

@@ -9,7 +9,8 @@ import { CAPACITY_IDS, SECTOR_IDS, type CapacityId, type DialPath } from '@terra
 import { INDICATOR_IDS, INSTITUTION_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, SliderField } from '../components/ui'
-import { NAMES, BLOC_NAMES, BLOC_NOTES, INSTITUTION_NAMES } from '../components/labels'
+import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, INSTITUTION_NAMES } from '../components/labels'
+import { dialIncidence, type Incidence } from '../incidence'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
 import {
   CABINET_NAVIGATION_KEYS,
@@ -105,6 +106,40 @@ const DIAL_TIPS: Partial<Record<DialPath, string>> = {
   policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
 }
 
+/**
+ * Who a drafted programme change reaches, read off the ministry's own rules.
+ * Unfogged on purpose (see `../incidence`): the schedule of claims is a thing
+ * the government wrote, so it owes no survey to know it. The money only — a
+ * preview of how households would FEEL about it would be a preview of the
+ * player's own scoring function.
+ */
+function IncidenceNote({ incidence }: { incidence: Incidence }) {
+  const { booked, delivered, deliveryRate, rows } = incidence
+  const cutting = booked < 0
+  const signed = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}`
+  return (
+    <div className="mt-1.5 border-t border-dossier-paper/10 pt-1.5">
+      <div className="flex items-baseline justify-between font-mono text-[8px] tracking-[0.12em] text-dossier-paper/45">
+        <span>{cutting ? 'WHO LOSES IT' : 'WHO IT REACHES'}</span>
+        <span title="Programme money that survives the civil service. The books pay the full amount either way.">
+          {(deliveryRate * 100).toFixed(0)}% DELIVERED
+        </span>
+      </div>
+      <ul className="mt-1 flex flex-col gap-0.5">
+        {rows.map((row) => (
+          <li key={row.cohort} className="flex items-baseline justify-between gap-2 font-mono text-[9px] text-dossier-paper/70">
+            <span className="truncate">{COHORT_NAMES[row.cohort]}</span>
+            <span className="shrink-0 tabular-nums text-dossier-paper/85">{signed(row.delivered)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-1 font-mono text-[8px] leading-snug text-dossier-paper/40">
+        BOOKS {signed(booked)} · HOUSEHOLDS {signed(delivered)}
+      </div>
+    </div>
+  )
+}
+
 function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   const { staged, stagedCosts, stage } = useGame()
   const key = `dial:${def.path}`
@@ -125,6 +160,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   const deltaLabel = def.path.startsWith('taxRates.') || def.path === 'policyRate'
     ? `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(deltaDigits)} PT`
     : `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`
+  const incidence = dialIncidence(def.path, delta, pub)
 
   return (
     <SliderField
@@ -133,6 +169,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
       currentDisplayValue={def.fmt(current)}
       changeDisplayValue={deltaLabel}
       politicalCost={stagedCosts[key]}
+      detail={incidence && <IncidenceNote incidence={incidence} />}
       dirty={dirty}
       hint={DIAL_TIPS[def.path] ?? `A quarterly subsidy paid to the ${def.label} sector. Most of it leaks through weak administration; all of it hits the budget.`}
       min={def.min}
