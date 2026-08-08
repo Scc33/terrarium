@@ -1,0 +1,125 @@
+---
+name: economics-review
+description: Review and bless a Terrarium engine change — run when golden replays break, when tuning a constant in engine/src/constants.ts, or before running `pnpm bless`. Covers reading a state diff economically, the passive and random-policy baselines the economy must still hit, and the economy/politics seam check. Use whenever engine behaviour moves, including as the last step of adding an indicator, bloc, or institution.
+---
+
+# Reviewing an engine change
+
+`pnpm bless` overwrites the golden snapshots with whatever the engine currently produces. It
+cannot tell an intended improvement from a broken economy. **The diff review IS the economics
+review** (ADR-0008) — there is no other gate, and CI will happily go green on a blessed
+disaster.
+
+Never run `pnpm bless` in the same breath as the change that made it necessary.
+
+## The loop
+
+```bash
+pnpm test
+```
+
+Golden replays break — two cases, `passive-40q` and `fuel-tax-40q`, both on seed `golden-1`.
+
+```bash
+pnpm diff-state --moved-only
+```
+
+**Always `--moved-only` on any change that adds a schema field.** New fields sort as infinite
+relative change and bury the economics under noise. Add `--top N` to see past the default cut,
+or a case name to focus one replay.
+
+Read the diff. Then, and only then:
+
+```bash
+pnpm bless
+```
+
+## Reading the diff economically
+
+You are answering one question: **does every number that moved have a reason I can name?**
+
+Work outward from the change:
+
+1. **Name the intended channel first.** Write down which variables *should* move and roughly
+   how much, before you look. A diff you rationalize after the fact will always look fine.
+2. **Then hunt for movement outside that channel.** A tax change that moves `priceFuel` is
+   expected; one that moves `birthRate` at q8 is a leak worth explaining.
+3. **Check the sign, then the magnitude, then the shape.** Wrong sign is a bug. Right sign and
+   an implausible magnitude is usually a constant off by a factor. Right magnitude with the
+   wrong *timing* is usually a pipeline-order problem — and step order is versioned
+   (ADR-0005), so reordering is a schema event, not a refactor.
+4. **Money must not vanish.** Bond coupons are household income and redemptions go to
+   household savings. If a change makes payments to bondholders disappear, every tax rise
+   becomes an austerity bomb and the diff will show it as a demand collapse you didn't order.
+
+If you cannot explain a movement, it is a finding, not a rounding error.
+
+## The baselines
+
+A passing golden diff is necessary, not sufficient — 40 quarters hides century behaviour.
+
+```bash
+pnpm batch -- --runs 1000 --ticks 120 --policy random
+pnpm batch -- --runs 1000 --ticks 400 --policy passive
+```
+
+**Healthy passive century:** growth ≈ 2.5%/yr · inflation ≈ 0 · unemployment ≈ 12.4% century
+mean · ~7% deposed by 400q.
+
+That elevated unemployment is **designed**, not a bug: it is the §8 youth-bulge bomb an
+unschooled do-nothing government earns. Funding education absorbs it to ~7% and lifts growth
+past 3%. Do not "fix" it.
+
+**Healthy random policy, 120q:** ~30% deposed · no NaN · no price explosions.
+
+CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
+*levels* do not — those are yours to check.
+
+## The seam check
+
+The economy and the politics are separate machines. They meet in exactly two places:
+`pipeline/institutions.ts` reads the economy to decide who has power, and the veto players
+price actions in `actions/apply.ts`.
+
+**If a politics-only change moved the passive baseline, the seam has leaked.** Passive means
+no actions, so no veto pricing ever ran — a politics change cannot legitimately reach it.
+`pnpm batch --policy passive` is the check. M6 deliberately left the passive baseline
+untouched; keep it that way.
+
+## Tuning a constant
+
+Every behavioral constant lives in `engine/src/constants.ts` (ADR-0007). Tune there, nowhere
+else. Before picking a number:
+
+- **Measure the resting value.** Political responses are reference-dependent on purpose —
+  cohort approval judges income against an EMA of itself, bloc favour against the 1946
+  settlement (`BLOC_FAVOR_BASE`), unrest against experienced conditions. Each was a *bug fix*
+  for an absolute threshold. Centre anything new the same way, and measure where it rests
+  before choosing the constant.
+- **A mechanic you cannot reach is not a mechanic.** Measure the distribution of whatever a
+  threshold gates under passive, random, *and* deliberately bad play. Two M6 mechanics were
+  dead on arrival at numbers that looked entirely plausible on the page.
+- **Player-facing constants get calibrated, not guessed** — pinned as a rate against a
+  measured century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). Those
+  tests re-measure rather than snapshot, so a retune that pushes an instrument off its dial
+  fails by name.
+
+The load-bearing traps are catalogued in `AGENTS.md` under "Hard-won tuning lessons" — read
+that section beside the constant you are about to touch. Highlights: unit costs computed at
+`NORMAL_UTILIZATION` (not realized output, or you get a stagflation spiral); wages need all
+three legs; `ASSET_REVERT` must out-muscle the collateral feedback or a passive economy
+spontaneously bubbles.
+
+## What must not break
+
+`tests/properties/fuel-tax.test.ts` and `subsidy.test.ts` are the M1 exit criteria — the
+design's load-bearing claims. **If a change breaks them, the change is wrong, not the test.**
+
+`pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90% branch).
+It is a floor to prevent regression. Raise it; never lower it to green a build.
+
+## If the result surprised you
+
+A measurement that contradicts what the model was believed to do is worth recording even when
+nothing ships — see the **`document-a-decision` skill** for whether it is an ADR, an
+investigation, or a tuning lesson.
