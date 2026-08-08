@@ -9,8 +9,10 @@ reads the economy to decide who has power, and the veto players price every acti
 if a politics change moves it, the seam has leaked (`pnpm batch --policy passive` is the check).
 
 Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
-with the alternatives it beat and the costs it carries); `proposal-1.md` is the design doc
-whose § numbers ~65 code comments cite — don't renumber it. `docs/archive/` is unmaintained.
+with the alternatives it beat and the costs it carries); `docs/investigations/` is **what we
+measured and don't yet believe** (open questions with evidence attached — read before
+re-deriving one); `proposal-1.md` is the design doc whose § numbers ~65 code comments cite —
+don't renumber it. `docs/archive/` is unmaintained.
 
 ## Hard rules (mostly lint-enforced, but know why)
 
