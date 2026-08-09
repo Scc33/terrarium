@@ -209,6 +209,7 @@ export const production: PipelineStep = {
         householdDemand,
         cohortSpend,
         investmentReal,
+        publicInvestmentReal: govInvReal,
         privateDomesticDemandReal,
         governmentDomesticDemandReal,
         subsidyDelivered,

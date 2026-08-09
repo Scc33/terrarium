@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 15)
+## Current contract (schema 16)
 
 ### Inputs
 
@@ -92,7 +92,6 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `inflation` | % / yr | 0.08 | v1 | quarterly CPI inflation ×4 |
 | `price_food` | 1946=100 | 0.20 | v5 | effective agri price |
 | `price_fuel` | 1946=100 | 0.20 | v5 | effective energy price (incl. fuel excise) |
-| `government_demand_share` | % domestic demand | 0.20 | v15 | delivered procurement + public investment ÷ domestic demand; private is the complement |
 | `approval` | % | 0.25 | v3 | enfranchisement-weighted approval |
 | `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
@@ -100,6 +99,9 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
+| `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
+| `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
+| `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
@@ -157,11 +159,40 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 
 ## Version history — what each release added to the contract
 
+### schema 16 — The expenditure accounts
+- **Outputs +**: `consumption_share`, `investment_share`, `export_share` — all fogged, all
+  unlocking together at **0.35**, because they are one publication. Total final expenditure is
+  household consumption + capital formation + government final consumption + gross exports, real
+  at base prices. Shown together in the new **expenditure accounts** overlay (donut for the
+  quarter, stacked bands for the century).
+- **Outputs −**: `government_demand_share` (was 0.20, v15) is **withdrawn**. It measured
+  government demand against domestic demand only, a different denominator from the family
+  replacing it, and two "government share" dials reading different numbers is worse than one.
+- **Accounting boundary**: capital formation is booked as investment whoever paid for it, so
+  public works count there and `governmentShare` is the state's final *consumption* alone.
+  Transfers and subsidies are not final demand — they finance spending already counted.
+  Imports are netted inside the Leontief solve, not booked as a negative claim.
+- **Measured but deliberately unpublished**: `StatRecord.governmentShare`. The identity is
+  exhaustive in the truth (the four shares sum to 1, pinned by
+  `tests/properties/national-accounts.test.ts`), but the state's own purchases run **under 1%**
+  of final expenditure in this engine — it buys goods and pays transfers, it does not employ
+  anyone — so a dial reading "government: 0.7%" would be true and would badly misinform. The
+  treasury's exact books are the government's real footprint. Measured decade by decade in
+  `docs/investigations/0002-capital-formation-share-only-falls.md`, which also records why
+  `investment_share` cannot be read as "am I building an investment economy".
+- **The three prints do not sum to 100.** Each account is a separate survey with its own
+  relative error band; the composition views renormalize and the overlay states the shortfall
+  rather than hiding it.
+- **Internal state +**: `TickFlows.publicInvestmentReal`, so government final consumption is
+  recoverable by subtraction.
+- **Pipeline**: unchanged. Additive measurement on orthogonal `obs:*` substreams plus the schema
+  stamp; the economic path and the passive baseline are unchanged.
+
 ### schema 15 — Per-capita and household national accounts
 - **Outputs +**: `gdp_per_capita` (fogged, unlock 0.00), `consumption_per_capita` (0.25),
-  `household_saving_rate` (0.45), and `government_demand_share` (0.20). The wall derives the
-  complementary consumption and private-demand shares from the same prints, so each pair always
-  sums to 100 even while the underlying print is revised.
+  `household_saving_rate` (0.45), and `government_demand_share` (0.20 — withdrawn in v16). The
+  wall derives the complementary consumption and private-demand shares from the same prints, so
+  each pair always sums to 100 even while the underlying print is revised.
 - **Clarification**: `gdp_growth` is now labelled **real GDP growth** throughout the UI. Its
   arithmetic was already real: annualized quarter-over-quarter growth of `realGdp`; nominal GDP
   is carried only as a level estimate beside the headline.

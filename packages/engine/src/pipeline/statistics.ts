@@ -10,12 +10,13 @@
 
 import { rngFor, type Seed } from '../rng/rng'
 import { INDICATOR_FUNDED_AT } from '../constants'
-import type {
-  IndicatorId,
-  NewsItem,
-  StatPrint,
-  StatRecord,
-  TrueState,
+import {
+  SECTOR_IDS,
+  type IndicatorId,
+  type NewsItem,
+  type StatPrint,
+  type StatRecord,
+  type TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import {
@@ -69,12 +70,41 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     trueValue: (h, q) => h[q].householdSavingRate * 100,
     baseSd: 3,
   },
+  // The expenditure accounts. Each share is compiled from its own source, so
+  // each carries its own error — and they are noised independently for that
+  // reason, which is why the four prints do not sum to 100. The office is not
+  // hiding a residual; it never had one to reconcile.
+  //
+  // All four take RELATIVE noise, which is not cosmetic. The components differ
+  // by two orders of magnitude in this economy (consumption ~78% against
+  // government ~1%), so one absolute band wide enough to be honest about
+  // consumption prints the small components NEGATIVE — a share below zero is
+  // not a thing a pie can draw, and a dial that reads −2% of the economy is
+  // worse than no dial. A statistical office's error on a small aggregate is
+  // proportional anyway: it is estimating a total, not counting to it.
   {
-    id: 'government_demand_share',
-    trueValue: (h, q) => h[q].governmentDemandShare * 100,
-    // One side comes from exact treasury books; the office is estimating the
-    // private denominator, not discovering government purchases from scratch.
-    baseSd: 1,
+    id: 'consumption_share',
+    // the biggest component and the best surveyed: retail returns and the
+    // household budget survey both bear on it
+    trueValue: (h, q) => h[q].consumptionShare * 100,
+    baseSd: 0.04,
+    relativeSd: true,
+  },
+  {
+    id: 'investment_share',
+    // the hardest line in the accounts. Capital formation has to be inferred
+    // from company returns and construction permits, and it is the component
+    // that swings most between quarters, so a poor office guesses worst here.
+    trueValue: (h, q) => h[q].investmentShare * 100,
+    baseSd: 0.25,
+    relativeSd: true,
+  },
+  {
+    id: 'export_share',
+    // customs count what crosses the border, so the volume is well observed
+    trueValue: (h, q) => h[q].exportShare * 100,
+    baseSd: 0.1,
+    relativeSd: true,
   },
   {
     id: 'inflation',
@@ -187,7 +217,15 @@ const noiseScale = (cap: number) => 1 - 0.85 * cap
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
-  const domesticDemand = flows.privateDomesticDemandReal + flows.governmentDomesticDemandReal
+  // the expenditure side: four non-negative claims on one quarter's output.
+  // Consumption and exports come from the sector demand vectors, capital
+  // formation is public and private together, and what is left of the state's
+  // demand after the works is its final consumption.
+  const consumption = SECTOR_IDS.reduce((s, sid) => s + flows.householdDemand[sid], 0)
+  const exports = SECTOR_IDS.reduce((s, sid) => s + flows.exportsReal[sid], 0)
+  const governmentConsumption = flows.governmentDomesticDemandReal - flows.publicInvestmentReal
+  const finalExpenditure = consumption + flows.investmentReal + governmentConsumption + exports
+  const shareOf = (part: number) => (finalExpenditure > 1e-9 ? part / finalExpenditure : 0)
   return {
     tick: state.meta.tick,
     realGdp: flows.realGdp,
@@ -195,8 +233,10 @@ function recordOf(state: TrueState): StatRecord {
     realGdpPerCapita: population > 1e-9 ? (4 * flows.realGdp) / population : 0,
     realConsumptionPerCapita: realConsumptionPerCapita(state),
     householdSavingRate: householdSavingRate(state),
-    governmentDemandShare:
-      domesticDemand > 1e-9 ? flows.governmentDomesticDemandReal / domesticDemand : 0,
+    consumptionShare: shareOf(consumption),
+    investmentShare: shareOf(flows.investmentReal),
+    governmentShare: shareOf(governmentConsumption),
+    exportShare: shareOf(exports),
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),

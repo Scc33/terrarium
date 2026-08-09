@@ -145,7 +145,15 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   gdp_per_capita: 0,
   consumption_per_capita: 0.25,
   household_saving_rate: 0.45,
-  government_demand_share: 0.2,
+  // The expenditure accounts are ONE publication, so all four unlock together
+  // and the rail advertises them as a single milestone. They sit beside the
+  // labour force survey rather than on 0.30 with the establishment survey —
+  // not because they are harder than payrolls, but because 0.30 already hands
+  // the player four instruments, and a rung that lights up half the wall at
+  // once teaches nothing about any of them.
+  consumption_share: 0.35,
+  investment_share: 0.35,
+  export_share: 0.35,
   inflation: 0.08,
   price_food: 0.2,
   price_fuel: 0.2,
