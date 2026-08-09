@@ -51,7 +51,14 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   gdp_per_capita: { lo: 0, hi: 120 },
   consumption_per_capita: { lo: 0, hi: 90 },
   household_saving_rate: { lo: -10, hi: 20 },
-  government_demand_share: { lo: 0, hi: 20 },
+  // The expenditure shares differ in magnitude by two orders of magnitude in
+  // this economy, so they get four very different faces rather than a shared
+  // 0–100 one. A common face would put three of the four needles in the same
+  // millimetre of dial and make the split unreadable — which is the opposite
+  // of what a composition instrument is for.
+  consumption_share: { lo: 70, hi: 85 },
+  investment_share: { lo: 0, hi: 10 },
+  export_share: { lo: 5, hi: 30 },
   inflation: { lo: -15, hi: 15 },
   price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },

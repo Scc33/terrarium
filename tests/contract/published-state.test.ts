@@ -111,9 +111,13 @@ describe('the published-state contract (§1.1)', () => {
       'realGdpPerCapita',
       'realConsumptionPerCapita',
       'householdSavingRate',
-      'governmentDemandShare',
+      'consumptionShare',
+      'investmentShare',
+      'governmentShare',
+      'exportShare',
       'privateDomesticDemandReal',
       'governmentDomesticDemandReal',
+      'publicInvestmentReal',
     ]
     for (const f of forbidden) expect(keys.has(f), `LEAKED true-state field: ${f}`).toBe(false)
   })

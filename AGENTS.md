@@ -195,3 +195,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
 - Player-facing constants get calibrated, not guessed, and pinned as a rate against a measured
   century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). The tests re-measure
   rather than snapshot, so a retune that pushes an instrument off its dial fails by name.
+- **`gauge-domains` catches a face that is too NARROW, never one that is too wide.** It fails on
+  pegging, and a needle parked against the left rail without crossing it is not pegged — which is
+  how `government_demand_share` shipped a 0–20 face for a series that lived at 1–3 %. Read the
+  `pnpm ranges` percentiles when you add a face; a passing test is not evidence the dial is
+  legible.
+- **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
+  shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
+  about the big one prints the small ones negative — and a share below zero cannot be drawn as a
+  wedge at all (`donutSlices` drops it). See `docs/investigations/0002`.

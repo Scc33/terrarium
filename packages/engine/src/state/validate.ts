@@ -47,6 +47,7 @@ export function validate(state: TrueState): void {
   finite(state.flows.nominalGdp, 'nominalGdp')
   finite(state.flows.privateDomesticDemandReal, 'privateDomesticDemandReal')
   finite(state.flows.governmentDomesticDemandReal, 'governmentDomesticDemandReal')
+  finite(state.flows.publicInvestmentReal, 'publicInvestmentReal')
   if (state.gov.debt < 0) throw new InvariantError('debt < 0')
   if (state.flows.realGdp < 0) throw new InvariantError('realGdp < 0')
   if (state.flows.privateDomesticDemandReal < 0) {
@@ -54,6 +55,12 @@ export function validate(state: TrueState): void {
   }
   if (state.flows.governmentDomesticDemandReal < 0) {
     throw new InvariantError('governmentDomesticDemandReal < 0')
+  }
+  // the state's demand is procurement plus public works, so the works can
+  // never exceed it — and the expenditure accounts get government final
+  // consumption by subtracting one from the other
+  if (state.flows.publicInvestmentReal > state.flows.governmentDomesticDemandReal + 1e-9) {
+    throw new InvariantError('publicInvestmentReal exceeds government demand')
   }
   for (const [cid, v] of Object.entries(state.gov.capacity)) {
     finite(v, `capacity[${cid}]`)

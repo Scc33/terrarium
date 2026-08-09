@@ -249,6 +249,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       number
     >,
     investmentReal: 0,
+    publicInvestmentReal: 0,
     privateDomesticDemandReal: 0,
     governmentDomesticDemandReal: 0,
     tariffBase: 0,

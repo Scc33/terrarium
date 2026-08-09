@@ -21,6 +21,7 @@ export function HeaderBar({
   onSettings,
   onCensus,
   onFinance,
+  onAccounts,
   onVerdict,
 }: {
   pub: PublishedState
@@ -28,6 +29,7 @@ export function HeaderBar({
   onSettings: () => void
   onCensus: () => void
   onFinance: () => void
+  onAccounts: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
 }) {
@@ -67,6 +69,7 @@ export function HeaderBar({
 
       <nav className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
         {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
+        <Button onClick={onAccounts} variant="secondary" size="compact" title="The expenditure accounts: who the economy’s output is for.">ACCOUNTS</Button>
         <Button onClick={onFinance} variant="secondary" size="compact" title="The financial system.">FINANCE</Button>
         <Button onClick={onStudy} variant="secondary" size="compact" title="The Study.">STUDY</Button>
         <Button onClick={onSettings} variant="secondary" size="compact" title="Records office.">RECORDS</Button>
@@ -77,6 +80,7 @@ export function HeaderBar({
         </summary>
         <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
           {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
+          <Button onClick={onAccounts} variant="secondary" size="compact">ACCOUNTS</Button>
           <Button onClick={onFinance} variant="secondary" size="compact">FINANCE</Button>
           <Button onClick={onStudy} variant="secondary" size="compact">STUDY</Button>
           <Button onClick={onSettings} variant="secondary" size="compact">RECORDS</Button>
