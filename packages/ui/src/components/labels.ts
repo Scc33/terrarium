@@ -15,7 +15,11 @@ import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/
 export interface IndicatorNames {
   /** dossier-era gauge header: the ministry's own wording, with units */
   dossier: string
-  /** terminal-era mnemonic: what a wire service would call it */
+  /** terminal-era mnemonic: what a wire service would call it. Keep to 20
+   * characters — that is what a board slot's header leaves once the window
+   * toggle is paid for at 1280×720, and the ticker ellipsises past it rather
+   * than pushing the figures off the tile. `GOV/PRIVATE DEMAND %` is at the
+   * limit; anything longer loses its unit. */
   terminal: string
   /** blank brass plate: the instrument's name, engraved, no units */
   plate: string
