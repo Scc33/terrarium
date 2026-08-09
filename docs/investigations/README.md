@@ -25,3 +25,4 @@ drift. Re-measure before acting on one.
 | # | question | status |
 |---|----------|--------|
 | [0001](0001-subsistence-valve-saturation.md) | The subsistence valve is saturated for most of the century | Open |
+| [0002](0002-capital-formation-share-only-falls.md) | Capital formation's share of expenditure only ever falls | Open |

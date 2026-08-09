@@ -99,3 +99,11 @@ veto price. Use `add-indicator` before adding or retuning anything the player ca
 - Player-facing constants are calibrated, not guessed, and pinned against a measured century
   as a rate with `pnpm ranges` and the UI range tests. Those tests re-measure so a retune that
   pushes an instrument off its face fails by name.
+- `gauge-domains` detects a dial face that is too narrow, not one that is too wide. It fails
+  on pegging, but a needle parked near a rail without crossing it still passes. Read the
+  `pnpm ranges` percentiles when adding a face; a passing test does not prove the dial is
+  legible.
+- Give components of one accounting identity relative noise, not one absolute band. Expenditure
+  shares span orders of magnitude, so a band honest for consumption can print a small share
+  below zero, and `donutSlices` cannot draw a negative wedge. See
+  `docs/investigations/0002-capital-formation-share-only-falls.md`.

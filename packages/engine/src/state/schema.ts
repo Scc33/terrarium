@@ -80,7 +80,23 @@ export const INDICATOR_IDS = [
   'gdp_per_capita',
   'consumption_per_capita',
   'household_saving_rate',
-  'government_demand_share',
+  // The expenditure accounts (§2.2): who the economy's output is FOR. A
+  // country turning itself into an exporter, or eating its own capital
+  // formation, shows up here as composition rather than as a headline that
+  // happens to be growing. Each is surveyed separately, so the prints do NOT
+  // sum to 100 — that gap is the office's, and the composition views
+  // renormalize rather than pretend otherwise.
+  //
+  // The fourth component of the identity — the state's own final consumption
+  // — is measured (`StatRecord.governmentShare`) but deliberately NOT
+  // published as an instrument. It runs under 1% of final expenditure here
+  // because this engine's state has no payroll: it buys goods and pays
+  // transfers, it does not employ teachers. A dial reading "government: 0.7%"
+  // would be true and would badly misinform, and the state's real footprint
+  // already has an exact home in the treasury ledger.
+  'consumption_share',
+  'investment_share',
+  'export_share',
   'inflation',
   'price_food',
   'price_fuel',
@@ -423,8 +439,25 @@ export interface StatRecord {
   realConsumptionPerCapita: number
   /** disposable income not consumed this quarter; may be negative in a drawdown */
   householdSavingRate: number
-  /** government procurement + public investment as a share of domestic demand */
-  governmentDemandShare: Ratio
+  /** the expenditure side of the accounts, as shares of TOTAL FINAL
+   * EXPENDITURE (household consumption + capital formation + government
+   * final consumption + gross exports, all real at base prices). Every
+   * component is non-negative, so a pie can say them; they sum to 1 in the
+   * truth and only approximately in the prints, because the office surveys
+   * each one separately.
+   *
+   * Capital formation is booked as investment whoever paid for it — the
+   * question "is this an investment economy" does not care whether the
+   * concrete was poured by a firm or a ministry — so `governmentShare` is
+   * the state's final CONSUMPTION (delivered procurement) alone. Transfers
+   * and subsidies are not final demand: they finance the household and firm
+   * spending already counted here, and double-counting them would make the
+   * state's footprint look twice its size. Imports are netted inside the
+   * Leontief solve, not booked as a negative claim. */
+  consumptionShare: Ratio
+  investmentShare: Ratio
+  governmentShare: Ratio
+  exportShare: Ratio
   inflationQ: number
   unemployment: Ratio
   payrolls: number // millions, ex-agri
@@ -509,6 +542,11 @@ export interface TickFlows {
   cohortSpend: Record<CohortId, number>
   /** private + public investment demand, real */
   investmentReal: number
+  /** the public half of `investmentReal`, at base prices. Split out because
+   * the expenditure accounts book capital formation as investment whoever
+   * pays for it, so government FINAL CONSUMPTION is the rest of the state's
+   * demand — `governmentDomesticDemandReal` minus this. */
+  publicInvestmentReal: number
   /** household consumption + private investment, at base prices */
   privateDomesticDemandReal: number
   /** delivered procurement + public investment, at base prices */
@@ -577,7 +615,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 15 // v15: per-capita and household national-accounts instruments
+export const SCHEMA_VERSION = 16 // v16: the expenditure accounts — output by who it is for
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

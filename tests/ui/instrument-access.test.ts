@@ -38,7 +38,13 @@ describe('instrument access', () => {
   it('groups the next survey threshold into one cabinet milestone', () => {
     expect(nextInstrumentUnlock(0.18)).toEqual({
       fundedAt: 0.2,
-      indicators: ['government_demand_share', 'price_food', 'price_fuel'],
+      indicators: ['price_food', 'price_fuel'],
+    })
+    // the expenditure accounts are one publication, so the rail promises all
+    // three of them — plus the labour force survey they share a rung with
+    expect(nextInstrumentUnlock(0.32)).toEqual({
+      fundedAt: 0.35,
+      indicators: ['consumption_share', 'investment_share', 'export_share', 'unemployment'],
     })
     expect(nextInstrumentUnlock(0.55)).toBeNull()
   })

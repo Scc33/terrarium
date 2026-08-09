@@ -60,45 +60,55 @@ describe('the national accounts instruments', () => {
     expect(latest.householdSavingRate + consumption / disposableIncome).toBeCloseTo(1, 10)
   })
 
-  it('splits domestic demand into complementary government and private shares', () => {
+  it('splits final expenditure into four exhaustive, non-negative claims', () => {
+    const state = play('accounts-expenditure', 24)
+
+    for (const row of state.stats.record) {
+      const parts = [row.consumptionShare, row.investmentShare, row.governmentShare, row.exportShare]
+      for (const part of parts) expect(part).toBeGreaterThanOrEqual(0)
+      // exhaustive by construction: a residual would mean output was bought by
+      // nobody, and the composition views would be renormalizing a lie
+      expect(parts.reduce((sum, part) => sum + part, 0)).toBeCloseTo(1, 10)
+    }
+  })
+
+  it('books public works as capital formation, not as government consumption', () => {
     const base = init(withStats(1), 'accounts-ownership')
-    const highGovernment: TrueState = {
+    const dialUp = (of: 'procurement' | 'investment'): TrueState => ({
       ...base,
       gov: {
         ...base.gov,
         dials: {
           ...base.gov.dials,
-          spending: {
-            ...base.gov.dials.spending,
-            procurement: base.gov.dials.spending.procurement * 4,
-            investment: base.gov.dials.spending.investment * 4,
-          },
+          spending: { ...base.gov.dials.spending, [of]: base.gov.dials.spending[of] * 5 },
         },
       },
-    }
-    const ordinary = step(base)
-    const expanded = step(highGovernment)
-    const shareOf = (state: TrueState) => {
-      const flows = state.flows
-      return (
-        flows.governmentDomesticDemandReal /
-        (flows.governmentDomesticDemandReal + flows.privateDomesticDemandReal)
-      )
-    }
+    })
+    const ordinary = step(base).stats.record[0]
+    const buying = step(dialUp('procurement')).stats.record[0]
+    const building = step(dialUp('investment')).stats.record[0]
 
-    expect(ordinary.stats.record[0].governmentDemandShare).toBeCloseTo(shareOf(ordinary), 10)
-    expect(expanded.stats.record[0].governmentDemandShare).toBeCloseTo(shareOf(expanded), 10)
-    expect(expanded.stats.record[0].governmentDemandShare).toBeGreaterThan(
-      ordinary.stats.record[0].governmentDemandShare + 0.05,
-    )
+    // procurement is the state's own final consumption…
+    expect(buying.governmentShare).toBeGreaterThan(ordinary.governmentShare + 0.05)
+    // …while public works land beside private capital formation. This is the
+    // distinction the old single government/private share could not draw, and
+    // it is the whole point of the split: a ministry pouring concrete is an
+    // investment economy, a ministry buying uniforms is not.
+    expect(building.investmentShare).toBeGreaterThan(ordinary.investmentShare + 0.02)
+    expect(building.governmentShare).toBeLessThanOrEqual(ordinary.governmentShare + 1e-9)
   })
 
   it('unlocks each account only when the office can compile it', () => {
     expect(observe(play('accounts-gate', 12, 0.1)).indicators.gdp_per_capita).toBeDefined()
-    expect(observe(play('accounts-gate', 12, 0.1)).indicators.government_demand_share).toBeUndefined()
-    expect(observe(play('accounts-gate', 12, 0.22)).indicators.government_demand_share).toBeDefined()
     expect(observe(play('accounts-gate', 12, 0.22)).indicators.consumption_per_capita).toBeUndefined()
     expect(observe(play('accounts-gate', 12, 0.3)).indicators.consumption_per_capita).toBeDefined()
+    // the expenditure accounts arrive as one event, all three together
+    const thin = observe(play('accounts-gate', 12, 0.28)).indicators
+    const built = observe(play('accounts-gate', 12, 0.4)).indicators
+    for (const id of ['consumption_share', 'investment_share', 'export_share'] as const) {
+      expect(thin[id]).toBeUndefined()
+      expect(built[id]).toBeDefined()
+    }
     expect(observe(play('accounts-gate', 12, 0.4)).indicators.household_saving_rate).toBeUndefined()
     expect(observe(play('accounts-gate', 12, 0.5)).indicators.household_saving_rate).toBeDefined()
   })
