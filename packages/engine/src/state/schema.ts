@@ -55,6 +55,22 @@ export const OUTLAY_IDS = [
 export type OutlayId = (typeof OUTLAY_IDS)[number]
 export type OutlaySplit = Record<OutlayId, Money>
 
+/** The three recurring programmes the cabinet can write a spending rule for.
+ * Capacity builds, subsidies, and interest have their own causal controls. */
+export const SPENDING_PROGRAM_IDS = ['transfers', 'procurement', 'investment'] as const
+export type SpendingProgramId = (typeof SPENDING_PROGRAM_IDS)[number]
+
+/** A voted appropriation can stay nominal, follow the official CPI print, or
+ * claim a share of the latest officially published nominal GDP. Indexed
+ * amounts advance only on first releases: revisions do not rewrite cheques
+ * that have already gone out. */
+export type SpendingRule =
+  | { kind: 'fixed'; amount: Money }
+  | { kind: 'indexed'; amount: Money; lastIndexedForQtr: Qtr | null }
+  | { kind: 'gdpShare'; share: Ratio }
+export type SpendingRuleMode = SpendingRule['kind']
+export type SpendingRules = Record<SpendingProgramId, SpendingRule>
+
 /** Layer 3 (§4.3) — generational, ratcheting, contested. These are the stocks
  * that edit your own objective function: `suffrage` rewrites the ballot
  * weights the PC formula scores you on, `repression` buys the state's coercive
@@ -258,6 +274,9 @@ export interface CapacityBuild {
 
 export interface GovernmentState {
   dials: DialState
+  /** Standing appropriations. `dials.spending` is the amount currently
+   * resolved from these rules and remains the common input to the economy. */
+  spendingRules: SpendingRules
   capacity: Record<CapacityId, Ratio>
   /** in-flight Layer-2 investments; capacity arrives with a lag */
   pipeline: CapacityBuild[]
@@ -615,7 +634,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 16 // v16: the expenditure accounts — output by who it is for
+export const SCHEMA_VERSION = 17 // v17: rule-based recurring expenditure
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

@@ -44,6 +44,7 @@ describe('the published-state contract (§1.1)', () => {
       'country',
       'indicators',
       'dials',
+      'spendingRules',
       'treasury',
       'capacity',
       'capacityBuilding',

@@ -26,6 +26,38 @@ test('cabinet draft review', async ({ page }) => {
   await expect(page).toHaveScreenshot('cabinet-draft.png')
 })
 
+test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'SPENDING 3 CONTROLS' }).click()
+  const transfers = page.getByRole('group', { name: 'Transfers spending rule' })
+  const procurement = page.getByRole('group', { name: 'Procurement spending rule' })
+  const gdpRule = procurement.getByRole('button', { name: '% GDP', exact: true })
+  await expect(gdpRule).toBeDisabled()
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (const quarter of ['1946 Q2', '1946 Q3', '1946 Q4']) {
+    await advance.click()
+    await expect(page.getByText(quarter, { exact: true })).toBeVisible()
+  }
+  await expect(gdpRule).toBeEnabled()
+  await transfers.getByRole('button', { name: 'CPI', exact: true }).click()
+  await gdpRule.click()
+  await page.getByRole('button', { name: 'Increase Procurement' }).click()
+  await expect(transfers.getByRole('button', { name: 'CPI', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(procurement.getByRole('button', { name: '% GDP', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByText('2 ORDERS DRAFTED')).toBeVisible()
+  await expect(page.getByRole('tabpanel')).not.toContainText('WHO IT REACHES')
+  await page.getByRole('tabpanel').evaluate((panel) => {
+    panel.scrollTop = 0
+  })
+  await expect(page).toHaveScreenshot('spending-rule-draft.png')
+})
+
 test('unfitted instrument routes to its capacity investment', async ({ page }) => {
   await openGame(page)
   await page.getByRole('button', { name: 'Open Institutions to fund LABOUR FORCE SURVEY' }).click()

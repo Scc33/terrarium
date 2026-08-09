@@ -322,6 +322,11 @@ export function init(params: CountryParams, seed: Seed): TrueState {
         policyRate: 0.04,
         subsidies: {},
       },
+      spendingRules: {
+        transfers: { kind: 'fixed', amount: spendingDials.transfers },
+        procurement: { kind: 'fixed', amount: spendingDials.procurement },
+        investment: { kind: 'fixed', amount: spendingDials.investment },
+      },
       // pre-M4 saves carry no education capacity — backfill the 1946 default
       capacity: {
         ...params.capacities,

@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a4c13cd",
+  "revision": "f35729b",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 28,
-      "lines": 5906
+      "moduleCount": 29,
+      "lines": 6308
     },
     {
       "id": "fixtures",
@@ -25,7 +25,7 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 3,
-      "lines": 446
+      "lines": 452
     },
     {
       "id": "runner",
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 59,
-      "lines": 6617
+      "moduleCount": 62,
+      "lines": 7120
     }
   ],
   "modules": [
@@ -49,37 +49,37 @@ export const architecture = {
       "packageId": "engine",
       "category": "Actions",
       "summary": "Action application. Validates legality (dial bounds, PC affordability) and rejects loudly — an illegal action in a replay means a bug or a version mismatch, never a silent skip (§5).",
-      "lines": 457,
+      "lines": 542,
       "exports": [
         {
           "name": "IllegalActionError",
           "kind": "class",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 61
+          "line": 67
         },
         {
           "name": "reformWindowOpen",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 101
+          "line": 107
         },
         {
           "name": "vetoMultiplier",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 119
+          "line": 125
         },
         {
           "name": "politicalCostOfAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 277
+          "line": 310
         },
         {
           "name": "applyAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 333
+          "line": 390
         }
       ],
       "imports": [
@@ -87,7 +87,8 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
-        "packages/engine/src/state/schema.ts"
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/spending.ts"
       ],
       "importedBy": [
         "packages/engine/src/index.ts"
@@ -101,31 +102,31 @@ export const architecture = {
       "packageId": "engine",
       "category": "Actions",
       "summary": "",
-      "lines": 29,
+      "lines": 42,
       "exports": [
         {
           "name": "DialPath",
           "kind": "type",
           "path": "packages/engine/src/actions/types.ts",
-          "line": 3
+          "line": 13
         },
         {
           "name": "Action",
           "kind": "type",
           "path": "packages/engine/src/actions/types.ts",
-          "line": 14
+          "line": 24
         },
         {
           "name": "TurnActions",
           "kind": "interface",
           "path": "packages/engine/src/actions/types.ts",
-          "line": 23
+          "line": 36
         },
         {
           "name": "ActionLog",
           "kind": "type",
           "path": "packages/engine/src/actions/types.ts",
-          "line": 28
+          "line": 41
         }
       ],
       "imports": [
@@ -144,7 +145,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the M1 exit criterion (c)).",
-      "lines": 708,
+      "lines": 716,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -342,1081 +343,1081 @@ export const architecture = {
           "name": "CAPACITY_DECAY_BY_ID",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 172
+          "line": 180
         },
         {
           "name": "CONF_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 180
+          "line": 188
         },
         {
           "name": "CONF_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 181
+          "line": 189
         },
         {
           "name": "CONF_MPC_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 182
+          "line": 190
         },
         {
           "name": "CONF_INV_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 183
+          "line": 191
         },
         {
           "name": "EXPECTATION_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 186
+          "line": 194
         },
         {
           "name": "PRINT_PRICE_PRESSURE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 187
+          "line": 195
         },
         {
           "name": "INVESTMENT_RATE_SENSITIVITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 188
+          "line": 196
         },
         {
           "name": "NATURAL_REAL_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 189
+          "line": 197
         },
         {
           "name": "INVESTMENT_SLACK_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 193
+          "line": 201
         },
         {
           "name": "INVESTMENT_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 194
+          "line": 202
         },
         {
           "name": "ENERGY_SHOCK_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 198
+          "line": 206
         },
         {
           "name": "ENERGY_SHOCK_JUMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 199
+          "line": 207
         },
         {
           "name": "DROUGHT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 201
+          "line": 209
         },
         {
           "name": "DROUGHT_SEVERITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 202
+          "line": 210
         },
         {
           "name": "DROUGHT_EXTRA_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 203
+          "line": 211
         },
         {
           "name": "WORLD_PRICE_REVERT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 206
+          "line": 214
         },
         {
           "name": "FRONTIER_ERAS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 212
+          "line": 220
         },
         {
           "name": "TECH_EXPOSURE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 221
+          "line": 229
         },
         {
           "name": "CATCHUP_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 229
+          "line": 237
         },
         {
           "name": "ABSORB_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 233
+          "line": 241
         },
         {
           "name": "ABSORB_EDU_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 234
+          "line": 242
         },
         {
           "name": "ABSORB_OPENNESS_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 235
+          "line": 243
         },
         {
           "name": "FRONTIER_OWN_DRIFT_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 237
+          "line": 245
         },
         {
           "name": "TECH_ATTAINED_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 241
+          "line": 249
         },
         {
           "name": "TECH_ATTAINED_DEV_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 242
+          "line": 250
         },
         {
           "name": "FERT_EDU_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 247
+          "line": 255
         },
         {
           "name": "EDUCATION_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 248
+          "line": 256
         },
         {
           "name": "LIVING_STANDARD_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 254
+          "line": 262
         },
         {
           "name": "MORT_BASE_ANNUAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 258
+          "line": 266
         },
         {
           "name": "MORT_INCOME_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 263
+          "line": 271
         },
         {
           "name": "MORT_SECULAR_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 265
+          "line": 273
         },
         {
           "name": "MORT_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 266
+          "line": 274
         },
         {
           "name": "FERT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 270
+          "line": 278
         },
         {
           "name": "FERT_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 271
+          "line": 279
         },
         {
           "name": "FERT_INCOME_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 272
+          "line": 280
         },
         {
           "name": "FERT_URBAN_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 273
+          "line": 281
         },
         {
           "name": "FERT_SURVIVAL_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 276
+          "line": 284
         },
         {
           "name": "FERT_SECULAR_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 277
+          "line": 285
         },
         {
           "name": "FERTILE_YEARS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 278
+          "line": 286
         },
         {
           "name": "MIG_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 282
+          "line": 290
         },
         {
           "name": "MIG_CAP_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 283
+          "line": 291
         },
         {
           "name": "SUBSISTENCE_ABSORPTION_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 290
+          "line": 298
         },
         {
           "name": "SUBSISTENCE_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 293
+          "line": 301
         },
         {
           "name": "URBANIZATION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 296
+          "line": 304
         },
         {
           "name": "BASE_WORKER_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 299
+          "line": 307
         },
         {
           "name": "WELFARE_DISCOUNT_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 303
+          "line": 311
         },
         {
           "name": "PROSPERITY_GRADE_CUTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 312
+          "line": 320
         },
         {
           "name": "LEGITIMACY_GRADE_ELECTIONS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 321
+          "line": 329
         },
         {
           "name": "TRADE_ELASTICITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 328
+          "line": 336
         },
         {
           "name": "EXPORT_BASE_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 329
+          "line": 337
         },
         {
           "name": "IMPORT_BASE_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 336
+          "line": 344
         },
         {
           "name": "RESERVES_INIT_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 343
+          "line": 351
         },
         {
           "name": "DEPRECIATION_WHEN_BROKE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 344
+          "line": 352
         },
         {
           "name": "WORLD_PRICE_VOL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 345
+          "line": 353
         },
         {
           "name": "PARTNER_CYCLE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 359
+          "line": 367
         },
         {
           "name": "PARTNER_ACTIVITY_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 372
+          "line": 380
         },
         {
           "name": "PARTNER_ACTIVITY_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 373
+          "line": 381
         },
         {
           "name": "PARTNER_BOOM_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 374
+          "line": 382
         },
         {
           "name": "PARTNER_SLUMP_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 375
+          "line": 383
         },
         {
           "name": "EXPORT_DEMAND_WEIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 379
+          "line": 387
         },
         {
           "name": "WORLD_SUPPLY_WEIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 389
+          "line": 397
         },
         {
           "name": "WORLD_SUPPLY_PRICE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 398
+          "line": 406
         },
         {
           "name": "ASSET_REVERT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 415
+          "line": 423
         },
         {
           "name": "ASSET_FUND_PROFIT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 416
+          "line": 424
         },
         {
           "name": "ASSET_NORMAL_PROFIT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 417
+          "line": 425
         },
         {
           "name": "ASSET_FUND_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 418
+          "line": 426
         },
         {
           "name": "ASSET_CREDIT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 423
+          "line": 431
         },
         {
           "name": "ASSET_SPIRITS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 424
+          "line": 432
         },
         {
           "name": "ASSET_VOL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 425
+          "line": 433
         },
         {
           "name": "ASSET_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 426
+          "line": 434
         },
         {
           "name": "ASSET_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 427
+          "line": 435
         },
         {
           "name": "ASSET_BUBBLE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 428
+          "line": 436
         },
         {
           "name": "CREDIT_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 431
+          "line": 439
         },
         {
           "name": "CREDIT_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 432
+          "line": 440
         },
         {
           "name": "CREDIT_COLLATERAL_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 433
+          "line": 441
         },
         {
           "name": "CREDIT_SPIRITS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 434
+          "line": 442
         },
         {
           "name": "CREDIT_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 435
+          "line": 443
         },
         {
           "name": "CAPITAL_REQUIREMENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 440
+          "line": 448
         },
         {
           "name": "BANK_TARGET_RATIO",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 441
+          "line": 449
         },
         {
           "name": "BANK_MARGIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 442
+          "line": 450
         },
         {
           "name": "BANK_SPREAD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 443
+          "line": 451
         },
         {
           "name": "LOAN_LOSS_BASE_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 444
+          "line": 452
         },
         {
           "name": "BANK_DIVIDEND_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 445
+          "line": 453
         },
         {
           "name": "CRISIS_LEVERAGE_SAFE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 450
+          "line": 458
         },
         {
           "name": "CRISIS_ASSET_SAFE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 451
+          "line": 459
         },
         {
           "name": "CRISIS_BASE_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 452
+          "line": 460
         },
         {
           "name": "CRISIS_FRAGILITY_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 453
+          "line": 461
         },
         {
           "name": "CRISIS_IMPORT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 456
+          "line": 464
         },
         {
           "name": "CRISIS_DURATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 457
+          "line": 465
         },
         {
           "name": "CRISIS_SEVERITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 458
+          "line": 466
         },
         {
           "name": "CRISIS_ASSET_CRASH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 459
+          "line": 467
         },
         {
           "name": "CRISIS_WRITEOFF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 460
+          "line": 468
         },
         {
           "name": "CRISIS_CREDIT_CRUNCH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 461
+          "line": 469
         },
         {
           "name": "CRISIS_CONF_SHOCK",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 462
+          "line": 470
         },
         {
           "name": "FIN_INVEST_Q_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 466
+          "line": 474
         },
         {
           "name": "FIN_CRUNCH_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 467
+          "line": 475
         },
         {
           "name": "APPROVAL_DRIFT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 470
+          "line": 478
         },
         {
           "name": "LOSS_AVERSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 471
+          "line": 479
         },
         {
           "name": "PC_INCOME_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 472
+          "line": 480
         },
         {
           "name": "PC_INCOME_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 473
+          "line": 481
         },
         {
           "name": "PC_HEADLINE_SALIENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 476
+          "line": 484
         },
         {
           "name": "PC_HEADLINE_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 477
+          "line": 485
         },
         {
           "name": "ELECTION_WIN_THRESHOLD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 478
+          "line": 486
         },
         {
           "name": "PC_START",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 479
+          "line": 487
         },
         {
           "name": "PC_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 480
+          "line": 488
         },
         {
           "name": "PC_REPRESSION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 484
+          "line": 492
         },
         {
           "name": "PC_UNREST_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 486
+          "line": 494
         },
         {
           "name": "PC_COST_DIAL_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 489
+          "line": 497
         },
         {
           "name": "PC_COST_DIAL_SLOPE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 490
+          "line": 498
         },
         {
           "name": "PC_COST_CAPACITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 491
+          "line": 499
         },
         {
           "name": "PC_COST_REFORM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 494
+          "line": 502
         },
         {
           "name": "PC_COST_CAMPAIGN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 495
+          "line": 503
         },
         {
           "name": "SOC_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 504
+          "line": 512
         },
         {
           "name": "SOC_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 505
+          "line": 513
         },
         {
           "name": "SOC_FRANCHISE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 506
+          "line": 514
         },
         {
           "name": "SOC_PRESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 507
+          "line": 515
         },
         {
           "name": "SOC_LABOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 508
+          "line": 516
         },
         {
           "name": "SOC_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 509
+          "line": 517
         },
         {
           "name": "SOC_EDU",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 510
+          "line": 518
         },
         {
           "name": "SOC_URBAN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 511
+          "line": 519
         },
         {
           "name": "SOC_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 512
+          "line": 520
         },
         {
           "name": "SOC_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 513
+          "line": 521
         },
         {
           "name": "SOC_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 514
+          "line": 522
         },
         {
           "name": "STATE_CAPACITY_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 519
+          "line": 527
         },
         {
           "name": "STATE_REPRESSION_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 520
+          "line": 528
         },
         {
           "name": "CORRIDOR_HALF_WIDTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 523
+          "line": 531
         },
         {
           "name": "REPRESSION_DECAY_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 527
+          "line": 535
         },
         {
           "name": "INSTITUTION_EROSION_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 528
+          "line": 536
         },
         {
           "name": "REFORM_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 529
+          "line": 537
         },
         {
           "name": "REFORM_WINDOW_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 532
+          "line": 540
         },
         {
           "name": "REFORM_WINDOW_DISCOUNT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 533
+          "line": 541
         },
         {
           "name": "REFORM_WINDOW_VETO_RELIEF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 534
+          "line": 542
         },
         {
           "name": "INSTITUTIONS_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 538
+          "line": 546
         },
         {
           "name": "UNREST_ADAPT_UP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 554
+          "line": 562
         },
         {
           "name": "UNREST_ADAPT_DOWN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 555
+          "line": 563
         },
         {
           "name": "UNREST_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 556
+          "line": 564
         },
         {
           "name": "UNREST_DISCONTENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 573
+          "line": 581
         },
         {
           "name": "UNREST_VOICELESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 574
+          "line": 582
         },
         {
           "name": "UNREST_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 575
+          "line": 583
         },
         {
           "name": "UNREST_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 576
+          "line": 584
         },
         {
           "name": "UNREST_CRISIS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 577
+          "line": 585
         },
         {
           "name": "UNREST_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 581
+          "line": 589
         },
         {
           "name": "UNREST_DESPOTISM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 586
+          "line": 594
         },
         {
           "name": "UNREST_ANARCHY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 587
+          "line": 595
         },
         {
           "name": "REVOLT_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 591
+          "line": 599
         },
         {
           "name": "REVOLT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 592
+          "line": 600
         },
         {
           "name": "COUP_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 595
+          "line": 603
         },
         {
           "name": "COUP_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 596
+          "line": 604
         },
         {
           "name": "LAND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 602
+          "line": 610
         },
         {
           "name": "IND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 603
+          "line": 611
         },
         {
           "name": "FIN_POWER_CREDIT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 604
+          "line": 612
         },
         {
           "name": "FIN_POWER_DEBT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 605
+          "line": 613
         },
         {
           "name": "UNION_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 606
+          "line": 614
         },
         {
           "name": "SOCIETY_CHECK",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 610
+          "line": 618
         },
         {
           "name": "BLOC_FAVOR_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 611
+          "line": 619
         },
         {
           "name": "BLOC_FAVOR_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 622
+          "line": 630
         },
         {
           "name": "BLOC_DEFIANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 629
+          "line": 637
         },
         {
           "name": "VETO_COST_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 631
+          "line": 639
         },
         {
           "name": "PLEDGE_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 633
+          "line": 641
         },
         {
           "name": "PLEDGE_VETO_MULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 634
+          "line": 642
         },
         {
           "name": "FIN_FAVOR_PREMIUM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 638
+          "line": 646
         },
         {
           "name": "FIN_FAVOR_DEPTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 639
+          "line": 647
         },
         {
           "name": "IND_FAVOR_INVEST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 640
+          "line": 648
         },
         {
           "name": "UNION_FAVOR_WAGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 641
+          "line": 649
         },
         {
           "name": "LAND_FAVOR_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 642
+          "line": 650
         },
         {
           "name": "ELITE_CAPTURE_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 650
+          "line": 658
         },
         {
           "name": "ELITE_VETO_ABSORB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 651
+          "line": 659
         },
         {
           "name": "ELITE_ABSORB_CLAMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 652
+          "line": 660
         },
         {
           "name": "PLATFORM_SWING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 671
+          "line": 679
         },
         {
           "name": "LARGESSE_BUMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 680
+          "line": 688
         },
         {
           "name": "LARGESSE_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 681
+          "line": 689
         },
         {
           "name": "COALITION_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 682
+          "line": 690
         },
         {
           "name": "SUPPRESSION_REPRESSION_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 683
+          "line": 691
         },
         {
           "name": "FRANCHISE_SUFFRAGE_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 684
+          "line": 692
         },
         {
           "name": "REPRESSION_VOTE_EDGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 687
+          "line": 695
         },
         {
           "name": "PLATFORM_BLOC_COST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 689
+          "line": 697
         },
         {
           "name": "COALITION_FAVOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 696
+          "line": 704
         },
         {
           "name": "COALITION_FAVOR_SNUB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 697
+          "line": 705
         },
         {
           "name": "POSITION_GRADE_CUTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 702
+          "line": 710
         }
       ],
       "imports": [
@@ -1598,7 +1599,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The whole engine is three functions (§2):",
-      "lines": 197,
+      "lines": 202,
       "exports": [
         {
           "name": "init",
@@ -1674,6 +1675,7 @@ export const architecture = {
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/DevConsole.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/worker/protocol.ts",
         "packages/ui/src/worker/sim.worker.ts"
@@ -1739,7 +1741,8 @@ export const architecture = {
         "packages/engine/src/pipeline/production.ts",
         "packages/engine/src/pipeline/technology.ts",
         "packages/engine/src/pipeline/world.ts",
-        "packages/engine/src/state/init.ts"
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/spending.ts"
       ],
       "path": "packages/engine/src/math.ts",
       "line": 1
@@ -2150,25 +2153,25 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "The tick is an ordered fold over pipeline steps (§4). Order is explicit and versioned — reordering is a schema-version event. Steps communicate only through state; each gets its own RNG substream keyed by (seed, step name, tick), so adding a draw in one step never shifts anoth…",
-      "lines": 58,
+      "lines": 64,
       "exports": [
         {
           "name": "PipelineStep",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/pipeline.ts",
-          "line": 12
+          "line": 13
         },
         {
           "name": "TICK_ORDER",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/pipeline.ts",
-          "line": 33
+          "line": 34
         },
         {
           "name": "runTick",
           "kind": "function",
           "path": "packages/engine/src/pipeline/pipeline.ts",
-          "line": 51
+          "line": 52
         }
       ],
       "imports": [
@@ -2188,7 +2191,8 @@ export const architecture = {
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/world.ts",
         "packages/engine/src/rng/rng.ts",
-        "packages/engine/src/state/schema.ts"
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/spending.ts"
       ],
       "importedBy": [
         "packages/engine/src/index.ts",
@@ -2280,7 +2284,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1 — production. Builds this tick's demand from last tick's incomes and prices, solves the Leontief system for required gross output, and produces up to capacity. Excess demand is recorded for the price step; nothing here is a hand-authored effect arrow — a fuel tax reache…",
-      "lines": 221,
+      "lines": 222,
       "exports": [
         {
           "name": "production",
@@ -2334,19 +2338,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 386,
+      "lines": 426,
       "exports": [
         {
           "name": "INDICATOR_SPECS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 45
+          "line": 46
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 369
+          "line": 409
         }
       ],
       "imports": [
@@ -2502,7 +2506,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (§10 of the design doc); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 386,
+      "lines": 392,
       "exports": [
         {
           "name": "synthPyramid",
@@ -2538,7 +2542,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 592,
+      "lines": 649,
       "exports": [
         {
           "name": "Qtr",
@@ -2643,280 +2647,310 @@ export const architecture = {
           "line": 56
         },
         {
+          "name": "SPENDING_PROGRAM_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 60
+        },
+        {
+          "name": "SpendingProgramId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 61
+        },
+        {
+          "name": "SpendingRule",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 67
+        },
+        {
+          "name": "SpendingRuleMode",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 71
+        },
+        {
+          "name": "SpendingRules",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 72
+        },
+        {
           "name": "INSTITUTION_IDS",
-          "kind": "constant",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 62
-        },
-        {
-          "name": "InstitutionId",
-          "kind": "type",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 63
-        },
-        {
-          "name": "BLOC_IDS",
-          "kind": "constant",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 68
-        },
-        {
-          "name": "BlocId",
-          "kind": "type",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 69
-        },
-        {
-          "name": "PLATFORM_IDS",
-          "kind": "constant",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 75
-        },
-        {
-          "name": "PlatformId",
-          "kind": "type",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 76
-        },
-        {
-          "name": "INDICATOR_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
           "line": 78
         },
         {
+          "name": "InstitutionId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 79
+        },
+        {
+          "name": "BLOC_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 84
+        },
+        {
+          "name": "BlocId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 85
+        },
+        {
+          "name": "PLATFORM_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 91
+        },
+        {
+          "name": "PlatformId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 92
+        },
+        {
+          "name": "INDICATOR_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 94
+        },
+        {
           "name": "IndicatorId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 102
+          "line": 134
         },
         {
           "name": "PARTNER_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 105
+          "line": 137
         },
         {
           "name": "PartnerId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 106
+          "line": 138
         },
         {
           "name": "CountryParams",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 109
+          "line": 141
         },
         {
           "name": "CountryStructure",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 135
+          "line": 167
         },
         {
           "name": "AGE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 148
+          "line": 180
         },
         {
           "name": "RETIREMENT_BAND",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 151
+          "line": 183
         },
         {
           "name": "WORKING_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 153
+          "line": 185
         },
         {
           "name": "FERTILE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 155
+          "line": 187
         },
         {
           "name": "DemographyState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 157
+          "line": 189
         },
         {
           "name": "Cohort",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 179
+          "line": 211
         },
         {
           "name": "Sector",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 197
+          "line": 229
         },
         {
           "name": "IOTable",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 210
+          "line": 242
         },
         {
           "name": "MarketState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 216
+          "line": 248
         },
         {
           "name": "DialState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 229
+          "line": 261
         },
         {
           "name": "CapacityBuild",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 236
+          "line": 268
         },
         {
           "name": "GovernmentState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 243
+          "line": 275
         },
         {
           "name": "WorldPartner",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 257
+          "line": 292
         },
         {
           "name": "WorldState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 262
+          "line": 297
         },
         {
           "name": "ExternalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 269
+          "line": 304
         },
         {
           "name": "TechState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 285
+          "line": 320
         },
         {
           "name": "FinanceState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 298
+          "line": 333
         },
         {
           "name": "Bloc",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 324
+          "line": 359
         },
         {
           "name": "InstitutionState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 331
+          "line": 366
         },
         {
           "name": "ElectionResult",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 353
+          "line": 388
         },
         {
           "name": "PoliticalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 369
+          "line": 404
         },
         {
           "name": "FragilityLedger",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 389
+          "line": 424
         },
         {
           "name": "StatPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 397
+          "line": 432
         },
         {
           "name": "NewsItem",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 407
+          "line": 442
         },
         {
           "name": "StatRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 416
+          "line": 451
         },
         {
           "name": "StatsOffice",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 487
+          "line": 539
         },
         {
           "name": "TickFlows",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 496
+          "line": 548
         },
         {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 540
+          "line": 597
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 580
+          "line": 637
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 581
+          "line": 638
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 582
+          "line": 639
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 585
+          "line": 642
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 587
+          "line": 644
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 589
+          "line": 646
         }
       ],
       "imports": [
@@ -2946,9 +2980,66 @@ export const architecture = {
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/world.ts",
         "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/spending.ts",
         "packages/engine/src/state/validate.ts"
       ],
       "path": "packages/engine/src/state/schema.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/state/spending.ts",
+      "label": "spending",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "Recurring expenditure rules. The economy still consumes one resolved money-per-quarter number per programme; this module is the single place standing rules turn into those numbers.",
+      "lines": 153,
+      "exports": [
+        {
+          "name": "officialNominalGdp",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 37
+        },
+        {
+          "name": "latestInitialInflationQuarter",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 50
+        },
+        {
+          "name": "spendingRuleTarget",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 56
+        },
+        {
+          "name": "createSpendingRule",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 69
+        },
+        {
+          "name": "scaleSpendingRule",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 89
+        },
+        {
+          "name": "resolveSpendingRules",
+          "kind": "function",
+          "path": "packages/engine/src/state/spending.ts",
+          "line": 136
+        }
+      ],
+      "imports": [
+        "packages/engine/src/math.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/state/spending.ts",
       "line": 1
     },
     {
@@ -2957,19 +3048,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Invariant checks (dev builds and test suites). Throws with a pointed message — a violated invariant is a bug in a step, never a shrug.",
-      "lines": 90,
+      "lines": 118,
       "exports": [
         {
           "name": "InvariantError",
           "kind": "class",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 8
+          "line": 14
         },
         {
           "name": "validate",
           "kind": "function",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 14
+          "line": 20
         }
       ],
       "imports": [
@@ -3088,6 +3179,7 @@ export const architecture = {
         "packages/observation/src/published.ts"
       ],
       "importedBy": [
+        "packages/ui/src/accounts.ts",
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
         "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
@@ -3100,6 +3192,7 @@ export const architecture = {
         "packages/ui/src/incidence.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/maturity.ts",
+        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/ElectionOverlay.tsx",
@@ -3115,6 +3208,7 @@ export const architecture = {
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/wallPlan.ts",
@@ -3130,13 +3224,13 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (§6.1). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: publish…",
-      "lines": 237,
+      "lines": 240,
       "exports": [
         {
           "name": "observe",
           "kind": "function",
           "path": "packages/observation/src/observe.ts",
-          "line": 143
+          "line": 145
         }
       ],
       "imports": [
@@ -3155,55 +3249,55 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 180,
+      "lines": 183,
       "exports": [
         {
           "name": "IndicatorPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 38
+          "line": 39
         },
         {
           "name": "IndicatorSeries",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 40
+          "line": 41
         },
         {
           "name": "Grade",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 47
+          "line": 48
         },
         {
           "name": "ReportCard",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 51
+          "line": 52
         },
         {
           "name": "PublishedBloc",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 79
+          "line": 80
         },
         {
           "name": "PublishedCorridor",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 91
+          "line": 92
         },
         {
           "name": "PublishedCampaign",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 103
+          "line": 104
         },
         {
           "name": "PublishedState",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 113
+          "line": 114
         }
       ],
       "imports": [
@@ -3380,23 +3474,92 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/accounts.ts",
+      "label": "accounts",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The expenditure accounts, arranged for reading — who the economy's output is actually for.",
+      "lines": 132,
+      "exports": [
+        {
+          "name": "ACCOUNT_IDS",
+          "kind": "constant",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 27
+        },
+        {
+          "name": "AccountId",
+          "kind": "type",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 28
+        },
+        {
+          "name": "ACCOUNT_FACE",
+          "kind": "constant",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 32
+        },
+        {
+          "name": "AccountReading",
+          "kind": "interface",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 50
+        },
+        {
+          "name": "readAccounts",
+          "kind": "function",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 73
+        },
+        {
+          "name": "toShares",
+          "kind": "function",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 94
+        },
+        {
+          "name": "accountRows",
+          "kind": "function",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 105
+        },
+        {
+          "name": "publishedSum",
+          "kind": "function",
+          "path": "packages/ui/src/accounts.ts",
+          "line": 129
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/AccountsOverlay.tsx"
+      ],
+      "path": "packages/ui/src/accounts.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/App.tsx",
       "label": "App",
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 245,
+      "lines": 249,
       "exports": [
         {
           "name": "App",
           "kind": "function",
           "path": "packages/ui/src/App.tsx",
-          "line": 41
+          "line": 43
         }
       ],
       "imports": [
         "packages/ui/src/cabinetNavigation.ts",
         "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
@@ -3594,7 +3757,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Every name an instrument goes by, in one place.",
-      "lines": 128,
+      "lines": 130,
       "exports": [
         {
           "name": "IndicatorNames",
@@ -3612,37 +3775,37 @@ export const architecture = {
           "name": "complementReading",
           "kind": "function",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 61
+          "line": 63
         },
         {
           "name": "COHORT_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 69
+          "line": 71
         },
         {
           "name": "BLOC_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 79
+          "line": 81
         },
         {
           "name": "BLOC_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 87
+          "line": 89
         },
         {
           "name": "INSTITUTION_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 98
+          "line": 100
         },
         {
           "name": "PLATFORM_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 121
+          "line": 123
         }
       ],
       "imports": [
@@ -3751,9 +3914,11 @@ export const architecture = {
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
+        "packages/ui/src/accounts.ts",
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx"
       ],
       "path": "packages/ui/src/components/series.ts",
@@ -3966,6 +4131,7 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/App.tsx",
         "packages/ui/src/dev/ComponentGallery.tsx",
+        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
@@ -4211,7 +4377,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 42,
+      "lines": 50,
       "exports": [
         {
           "name": "SegmentOption",
@@ -4223,7 +4389,7 @@ export const architecture = {
           "name": "SegmentedControl",
           "kind": "function",
           "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
-          "line": 7
+          "line": 8
         }
       ],
       "imports": [],
@@ -4441,7 +4607,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 143,
+      "lines": 150,
       "exports": [
         {
           "name": "Domain",
@@ -4465,25 +4631,25 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 80
+          "line": 87
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 112
+          "line": 119
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 126
+          "line": 133
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 135
+          "line": 142
         }
       ],
       "imports": [
@@ -4661,6 +4827,33 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "label": "AccountsOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The expenditure accounts, opened out — what the economy's output was FOR.",
+      "lines": 153,
+      "exports": [
+        {
+          "name": "AccountsOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/AccountsOverlay.tsx",
+          "line": 42
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/accounts.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/panels/CensusOverlay.tsx",
       "label": "CensusOverlay",
       "packageId": "ui",
@@ -4692,13 +4885,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 581,
+      "lines": 713,
       "exports": [
         {
           "name": "ControlRail",
           "kind": "function",
           "path": "packages/ui/src/panels/ControlRail.tsx",
-          "line": 345
+          "line": 471
         }
       ],
       "imports": [
@@ -4709,6 +4902,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/incidence.ts",
         "packages/ui/src/maturity.ts",
+        "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts"
       ],
       "importedBy": [
@@ -4853,7 +5047,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
-      "lines": 88,
+      "lines": 92,
       "exports": [
         {
           "name": "HeaderBar",
@@ -5161,12 +5355,62 @@ export const architecture = {
       ],
       "imports": [],
       "importedBy": [
+        "packages/ui/src/accounts.ts",
         "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
         "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
         "packages/ui/src/dev/ComponentGallery.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx"
       ],
       "path": "packages/ui/src/shares.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/spendingRules.ts",
+      "label": "spendingRules",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Pure UI arithmetic for the cabinet's recurring expenditure controls.",
+      "lines": 57,
+      "exports": [
+        {
+          "name": "OfficialNominalGdp",
+          "kind": "interface",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 6
+        },
+        {
+          "name": "latestOfficialNominalGdp",
+          "kind": "function",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 12
+        },
+        {
+          "name": "equivalentRuleValue",
+          "kind": "function",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 29
+        },
+        {
+          "name": "currentRuleValue",
+          "kind": "function",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 40
+        },
+        {
+          "name": "proposedSpending",
+          "kind": "function",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 48
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/spendingRules.ts",
       "line": 1
     },
     {
@@ -5203,13 +5447,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "",
-      "lines": 233,
+      "lines": 235,
       "exports": [
         {
           "name": "useGame",
           "kind": "constant",
           "path": "packages/ui/src/store/gameStore.ts",
-          "line": 83
+          "line": 85
         }
       ],
       "imports": [
@@ -5406,7 +5650,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (§6.1 of the design doc).",
-      "lines": 228,
+      "lines": 230,
       "exports": [],
       "imports": [
         "packages/engine/src/index.ts",
@@ -5456,6 +5700,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/actions/apply.ts",
       "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/state/spending.ts",
       "typeOnly": false
     },
     {
@@ -5829,6 +6078,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/state/spending.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/engine/src/pipeline/politics.ts",
       "target": "packages/engine/src/constants.ts",
       "typeOnly": false
@@ -5941,7 +6195,7 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/statistics.ts",
       "target": "packages/engine/src/state/schema.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/engine/src/pipeline/technology.ts",
@@ -6044,6 +6298,16 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/engine/src/state/spending.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/spending.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/engine/src/state/validate.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
@@ -6139,6 +6403,21 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/accounts.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/accounts.ts",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/accounts.ts",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/cabinetNavigation.ts",
       "typeOnly": true
@@ -6146,6 +6425,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/AccountsOverlay.tsx",
       "typeOnly": false
     },
     {
@@ -6549,6 +6833,26 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/accounts.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/CensusOverlay.tsx",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -6596,6 +6900,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
       "target": "packages/ui/src/maturity.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/spendingRules.ts",
       "typeOnly": false
     },
     {
@@ -6829,6 +7138,16 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/spendingRules.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/spendingRules.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/store/gameStore.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": true
@@ -6926,14 +7245,14 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 13,
-      "typeOnlyCount": 5
+      "count": 14,
+      "typeOnlyCount": 6
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 32,
-      "typeOnlyCount": 26
+      "count": 35,
+      "typeOnlyCount": 29
     }
   ],
   "pipeline": [
@@ -7384,17 +7703,17 @@ export const architecture = {
           "name": "INDICATOR_SPECS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 45
+          "line": 46
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 369
+          "line": 409
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 369
+      "line": 409
     },
     {
       "order": 15,
@@ -7440,7 +7759,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/pipeline.ts",
-          "line": 33
+          "line": 34
         }
       ]
     },
@@ -7451,7 +7770,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 370
+          "line": 410
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",
@@ -7459,7 +7778,7 @@ export const architecture = {
         },
         {
           "path": "packages/observation/src/observe.ts",
-          "line": 143
+          "line": 145
         }
       ]
     },
@@ -7485,7 +7804,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 277
+          "line": 310
         },
         {
           "path": "packages/observation/src/observe.ts",

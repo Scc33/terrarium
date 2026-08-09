@@ -3,7 +3,13 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
-import { BLOC_IDS, INSTITUTION_IDS, SECTOR_IDS, type TrueState } from './schema'
+import {
+  BLOC_IDS,
+  INSTITUTION_IDS,
+  SECTOR_IDS,
+  SPENDING_PROGRAM_IDS,
+  type TrueState,
+} from './schema'
 
 export class InvariantError extends Error {}
 
@@ -42,6 +48,21 @@ export function validate(state: TrueState): void {
   }
   finite(state.gov.debt, 'debt')
   finite(state.gov.budget.balance, 'budget.balance')
+  for (const programme of SPENDING_PROGRAM_IDS) {
+    const amount = state.gov.dials.spending[programme]
+    const rule = state.gov.spendingRules[programme]
+    finite(amount, `spending[${programme}]`)
+    if (amount < 0) throw new InvariantError(`spending[${programme}] < 0`)
+    if (rule.kind === 'gdpShare') {
+      finite(rule.share, `spendingRules[${programme}].share`)
+      if (rule.share < 0 || rule.share > 1) {
+        throw new InvariantError(`spendingRules[${programme}].share out of [0,1]`)
+      }
+    } else {
+      finite(rule.amount, `spendingRules[${programme}].amount`)
+      if (rule.amount < 0) throw new InvariantError(`spendingRules[${programme}].amount < 0`)
+    }
+  }
   finite(state.ledger.inflationExpectations, 'inflationExpectations')
   finite(state.flows.realGdp, 'realGdp')
   finite(state.flows.nominalGdp, 'nominalGdp')

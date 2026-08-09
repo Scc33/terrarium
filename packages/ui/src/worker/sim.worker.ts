@@ -94,6 +94,8 @@ function previewKey(action: Parameters<typeof applyActions>[1][number]): string 
   switch (action.kind) {
     case 'setDial':
       return `dial:${action.path}`
+    case 'setSpendingRule':
+      return `dial:spending.${action.programme}`
     case 'investCapacity':
       return `cap:${action.target}`
     case 'reform':
