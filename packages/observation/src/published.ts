@@ -21,6 +21,7 @@ import type {
   Ratio,
   RevenueSplit,
   StatPrint,
+  SpendingRules,
 } from '@terrarium/engine'
 
 export {
@@ -117,6 +118,8 @@ export interface PublishedState {
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
   /** you always know your own settings */
   dials: DialState
+  /** Exact standing appropriations; the economic denominator remains fogged. */
+  spendingRules: SpendingRules
   /** the treasury keeps exact books on itself — including *which* tax paid
    * for *which* programme, the question a headline balance cannot answer */
   treasury: {

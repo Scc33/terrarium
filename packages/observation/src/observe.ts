@@ -155,6 +155,7 @@ export function observe(state: TrueState): PublishedState {
     country: state.params.name,
     indicators,
     dials: structuredClone(state.gov.dials),
+    spendingRules: structuredClone(state.gov.spendingRules),
     treasury: {
       ...state.gov.budget,
       debt: state.gov.debt,

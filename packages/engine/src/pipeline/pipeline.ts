@@ -8,6 +8,7 @@
 
 import { rngFor, type Rng } from '../rng/rng'
 import type { TrueState } from '../state/schema'
+import { resolveSpendingRules } from '../state/spending'
 
 export interface PipelineStep {
   name: string // doubles as the RNG substream label
@@ -53,5 +54,10 @@ export function runTick(state: TrueState): TrueState {
   for (const step of TICK_ORDER) {
     s = step.run(s, rngFor(s.meta.seed, step.name, s.meta.tick))
   }
+  // The statistics step may just have put a new CPI or GDP release on the
+  // desk. Resolve standing appropriations now so the published dials and the
+  // next quarter agree. This is preparation around the existing fold, not a
+  // new pipeline step: the economic order and every RNG substream are intact.
+  s = resolveSpendingRules(s)
   return { ...s, meta: { ...s.meta, tick: s.meta.tick + 1 } }
 }

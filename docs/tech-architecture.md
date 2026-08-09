@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 15. Companion to the design doc
+*How the code is actually arranged, as of schema 17. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -157,7 +157,7 @@ interface TrueState {
   sectors: Sector[]            // 5: agri, manuf, energy, services, transport
   io: IOTable                  // Leontief coefficients
   market: MarketState
-  gov: GovernmentState         // dials, capacities, itemised budget, debt
+  gov: GovernmentState         // dials, spending rules, capacities, itemised budget, debt
   external: ExternalState      // partners, world prices, reserves, exchange rate
   politics: PoliticalState
   ledger: FragilityLedger
@@ -170,7 +170,8 @@ Id lists in `schema.ts` are the single source of truth and are exported as `cons
 downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
 
 `SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
-`INDICATOR_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` · `AGE_BANDS` · `PARTNER_IDS`
+`INDICATOR_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` · `SPENDING_PROGRAM_IDS` · `AGE_BANDS` ·
+`PARTNER_IDS`
 
 **Schema rules:**
 
@@ -188,6 +189,7 @@ interface PublishedState {
   country: string
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear
   dials: DialState                 // you always know your own settings
+  spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
   revenue: RevenueSplit            // the treasury keeps exact books on itself
   outlays: OutlaySplit
   news: NewsItem[]                 // qualitative signals; how the fog stays playable
@@ -209,6 +211,7 @@ substream keyed by its own name:
 export function runTick(state: TrueState): TrueState {
   let s = state
   for (const step of TICK_ORDER) s = step.run(s, rngFor(s.meta.seed, step.name, s.meta.tick))
+  s = resolveSpendingRules(s) // prepare next quarter from releases now on the desk
   return { ...s, meta: { ...s.meta, tick: s.meta.tick + 1 } }
 }
 ```
@@ -239,6 +242,10 @@ introduced it:
 - Order is explicit and **versioned** — reordering changes results, so it's a schema-version
   event (ADR-0005).
 - Steps communicate only through state. No side channels, no step-to-step calls.
+- Recurring spending rules resolve after the fold, preparing the dials the next quarter reads.
+  CPI rules consume new first-release `inflation` prints once; GDP-share rules consume the latest
+  published nominal level carried by `gdp_growth`. Neither reads the hidden live denominator, and
+  this preparation does not add or reorder a pipeline step.
 - `statistics` runs *before* `politics` on purpose: politics reads the published headline, not
   the truth (§3.4). That ordering is the whole point of ADR-0003.
 - Adding a feature = adding a step (or a field a step reads), not edits scattered across five
@@ -252,6 +259,7 @@ introduced it:
 ```ts
 type Action =
   | { kind: 'setDial'; path: DialPath; value: number }              // Layer 1
+  | { kind: 'setSpendingRule'; programme; mode; value }             // Layer 1
   | { kind: 'investCapacity'; target: CapacityId; amount: Money }   // Layer 2
 
 interface TurnActions { tick: Qtr; actions: Action[] }
@@ -261,6 +269,11 @@ type ActionLog = TurnActions[]
 `applyAction` validates legality (PC affordability, dial bounds) and **rejects loudly**
 (`IllegalActionError`) — an illegal action in a replay means a bug or a version mismatch,
 never a silent skip.
+
+`setSpendingRule` modes are `fixed` (nominal money/quarter), `indexed` (the current amount moves
+once per new first-release official CPI print), and `gdpShare` (0..1 of the latest officially
+published nominal GDP). Legacy `setDial` spending actions remain valid and mean `fixed`, so old
+action logs replay without migration.
 
 ---
 
