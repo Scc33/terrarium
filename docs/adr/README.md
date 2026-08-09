@@ -5,8 +5,8 @@ consequences we're still living with. An ADR is written when a choice is **struc
 constrains what future code may do) and **had a real alternative** — not for every technique
 that turned out to work.
 
-Calibration lessons are not ADRs. Those live in `CLAUDE.md` under "Hard-won tuning lessons",
-where they're read alongside the constants they govern.
+Calibration lessons are not ADRs. Those live in `packages/engine/AGENTS.md` under "Hard-won
+tuning lessons", where they're read alongside the constants they govern.
 
 ADRs are immutable once accepted. If a decision is revisited, write a new ADR that supersedes
 the old one and update the Status line of both.
@@ -24,3 +24,4 @@ the old one and update the Status line of both.
 | [0009](0009-typescript-7-side-by-side.md) | TypeScript 7 runs side-by-side with the TS 6 API | Accepted |
 | [0010](0010-dev-console.md) | The dev console shows truth without weakening the boundary | Accepted |
 | [0011](0011-countries-are-replayable-recipes.md) | Countries are replayable recipes, not alternate engines | Accepted |
+| [0012](0012-agent-guidance-is-layered.md) | Agent guidance layers directory invariants under a root router | Accepted |

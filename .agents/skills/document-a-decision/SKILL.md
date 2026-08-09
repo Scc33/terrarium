@@ -1,6 +1,6 @@
 ---
 name: document-a-decision
-description: Decide where a piece of Terrarium knowledge belongs and write it there — an ADR in docs/adr/, an investigation in docs/investigations/, or a tuning lesson in AGENTS.md. Use after making a structural choice, after a measurement contradicts what the model was believed to do, after abandoning a feature, or when asked to "document this decision" and the register isn't obvious.
+description: Decide where a piece of Terrarium knowledge belongs and write it there — an ADR in docs/adr/, an investigation in docs/investigations/, or a tuning lesson in packages/engine/AGENTS.md. Use after making a structural choice, after a measurement contradicts what the model was believed to do, after abandoning a feature, or when asked to "document this decision" and the register isn't obvious.
 ---
 
 # Which register does this go in?
@@ -15,7 +15,7 @@ revisit, or how a real constraint gets buried in a prose file nobody rereads.
 |---|---|---|
 | `docs/adr/` | decisions that constrain future code, with the alternatives they beat | **immutable once accepted** |
 | `docs/investigations/` | open questions with measurements attached | resolved or withdrawn |
-| `AGENTS.md` → "Hard-won tuning lessons" | calibration knowledge, read beside the constants it governs | living |
+| `packages/engine/AGENTS.md` → "Hard-won tuning lessons" | calibration knowledge, read beside the constants it governs | living |
 
 ## Route it
 
@@ -29,7 +29,7 @@ explicitly *not* a decision: nobody has ruled on what should change.
 Structural means it constrains what future code may do. "Had a real alternative" means another
 option was genuinely live at the time. A technique that simply worked is neither.
 
-**3. Is it a number, or how to pick one?** → **tuning lesson in AGENTS.md**.
+**3. Is it a number, or how to pick one?** → **tuning lesson in `packages/engine/AGENTS.md`**.
 Calibration knowledge belongs beside the constants it governs, not in `docs/adr/`. The README
 in `docs/adr/` says this explicitly.
 
@@ -68,11 +68,12 @@ not deleted.** The measurement is still worth having.
 
 ## Writing a tuning lesson
 
-A bullet in the "Hard-won tuning lessons" section of `AGENTS.md`. Match the existing voice:
-state the rule, then the failure mode it prevents, concretely enough that someone can recognise
-the symptom. "Unit costs are computed at NORMAL_UTILIZATION, not realized output — otherwise
-demand dips mechanically raise unit cost and spiral" is the model. A lesson that only says what
-to do, without what goes wrong, gets ignored the first time it is inconvenient.
+A bullet in the "Hard-won tuning lessons" section of `packages/engine/AGENTS.md`. Match the
+existing voice: state the rule, then the failure mode it prevents, concretely enough that
+someone can recognise the symptom. "Unit costs are computed at NORMAL_UTILIZATION, not realized
+output — otherwise demand dips mechanically raise unit cost and spiral" is the model. A lesson
+that only says what to do, without what goes wrong, gets ignored the first time it is
+inconvenient.
 
 ## Abandoning a feature
 

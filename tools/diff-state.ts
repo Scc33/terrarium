@@ -3,7 +3,7 @@
  * current engine's replay of the same cases — and by how much:
  *   pnpm diff-state [caseName] [--moved-only] [--top N]
  *
- * This review IS the economics review (see CLAUDE.md), so it has to keep
+ * This review IS the economics review (see packages/engine/AGENTS.md), so it has to keep
  * working on the milestones that matter most. A schema-ADDING milestone breaks
  * it by default: every new field diffs as "didn't exist → has a value", which
  * sorts as an infinite relative change and crowds the genuinely moved economy

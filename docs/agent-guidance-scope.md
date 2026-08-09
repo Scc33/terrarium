@@ -1,6 +1,6 @@
 # Scoped agent guidance by application flow
 
-**Status:** proposal for review
+**Status:** accepted and implemented by [ADR-0012](adr/0012-agent-guidance-is-layered.md)
 
 **Base:** `a4c13cd` (schema 15)
 
@@ -157,7 +157,7 @@ name; `CLAUDE.md` remains a valid import entry point, and accepted ADRs are immu
 
 ## Implementation slices
 
-### Slice 1: hierarchy and migration
+### Slice 1: hierarchy and migration — implemented
 
 1. Add the six proposed nested `AGENTS.md`/`CLAUDE.md` pairs.
 2. Refactor the existing root pair by moving domain-specific material into its owner.
@@ -167,13 +167,13 @@ name; `CLAUDE.md` remains a valid import entry point, and accepted ADRs are immu
 
 This is a documentation/tooling-only change. It should not bump the schema or move code.
 
-### Slice 2: missing country workflow
+### Slice 2: missing country workflow — deferred follow-up
 
 After the hierarchy is stable, extract the existing country recipe, replay, UI selection, and
 all-country calibration procedure into an `add-country-scenario` skill. Keep the stable runner
 invariants in `packages/runner/AGENTS.md`; keep the task sequence in the skill.
 
-### Slice 3: reassess after use
+### Slice 3: reassess after use — future
 
 After several engine, UI, and cross-layer tasks, split further only if there is evidence that
 a parent guide is noisy or a repeated failure belongs to a narrower directory. In particular,
@@ -194,8 +194,9 @@ do not pre-create guides per UI panel or pipeline step.
   lint/typecheck gates affected by the implementation.
 - No engine goldens, visual baselines, or schema versions change.
 
-## Decision requested
+## Resolution
 
-Approve or adjust the first-wave directory list. The recommended starting set is the seven
-rows above; the main tradeoff is adding a small amount of paired-file ceremony in exchange for
-substantially less irrelevant root context and clearer ownership.
+The first-wave directory list was accepted on 2026-08-08 and made durable by ADR-0012. The
+country workflow remains a separate follow-up so the hierarchy can be exercised before another
+skill is extracted. Guides under fixtures, tools, individual UI panels, and engine pipeline
+steps remain intentionally deferred.
