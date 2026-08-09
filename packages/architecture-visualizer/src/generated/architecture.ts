@@ -1,0 +1,7512 @@
+import type { ArchitectureSnapshot } from '../model'
+
+// Generated from the repository by scripts/generate.ts. Do not edit by hand.
+export const architecture = {
+  "version": 1,
+  "revision": "a4c13cd",
+  "repoRoot": "../..",
+  "packages": [
+    {
+      "id": "engine",
+      "name": "@terrarium/engine",
+      "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
+      "moduleCount": 28,
+      "lines": 5906
+    },
+    {
+      "id": "fixtures",
+      "name": "@terrarium/fixtures",
+      "description": "Shared country recipes and named action scripts used by tests and the runner.",
+      "moduleCount": 3,
+      "lines": 47
+    },
+    {
+      "id": "observation",
+      "name": "@terrarium/observation",
+      "description": "Presentation-only projection from engine prints to the player-visible contract.",
+      "moduleCount": 3,
+      "lines": 446
+    },
+    {
+      "id": "runner",
+      "name": "@terrarium/runner",
+      "description": "Headless execution and balance sweeps over the same public engine API.",
+      "moduleCount": 4,
+      "lines": 343
+    },
+    {
+      "id": "ui",
+      "name": "@terrarium/ui",
+      "description": "War-room interface; the worker is its only engine host and components consume published state.",
+      "moduleCount": 59,
+      "lines": 6617
+    }
+  ],
+  "modules": [
+    {
+      "id": "packages/engine/src/actions/apply.ts",
+      "label": "apply",
+      "packageId": "engine",
+      "category": "Actions",
+      "summary": "Action application. Validates legality (dial bounds, PC affordability) and rejects loudly — an illegal action in a replay means a bug or a version mismatch, never a silent skip (§5).",
+      "lines": 457,
+      "exports": [
+        {
+          "name": "IllegalActionError",
+          "kind": "class",
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 61
+        },
+        {
+          "name": "reformWindowOpen",
+          "kind": "function",
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 101
+        },
+        {
+          "name": "vetoMultiplier",
+          "kind": "function",
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 119
+        },
+        {
+          "name": "politicalCostOfAction",
+          "kind": "function",
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 277
+        },
+        {
+          "name": "applyAction",
+          "kind": "function",
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 333
+        }
+      ],
+      "imports": [
+        "packages/engine/src/actions/types.ts",
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/actions/apply.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/actions/types.ts",
+      "label": "types",
+      "packageId": "engine",
+      "category": "Actions",
+      "summary": "",
+      "lines": 29,
+      "exports": [
+        {
+          "name": "DialPath",
+          "kind": "type",
+          "path": "packages/engine/src/actions/types.ts",
+          "line": 3
+        },
+        {
+          "name": "Action",
+          "kind": "type",
+          "path": "packages/engine/src/actions/types.ts",
+          "line": 14
+        },
+        {
+          "name": "TurnActions",
+          "kind": "interface",
+          "path": "packages/engine/src/actions/types.ts",
+          "line": 23
+        },
+        {
+          "name": "ActionLog",
+          "kind": "type",
+          "path": "packages/engine/src/actions/types.ts",
+          "line": 28
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/actions/types.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/constants.ts",
+      "label": "constants",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the M1 exit criterion (c)).",
+      "lines": 708,
+      "exports": [
+        {
+          "name": "CAPITAL_ELASTICITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 19
+        },
+        {
+          "name": "LABOR_ELASTICITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 20
+        },
+        {
+          "name": "DEPRECIATION_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 21
+        },
+        {
+          "name": "UTILIZATION_AT_INIT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 22
+        },
+        {
+          "name": "NORMAL_UTILIZATION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 25
+        },
+        {
+          "name": "IO_COEFF",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 29
+        },
+        {
+          "name": "TATONNEMENT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 38
+        },
+        {
+          "name": "SLACK_GAIN_RATIO",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 45
+        },
+        {
+          "name": "EMPLOYMENT_ADJUST",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 48
+        },
+        {
+          "name": "WAGE_DEMAND_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 49
+        },
+        {
+          "name": "WAGE_INFLATION_PASSTHROUGH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 50
+        },
+        {
+          "name": "NATURAL_UNEMPLOYMENT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 53
+        },
+        {
+          "name": "WAGE_SLACK_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 54
+        },
+        {
+          "name": "WAGE_MAX_UP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 57
+        },
+        {
+          "name": "WAGE_MAX_DOWN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 58
+        },
+        {
+          "name": "LABOR_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 59
+        },
+        {
+          "name": "PARTICIPATION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 62
+        },
+        {
+          "name": "LABOR_SOURCE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 71
+        },
+        {
+          "name": "MPC",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 80
+        },
+        {
+          "name": "SAVINGS_DRAWDOWN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 87
+        },
+        {
+          "name": "CONSUMPTION_WEIGHTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 91
+        },
+        {
+          "name": "PROFIT_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 100
+        },
+        {
+          "name": "BOND_HOLDING",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 109
+        },
+        {
+          "name": "TRANSFER_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 118
+        },
+        {
+          "name": "taxEfficiency",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 128
+        },
+        {
+          "name": "adminEffectiveness",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 130
+        },
+        {
+          "name": "BOND_MARKET_DEPTH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 132
+        },
+        {
+          "name": "DEBT_CEILING",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 134
+        },
+        {
+          "name": "RISK_PREMIUM_SLOPE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 135
+        },
+        {
+          "name": "CAPACITY_COST_PER_POINT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 138
+        },
+        {
+          "name": "CAPACITY_BUILD_QTRS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 139
+        },
+        {
+          "name": "INDICATOR_FUNDED_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 143
+        },
+        {
+          "name": "CAPACITY_DECAY_BY_ID",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 172
+        },
+        {
+          "name": "CONF_NEUTRAL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 180
+        },
+        {
+          "name": "CONF_ADAPT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 181
+        },
+        {
+          "name": "CONF_MPC_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 182
+        },
+        {
+          "name": "CONF_INV_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 183
+        },
+        {
+          "name": "EXPECTATION_ADAPT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 186
+        },
+        {
+          "name": "PRINT_PRICE_PRESSURE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 187
+        },
+        {
+          "name": "INVESTMENT_RATE_SENSITIVITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 188
+        },
+        {
+          "name": "NATURAL_REAL_RATE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 189
+        },
+        {
+          "name": "INVESTMENT_SLACK_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 193
+        },
+        {
+          "name": "INVESTMENT_FACTOR_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 194
+        },
+        {
+          "name": "ENERGY_SHOCK_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 198
+        },
+        {
+          "name": "ENERGY_SHOCK_JUMP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 199
+        },
+        {
+          "name": "DROUGHT_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 201
+        },
+        {
+          "name": "DROUGHT_SEVERITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 202
+        },
+        {
+          "name": "DROUGHT_EXTRA_QTRS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 203
+        },
+        {
+          "name": "WORLD_PRICE_REVERT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 206
+        },
+        {
+          "name": "FRONTIER_ERAS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 212
+        },
+        {
+          "name": "TECH_EXPOSURE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 221
+        },
+        {
+          "name": "CATCHUP_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 229
+        },
+        {
+          "name": "ABSORB_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 233
+        },
+        {
+          "name": "ABSORB_EDU_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 234
+        },
+        {
+          "name": "ABSORB_OPENNESS_WEIGHT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 235
+        },
+        {
+          "name": "FRONTIER_OWN_DRIFT_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 237
+        },
+        {
+          "name": "TECH_ATTAINED_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 241
+        },
+        {
+          "name": "TECH_ATTAINED_DEV_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 242
+        },
+        {
+          "name": "FERT_EDU_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 247
+        },
+        {
+          "name": "EDUCATION_1946",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 248
+        },
+        {
+          "name": "LIVING_STANDARD_1946",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 254
+        },
+        {
+          "name": "MORT_BASE_ANNUAL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 258
+        },
+        {
+          "name": "MORT_INCOME_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 263
+        },
+        {
+          "name": "MORT_SECULAR_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 265
+        },
+        {
+          "name": "MORT_FLOOR",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 266
+        },
+        {
+          "name": "FERT_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 270
+        },
+        {
+          "name": "FERT_MIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 271
+        },
+        {
+          "name": "FERT_INCOME_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 272
+        },
+        {
+          "name": "FERT_URBAN_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 273
+        },
+        {
+          "name": "FERT_SURVIVAL_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 276
+        },
+        {
+          "name": "FERT_SECULAR_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 277
+        },
+        {
+          "name": "FERTILE_YEARS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 278
+        },
+        {
+          "name": "MIG_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 282
+        },
+        {
+          "name": "MIG_CAP_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 283
+        },
+        {
+          "name": "SUBSISTENCE_ABSORPTION_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 290
+        },
+        {
+          "name": "SUBSISTENCE_CAP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 293
+        },
+        {
+          "name": "URBANIZATION_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 296
+        },
+        {
+          "name": "BASE_WORKER_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 299
+        },
+        {
+          "name": "WELFARE_DISCOUNT_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 303
+        },
+        {
+          "name": "PROSPERITY_GRADE_CUTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 312
+        },
+        {
+          "name": "LEGITIMACY_GRADE_ELECTIONS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 321
+        },
+        {
+          "name": "TRADE_ELASTICITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 328
+        },
+        {
+          "name": "EXPORT_BASE_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 329
+        },
+        {
+          "name": "IMPORT_BASE_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 336
+        },
+        {
+          "name": "RESERVES_INIT_QTRS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 343
+        },
+        {
+          "name": "DEPRECIATION_WHEN_BROKE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 344
+        },
+        {
+          "name": "WORLD_PRICE_VOL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 345
+        },
+        {
+          "name": "PARTNER_CYCLE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 359
+        },
+        {
+          "name": "PARTNER_ACTIVITY_MIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 372
+        },
+        {
+          "name": "PARTNER_ACTIVITY_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 373
+        },
+        {
+          "name": "PARTNER_BOOM_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 374
+        },
+        {
+          "name": "PARTNER_SLUMP_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 375
+        },
+        {
+          "name": "EXPORT_DEMAND_WEIGHTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 379
+        },
+        {
+          "name": "WORLD_SUPPLY_WEIGHTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 389
+        },
+        {
+          "name": "WORLD_SUPPLY_PRICE_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 398
+        },
+        {
+          "name": "ASSET_REVERT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 415
+        },
+        {
+          "name": "ASSET_FUND_PROFIT_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 416
+        },
+        {
+          "name": "ASSET_NORMAL_PROFIT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 417
+        },
+        {
+          "name": "ASSET_FUND_RATE_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 418
+        },
+        {
+          "name": "ASSET_CREDIT_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 423
+        },
+        {
+          "name": "ASSET_SPIRITS_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 424
+        },
+        {
+          "name": "ASSET_VOL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 425
+        },
+        {
+          "name": "ASSET_MIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 426
+        },
+        {
+          "name": "ASSET_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 427
+        },
+        {
+          "name": "ASSET_BUBBLE_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 428
+        },
+        {
+          "name": "CREDIT_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 431
+        },
+        {
+          "name": "CREDIT_RATE_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 432
+        },
+        {
+          "name": "CREDIT_COLLATERAL_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 433
+        },
+        {
+          "name": "CREDIT_SPIRITS_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 434
+        },
+        {
+          "name": "CREDIT_ADJUST",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 435
+        },
+        {
+          "name": "CAPITAL_REQUIREMENT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 440
+        },
+        {
+          "name": "BANK_TARGET_RATIO",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 441
+        },
+        {
+          "name": "BANK_MARGIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 442
+        },
+        {
+          "name": "BANK_SPREAD",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 443
+        },
+        {
+          "name": "LOAN_LOSS_BASE_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 444
+        },
+        {
+          "name": "BANK_DIVIDEND_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 445
+        },
+        {
+          "name": "CRISIS_LEVERAGE_SAFE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 450
+        },
+        {
+          "name": "CRISIS_ASSET_SAFE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 451
+        },
+        {
+          "name": "CRISIS_BASE_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 452
+        },
+        {
+          "name": "CRISIS_FRAGILITY_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 453
+        },
+        {
+          "name": "CRISIS_IMPORT_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 456
+        },
+        {
+          "name": "CRISIS_DURATION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 457
+        },
+        {
+          "name": "CRISIS_SEVERITY_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 458
+        },
+        {
+          "name": "CRISIS_ASSET_CRASH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 459
+        },
+        {
+          "name": "CRISIS_WRITEOFF",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 460
+        },
+        {
+          "name": "CRISIS_CREDIT_CRUNCH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 461
+        },
+        {
+          "name": "CRISIS_CONF_SHOCK",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 462
+        },
+        {
+          "name": "FIN_INVEST_Q_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 466
+        },
+        {
+          "name": "FIN_CRUNCH_DRAG",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 467
+        },
+        {
+          "name": "APPROVAL_DRIFT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 470
+        },
+        {
+          "name": "LOSS_AVERSION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 471
+        },
+        {
+          "name": "PC_INCOME_SCALE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 472
+        },
+        {
+          "name": "PC_INCOME_FLOOR",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 473
+        },
+        {
+          "name": "PC_HEADLINE_SALIENCE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 476
+        },
+        {
+          "name": "PC_HEADLINE_CAP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 477
+        },
+        {
+          "name": "ELECTION_WIN_THRESHOLD",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 478
+        },
+        {
+          "name": "PC_START",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 479
+        },
+        {
+          "name": "PC_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 480
+        },
+        {
+          "name": "PC_REPRESSION_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 484
+        },
+        {
+          "name": "PC_UNREST_DRAG",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 486
+        },
+        {
+          "name": "PC_COST_DIAL_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 489
+        },
+        {
+          "name": "PC_COST_DIAL_SLOPE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 490
+        },
+        {
+          "name": "PC_COST_CAPACITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 491
+        },
+        {
+          "name": "PC_COST_REFORM",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 494
+        },
+        {
+          "name": "PC_COST_CAMPAIGN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 495
+        },
+        {
+          "name": "SOC_ADJUST",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 504
+        },
+        {
+          "name": "SOC_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 505
+        },
+        {
+          "name": "SOC_FRANCHISE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 506
+        },
+        {
+          "name": "SOC_PRESS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 507
+        },
+        {
+          "name": "SOC_LABOR",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 508
+        },
+        {
+          "name": "SOC_COURTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 509
+        },
+        {
+          "name": "SOC_EDU",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 510
+        },
+        {
+          "name": "SOC_URBAN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 511
+        },
+        {
+          "name": "SOC_INEQ",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 512
+        },
+        {
+          "name": "SOC_GINI_NEUTRAL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 513
+        },
+        {
+          "name": "SOC_REPRESSION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 514
+        },
+        {
+          "name": "STATE_CAPACITY_WEIGHT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 519
+        },
+        {
+          "name": "STATE_REPRESSION_WEIGHT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 520
+        },
+        {
+          "name": "CORRIDOR_HALF_WIDTH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 523
+        },
+        {
+          "name": "REPRESSION_DECAY_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 527
+        },
+        {
+          "name": "INSTITUTION_EROSION_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 528
+        },
+        {
+          "name": "REFORM_STEP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 529
+        },
+        {
+          "name": "REFORM_WINDOW_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 532
+        },
+        {
+          "name": "REFORM_WINDOW_DISCOUNT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 533
+        },
+        {
+          "name": "REFORM_WINDOW_VETO_RELIEF",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 534
+        },
+        {
+          "name": "INSTITUTIONS_1946",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 538
+        },
+        {
+          "name": "UNREST_ADAPT_UP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 554
+        },
+        {
+          "name": "UNREST_ADAPT_DOWN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 555
+        },
+        {
+          "name": "UNREST_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 556
+        },
+        {
+          "name": "UNREST_DISCONTENT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 573
+        },
+        {
+          "name": "UNREST_VOICELESS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 574
+        },
+        {
+          "name": "UNREST_INEQ",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 575
+        },
+        {
+          "name": "UNREST_GINI_NEUTRAL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 576
+        },
+        {
+          "name": "UNREST_CRISIS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 577
+        },
+        {
+          "name": "UNREST_REPRESSION",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 581
+        },
+        {
+          "name": "UNREST_DESPOTISM",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 586
+        },
+        {
+          "name": "UNREST_ANARCHY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 587
+        },
+        {
+          "name": "REVOLT_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 591
+        },
+        {
+          "name": "REVOLT_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 592
+        },
+        {
+          "name": "COUP_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 595
+        },
+        {
+          "name": "COUP_P",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 596
+        },
+        {
+          "name": "LAND_POWER_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 602
+        },
+        {
+          "name": "IND_POWER_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 603
+        },
+        {
+          "name": "FIN_POWER_CREDIT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 604
+        },
+        {
+          "name": "FIN_POWER_DEBT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 605
+        },
+        {
+          "name": "UNION_POWER_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 606
+        },
+        {
+          "name": "SOCIETY_CHECK",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 610
+        },
+        {
+          "name": "BLOC_FAVOR_ADAPT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 611
+        },
+        {
+          "name": "BLOC_FAVOR_BASE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 622
+        },
+        {
+          "name": "BLOC_DEFIANCE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 629
+        },
+        {
+          "name": "VETO_COST_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 631
+        },
+        {
+          "name": "PLEDGE_QTRS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 633
+        },
+        {
+          "name": "PLEDGE_VETO_MULT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 634
+        },
+        {
+          "name": "FIN_FAVOR_PREMIUM",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 638
+        },
+        {
+          "name": "FIN_FAVOR_DEPTH",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 639
+        },
+        {
+          "name": "IND_FAVOR_INVEST",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 640
+        },
+        {
+          "name": "UNION_FAVOR_WAGE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 641
+        },
+        {
+          "name": "LAND_FAVOR_TAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 642
+        },
+        {
+          "name": "ELITE_CAPTURE_NEUTRAL",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 650
+        },
+        {
+          "name": "ELITE_VETO_ABSORB",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 651
+        },
+        {
+          "name": "ELITE_ABSORB_CLAMP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 652
+        },
+        {
+          "name": "PLATFORM_SWING",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 671
+        },
+        {
+          "name": "LARGESSE_BUMP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 680
+        },
+        {
+          "name": "LARGESSE_SWING_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 681
+        },
+        {
+          "name": "COALITION_SWING_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 682
+        },
+        {
+          "name": "SUPPRESSION_REPRESSION_STEP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 683
+        },
+        {
+          "name": "FRANCHISE_SUFFRAGE_STEP",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 684
+        },
+        {
+          "name": "REPRESSION_VOTE_EDGE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 687
+        },
+        {
+          "name": "PLATFORM_BLOC_COST",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 689
+        },
+        {
+          "name": "COALITION_FAVOR_GAIN",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 696
+        },
+        {
+          "name": "COALITION_FAVOR_SNUB",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 697
+        },
+        {
+          "name": "POSITION_GRADE_CUTS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 702
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/labor.ts",
+        "packages/engine/src/pipeline/monetary.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/shocks.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/world.ts",
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/constants.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/countries.ts",
+      "label": "countries",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "Replayable country scenarios.",
+      "lines": 488,
+      "exports": [
+        {
+          "name": "CURATED_COUNTRY_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/countries.ts",
+          "line": 26
+        },
+        {
+          "name": "CuratedCountryId",
+          "kind": "type",
+          "path": "packages/engine/src/countries.ts",
+          "line": 27
+        },
+        {
+          "name": "CountryScenarioId",
+          "kind": "type",
+          "path": "packages/engine/src/countries.ts",
+          "line": 28
+        },
+        {
+          "name": "COUNTRY_ARCHETYPE_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/countries.ts",
+          "line": 30
+        },
+        {
+          "name": "CountryArchetypeId",
+          "kind": "type",
+          "path": "packages/engine/src/countries.ts",
+          "line": 31
+        },
+        {
+          "name": "CountryDifficulty",
+          "kind": "type",
+          "path": "packages/engine/src/countries.ts",
+          "line": 33
+        },
+        {
+          "name": "CountryProfile",
+          "kind": "interface",
+          "path": "packages/engine/src/countries.ts",
+          "line": 37
+        },
+        {
+          "name": "COUNTRY_CATALOG",
+          "kind": "constant",
+          "path": "packages/engine/src/countries.ts",
+          "line": 125
+        },
+        {
+          "name": "MERIDIA_PARAMS",
+          "kind": "constant",
+          "path": "packages/engine/src/countries.ts",
+          "line": 195
+        },
+        {
+          "name": "generateParams",
+          "kind": "function",
+          "path": "packages/engine/src/countries.ts",
+          "line": 297
+        },
+        {
+          "name": "ProceduralCountryOptions",
+          "kind": "interface",
+          "path": "packages/engine/src/countries.ts",
+          "line": 329
+        },
+        {
+          "name": "generateCountryParams",
+          "kind": "function",
+          "path": "packages/engine/src/countries.ts",
+          "line": 370
+        },
+        {
+          "name": "createCountryParams",
+          "kind": "function",
+          "path": "packages/engine/src/countries.ts",
+          "line": 411
+        },
+        {
+          "name": "countryProfile",
+          "kind": "function",
+          "path": "packages/engine/src/countries.ts",
+          "line": 417
+        },
+        {
+          "name": "InvalidCountryError",
+          "kind": "class",
+          "path": "packages/engine/src/countries.ts",
+          "line": 421
+        },
+        {
+          "name": "validateCountryParams",
+          "kind": "function",
+          "path": "packages/engine/src/countries.ts",
+          "line": 429
+        }
+      ],
+      "imports": [
+        "packages/engine/src/math.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/countries.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/hash.ts",
+      "label": "hash",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "Deterministic state hashing for golden replays. Numbers are rounded to 10 significant digits before hashing so serialization noise can't flake a test; object key order follows construction order, which the pipeline keeps stable.",
+      "lines": 24,
+      "exports": [
+        {
+          "name": "stableStringify",
+          "kind": "function",
+          "path": "packages/engine/src/hash.ts",
+          "line": 8
+        },
+        {
+          "name": "hashState",
+          "kind": "function",
+          "path": "packages/engine/src/hash.ts",
+          "line": 15
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/hash.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/index.ts",
+      "label": "index",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "The whole engine is three functions (§2):",
+      "lines": 197,
+      "exports": [
+        {
+          "name": "init",
+          "kind": "function",
+          "path": "packages/engine/src/index.ts",
+          "line": 22
+        },
+        {
+          "name": "applyActions",
+          "kind": "function",
+          "path": "packages/engine/src/index.ts",
+          "line": 26
+        },
+        {
+          "name": "step",
+          "kind": "function",
+          "path": "packages/engine/src/index.ts",
+          "line": 30
+        },
+        {
+          "name": "SaveFile",
+          "kind": "interface",
+          "path": "packages/engine/src/index.ts",
+          "line": 35
+        },
+        {
+          "name": "createSave",
+          "kind": "function",
+          "path": "packages/engine/src/index.ts",
+          "line": 44
+        },
+        {
+          "name": "replay",
+          "kind": "function",
+          "path": "packages/engine/src/index.ts",
+          "line": 54
+        }
+      ],
+      "imports": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/actions/types.ts",
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/hash.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/validate.ts"
+      ],
+      "importedBy": [
+        "packages/fixtures/countries/standard.ts",
+        "packages/fixtures/scripts/scripts.ts",
+        "packages/observation/src/observe.ts",
+        "packages/observation/src/published.ts",
+        "packages/observation/src/published.ts",
+        "packages/runner/src/batch.ts",
+        "packages/runner/src/run.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/devScenario.ts",
+        "packages/ui/src/domains.ts",
+        "packages/ui/src/incidence.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/panels/CensusOverlay.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/CountrySelect.tsx",
+        "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/worker/protocol.ts",
+        "packages/ui/src/worker/sim.worker.ts"
+      ],
+      "path": "packages/engine/src/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/math.ts",
+      "label": "math",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "",
+      "lines": 50,
+      "exports": [
+        {
+          "name": "clamp",
+          "kind": "function",
+          "path": "packages/engine/src/math.ts",
+          "line": 3
+        },
+        {
+          "name": "solveLinear",
+          "kind": "function",
+          "path": "packages/engine/src/math.ts",
+          "line": 8
+        },
+        {
+          "name": "leontiefGross",
+          "kind": "function",
+          "path": "packages/engine/src/math.ts",
+          "line": 29
+        },
+        {
+          "name": "sectorRecord",
+          "kind": "function",
+          "path": "packages/engine/src/math.ts",
+          "line": 37
+        },
+        {
+          "name": "sumRecord",
+          "kind": "function",
+          "path": "packages/engine/src/math.ts",
+          "line": 45
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/labor.ts",
+        "packages/engine/src/pipeline/monetary.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/pipeline/world.ts",
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/math.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/cohorts.ts",
+      "label": "cohorts",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 7 — cohorts. Incomes land, savings absorb the difference, and approval drifts toward *experienced* conditions: real income growth (loss-averse), own-basket inflation, joblessness, and queues for goods that never arrived. Whatever the statistics office printed, the bread l…",
+      "lines": 161,
+      "exports": [
+        {
+          "name": "cohorts",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/cohorts.ts",
+          "line": 29
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/cohorts.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/demography.ts",
+      "label": "demography",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 1.5 — demography (§8). The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort…",
+      "lines": 179,
+      "exports": [
+        {
+          "name": "vitalRates",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 58
+        },
+        {
+          "name": "classSizesFrom",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 77
+        },
+        {
+          "name": "demography",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 91
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/pipeline/demography.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/derive.ts",
+      "label": "derive",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Shared derived quantities used by several steps. Pure reads, no mutation.",
+      "lines": 359,
+      "exports": [
+        {
+          "name": "potentialOutput",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 32
+        },
+        {
+          "name": "laborForOutput",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 37
+        },
+        {
+          "name": "effectivePrice",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 43
+        },
+        {
+          "name": "laborForce",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 48
+        },
+        {
+          "name": "totalLaborForce",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 58
+        },
+        {
+          "name": "approvalIndex",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 64
+        },
+        {
+          "name": "meanLogConsumption",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 78
+        },
+        {
+          "name": "realConsumptionPerCapita",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 94
+        },
+        {
+          "name": "householdSavingRate",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 107
+        },
+        {
+          "name": "livingStandard",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 124
+        },
+        {
+          "name": "giniIndex",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 132
+        },
+        {
+          "name": "realIncomePerHead",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 177
+        },
+        {
+          "name": "termsOfTrade",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 206
+        },
+        {
+          "name": "enfranchisementIndex",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 228
+        },
+        {
+          "name": "discontentIndex",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 250
+        },
+        {
+          "name": "urbanShare",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 266
+        },
+        {
+          "name": "statePower",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 274
+        },
+        {
+          "name": "corridorOffset",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 286
+        },
+        {
+          "name": "corridorStrain",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 292
+        },
+        {
+          "name": "inCorridor",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 300
+        },
+        {
+          "name": "effectiveBlocPower",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 308
+        },
+        {
+          "name": "eliteHostility",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 316
+        },
+        {
+          "name": "eliteCapture",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 331
+        },
+        {
+          "name": "creativeDestruction",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 344
+        },
+        {
+          "name": "cohortCpi",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 353
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/labor.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/technology.ts"
+      ],
+      "path": "packages/engine/src/pipeline/derive.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/finance.ts",
+      "label": "finance",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 3.5 — the financial sector (§12 M5: fragility). The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it;…",
+      "lines": 200,
+      "exports": [
+        {
+          "name": "finance",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/finance.ts",
+          "line": 60
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/finance.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/fiscal.ts",
+      "label": "fiscal",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 3 — fiscal. Tax collection is capacity-gated: the state taxes what it can see, not true GDP. Spending executes with leakage. Deficits the bond market won't absorb are monetized — the printing press is not a button the player pushes, it's what happens when the arithmetic f…",
+      "lines": 128,
+      "exports": [
+        {
+          "name": "fiscal",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/fiscal.ts",
+          "line": 29
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/fiscal.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/institutions.ts",
+      "label": "institutions",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the game that isn't the economy.",
+      "lines": 421,
+      "exports": [
+        {
+          "name": "franchiseOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 101
+        },
+        {
+          "name": "initialInstitutions",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 272
+        },
+        {
+          "name": "institutions",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 310
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/pipeline/institutions.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/labor.ts",
+      "label": "labor",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus inflation pass-through. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
+      "lines": 111,
+      "exports": [
+        {
+          "name": "labor",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/labor.ts",
+          "line": 26
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/labor.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/monetary.ts",
+      "label": "monetary",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
+      "lines": 30,
+      "exports": [
+        {
+          "name": "monetary",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 12
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/monetary.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/pipeline.ts",
+      "label": "pipeline",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "The tick is an ordered fold over pipeline steps (§4). Order is explicit and versioned — reordering is a schema-version event. Steps communicate only through state; each gets its own RNG substream keyed by (seed, step name, tick), so adding a draw in one step never shifts anoth…",
+      "lines": 58,
+      "exports": [
+        {
+          "name": "PipelineStep",
+          "kind": "interface",
+          "path": "packages/engine/src/pipeline/pipeline.ts",
+          "line": 12
+        },
+        {
+          "name": "TICK_ORDER",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/pipeline.ts",
+          "line": 33
+        },
+        {
+          "name": "runTick",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/pipeline.ts",
+          "line": 51
+        }
+      ],
+      "imports": [
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/labor.ts",
+        "packages/engine/src/pipeline/monetary.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/shocks.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/world.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/labor.ts",
+        "packages/engine/src/pipeline/monetary.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/shocks.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/world.ts"
+      ],
+      "path": "packages/engine/src/pipeline/pipeline.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/politics.ts",
+      "label": "politics",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (§3.4): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a later re…",
+      "lines": 167,
+      "exports": [
+        {
+          "name": "electionThreshold",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/politics.ts",
+          "line": 70
+        },
+        {
+          "name": "politics",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/politics.ts",
+          "line": 74
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/politics.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/prices.ts",
+      "label": "prices",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 5 — prices. Tâtonnement with a cost anchor: excess demand pulls prices up, excess supply down, and prices also drift toward unit cost × markup — that second term is how a fuel tax works its way from the refinery through the trucking industry into bread.",
+      "lines": 73,
+      "exports": [
+        {
+          "name": "prices",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/prices.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/prices.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/production.ts",
+      "label": "production",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 1 — production. Builds this tick's demand from last tick's incomes and prices, solves the Leontief system for required gross output, and produces up to capacity. Excess demand is recorded for the price step; nothing here is a hand-authored effect arrow — a fuel tax reache…",
+      "lines": 221,
+      "exports": [
+        {
+          "name": "production",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/production.ts",
+          "line": 35
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/production.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/shocks.ts",
+      "label": "shocks",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 0 — shocks. The crisis clock (Pillar 4). Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do th…",
+      "lines": 73,
+      "exports": [
+        {
+          "name": "shocks",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/shocks.ts",
+          "line": 15
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/shocks.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/statistics.ts",
+      "label": "statistics",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
+      "lines": 386,
+      "exports": [
+        {
+          "name": "INDICATOR_SPECS",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/statistics.ts",
+          "line": 45
+        },
+        {
+          "name": "statistics",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/statistics.ts",
+          "line": 369
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/statistics.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/technology.ts",
+      "label": "technology",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 2.5 — technology (§9). Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close t…",
+      "lines": 86,
+      "exports": [
+        {
+          "name": "frontierGrowthAt",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 26
+        },
+        {
+          "name": "absorptiveCapacity",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 45
+        },
+        {
+          "name": "technology",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 56
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/technology.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/trade.ts",
+      "label": "trade",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step (§10); this step just settles the balance of payments at them.",
+      "lines": 40,
+      "exports": [
+        {
+          "name": "trade",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/trade.ts",
+          "line": 12
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/trade.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/world.ts",
+      "label": "world",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Step 2.5 — the rest of world (§10). Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less);…",
+      "lines": 125,
+      "exports": [
+        {
+          "name": "world",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/world.ts",
+          "line": 63
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/pipeline.ts"
+      ],
+      "path": "packages/engine/src/pipeline/world.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/rng/rng.ts",
+      "label": "rng",
+      "packageId": "engine",
+      "category": "Randomness",
+      "summary": "RNG discipline (§6 of the architecture doc): one root seed; every consumer derives a named substream keyed by (seed, label, tick). A step's draws are isolated — adding a draw in one step never shifts another step's sequence.",
+      "lines": 67,
+      "exports": [
+        {
+          "name": "Seed",
+          "kind": "type",
+          "path": "packages/engine/src/rng/rng.ts",
+          "line": 11
+        },
+        {
+          "name": "Rng",
+          "kind": "interface",
+          "path": "packages/engine/src/rng/rng.ts",
+          "line": 13
+        },
+        {
+          "name": "rngFor",
+          "kind": "function",
+          "path": "packages/engine/src/rng/rng.ts",
+          "line": 51
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "path": "packages/engine/src/rng/rng.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/state/init.ts",
+      "label": "init",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "Country generation. A country is a parameter vector (§10 of the design doc); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
+      "lines": 386,
+      "exports": [
+        {
+          "name": "synthPyramid",
+          "kind": "function",
+          "path": "packages/engine/src/state/init.ts",
+          "line": 80
+        },
+        {
+          "name": "init",
+          "kind": "function",
+          "path": "packages/engine/src/state/init.ts",
+          "line": 135
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/state/init.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/state/schema.ts",
+      "label": "schema",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
+      "lines": 592,
+      "exports": [
+        {
+          "name": "Qtr",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 8
+        },
+        {
+          "name": "Money",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 9
+        },
+        {
+          "name": "Ratio",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 10
+        },
+        {
+          "name": "SECTOR_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 12
+        },
+        {
+          "name": "SectorId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 13
+        },
+        {
+          "name": "COHORT_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 15
+        },
+        {
+          "name": "CohortId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 22
+        },
+        {
+          "name": "WORKING_CLASS_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 25
+        },
+        {
+          "name": "WorkingClassId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 31
+        },
+        {
+          "name": "CAPACITY_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 33
+        },
+        {
+          "name": "CapacityId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 34
+        },
+        {
+          "name": "REVENUE_SOURCE_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 40
+        },
+        {
+          "name": "RevenueSourceId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 41
+        },
+        {
+          "name": "RevenueSplit",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 42
+        },
+        {
+          "name": "OUTLAY_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 47
+        },
+        {
+          "name": "OutlayId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 55
+        },
+        {
+          "name": "OutlaySplit",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 56
+        },
+        {
+          "name": "INSTITUTION_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 62
+        },
+        {
+          "name": "InstitutionId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 63
+        },
+        {
+          "name": "BLOC_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 68
+        },
+        {
+          "name": "BlocId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 69
+        },
+        {
+          "name": "PLATFORM_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 75
+        },
+        {
+          "name": "PlatformId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 76
+        },
+        {
+          "name": "INDICATOR_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 78
+        },
+        {
+          "name": "IndicatorId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 102
+        },
+        {
+          "name": "PARTNER_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 105
+        },
+        {
+          "name": "PartnerId",
+          "kind": "type",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 106
+        },
+        {
+          "name": "CountryParams",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 109
+        },
+        {
+          "name": "CountryStructure",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 135
+        },
+        {
+          "name": "AGE_BANDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 148
+        },
+        {
+          "name": "RETIREMENT_BAND",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 151
+        },
+        {
+          "name": "WORKING_BANDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 153
+        },
+        {
+          "name": "FERTILE_BANDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 155
+        },
+        {
+          "name": "DemographyState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 157
+        },
+        {
+          "name": "Cohort",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 179
+        },
+        {
+          "name": "Sector",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 197
+        },
+        {
+          "name": "IOTable",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 210
+        },
+        {
+          "name": "MarketState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 216
+        },
+        {
+          "name": "DialState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 229
+        },
+        {
+          "name": "CapacityBuild",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 236
+        },
+        {
+          "name": "GovernmentState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 243
+        },
+        {
+          "name": "WorldPartner",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 257
+        },
+        {
+          "name": "WorldState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 262
+        },
+        {
+          "name": "ExternalState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 269
+        },
+        {
+          "name": "TechState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 285
+        },
+        {
+          "name": "FinanceState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 298
+        },
+        {
+          "name": "Bloc",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 324
+        },
+        {
+          "name": "InstitutionState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 331
+        },
+        {
+          "name": "ElectionResult",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 353
+        },
+        {
+          "name": "PoliticalState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 369
+        },
+        {
+          "name": "FragilityLedger",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 389
+        },
+        {
+          "name": "StatPrint",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 397
+        },
+        {
+          "name": "NewsItem",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 407
+        },
+        {
+          "name": "StatRecord",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 416
+        },
+        {
+          "name": "StatsOffice",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 487
+        },
+        {
+          "name": "TickFlows",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 496
+        },
+        {
+          "name": "TrueState",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 540
+        },
+        {
+          "name": "SCHEMA_VERSION",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 580
+        },
+        {
+          "name": "ENGINE_VERSION",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 581
+        },
+        {
+          "name": "ELECTION_PERIOD",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 582
+        },
+        {
+          "name": "CAMPAIGN_WINDOW",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 585
+        },
+        {
+          "name": "END_OF_HISTORY_TICK",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 587
+        },
+        {
+          "name": "sectorIndex",
+          "kind": "function",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 589
+        }
+      ],
+      "imports": [
+        "packages/engine/src/rng/rng.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/actions/types.ts",
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/countries.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/cohorts.ts",
+        "packages/engine/src/pipeline/demography.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/institutions.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/pipeline/politics.ts",
+        "packages/engine/src/pipeline/prices.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/shocks.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/technology.ts",
+        "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/world.ts",
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/validate.ts"
+      ],
+      "path": "packages/engine/src/state/schema.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/state/validate.ts",
+      "label": "validate",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "Invariant checks (dev builds and test suites). Throws with a pointed message — a violated invariant is a bug in a step, never a shrug.",
+      "lines": 90,
+      "exports": [
+        {
+          "name": "InvariantError",
+          "kind": "class",
+          "path": "packages/engine/src/state/validate.ts",
+          "line": 8
+        },
+        {
+          "name": "validate",
+          "kind": "function",
+          "path": "packages/engine/src/state/validate.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/state/validate.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/fixtures/countries/standard.ts",
+      "label": "standard",
+      "packageId": "fixtures",
+      "category": "Fixtures",
+      "summary": "",
+      "lines": 6,
+      "exports": [
+        {
+          "name": "standardCountry",
+          "kind": "constant",
+          "path": "packages/fixtures/countries/standard.ts",
+          "line": 5
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/fixtures/index.ts"
+      ],
+      "path": "packages/fixtures/countries/standard.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/fixtures/index.ts",
+      "label": "index",
+      "packageId": "fixtures",
+      "category": "Fixtures",
+      "summary": "",
+      "lines": 10,
+      "exports": [],
+      "imports": [
+        "packages/fixtures/countries/standard.ts",
+        "packages/fixtures/scripts/scripts.ts"
+      ],
+      "importedBy": [],
+      "path": "packages/fixtures/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/fixtures/scripts/scripts.ts",
+      "label": "scripts",
+      "packageId": "fixtures",
+      "category": "Fixtures",
+      "summary": "",
+      "lines": 31,
+      "exports": [
+        {
+          "name": "passive",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 6
+        },
+        {
+          "name": "fuelTaxAtQ8",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 9
+        },
+        {
+          "name": "agriSubsidyAtQ8",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 14
+        },
+        {
+          "name": "investStatsAtQ4",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 19
+        },
+        {
+          "name": "ubiPush",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 24
+        },
+        {
+          "name": "scripts",
+          "kind": "constant",
+          "path": "packages/fixtures/scripts/scripts.ts",
+          "line": 30
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/fixtures/index.ts"
+      ],
+      "path": "packages/fixtures/scripts/scripts.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/observation/src/index.ts",
+      "label": "index",
+      "packageId": "observation",
+      "category": "Published projection",
+      "summary": "",
+      "lines": 29,
+      "exports": [],
+      "imports": [
+        "packages/observation/src/observe.ts",
+        "packages/observation/src/published.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+        "packages/ui/src/components/Gauge/Gauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/domains.ts",
+        "packages/ui/src/incidence.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/panels/CensusOverlay.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/ElectionResultOverlay.tsx",
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/HeaderBar.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/panels/NewsWire.tsx",
+        "packages/ui/src/panels/ReportCardOverlay.tsx",
+        "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/wallPlan.ts",
+        "packages/ui/src/worker/protocol.ts",
+        "packages/ui/src/worker/sim.worker.ts"
+      ],
+      "path": "packages/observation/src/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/observation/src/observe.ts",
+      "label": "observe",
+      "packageId": "observation",
+      "category": "Published projection",
+      "summary": "observe() — a pure projection of what the government can see (§6.1). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: publish…",
+      "lines": 237,
+      "exports": [
+        {
+          "name": "observe",
+          "kind": "function",
+          "path": "packages/observation/src/observe.ts",
+          "line": 143
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/published.ts"
+      ],
+      "importedBy": [
+        "packages/observation/src/index.ts"
+      ],
+      "path": "packages/observation/src/observe.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/observation/src/published.ts",
+      "label": "published",
+      "packageId": "observation",
+      "category": "Published projection",
+      "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
+      "lines": 180,
+      "exports": [
+        {
+          "name": "IndicatorPoint",
+          "kind": "type",
+          "path": "packages/observation/src/published.ts",
+          "line": 38
+        },
+        {
+          "name": "IndicatorSeries",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 40
+        },
+        {
+          "name": "Grade",
+          "kind": "type",
+          "path": "packages/observation/src/published.ts",
+          "line": 47
+        },
+        {
+          "name": "ReportCard",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 51
+        },
+        {
+          "name": "PublishedBloc",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 79
+        },
+        {
+          "name": "PublishedCorridor",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 91
+        },
+        {
+          "name": "PublishedCampaign",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 103
+        },
+        {
+          "name": "PublishedState",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 113
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/observation/src/index.ts",
+        "packages/observation/src/observe.ts"
+      ],
+      "path": "packages/observation/src/published.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/batch.ts",
+      "label": "batch",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "Batch runner — the balance dashboard's data source and the M0 DoD probe: N random-policy runs, wall time, NaN count, explosion count.",
+      "lines": 98,
+      "exports": [
+        {
+          "name": "randomPolicy",
+          "kind": "function",
+          "path": "packages/runner/src/batch.ts",
+          "line": 21
+        },
+        {
+          "name": "BatchResult",
+          "kind": "interface",
+          "path": "packages/runner/src/batch.ts",
+          "line": 40
+        },
+        {
+          "name": "runBatch",
+          "kind": "function",
+          "path": "packages/runner/src/batch.ts",
+          "line": 45
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/runner/src/metrics.ts",
+        "packages/runner/src/report.ts",
+        "packages/runner/src/run.ts"
+      ],
+      "importedBy": [
+        "packages/runner/src/report.ts"
+      ],
+      "path": "packages/runner/src/batch.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/metrics.ts",
+      "label": "metrics",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "",
+      "lines": 48,
+      "exports": [
+        {
+          "name": "quantile",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 3
+        },
+        {
+          "name": "summarize",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 11
+        },
+        {
+          "name": "cagr",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 24
+        },
+        {
+          "name": "meanAnnualInflation",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 32
+        },
+        {
+          "name": "meanUnemployment",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 37
+        },
+        {
+          "name": "priceAt",
+          "kind": "function",
+          "path": "packages/runner/src/metrics.ts",
+          "line": 43
+        }
+      ],
+      "imports": [
+        "packages/runner/src/run.ts"
+      ],
+      "importedBy": [
+        "packages/runner/src/batch.ts",
+        "packages/runner/src/report.ts"
+      ],
+      "path": "packages/runner/src/metrics.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/report.ts",
+      "label": "report",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "",
+      "lines": 62,
+      "exports": [
+        {
+          "name": "printReport",
+          "kind": "function",
+          "path": "packages/runner/src/report.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/runner/src/batch.ts",
+        "packages/runner/src/metrics.ts"
+      ],
+      "importedBy": [
+        "packages/runner/src/batch.ts"
+      ],
+      "path": "packages/runner/src/report.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/run.ts",
+      "label": "run",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "Single headless run: seed + script → trajectory. The trajectory is the unit every metric, property test, and balance report is computed from.",
+      "lines": 135,
+      "exports": [
+        {
+          "name": "TrajectoryPoint",
+          "kind": "interface",
+          "path": "packages/runner/src/run.ts",
+          "line": 25
+        },
+        {
+          "name": "RunResult",
+          "kind": "interface",
+          "path": "packages/runner/src/run.ts",
+          "line": 39
+        },
+        {
+          "name": "RunOptions",
+          "kind": "interface",
+          "path": "packages/runner/src/run.ts",
+          "line": 54
+        },
+        {
+          "name": "runOne",
+          "kind": "function",
+          "path": "packages/runner/src/run.ts",
+          "line": 86
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/runner/src/batch.ts",
+        "packages/runner/src/metrics.ts"
+      ],
+      "path": "packages/runner/src/run.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/App.tsx",
+      "label": "App",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
+      "lines": 245,
+      "exports": [
+        {
+          "name": "App",
+          "kind": "function",
+          "path": "packages/ui/src/App.tsx",
+          "line": 41
+        }
+      ],
+      "imports": [
+        "packages/ui/src/cabinetNavigation.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/panels/CensusOverlay.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/CountrySelect.tsx",
+        "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/ElectionResultOverlay.tsx",
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/HeaderBar.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/NewsWire.tsx",
+        "packages/ui/src/panels/ReportCardOverlay.tsx",
+        "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/main.tsx"
+      ],
+      "path": "packages/ui/src/App.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/cabinetNavigation.ts",
+      "label": "cabinetNavigation",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "",
+      "lines": 54,
+      "exports": [
+        {
+          "name": "CABINET_GROUPS",
+          "kind": "constant",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 1
+        },
+        {
+          "name": "CabinetGroup",
+          "kind": "type",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 14
+        },
+        {
+          "name": "CabinetNavigationKey",
+          "kind": "type",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 15
+        },
+        {
+          "name": "CABINET_NAVIGATION_KEYS",
+          "kind": "constant",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 17
+        },
+        {
+          "name": "CABINET_PANEL_ID",
+          "kind": "constant",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 36
+        },
+        {
+          "name": "cabinetTabId",
+          "kind": "function",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 38
+        },
+        {
+          "name": "cabinetGroupForKey",
+          "kind": "function",
+          "path": "packages/ui/src/cabinetNavigation.ts",
+          "line": 44
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/cabinetNavigation.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "label": "AnalogGauge",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "Dossier-era instrument: an analog gauge on manila, brass-rimmed, with the latest figure rubber-stamped beneath. The needle can only tell you so much — that vagueness is the statistical office's actual competence, not a styling choice.",
+      "lines": 243,
+      "exports": [
+        {
+          "name": "AnalogGauge",
+          "kind": "function",
+          "path": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+          "line": 54
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/WallTile/WallTile.tsx",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/domains.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/Gauge/Gauge.tsx"
+      ],
+      "path": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "label": "BlankPlate",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "An unmeasured indicator is a blank brass plate — a feature, not an empty state to apologize for. It names the instrument and what would make it exist; no \"coming soon\" softness.",
+      "lines": 82,
+      "exports": [
+        {
+          "name": "BlankPlate",
+          "kind": "function",
+          "path": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+          "line": 17
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/WallTile/WallTile.tsx",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/maturity.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/Gauge/Gauge.tsx",
+        "packages/ui/src/dev/ComponentGallery.tsx"
+      ],
+      "path": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "label": "CorridorPlot",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "The Narrow Corridor — the closest thing this game has to a map, docked permanently. Connecting-tissue register: hand-drawn strategy-map linework, its own quiet palette, neither dossier brass nor terminal phosphor.",
+      "lines": 166,
+      "exports": [
+        {
+          "name": "CorridorPlot",
+          "kind": "function",
+          "path": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+          "line": 48
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/WallTile/WallTile.tsx"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/Instruments.tsx"
+      ],
+      "path": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "label": "Gauge",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "The maturity switch — one instrument identity, rendered at its current era.",
+      "lines": 38,
+      "exports": [
+        {
+          "name": "Gauge",
+          "kind": "function",
+          "path": "packages/ui/src/components/Gauge/Gauge.tsx",
+          "line": 17
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/maturity.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/Instruments.tsx"
+      ],
+      "path": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/labels.ts",
+      "label": "labels",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "Every name an instrument goes by, in one place.",
+      "lines": 128,
+      "exports": [
+        {
+          "name": "IndicatorNames",
+          "kind": "interface",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 15
+        },
+        {
+          "name": "NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 33
+        },
+        {
+          "name": "complementReading",
+          "kind": "function",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 61
+        },
+        {
+          "name": "COHORT_NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 69
+        },
+        {
+          "name": "BLOC_NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 79
+        },
+        {
+          "name": "BLOC_NOTES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 87
+        },
+        {
+          "name": "INSTITUTION_NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 98
+        },
+        {
+          "name": "PLATFORM_NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 121
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/ElectionResultOverlay.tsx"
+      ],
+      "path": "packages/ui/src/components/labels.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "label": "RackStrip",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "One instrument, compressed to a single line — the rack's unit.",
+      "lines": 115,
+      "exports": [
+        {
+          "name": "RackStrip",
+          "kind": "function",
+          "path": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+          "line": 46
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/domains.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/wallPlan.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/Instruments.tsx"
+      ],
+      "path": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/series.ts",
+      "label": "series",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "Shared shaping of IndicatorSeries for rendering — latest print per quarter, plus whether a revision moved a number the player already saw.",
+      "lines": 125,
+      "exports": [
+        {
+          "name": "ShapedPoint",
+          "kind": "interface",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 11
+        },
+        {
+          "name": "shapeSeries",
+          "kind": "function",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 32
+        },
+        {
+          "name": "STAMP_WINDOW_QTRS",
+          "kind": "constant",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 69
+        },
+        {
+          "name": "MATERIAL_REVISION_BANDS",
+          "kind": "constant",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 77
+        },
+        {
+          "name": "MATERIAL_REVISION_FACE_FRACTION",
+          "kind": "constant",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 79
+        },
+        {
+          "name": "stampWorthyRevision",
+          "kind": "function",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 100
+        },
+        {
+          "name": "quarterDelta",
+          "kind": "function",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 119
+        },
+        {
+          "name": "qtrLabel",
+          "kind": "constant",
+          "path": "packages/ui/src/components/series.ts",
+          "line": 124
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/panels/StudyOverlay.tsx"
+      ],
+      "path": "packages/ui/src/components/series.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "label": "TerminalTicker",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "Terminal-era instrument: dense phosphor line on near-black, tight bands, live-feeling readout. Superseded first prints stay on screen with a strikethrough beside the reprint — the machine remembers what it told you. No shadows, no gradients, no rounding: hairlines only.",
+      "lines": 224,
+      "exports": [
+        {
+          "name": "TerminalTicker",
+          "kind": "function",
+          "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+          "line": 35
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/WallTile/WallTile.tsx",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/domains.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/Gauge/Gauge.tsx"
+      ],
+      "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/Button/Button.tsx",
+      "label": "Button",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 49,
+      "exports": [
+        {
+          "name": "ButtonVariant",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Button/Button.tsx",
+          "line": 3
+        },
+        {
+          "name": "ButtonSize",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Button/Button.tsx",
+          "line": 4
+        },
+        {
+          "name": "ButtonProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/Button/Button.tsx",
+          "line": 22
+        },
+        {
+          "name": "Button",
+          "kind": "constant",
+          "path": "packages/ui/src/components/ui/Button/Button.tsx",
+          "line": 29
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/Modal/Modal.tsx",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Button/Button.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+      "label": "ChartFrame",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 68,
+      "exports": [
+        {
+          "name": "ChartLegendItem",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+          "line": 3
+        },
+        {
+          "name": "ChartFrameProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+          "line": 9
+        },
+        {
+          "name": "ChartFrame",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+          "line": 23
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/DisclosureSection/DisclosureSection.tsx",
+      "label": "DisclosureSection",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 33,
+      "exports": [
+        {
+          "name": "DisclosureSection",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/DisclosureSection/DisclosureSection.tsx",
+          "line": 3
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/DisclosureSection/DisclosureSection.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+      "label": "DonutChart",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "A share of a whole, in ink on paper: a donut and the table that reads it.",
+      "lines": 92,
+      "exports": [
+        {
+          "name": "DonutChartProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+          "line": 16
+        },
+        {
+          "name": "DonutChart",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+          "line": 27
+        }
+      ],
+      "imports": [
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/EmptyState/EmptyState.tsx",
+      "label": "EmptyState",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 12,
+      "exports": [
+        {
+          "name": "EmptyState",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/EmptyState/EmptyState.tsx",
+          "line": 3
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/EmptyState/EmptyState.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/index.ts",
+      "label": "index",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 18,
+      "exports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Button/Button.tsx",
+        "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+        "packages/ui/src/components/ui/DisclosureSection/DisclosureSection.tsx",
+        "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+        "packages/ui/src/components/ui/EmptyState/EmptyState.tsx",
+        "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+        "packages/ui/src/components/ui/Metric/Metric.tsx",
+        "packages/ui/src/components/ui/Modal/Modal.tsx",
+        "packages/ui/src/components/ui/OverlayLayout/OverlayLayout.tsx",
+        "packages/ui/src/components/ui/Panel/Panel.tsx",
+        "packages/ui/src/components/ui/ProgressBar/ProgressBar.tsx",
+        "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+        "packages/ui/src/components/ui/SectionHeading/SectionHeading.tsx",
+        "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+        "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+        "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+        "packages/ui/src/components/ui/useFocusTrap.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/dev/ComponentGallery.tsx",
+        "packages/ui/src/panels/CensusOverlay.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/CountrySelect.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/ElectionResultOverlay.tsx",
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/HeaderBar.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/panels/ReportCardOverlay.tsx",
+        "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WireOverlay.tsx"
+      ],
+      "path": "packages/ui/src/components/ui/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+      "label": "LineChart",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "Compact line chart for exact data. Callers supply semantics; the chart supplies stable geometry, comparison support, and a readable empty state.",
+      "lines": 96,
+      "exports": [
+        {
+          "name": "LineChartProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+          "line": 4
+        },
+        {
+          "name": "LineChart",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+          "line": 24
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/Metric/Metric.tsx",
+      "label": "Metric",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 32,
+      "exports": [
+        {
+          "name": "MetricTone",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
+          "line": 3
+        },
+        {
+          "name": "MetricProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
+          "line": 13
+        },
+        {
+          "name": "Metric",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
+          "line": 22
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/Modal/Modal.tsx",
+      "label": "Modal",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 38,
+      "exports": [
+        {
+          "name": "ModalSize",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Modal/Modal.tsx",
+          "line": 5
+        },
+        {
+          "name": "Modal",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Modal/Modal.tsx",
+          "line": 13
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/ui/Button/Button.tsx",
+        "packages/ui/src/components/ui/useFocusTrap.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Modal/Modal.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/OverlayLayout/OverlayLayout.tsx",
+      "label": "OverlayLayout",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 26,
+      "exports": [
+        {
+          "name": "OverlayLayout",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/OverlayLayout/OverlayLayout.tsx",
+          "line": 3
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/OverlayLayout/OverlayLayout.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/Panel/Panel.tsx",
+      "label": "Panel",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 46,
+      "exports": [
+        {
+          "name": "PanelTone",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Panel/Panel.tsx",
+          "line": 3
+        },
+        {
+          "name": "PanelProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/Panel/Panel.tsx",
+          "line": 13
+        },
+        {
+          "name": "Panel",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Panel/Panel.tsx",
+          "line": 22
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Panel/Panel.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/ProgressBar/ProgressBar.tsx",
+      "label": "ProgressBar",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 10,
+      "exports": [
+        {
+          "name": "ProgressBar",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/ProgressBar/ProgressBar.tsx",
+          "line": 1
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/ProgressBar/ProgressBar.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+      "label": "SectionBar",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 28,
+      "exports": [
+        {
+          "name": "SectionBarProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+          "line": 3
+        },
+        {
+          "name": "SectionBar",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+          "line": 11
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/SectionHeading/SectionHeading.tsx",
+      "label": "SectionHeading",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 14,
+      "exports": [
+        {
+          "name": "SectionHeading",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/SectionHeading/SectionHeading.tsx",
+          "line": 3
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/SectionHeading/SectionHeading.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+      "label": "SegmentedControl",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 42,
+      "exports": [
+        {
+          "name": "SegmentOption",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+          "line": 1
+        },
+        {
+          "name": "SegmentedControl",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+          "line": 7
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+      "label": "SliderField",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 64,
+      "exports": [
+        {
+          "name": "SliderFieldProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+          "line": 3
+        },
+        {
+          "name": "SliderField",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+          "line": 19
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+      "label": "StackedAreaChart",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "The same shares, over the whole century: a stacked band chart in ink on paper. The pie beside it answers \"what is the mix now\"; this answers \"what did the mix do when I moved the dial\", which is the question a headline total can never answer.",
+      "lines": 119,
+      "exports": [
+        {
+          "name": "StackedAreaChartProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+          "line": 14
+        },
+        {
+          "name": "StackedAreaChart",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+          "line": 28
+        }
+      ],
+      "imports": [
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/useFocusTrap.ts",
+      "label": "useFocusTrap",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 78,
+      "exports": [
+        {
+          "name": "useFocusTrap",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/useFocusTrap.ts",
+          "line": 20
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/Modal/Modal.tsx",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/useFocusTrap.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "label": "WallTile",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "The frame every instrument on the wall sits in — and the one place the wall's layout contract is written down.",
+      "lines": 100,
+      "exports": [
+        {
+          "name": "WallTile",
+          "kind": "function",
+          "path": "packages/ui/src/components/WallTile/WallTile.tsx",
+          "line": 76
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/panels/LedgerPanel.tsx"
+      ],
+      "path": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/dev/ComponentGallery.tsx",
+      "label": "ComponentGallery",
+      "packageId": "ui",
+      "category": "Development tools",
+      "summary": "",
+      "lines": 141,
+      "exports": [
+        {
+          "name": "ComponentGallery",
+          "kind": "function",
+          "path": "packages/ui/src/dev/ComponentGallery.tsx",
+          "line": 29
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/main.tsx"
+      ],
+      "path": "packages/ui/src/dev/ComponentGallery.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/devScenario.ts",
+      "label": "devScenario",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Dev scenarios — \"start me in 1975 with a big, rich, well-surveyed country.\"",
+      "lines": 85,
+      "exports": [
+        {
+          "name": "YEAR_ZERO",
+          "kind": "constant",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 19
+        },
+        {
+          "name": "yearOfTick",
+          "kind": "constant",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 21
+        },
+        {
+          "name": "quarterOfTick",
+          "kind": "constant",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 23
+        },
+        {
+          "name": "tickLabel",
+          "kind": "constant",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 25
+        },
+        {
+          "name": "tickForYear",
+          "kind": "function",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 28
+        },
+        {
+          "name": "DevScenario",
+          "kind": "interface",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 33
+        },
+        {
+          "name": "DEFAULT_SCENARIO",
+          "kind": "constant",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 49
+        },
+        {
+          "name": "applyScenario",
+          "kind": "function",
+          "path": "packages/ui/src/devScenario.ts",
+          "line": 58
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/worker/protocol.ts",
+        "packages/ui/src/worker/sim.worker.ts"
+      ],
+      "path": "packages/ui/src/devScenario.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/domains.ts",
+      "label": "domains",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The printed face of every dial.",
+      "lines": 143,
+      "exports": [
+        {
+          "name": "Domain",
+          "kind": "interface",
+          "path": "packages/ui/src/domains.ts",
+          "line": 30
+        },
+        {
+          "name": "Reading",
+          "kind": "interface",
+          "path": "packages/ui/src/domains.ts",
+          "line": 36
+        },
+        {
+          "name": "INDICATOR_FACE",
+          "kind": "constant",
+          "path": "packages/ui/src/domains.ts",
+          "line": 49
+        },
+        {
+          "name": "FACE_MARK",
+          "kind": "constant",
+          "path": "packages/ui/src/domains.ts",
+          "line": 80
+        },
+        {
+          "name": "niceBounds",
+          "kind": "function",
+          "path": "packages/ui/src/domains.ts",
+          "line": 112
+        },
+        {
+          "name": "gaugeDomain",
+          "kind": "function",
+          "path": "packages/ui/src/domains.ts",
+          "line": 126
+        },
+        {
+          "name": "readNeedle",
+          "kind": "function",
+          "path": "packages/ui/src/domains.ts",
+          "line": 135
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx"
+      ],
+      "path": "packages/ui/src/domains.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/env.d.ts",
+      "label": "env.d",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "",
+      "lines": 12,
+      "exports": [],
+      "imports": [],
+      "importedBy": [],
+      "path": "packages/ui/src/env.d.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/incidence.ts",
+      "label": "incidence",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Fiscal incidence — who a drafted order actually reaches.",
+      "lines": 83,
+      "exports": [
+        {
+          "name": "IncidenceRow",
+          "kind": "interface",
+          "path": "packages/ui/src/incidence.ts",
+          "line": 27
+        },
+        {
+          "name": "Incidence",
+          "kind": "interface",
+          "path": "packages/ui/src/incidence.ts",
+          "line": 35
+        },
+        {
+          "name": "transferIncidence",
+          "kind": "function",
+          "path": "packages/ui/src/incidence.ts",
+          "line": 59
+        },
+        {
+          "name": "dialIncidence",
+          "kind": "function",
+          "path": "packages/ui/src/incidence.ts",
+          "line": 79
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/incidence.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/main.tsx",
+      "label": "main",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "",
+      "lines": 14,
+      "exports": [],
+      "imports": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/dev/ComponentGallery.tsx"
+      ],
+      "importedBy": [],
+      "path": "packages/ui/src/main.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/maturity.ts",
+      "label": "maturity",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Instrument maturity is derived HERE, once, from PublishedState — never in individual components. If a threshold or a new tier arrives, this is the one place that changes.",
+      "lines": 100,
+      "exports": [
+        {
+          "name": "Maturity",
+          "kind": "type",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 11
+        },
+        {
+          "name": "InstrumentAvailability",
+          "kind": "type",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 12
+        },
+        {
+          "name": "InstrumentAccess",
+          "kind": "interface",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 14
+        },
+        {
+          "name": "InstrumentUnlock",
+          "kind": "interface",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 22
+        },
+        {
+          "name": "InstrumentStatusCounts",
+          "kind": "interface",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 27
+        },
+        {
+          "name": "TERMINAL_AT",
+          "kind": "constant",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 34
+        },
+        {
+          "name": "accessForInstrument",
+          "kind": "function",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 39
+        },
+        {
+          "name": "deriveInstrumentAccess",
+          "kind": "function",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 61
+        },
+        {
+          "name": "countInstrumentStatuses",
+          "kind": "function",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 72
+        },
+        {
+          "name": "instrumentStatusSummary",
+          "kind": "function",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 79
+        },
+        {
+          "name": "nextInstrumentUnlock",
+          "kind": "function",
+          "path": "packages/ui/src/maturity.ts",
+          "line": 88
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+        "packages/ui/src/components/Gauge/Gauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/Instruments.tsx"
+      ],
+      "path": "packages/ui/src/maturity.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/CensusOverlay.tsx",
+      "label": "CensusOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The national census — drill-down paperwork, not a home view (design doc §3.2). Two registers of knowledge sit side by side, and the difference is the whole fog mechanic: • the head count and the age pyramid are EXACT — census-grade, always yours, scrubbable across the whole ce…",
+      "lines": 292,
+      "exports": [
+        {
+          "name": "CensusOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/CensusOverlay.tsx",
+          "line": 210
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/CensusOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/ControlRail.tsx",
+      "label": "ControlRail",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
+      "lines": 581,
+      "exports": [
+        {
+          "name": "ControlRail",
+          "kind": "function",
+          "path": "packages/ui/src/panels/ControlRail.tsx",
+          "line": 345
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/cabinetNavigation.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/incidence.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/ControlRail.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/CountrySelect.tsx",
+      "label": "CountrySelect",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The posting room: choose which country's 1946 settlement to inherit before the worker creates any true state. This is game furniture, not a settings form — six dossiers, one sealed appointment.",
+      "lines": 174,
+      "exports": [
+        {
+          "name": "CountrySelect",
+          "kind": "function",
+          "path": "packages/ui/src/panels/CountrySelect.tsx",
+          "line": 63
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/CountrySelect.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/DevConsole.tsx",
+      "label": "DevConsole",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The maintenance hatch. Deliberately NOT diegetic: this is the one surface in the app that is not part of the fiction, and it is styled to be unmistakable about that — no brass, no manila, no instrument register. If a dev tool ever reads as game furniture, someone will eventual…",
+      "lines": 274,
+      "exports": [
+        {
+          "name": "DevConsole",
+          "kind": "function",
+          "path": "packages/ui/src/panels/DevConsole.tsx",
+          "line": 83
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/ui/src/devScenario.ts",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/worker/protocol.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/DevConsole.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "label": "ElectionOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The election, as a scene (§3.1).",
+      "lines": 262,
+      "exports": [
+        {
+          "name": "ElectionOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/ElectionOverlay.tsx",
+          "line": 109
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "label": "ElectionResultOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The night itself. A campaign that got its own scene deserves a result that gets one too — the wire line (\"The government is returned at the polls\") tells you the outcome but never the arithmetic, and the arithmetic is what teaches you whether the platform you mortgaged somethi…",
+      "lines": 98,
+      "exports": [
+        {
+          "name": "ElectionResultOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+          "line": 17
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "label": "FinanceOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The financial system — drill-down paperwork (design doc §3.2), and a fog lesson with a twist. A banking crisis ALWAYS makes the papers (onset is on the wire, unfogged — a bank run is not a thing you can hide), so even an unfunded government sees, in oxblood, that the crash hap…",
+      "lines": 194,
+      "exports": [
+        {
+          "name": "FinanceOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/FinanceOverlay.tsx",
+          "line": 130
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/HeaderBar.tsx",
+      "label": "HeaderBar",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
+      "lines": 88,
+      "exports": [
+        {
+          "name": "HeaderBar",
+          "kind": "function",
+          "path": "packages/ui/src/panels/HeaderBar.tsx",
+          "line": 18
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/HeaderBar.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/Instruments.tsx",
+      "label": "Instruments",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The instrument wall — the home view, in three bands.",
+      "lines": 111,
+      "exports": [
+        {
+          "name": "Instruments",
+          "kind": "function",
+          "path": "packages/ui/src/panels/Instruments.tsx",
+          "line": 28
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+        "packages/ui/src/components/Gauge/Gauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/wallPlan.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/Instruments.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "label": "LedgerOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The treasury ledger, opened out. Everything here is EXACT — these are the government's books on itself, the one corner of the world that arrives on time, unrevised and true — so it is drawn flat in ink, with no error band and no revision stamp anywhere.",
+      "lines": 179,
+      "exports": [
+        {
+          "name": "LedgerOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/LedgerOverlay.tsx",
+          "line": 57
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/LedgerPanel.tsx",
+      "label": "LedgerPanel",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The treasury ledger, docked in the instrument wall. Exact — these are the government's own books, the one part of the world it can see clearly. Two lines and three totals is all the bay affords; the composition of each side lives one click away in `LedgerOverlay`.",
+      "lines": 54,
+      "exports": [
+        {
+          "name": "LedgerPanel",
+          "kind": "function",
+          "path": "packages/ui/src/panels/LedgerPanel.tsx",
+          "line": 12
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/WallTile/WallTile.tsx",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/Instruments.tsx"
+      ],
+      "path": "packages/ui/src/panels/LedgerPanel.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/NewsWire.tsx",
+      "label": "NewsWire",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The news wire — teletype register (connecting tissue, neither dossier nor terminal). Rumor is the poor state's only instrument.",
+      "lines": 41,
+      "exports": [
+        {
+          "name": "NewsWire",
+          "kind": "function",
+          "path": "packages/ui/src/panels/NewsWire.tsx",
+          "line": 10
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/NewsWire.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "label": "ReportCardOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "§3.3 — the historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
+      "lines": 157,
+      "exports": [
+        {
+          "name": "ReportCardOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/ReportCardOverlay.tsx",
+          "line": 54
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "label": "SettingsOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "Records office: saves in, saves out, and the drastic drawer.",
+      "lines": 73,
+      "exports": [
+        {
+          "name": "SettingsOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/SettingsOverlay.tsx",
+          "line": 9
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/StudyOverlay.tsx",
+      "label": "StudyOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The Study — where the minister pins published prints to the corkboard and draws curves through them. The Phillips scatter uses only what the statistical office has actually released: no survey, no dot. Drawn in the hand-annotated map register.",
+      "lines": 101,
+      "exports": [
+        {
+          "name": "StudyOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/StudyOverlay.tsx",
+          "line": 16
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/StudyOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/WireOverlay.tsx",
+      "label": "WireOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The full dispatch spike — every rumor the wire ever carried.",
+      "lines": 38,
+      "exports": [
+        {
+          "name": "WireOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/WireOverlay.tsx",
+          "line": 8
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/WireOverlay.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/shares.ts",
+      "label": "shares",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Shares of a whole — the geometry behind every composition view.",
+      "lines": 199,
+      "exports": [
+        {
+          "name": "Share",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 16
+        },
+        {
+          "name": "Slice",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 25
+        },
+        {
+          "name": "DonutGeom",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 32
+        },
+        {
+          "name": "SHARE_INKS",
+          "kind": "constant",
+          "path": "packages/ui/src/shares.ts",
+          "line": 47
+        },
+        {
+          "name": "donutSlices",
+          "kind": "function",
+          "path": "packages/ui/src/shares.ts",
+          "line": 81
+        },
+        {
+          "name": "StackRow",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 109
+        },
+        {
+          "name": "StackBox",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 114
+        },
+        {
+          "name": "StackBand",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 123
+        },
+        {
+          "name": "StackPlot",
+          "kind": "interface",
+          "path": "packages/ui/src/shares.ts",
+          "line": 130
+        },
+        {
+          "name": "stackPlot",
+          "kind": "function",
+          "path": "packages/ui/src/shares.ts",
+          "line": 149
+        },
+        {
+          "name": "thin",
+          "kind": "function",
+          "path": "packages/ui/src/shares.ts",
+          "line": 191
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+        "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+        "packages/ui/src/dev/ComponentGallery.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx"
+      ],
+      "path": "packages/ui/src/shares.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/store/db.ts",
+      "label": "db",
+      "packageId": "ui",
+      "category": "Persistence & store",
+      "summary": "Minimal IndexedDB key-value wrapper for autosaves (§8).",
+      "lines": 33,
+      "exports": [
+        {
+          "name": "dbPut",
+          "kind": "function",
+          "path": "packages/ui/src/store/db.ts",
+          "line": 15
+        },
+        {
+          "name": "dbGet",
+          "kind": "function",
+          "path": "packages/ui/src/store/db.ts",
+          "line": 25
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "path": "packages/ui/src/store/db.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/store/gameStore.ts",
+      "label": "gameStore",
+      "packageId": "ui",
+      "category": "Persistence & store",
+      "summary": "",
+      "lines": 233,
+      "exports": [
+        {
+          "name": "useGame",
+          "kind": "constant",
+          "path": "packages/ui/src/store/gameStore.ts",
+          "line": 83
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/devScenario.ts",
+        "packages/ui/src/store/db.ts",
+        "packages/ui/src/wallPlan.ts",
+        "packages/ui/src/worker/protocol.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/SettingsOverlay.tsx"
+      ],
+      "path": "packages/ui/src/store/gameStore.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/wallPlan.ts",
+      "label": "wallPlan",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The wall's height budget — the module that keeps the war room on one screen.",
+      "lines": 163,
+      "exports": [
+        {
+          "name": "REFERENCE_VIEWPORT",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 31
+        },
+        {
+          "name": "CHROME",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 34
+        },
+        {
+          "name": "BOARD_SLOT_MIN_H",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 46
+        },
+        {
+          "name": "RACK_ROW_H",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 48
+        },
+        {
+          "name": "DOCKED_MIN_H",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 50
+        },
+        {
+          "name": "SECTION_BAR_H",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 52
+        },
+        {
+          "name": "BOARD_SLOTS",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 54
+        },
+        {
+          "name": "RACK_MIN_COL_W",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 56
+        },
+        {
+          "name": "DEFAULT_PINS",
+          "kind": "constant",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 61
+        },
+        {
+          "name": "WallPlan",
+          "kind": "interface",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 63
+        },
+        {
+          "name": "wallBudgetPx",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 77
+        },
+        {
+          "name": "wallWidthPx",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 82
+        },
+        {
+          "name": "rackColumns",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 86
+        },
+        {
+          "name": "resolveBoard",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 96
+        },
+        {
+          "name": "toggleBoardPin",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 112
+        },
+        {
+          "name": "planWall",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 125
+        },
+        {
+          "name": "wallFits",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 146
+        },
+        {
+          "name": "rackHeadroom",
+          "kind": "function",
+          "path": "packages/ui/src/wallPlan.ts",
+          "line": 155
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "path": "packages/ui/src/wallPlan.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/worker/protocol.ts",
+      "label": "protocol",
+      "packageId": "ui",
+      "category": "Worker boundary",
+      "summary": "The single shared contract between UI and sim worker (§1.1). Payloads are typed exclusively with PublishedState, action types, and save files — the true state never crosses this boundary.",
+      "lines": 51,
+      "exports": [
+        {
+          "name": "ClientMessage",
+          "kind": "type",
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 14
+        },
+        {
+          "name": "WorkerMessage",
+          "kind": "type",
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 24
+        },
+        {
+          "name": "DevNode",
+          "kind": "interface",
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 45
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/devScenario.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/worker/sim.worker.ts"
+      ],
+      "path": "packages/ui/src/worker/protocol.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/worker/sim.worker.ts",
+      "label": "sim.worker",
+      "packageId": "ui",
+      "category": "Worker boundary",
+      "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (§6.1 of the design doc).",
+      "lines": 228,
+      "exports": [],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/devScenario.ts",
+        "packages/ui/src/worker/protocol.ts"
+      ],
+      "importedBy": [],
+      "path": "packages/ui/src/worker/sim.worker.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/vite.config.ts",
+      "label": "vite.config",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "",
+      "lines": 30,
+      "exports": [],
+      "imports": [],
+      "importedBy": [],
+      "path": "packages/ui/vite.config.ts",
+      "line": 1
+    }
+  ],
+  "moduleEdges": [
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/actions/types.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/actions/apply.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/actions/types.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/constants.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/countries.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/countries.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/countries.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/actions/apply.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/actions/types.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/countries.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/countries.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/hash.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/institutions.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/politics.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/technology.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/init.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/validate.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/math.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/cohorts.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/cohorts.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/cohorts.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/cohorts.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/cohorts.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/demography.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/demography.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/demography.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/demography.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/demography.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/derive.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/derive.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/derive.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/finance.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/finance.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/finance.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/finance.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/institutions.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/institutions.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/institutions.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/institutions.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/institutions.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/labor.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/labor.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/labor.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/labor.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/monetary.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/monetary.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/monetary.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/cohorts.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/demography.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/finance.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/fiscal.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/institutions.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/labor.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/monetary.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/politics.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/prices.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/production.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/shocks.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/statistics.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/technology.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/trade.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/pipeline/world.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/pipeline.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/politics.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/politics.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/politics.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/politics.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/politics.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/prices.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/prices.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/prices.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/prices.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/prices.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/shocks.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/shocks.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/shocks.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/technology.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/technology.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/technology.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/technology.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/technology.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/trade.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/trade.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/trade.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/world.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/world.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/world.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/world.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/countries.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/pipeline/demography.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/pipeline/institutions.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/schema.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/state/validate.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/fixtures/countries/standard.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/fixtures/index.ts",
+      "target": "packages/fixtures/countries/standard.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/fixtures/index.ts",
+      "target": "packages/fixtures/scripts/scripts.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/fixtures/scripts/scripts.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/observation/src/index.ts",
+      "target": "packages/observation/src/observe.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/index.ts",
+      "target": "packages/observation/src/published.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/observe.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/observe.ts",
+      "target": "packages/observation/src/published.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/observation/src/published.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/observation/src/published.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/batch.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/batch.ts",
+      "target": "packages/runner/src/metrics.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/batch.ts",
+      "target": "packages/runner/src/report.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/batch.ts",
+      "target": "packages/runner/src/run.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/metrics.ts",
+      "target": "packages/runner/src/run.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/runner/src/report.ts",
+      "target": "packages/runner/src/batch.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/runner/src/report.ts",
+      "target": "packages/runner/src/metrics.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/run.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/cabinetNavigation.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/CensusOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/ControlRail.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/CountrySelect.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/DevConsole.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/HeaderBar.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/Instruments.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/NewsWire.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/StudyOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/WireOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/domains.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "target": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "target": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/labels.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/labels.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/domains.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/wallPlan.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/series.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/ui/src/domains.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Button/Button.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/ChartFrame/ChartFrame.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/DisclosureSection/DisclosureSection.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/EmptyState/EmptyState.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/LineChart/LineChart.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Metric/Metric.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Modal/Modal.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/OverlayLayout/OverlayLayout.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Panel/Panel.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/ProgressBar/ProgressBar.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/SectionHeading/SectionHeading.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/useFocusTrap.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/Modal/Modal.tsx",
+      "target": "packages/ui/src/components/ui/Button/Button.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/Modal/Modal.tsx",
+      "target": "packages/ui/src/components/ui/useFocusTrap.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/dev/ComponentGallery.tsx",
+      "target": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/dev/ComponentGallery.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/dev/ComponentGallery.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/devScenario.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/domains.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/domains.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/incidence.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/incidence.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/main.tsx",
+      "target": "packages/ui/src/App.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/main.tsx",
+      "target": "packages/ui/src/dev/ComponentGallery.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/maturity.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/maturity.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/maturity.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/CensusOverlay.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/CensusOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/CensusOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/cabinetNavigation.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/incidence.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/CountrySelect.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/CountrySelect.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/DevConsole.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/DevConsole.tsx",
+      "target": "packages/ui/src/devScenario.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/DevConsole.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/DevConsole.tsx",
+      "target": "packages/ui/src/worker/protocol.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/HeaderBar.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/HeaderBar.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/panels/LedgerPanel.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/wallPlan.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerPanel.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerPanel.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerPanel.tsx",
+      "target": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/NewsWire.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/SettingsOverlay.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/StudyOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/StudyOverlay.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/StudyOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WireOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/WireOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/ui/src/devScenario.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/ui/src/store/db.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/ui/src/wallPlan.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/ui/src/worker/protocol.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/wallPlan.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/worker/protocol.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/worker/protocol.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/worker/protocol.ts",
+      "target": "packages/ui/src/devScenario.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/worker/sim.worker.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/worker/sim.worker.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/worker/sim.worker.ts",
+      "target": "packages/ui/src/devScenario.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/worker/sim.worker.ts",
+      "target": "packages/ui/src/worker/protocol.ts",
+      "typeOnly": true
+    }
+  ],
+  "packageEdges": [
+    {
+      "source": "fixtures",
+      "target": "engine",
+      "count": 2,
+      "typeOnlyCount": 1
+    },
+    {
+      "source": "observation",
+      "target": "engine",
+      "count": 3,
+      "typeOnlyCount": 1
+    },
+    {
+      "source": "runner",
+      "target": "engine",
+      "count": 2,
+      "typeOnlyCount": 0
+    },
+    {
+      "source": "ui",
+      "target": "engine",
+      "count": 13,
+      "typeOnlyCount": 5
+    },
+    {
+      "source": "ui",
+      "target": "observation",
+      "count": 32,
+      "typeOnlyCount": 26
+    }
+  ],
+  "pipeline": [
+    {
+      "order": 1,
+      "name": "shocks",
+      "description": "the crisis clock: ruptures land before anyone works — schema v4",
+      "moduleId": "packages/engine/src/pipeline/shocks.ts",
+      "summary": "Step 0 — shocks. The crisis clock (Pillar 4). Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do th…",
+      "stateAreas": [
+        "external",
+        "meta",
+        "sectors",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "shocks",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/shocks.ts",
+          "line": 15
+        }
+      ],
+      "path": "packages/engine/src/pipeline/shocks.ts",
+      "line": 15
+    },
+    {
+      "order": 2,
+      "name": "demography",
+      "description": "the pyramid ages; cohort sizes are derived from it — schema v6",
+      "moduleId": "packages/engine/src/pipeline/demography.ts",
+      "summary": "Step 1.5 — demography (§8). The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort…",
+      "stateAreas": [
+        "cohorts",
+        "demography",
+        "flows",
+        "gov",
+        "market",
+        "meta"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "vitalRates",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 58
+        },
+        {
+          "name": "classSizesFrom",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 77
+        },
+        {
+          "name": "demography",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/demography.ts",
+          "line": 91
+        }
+      ],
+      "path": "packages/engine/src/pipeline/demography.ts",
+      "line": 91
+    },
+    {
+      "order": 3,
+      "name": "technology",
+      "description": "the frontier advances; attainment chases it — schema v7",
+      "moduleId": "packages/engine/src/pipeline/technology.ts",
+      "summary": "Step 2.5 — technology (§9). Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close t…",
+      "stateAreas": [
+        "meta",
+        "sectors",
+        "tech"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "frontierGrowthAt",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 26
+        },
+        {
+          "name": "absorptiveCapacity",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 45
+        },
+        {
+          "name": "technology",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/technology.ts",
+          "line": 56
+        }
+      ],
+      "path": "packages/engine/src/pipeline/technology.ts",
+      "line": 56
+    },
+    {
+      "order": 4,
+      "name": "world",
+      "description": "partner cycles set export demand and world prices — schema v9",
+      "moduleId": "packages/engine/src/pipeline/world.ts",
+      "summary": "Step 2.5 — the rest of world (§10). Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less);…",
+      "stateAreas": [
+        "external",
+        "meta",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "world",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/world.ts",
+          "line": 63
+        }
+      ],
+      "path": "packages/engine/src/pipeline/world.ts",
+      "line": 63
+    },
+    {
+      "order": 5,
+      "name": "finance",
+      "description": "credit, asset prices, banking crises — the fragility clock — schema v10",
+      "moduleId": "packages/engine/src/pipeline/finance.ts",
+      "summary": "Step 3.5 — the financial sector (§12 M5: fragility). The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it;…",
+      "stateAreas": [
+        "external",
+        "finance",
+        "flows",
+        "gov",
+        "ledger",
+        "meta",
+        "sectors",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "finance",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/finance.ts",
+          "line": 60
+        }
+      ],
+      "path": "packages/engine/src/pipeline/finance.ts",
+      "line": 60
+    },
+    {
+      "order": 6,
+      "name": "production",
+      "description": "output given prices, capital, labor, I/O table",
+      "moduleId": "packages/engine/src/pipeline/production.ts",
+      "summary": "Step 1 — production. Builds this tick's demand from last tick's incomes and prices, solves the Leontief system for required gross output, and produces up to capacity. Excess demand is recorded for the price step; nothing here is a hand-authored effect arrow — a fuel tax reache…",
+      "stateAreas": [
+        "cohorts",
+        "external",
+        "finance",
+        "flows",
+        "gov",
+        "institutions",
+        "io",
+        "ledger",
+        "market",
+        "params",
+        "sectors"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "production",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/production.ts",
+          "line": 35
+        }
+      ],
+      "path": "packages/engine/src/pipeline/production.ts",
+      "line": 35
+    },
+    {
+      "order": 7,
+      "name": "trade",
+      "description": "books external flows, reserves, exchange rate",
+      "moduleId": "packages/engine/src/pipeline/trade.ts",
+      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step (§10); this step just settles the balance of payments at them.",
+      "stateAreas": [
+        "external",
+        "flows",
+        "market"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "trade",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/trade.ts",
+          "line": 12
+        }
+      ],
+      "path": "packages/engine/src/pipeline/trade.ts",
+      "line": 12
+    },
+    {
+      "order": 8,
+      "name": "fiscal",
+      "description": "capacity-gated collection; spending with leakage; the press",
+      "moduleId": "packages/engine/src/pipeline/fiscal.ts",
+      "summary": "Step 3 — fiscal. Tax collection is capacity-gated: the state taxes what it can see, not true GDP. Spending executes with leakage. Deficits the bond market won't absorb are monetized — the printing press is not a button the player pushes, it's what happens when the arithmetic f…",
+      "stateAreas": [
+        "flows",
+        "gov",
+        "institutions",
+        "io",
+        "ledger",
+        "market",
+        "sectors"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "fiscal",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/fiscal.ts",
+          "line": 29
+        }
+      ],
+      "path": "packages/engine/src/pipeline/fiscal.ts",
+      "line": 29
+    },
+    {
+      "order": 9,
+      "name": "monetary",
+      "description": "expectations adapt; printing feeds them",
+      "moduleId": "packages/engine/src/pipeline/monetary.ts",
+      "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
+      "stateAreas": [
+        "flows",
+        "ledger"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts"
+      ],
+      "exports": [
+        {
+          "name": "monetary",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 12
+        }
+      ],
+      "path": "packages/engine/src/pipeline/monetary.ts",
+      "line": 12
+    },
+    {
+      "order": 10,
+      "name": "prices",
+      "description": "tâtonnement with cost anchor",
+      "moduleId": "packages/engine/src/pipeline/prices.ts",
+      "summary": "Step 5 — prices. Tâtonnement with a cost anchor: excess demand pulls prices up, excess supply down, and prices also drift toward unit cost × markup — that second term is how a fuel tax works its way from the refinery through the trucking industry into bread.",
+      "stateAreas": [
+        "flows",
+        "gov",
+        "io",
+        "ledger",
+        "market",
+        "sectors"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "prices",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/prices.ts",
+          "line": 14
+        }
+      ],
+      "path": "packages/engine/src/pipeline/prices.ts",
+      "line": 14
+    },
+    {
+      "order": 11,
+      "name": "labor",
+      "description": "employment, wages, capital accumulation",
+      "moduleId": "packages/engine/src/pipeline/labor.ts",
+      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus inflation pass-through. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
+      "stateAreas": [
+        "flows",
+        "institutions",
+        "market",
+        "sectors",
+        "tech"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts"
+      ],
+      "exports": [
+        {
+          "name": "labor",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/labor.ts",
+          "line": 26
+        }
+      ],
+      "path": "packages/engine/src/pipeline/labor.ts",
+      "line": 26
+    },
+    {
+      "order": 12,
+      "name": "cohorts",
+      "description": "incomes, savings, approval drifts toward experienced truth",
+      "moduleId": "packages/engine/src/pipeline/cohorts.ts",
+      "summary": "Step 7 — cohorts. Incomes land, savings absorb the difference, and approval drifts toward *experienced* conditions: real income growth (loss-averse), own-basket inflation, joblessness, and queues for goods that never arrived. Whatever the statistics office printed, the bread l…",
+      "stateAreas": [
+        "cohorts",
+        "flows",
+        "gov",
+        "ledger",
+        "market",
+        "meta",
+        "politics",
+        "score",
+        "sectors"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "cohorts",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/cohorts.ts",
+          "line": 29
+        }
+      ],
+      "path": "packages/engine/src/pipeline/cohorts.ts",
+      "line": 29
+    },
+    {
+      "order": 13,
+      "name": "institutions",
+      "description": "societal power, the veto players, revolutionary pressure — schema v11",
+      "moduleId": "packages/engine/src/pipeline/institutions.ts",
+      "summary": "Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the game that isn't the economy.",
+      "stateAreas": [
+        "cohorts",
+        "institutions",
+        "meta",
+        "params",
+        "politics",
+        "score",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "franchiseOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 101
+        },
+        {
+          "name": "initialInstitutions",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 272
+        },
+        {
+          "name": "institutions",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/institutions.ts",
+          "line": 310
+        }
+      ],
+      "path": "packages/engine/src/pipeline/institutions.ts",
+      "line": 310
+    },
+    {
+      "order": 14,
+      "name": "statistics",
+      "description": "the office measures, publishes, revises — schema v3",
+      "moduleId": "packages/engine/src/pipeline/statistics.ts",
+      "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
+      "stateAreas": [
+        "meta",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "INDICATOR_SPECS",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/statistics.ts",
+          "line": 45
+        },
+        {
+          "name": "statistics",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/statistics.ts",
+          "line": 369
+        }
+      ],
+      "path": "packages/engine/src/pipeline/statistics.ts",
+      "line": 369
+    },
+    {
+      "order": 15,
+      "name": "politics",
+      "description": "PC accrual from PUBLISHED numbers, elections, revolt and coup",
+      "moduleId": "packages/engine/src/pipeline/politics.ts",
+      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (§3.4): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a later re…",
+      "stateAreas": [
+        "institutions",
+        "meta",
+        "politics",
+        "stats"
+      ],
+      "dependencies": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "exports": [
+        {
+          "name": "electionThreshold",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/politics.ts",
+          "line": 70
+        },
+        {
+          "name": "politics",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/politics.ts",
+          "line": 74
+        }
+      ],
+      "path": "packages/engine/src/pipeline/politics.ts",
+      "line": 74
+    }
+  ],
+  "seams": [
+    {
+      "id": "ordered-fold",
+      "title": "One ordered, versioned tick",
+      "summary": "Every subsystem receives the state left by the prior step. Reordering the fold changes the model and the save schema.",
+      "locations": [
+        {
+          "path": "packages/engine/src/pipeline/pipeline.ts",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "id": "fog-before-politics",
+      "title": "The fog is causal",
+      "summary": "Statistics creates published prints inside the engine immediately before politics, so political outcomes react to headlines rather than hidden truth.",
+      "locations": [
+        {
+          "path": "packages/engine/src/pipeline/statistics.ts",
+          "line": 370
+        },
+        {
+          "path": "packages/engine/src/pipeline/politics.ts",
+          "line": 75
+        },
+        {
+          "path": "packages/observation/src/observe.ts",
+          "line": 143
+        }
+      ]
+    },
+    {
+      "id": "worker-boundary",
+      "title": "True state stops at the worker",
+      "summary": "The worker owns the engine state and posts the published projection. UI components cannot reach the simulation heap.",
+      "locations": [
+        {
+          "path": "packages/ui/src/worker/sim.worker.ts",
+          "line": 24
+        },
+        {
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "id": "action-price",
+      "title": "Quote and charge share one price",
+      "summary": "Political cost is calculated in one engine function and reused both when previewing a decision and when applying it.",
+      "locations": [
+        {
+          "path": "packages/engine/src/actions/apply.ts",
+          "line": 277
+        },
+        {
+          "path": "packages/observation/src/observe.ts",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "id": "rng-substreams",
+      "title": "Randomness is isolated by subsystem",
+      "summary": "Each step receives a seed, step-name, and tick substream, so a new draw in one subsystem does not shift another.",
+      "locations": [
+        {
+          "path": "packages/engine/src/pipeline/pipeline.ts",
+          "line": 9
+        },
+        {
+          "path": "packages/engine/src/rng/rng.ts",
+          "line": 51
+        }
+      ]
+    }
+  ]
+} satisfies ArchitectureSnapshot

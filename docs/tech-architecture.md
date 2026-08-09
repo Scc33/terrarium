@@ -71,9 +71,13 @@ terrarium/
 │   ├── runner/                   # headless batch runner (Node CLI)
 │   │   └── src/                  # run.ts · batch.ts · metrics.ts · report.ts
 │   │
-│   └── fixtures/                 # shared test data
-│       ├── countries/standard.ts # parameter vectors
-│       └── scripts/scripts.ts    # named action scripts ("passive", "fuelTaxAtQ8", …)
+│   ├── fixtures/                 # shared test data
+│   │   ├── countries/standard.ts # parameter vectors
+│   │   └── scripts/scripts.ts    # named action scripts ("passive", "fuelTaxAtQ8", …)
+│   │
+│   └── architecture-visualizer/  # dev-only, code-derived engine atlas
+│       ├── scripts/analyze.ts    # TS AST scan: modules, imports, exports, TICK_ORDER
+│       └── src/                  # pipeline, package-seam, and module explorer views
 │
 ├── tests/
 │   ├── unit/                     # pure-function tests (rng, leontief, hash, actions)
@@ -226,8 +230,9 @@ introduced it:
 | 10 | `prices` | tâtonnement with cost anchor |
 | 11 | `labor` | employment, wages, capital accumulation |
 | 12 | `cohorts` | incomes, savings, approval drifts toward experienced truth |
-| 13 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
-| 14 | `politics` | PC accrual from PUBLISHED numbers, elections every 16 ticks |
+| 13 | `institutions` | societal power, veto players, and revolutionary pressure |
+| 14 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
+| 15 | `politics` | PC accrual from PUBLISHED numbers, elections, revolt, and coup |
 
 **Rules:**
 
@@ -354,6 +359,8 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm diff-state` | what moved between two states — read before blessing |
 | `pnpm bless` | re-bless golden snapshots after an intentional change |
 | `pnpm ranges` | measure a surveyed century; the input to dial faces |
+| `pnpm architecture` | scan the source and open the engine atlas on localhost:4174 |
+| `pnpm architecture:build` | regenerate and production-build the engine atlas |
 | `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |
 
 ---

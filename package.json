@@ -9,9 +9,12 @@
   },
   "scripts": {
     "dev": "pnpm --filter @terrarium/ui dev",
+    "architecture": "pnpm --filter @terrarium/architecture-visualizer dev",
+    "architecture:scan": "pnpm --filter @terrarium/architecture-visualizer scan",
+    "architecture:build": "pnpm --filter @terrarium/architecture-visualizer build",
     "build": "pnpm --filter @terrarium/ui build",
     "preview": "pnpm --filter @terrarium/ui preview",
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/ui/tsconfig.app.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/ui/tsconfig.app.json && tsc -p packages/architecture-visualizer/tsconfig.node.json && tsc -p packages/architecture-visualizer/tsconfig.app.json",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
