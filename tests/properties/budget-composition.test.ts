@@ -66,6 +66,7 @@ describe('the treasury books add up', () => {
     const pub = observe(play('books-lines', 40, [
       { tick: 4, actions: [{ kind: 'investCapacity', target: 'statistical', amount: 3 }] },
       { tick: 8, actions: [{ kind: 'setDial', path: 'subsidies.agri', value: 0.6 }] },
+      { tick: 12, actions: [{ kind: 'setDial', path: 'spending.research', value: 0.4 }] },
     ]))
     for (const b of pub.books) {
       expect(Object.keys(b.revenueBySource).sort()).toEqual([...REVENUE_SOURCE_IDS].sort())
@@ -78,6 +79,7 @@ describe('the treasury books add up', () => {
     // the two lines the scripted actions bought must actually appear
     const late = pub.books[pub.books.length - 1]
     expect(late.outlaysByProgramme.subsidies).toBeGreaterThan(0)
+    expect(late.outlaysByProgramme.research).toBeCloseTo(0.4)
     expect(pub.books.some((b) => b.outlaysByProgramme.capacity > 0)).toBe(true)
   })
 })

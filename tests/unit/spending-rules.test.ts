@@ -42,7 +42,7 @@ function withSeries(
 describe('recurring expenditure rules', () => {
   it('starts every programme on the legacy fixed-cash semantics', () => {
     const state = fresh()
-    for (const programme of ['transfers', 'procurement', 'investment'] as const) {
+    for (const programme of ['transfers', 'procurement', 'investment', 'research'] as const) {
       expect(state.gov.spendingRules[programme]).toEqual({
         kind: 'fixed',
         amount: state.gov.dials.spending[programme],

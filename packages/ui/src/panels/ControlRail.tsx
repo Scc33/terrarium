@@ -80,6 +80,7 @@ const DIALS: DialGroup[] = [
       { path: 'spending.transfers', label: 'Transfers', get: (p) => p.dials.spending.transfers, min: 0, max: spendMax, step: 0.1, fmt: money },
       { path: 'spending.procurement', label: 'Procurement', get: (p) => p.dials.spending.procurement, min: 0, max: spendMax, step: 0.1, fmt: money },
       { path: 'spending.investment', label: 'Public works', get: (p) => p.dials.spending.investment, min: 0, max: spendMax, step: 0.1, fmt: money },
+      { path: 'spending.research', label: 'Research grants', get: (p) => p.dials.spending.research, min: 0, max: spendMax, step: 0.1, fmt: money },
     ],
   },
   {
@@ -116,6 +117,7 @@ const DIAL_TIPS: Partial<Record<DialPath, string>> = {
   'spending.transfers': 'Cash to households (pensions, relief). Delivery leaks through weak administration.',
   'spending.procurement': 'The state buys goods and services from the economy.',
   'spending.investment': 'Public works: buys construction and adds to the capital stock.',
+  'spending.research': 'Public R&D. Behind the frontier it adapts known techniques; near the frontier it funds slower original work. Weak administration leaks grants, and schools limit how much useful research the country can staff.',
   policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
 }
 

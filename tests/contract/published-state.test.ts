@@ -93,6 +93,7 @@ describe('the published-state contract (§1.1)', () => {
       'attained',
       'tfp',
       'tfpGrowthQ',
+      'technologyAttainment',
       'mortalityIndex',
       'workerShareMult',
       'classShares',

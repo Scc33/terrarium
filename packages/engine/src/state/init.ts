@@ -199,6 +199,9 @@ export function init(params: CountryParams, seed: Seed): TrueState {
     transfers: 0.36 * grossBudget0,
     procurement: 0.39 * grossBudget0,
     investment: 0.25 * grossBudget0,
+    // Research is a policy choice rather than a hidden passive growth subsidy.
+    // Leaving it at zero keeps the inherited economy on the historical track.
+    research: 0,
   }
   const transfersDelivered = spendingDials.transfers * adminEff
 
@@ -259,6 +262,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
       transfers: 0,
       procurement: 0,
       investment: 0,
+      research: 0,
       subsidies: 0,
       capacity: 0,
       interest: interest0,
@@ -326,6 +330,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
         transfers: { kind: 'fixed', amount: spendingDials.transfers },
         procurement: { kind: 'fixed', amount: spendingDials.procurement },
         investment: { kind: 'fixed', amount: spendingDials.investment },
+        research: { kind: 'fixed', amount: spendingDials.research },
       },
       // pre-M4 saves carry no education capacity — backfill the 1946 default
       capacity: {

@@ -70,6 +70,7 @@ export const fiscal: PipelineStep = {
       transfers: gov.dials.spending.transfers,
       procurement: gov.dials.spending.procurement,
       investment: gov.dials.spending.investment,
+      research: gov.dials.spending.research,
       subsidies: sumRecord(gov.dials.subsidies),
       capacity: gov.pipeline.reduce((s, b) => s + b.moneyPerQtr, 0),
       interest: (gov.debt * (gov.dials.policyRate + riskPremium)) / 4,

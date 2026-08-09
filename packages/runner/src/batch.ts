@@ -27,7 +27,12 @@ export function randomPolicy(state: TrueState, rng: Rng, _tick: number): Action[
     const path = pick(['taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel'] as const)
     return [{ kind: 'setDial', path, value: rng.range(0, 0.6) }]
   } else if (roll < 0.45) {
-    const path = pick(['spending.transfers', 'spending.procurement', 'spending.investment'] as const)
+    const path = pick([
+      'spending.transfers',
+      'spending.procurement',
+      'spending.investment',
+      'spending.research',
+    ] as const)
     return [{ kind: 'setDial', path, value: rng.range(0, 0.12) * gdp }]
   } else if (roll < 0.6) {
     return [{ kind: 'setDial', path: 'policyRate', value: rng.range(0, 0.2) }]

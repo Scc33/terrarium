@@ -48,6 +48,7 @@ export const OUTLAY_IDS = [
   'transfers',
   'procurement',
   'investment',
+  'research',
   'subsidies',
   'capacity',
   'interest',
@@ -55,9 +56,9 @@ export const OUTLAY_IDS = [
 export type OutlayId = (typeof OUTLAY_IDS)[number]
 export type OutlaySplit = Record<OutlayId, Money>
 
-/** The three recurring programmes the cabinet can write a spending rule for.
+/** The four recurring programmes the cabinet can write a spending rule for.
  * Capacity builds, subsidies, and interest have their own causal controls. */
-export const SPENDING_PROGRAM_IDS = ['transfers', 'procurement', 'investment'] as const
+export const SPENDING_PROGRAM_IDS = ['transfers', 'procurement', 'investment', 'research'] as const
 export type SpendingProgramId = (typeof SPENDING_PROGRAM_IDS)[number]
 
 /** A voted appropriation can stay nominal, follow the official CPI print, or
@@ -119,6 +120,7 @@ export const INDICATOR_IDS = [
   'unemployment',
   'payrolls',
   'capital_stock',
+  'technology_attainment',
   'conf_consumer',
   'conf_business',
   'approval',
@@ -260,7 +262,7 @@ export interface MarketState {
 // ---------- government ----------
 export interface DialState {
   taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
-  spending: { transfers: Money; procurement: Money; investment: Money }
+  spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   policyRate: number // annualized
   subsidies: Partial<Record<SectorId, Money>>
 }
@@ -481,6 +483,8 @@ export interface StatRecord {
   unemployment: Ratio
   payrolls: number // millions, ex-agri
   capitalTotal: Money
+  /** output-weighted domestic technique relative to the sector-adjusted world frontier */
+  technologyAttainment: number
   confConsumer: Ratio
   confBusiness: Ratio
   /** enfranchisement-weighted approval — what a pollster would find */
@@ -568,7 +572,7 @@ export interface TickFlows {
   publicInvestmentReal: number
   /** household consumption + private investment, at base prices */
   privateDomesticDemandReal: number
-  /** delivered procurement + public investment, at base prices */
+  /** delivered procurement + public investment + research, at base prices */
   governmentDomesticDemandReal: number
   /** value of imports at border prices (tariff base) */
   tariffBase: Money
@@ -634,7 +638,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 17 // v17: rule-based recurring expenditure
+export const SCHEMA_VERSION = 18 // v18: research policy + published technology attainment
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

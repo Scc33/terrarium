@@ -12,15 +12,21 @@ import {
   ABSORB_BASE,
   ABSORB_EDU_GAIN,
   ABSORB_OPENNESS_WEIGHT,
+  adminEffectiveness,
   CATCHUP_Q,
   FRONTIER_ERAS,
   FRONTIER_OWN_DRIFT_Q,
+  RESEARCH_CATCHUP_GAIN_Q,
+  RESEARCH_EFFECTIVE_SHARE_MAX,
+  RESEARCH_FRONTIER_GAIN_Q,
+  RESEARCH_FRONTIER_START,
+  RESEARCH_SKILL_FLOOR,
   TECH_EXPOSURE,
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
 import type { TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { creativeDestruction } from './derive'
+import { creativeDestruction, technologyAttainment } from './derive'
 
 /** annual frontier growth in force at a given quarter */
 export function frontierGrowthAt(tick: number): number {
@@ -53,18 +59,72 @@ export function absorptiveCapacity(state: TrueState): number {
   )
 }
 
+export interface ResearchAllocation {
+  /** appropriated research money that survives administration and staffing,
+   * as a share of quarterly GDP */
+  effectiveShare: number
+  /** share devoted to adapting known techniques */
+  catchupShare: number
+  /** share devoted to original work at the frontier */
+  frontierShare: number
+}
+
+/** The same research programme changes character as the gap closes. A country
+ * behind the frontier funds adaptation; a country operating near it funds
+ * original work. This split is derived from position, never chosen from a tech
+ * tree, and the appropriated money still needs administrators and skilled
+ * researchers before it becomes useful technique. */
+export function researchAllocation(state: TrueState): ResearchAllocation {
+  const appropriatedShare =
+    state.gov.dials.spending.research / Math.max(state.flows.nominalGdp, 1e-9)
+  const delivery = adminEffectiveness(state.gov.capacity.administrative)
+  const staffing =
+    RESEARCH_SKILL_FLOOR + (1 - RESEARCH_SKILL_FLOOR) * state.gov.capacity.education
+  const effectiveShare = clamp(
+    appropriatedShare * delivery * staffing,
+    0,
+    RESEARCH_EFFECTIVE_SHARE_MAX,
+  )
+  const position = clamp(technologyAttainment(state), 0, 1)
+  const frontierShare = clamp(
+    (position - RESEARCH_FRONTIER_START) / (1 - RESEARCH_FRONTIER_START),
+    0,
+    1,
+  )
+  return { effectiveShare, catchupShare: 1 - frontierShare, frontierShare }
+}
+
 export const technology: PipelineStep = {
   name: 'technology',
   run(state) {
-    const frontier = state.tech.frontier * (1 + frontierGrowthAt(state.meta.tick) / 4)
+    const historicalFrontier =
+      state.tech.frontier * (1 + frontierGrowthAt(state.meta.tick) / 4)
+    const research = researchAllocation(state)
+    const researchFrontierGrowthQ =
+      RESEARCH_FRONTIER_GAIN_Q * research.effectiveShare * research.frontierShare
+    const frontier = historicalFrontier * (1 + researchFrontierGrowthQ)
 
     // each sector chases its own slice of the frontier; the gap closes at a
     // rate human capital allows, and at a rate the incumbents allow
     const absorption = absorptiveCapacity(state)
     const attained = sectorRecord((sid) => {
+      const historicalTarget = Math.pow(historicalFrontier, TECH_EXPOSURE[sid])
       const target = Math.pow(frontier, TECH_EXPOSURE[sid])
       const a = state.tech.attained[sid]
-      return a * (1 + FRONTIER_OWN_DRIFT_Q) + CATCHUP_Q * absorption * Math.max(0, target - a)
+      // Keep the zero-research term in the historical multiplication order so
+      // adding the policy cannot perturb passive replays through floating-point
+      // reassociation alone.
+      const catchupRate =
+        CATCHUP_Q * absorption +
+        absorption * RESEARCH_CATCHUP_GAIN_Q * research.effectiveShare * research.catchupShare
+      // A frontier country immediately owns the increment its laboratories
+      // created; everybody else has to absorb that knowledge in later quarters.
+      const ownInnovation = Math.max(0, target - historicalTarget)
+      return (
+        a * (1 + FRONTIER_OWN_DRIFT_Q) +
+        catchupRate * Math.max(0, historicalTarget - a) +
+        ownInnovation
+      )
     })
 
     // realized tfp growth lands on the sectors (multiplicative, so drought

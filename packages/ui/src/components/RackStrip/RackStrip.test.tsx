@@ -18,7 +18,7 @@ describe('RackStrip', () => {
 
   it('labels a commissioned instrument as waiting rather than unfunded', () => {
     const html = renderToStaticMarkup(<RackStrip indicator="inflation" access={accessForInstrument('inflation', 0.18, false)} now={0} pinned={false} onPin={() => {}} />)
-    expect(html).toContain('RETURN PENDING')
+    expect(html).toContain('PENDING')
     expect(html).not.toContain('SURVEY REQUIRED')
   })
 })

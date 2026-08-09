@@ -76,7 +76,7 @@ describe('which dials have a rule to read', () => {
     // each of these needs a BASE the government can only estimate — profits,
     // wages, household baskets. Offering a number here would be presenting
     // fogged truth as a programme rule.
-    for (const path of ['taxRates.income', 'taxRates.corporate', 'taxRates.fuel', 'taxRates.tariff', 'spending.procurement', 'spending.investment', 'policyRate'] as const) {
+    for (const path of ['taxRates.income', 'taxRates.corporate', 'taxRates.fuel', 'taxRates.tariff', 'spending.procurement', 'spending.investment', 'spending.research', 'policyRate'] as const) {
       expect(dialIncidence(path, 1, pub), path).toBeNull()
     }
   })

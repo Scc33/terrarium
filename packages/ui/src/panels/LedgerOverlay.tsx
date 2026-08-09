@@ -12,10 +12,15 @@
  */
 
 import { useState } from 'react'
-import { OUTLAY_IDS, REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
+import { REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
+import {
+  OUTLAY_CHART_IDS,
+  outlayChartValues,
+  type OutlayChartId,
+} from '../budgetChart'
 
 /** The printed face of the budget. Both tables are total records, so the day
  * the engine adds a tax or a programme this file stops compiling until it has
@@ -28,13 +33,30 @@ const REVENUE_FACE: Record<RevenueSourceId, { label: string; ink: string; note: 
   fuel: { label: 'Fuel excise', ink: SHARE_INKS[3], note: 'Levied on every energy purchase, household and industrial. Cheap to collect, and it reaches the price of bread by way of the lorries.' },
 }
 
-const OUTLAY_FACE: Record<OutlayId, { label: string; ink: string; note: string }> = {
-  transfers: { label: 'Transfers', ink: SHARE_INKS[0], note: 'Pensions and relief, paid to households. Delivery leaks through weak administration; the budget is charged in full regardless.' },
-  procurement: { label: 'Procurement', ink: SHARE_INKS[1], note: 'The state buying goods and services from the economy.' },
-  investment: { label: 'Public works', ink: SHARE_INKS[2], note: 'Construction that adds to the national capital stock.' },
-  subsidies: { label: 'Subsidies', ink: SHARE_INKS[3], note: 'All sector subsidies together. The per-sector split is on the control rail.' },
-  capacity: { label: 'Ministries', ink: SHARE_INKS[4], note: 'Capacity programmes still building — tax administration, the statistical office, the civil service, the schools. Voted for years at a time.' },
-  interest: { label: 'Debt service', ink: SHARE_INKS[5], note: 'Coupons on outstanding debt, at the policy rate plus whatever premium the bond market charges you for the debt you already carry. The one line no dial reduces this quarter.' },
+const OUTLAY_FACE: Record<OutlayId, { label: string; note: string }> = {
+  transfers: { label: 'Transfers', note: 'Pensions and relief, paid to households. Delivery leaks through weak administration; the budget is charged in full regardless.' },
+  procurement: { label: 'Procurement', note: 'The state buying goods and services from the economy.' },
+  investment: { label: 'Public works', note: 'Construction that adds to the national capital stock.' },
+  research: { label: 'Research', note: 'Public R&D grants. Administration and skilled staffing decide how much useful work the appropriation buys.' },
+  subsidies: { label: 'Subsidies', note: 'All sector subsidies together. The per-sector split is on the control rail.' },
+  capacity: { label: 'Ministries', note: 'Capacity programmes still building — tax administration, the statistical office, the civil service, the schools. Voted for years at a time.' },
+  interest: { label: 'Debt service', note: 'Coupons on outstanding debt, at the policy rate plus whatever premium the bond market charges you for the debt you already carry. The one line no dial reduces this quarter.' },
+}
+
+/** Seven exact outlay lines become six stable chart bands. Research and active
+ * ministry construction are the common state-building bucket; the summary
+ * above still prints research on its own line. */
+const OUTLAY_CHART_FACE: Record<OutlayChartId, { label: string; ink: string; note: string }> = {
+  transfers: { ...OUTLAY_FACE.transfers, ink: SHARE_INKS[0] },
+  procurement: { ...OUTLAY_FACE.procurement, ink: SHARE_INKS[1] },
+  investment: { ...OUTLAY_FACE.investment, ink: SHARE_INKS[2] },
+  subsidies: { ...OUTLAY_FACE.subsidies, ink: SHARE_INKS[3] },
+  state_building: {
+    label: 'Research & ministries',
+    ink: SHARE_INKS[4],
+    note: `${OUTLAY_FACE.research.note} ${OUTLAY_FACE.capacity.note}`,
+  },
+  interest: { ...OUTLAY_FACE.interest, ink: SHARE_INKS[5] },
 }
 
 const money = (v: number) => v.toFixed(1)
@@ -63,11 +85,11 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const shares =
     side === 'revenue'
       ? sharesOf(REVENUE_SOURCE_IDS, REVENUE_FACE, t.revenueBySource)
-      : sharesOf(OUTLAY_IDS, OUTLAY_FACE, t.outlaysByProgramme)
+      : sharesOf(OUTLAY_CHART_IDS, OUTLAY_CHART_FACE, outlayChartValues(t.outlaysByProgramme))
 
   const rows: StackRow[] = books.map((b) => ({
     tick: b.tick,
-    values: side === 'revenue' ? b.revenueBySource : b.outlaysByProgramme,
+    values: side === 'revenue' ? b.revenueBySource : outlayChartValues(b.outlaysByProgramme),
   }))
 
   /** Receipts per point of rate — the closest thing the books offer to "what
@@ -97,6 +119,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             title="Revenue minus outlays. Deficits are sold to the bond market until it stops buying."
           />
           <Metric label="DEBT" value={t.debt.toFixed(0)} title="Outstanding government debt." />
+          <Metric label="R&D / QTR" value={money(t.outlaysByProgramme.research)} title="The exact research appropriation this quarter. In the charts below it shares one state-building band with ministries so the composition remains readable." />
           <Metric
             label="PRINTED"
             value={t.printed.toFixed(1)}

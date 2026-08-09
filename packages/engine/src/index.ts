@@ -148,6 +148,7 @@ export {
   cohortCpi,
   laborForce,
   totalLaborForce,
+  technologyAttainment,
   approvalIndex,
   giniIndex,
   realIncomePerHead,
@@ -197,5 +198,6 @@ export type {
   WorldPartner,
   WorldState,
 } from './state/schema'
-export { absorptiveCapacity, frontierGrowthAt } from './pipeline/technology'
+export { absorptiveCapacity, frontierGrowthAt, researchAllocation } from './pipeline/technology'
+export type { ResearchAllocation } from './pipeline/technology'
 export { termsOfTrade } from './pipeline/derive'

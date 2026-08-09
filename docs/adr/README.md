@@ -24,3 +24,4 @@ the old one and update the Status line of both.
 | [0009](0009-typescript-7-side-by-side.md) | TypeScript 7 runs side-by-side with the TS 6 API | Accepted |
 | [0010](0010-dev-console.md) | The dev console shows truth without weakening the boundary | Accepted |
 | [0011](0011-countries-are-replayable-recipes.md) | Countries are replayable recipes, not alternate engines | Accepted |
+| [0012](0012-technology-is-a-gap-not-a-tree.md) | Technology is a moving gap, not an unlock tree | Accepted |
