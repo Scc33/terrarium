@@ -12,7 +12,7 @@ This is the third register of documentation here, and the distinction matters:
 | | holds | status |
 |---|---|---|
 | `docs/adr/` | decisions that constrain future code, with the alternatives they beat | immutable once accepted |
-| `CLAUDE.md` "Hard-won tuning lessons" | calibration knowledge, read beside the constants it governs | living |
+| `packages/engine/AGENTS.md` "Hard-won tuning lessons" | calibration knowledge, read beside the constants it governs | living |
 | `docs/investigations/` | open questions with measurements attached | resolved or withdrawn |
 
 When an investigation is resolved, say so in its Status line and link to whatever resolved it —

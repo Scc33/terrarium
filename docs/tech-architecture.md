@@ -53,7 +53,7 @@ terrarium/
 │   │   │   └── published.ts      # PublishedState types — the ONLY types ui may import
 │   │   └── package.json
 │   │
-│   ├── ui/                       # React app. See the terrarium-design skill for the spec.
+│   ├── ui/                       # React app. See the terrarium-ui skill for the spec.
 │   │   ├── src/
 │   │   │   ├── worker/           # the ONLY engine host (ADR-0004)
 │   │   │   │   ├── sim.worker.ts # owns TrueState; emits PublishedState only
@@ -84,7 +84,9 @@ terrarium/
 │   ├── golden/                   # exact replay tests (§7.1)
 │   ├── properties/               # statistical claims across seeds (§7.2)
 │   ├── contract/                 # the UI↔engine data boundary (§1.1)
-│   └── ui/                       # pure UI modules — NOT rendered components (§7.4)
+│   ├── ui/                       # pure UI modules — NOT rendered components (§7.4)
+│   ├── visual/                   # Playwright interaction + screenshot baselines
+│   └── tools/                    # developer-tool analyzers and contracts
 │
 └── tools/
     ├── bless.ts                  # re-bless golden snapshots after intentional changes
@@ -295,6 +297,7 @@ budget identity holds, replay determinism (run twice, hash-compare).
 ### 7.3 Contract (`tests/contract/`)
 
 `published-state.test.ts` guards the data boundary described in §1.1.
+`agent-guidance.test.ts` guards ADR-0012's canonical/wrapper pairs and context budgets.
 
 ### 7.3.1 Build output (`tests/ui/dev-build-strip.test.ts`)
 
@@ -309,8 +312,8 @@ passes happily while the wall clips every figure it publishes. What is covered:
 century and rejects a face an instrument spends >2% of its life pegged against),
 `revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry).
 
-Layout itself is verified **in a browser at 1280×720** — see CLAUDE.md for the check. There is
-no Playwright suite; that was planned in v0.1 and never built.
+Layout itself is verified **in a browser at 1280×720** through the Playwright coverage in
+`tests/visual/`; see `packages/ui/AGENTS.md` and the `verify-the-wall` skill for the full check.
 
 ### 7.5 Coverage
 
@@ -376,5 +379,6 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 - `docs/investigations/` — open questions about the model, with the measurements that raised
   them. Evidence, not decisions.
 - `docs/archive/` — superseded documents, kept for provenance. Not maintained.
-- `CLAUDE.md` — the operating manual: hard rules, workflows, and the hard-won tuning lessons.
-- The `terrarium-design` skill — the spec for all `packages/ui` work.
+- `AGENTS.md` plus scoped descendants — repository and directory contracts (ADR-0012).
+- `.agents/skills/` — cross-directory task procedures shared by Claude and Codex.
+- The `terrarium-ui` skill — the spec for all `packages/ui` work.

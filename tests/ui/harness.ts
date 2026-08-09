@@ -15,7 +15,7 @@
  * the wall has (`wallPlan.ts`), when a revision is worth a stamp
  * (`series.ts`). Those are pure, and they are what these tests pin. Anything
  * that needs real layout gets verified in the browser and written down in
- * CLAUDE.md instead of faked here.
+ * packages/ui/AGENTS.md instead of faked here.
  *
  * "Fully surveyed" matters: an unfunded government publishes almost nothing,
  * so the widest honest range for every instrument comes from a country that
