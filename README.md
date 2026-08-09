@@ -25,10 +25,11 @@ replayed deterministically on load.
 | Package | What it is |
 | --- | --- |
 | `packages/engine` | The sim. Pure TS, zero dependencies, fully deterministic. `init` / `applyActions` / `step`. |
-| `packages/observation` | The fog: `observe(trueState, history, seed) → PublishedState`. The only types the UI may see. |
+| `packages/observation` | Presentation-only projection of engine-made prints into `PublishedState`, the only state types the UI may see. |
 | `packages/ui` | React instrument panel. Runs the engine in a Web Worker; renders `PublishedState` only. |
 | `packages/runner` | Headless batch CLI — the balance dashboard. |
 | `packages/fixtures` | Shared countries, scripts, golden snapshots. |
+| `packages/architecture-visualizer` | Code-derived engine atlas: pipeline order, package seams, and module relationships. |
 
 ## Commands
 
@@ -36,6 +37,7 @@ replayed deterministically on load.
 pnpm test          # unit + golden + property suites (incl. the M1 exit criteria)
 pnpm typecheck
 pnpm lint          # includes import-boundary rules and the Math.random ban
+pnpm architecture  # scan the source and open the engine atlas on localhost:4174
 pnpm batch -- --runs 1000 --ticks 120 --policy random
 pnpm bless         # re-bless golden snapshots after intentional engine changes
 pnpm diff-state    # see exactly which state variables moved before you bless
