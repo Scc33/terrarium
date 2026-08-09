@@ -18,6 +18,7 @@ export type DialPath =
   | 'spending.transfers'
   | 'spending.procurement'
   | 'spending.investment'
+  | 'spending.research'
   | 'policyRate'
   | `subsidies.${SectorId}`
 

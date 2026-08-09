@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 17. Companion to the design doc
+*How the code is actually arranged, as of schema 18. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -151,7 +151,7 @@ interface TrueState {
   meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed }
   params: CountryParams        // immutable after init
   demography: DemographyState  // the age pyramid; cohort sizes derive from it
-  tech: TechState              // global frontier + domestic attainment
+  tech: TechState              // global frontier + domestic attainment; research moves both
   finance: FinanceState        // credit, asset prices, bank capital
   cohorts: Cohort[]            // 5
   sectors: Sector[]            // 5: agri, manuf, energy, services, transport
@@ -223,7 +223,7 @@ introduced it:
 |---|------|--------------|
 | 1 | `shocks` | the crisis clock: ruptures land before anyone works |
 | 2 | `demography` | the pyramid ages; cohort sizes are derived from it |
-| 3 | `technology` | the frontier advances; attainment chases it |
+| 3 | `technology` | the frontier advances; attainment chases it; research splits by position |
 | 4 | `world` | partner cycles set export demand and world prices |
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
 | 6 | `production` | output given prices, capital, labor, I/O table |
@@ -251,6 +251,12 @@ introduced it:
 - Adding a feature = adding a step (or a field a step reads), not edits scattered across five
   files.
 - Immutability: return a new state, never mutate the input.
+
+Technology is deliberately a gap rather than a tree (ADR-0012). The historical world frontier
+advances without player input. `spending.research` becomes effective only after administrative
+delivery and skilled staffing: behind the frontier it raises the existing catch-up rate; near the
+frontier it increasingly produces smaller original gains. The player sees only the fogged
+`technology_attainment` ratio, never the exact frontier, sector attainment, or TFP.
 
 ---
 

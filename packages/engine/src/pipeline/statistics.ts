@@ -26,6 +26,7 @@ import {
   householdSavingRate,
   realConsumptionPerCapita,
   realIncomePerHead,
+  technologyAttainment,
   termsOfTrade,
 } from './derive'
 
@@ -143,6 +144,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'technology_attainment',
+    trueValue: (h, q) => h[q].technologyAttainment * 100,
+    // Productivity accounts are model-heavy international comparisons: noisy
+    // in points of frontier attainment, even when the factories are countable.
+    baseSd: 3,
+  },
+  {
     id: 'conf_consumer',
     trueValue: (h, q) => h[q].confConsumer * 100,
     baseSd: 5,
@@ -241,6 +249,7 @@ function recordOf(state: TrueState): StatRecord {
     unemployment: flows.unemployment,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
     capitalTotal: sectors.reduce((s, x) => s + x.capital, 0),
+    technologyAttainment: technologyAttainment(state),
     confConsumer: ledger.confidence.consumer,
     confBusiness: ledger.confidence.business,
     approvalIndex: approvalIndex(state),

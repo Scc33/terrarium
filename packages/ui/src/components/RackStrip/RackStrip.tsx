@@ -35,10 +35,14 @@ interface RackStripProps {
 
 function Delta({ delta, digits, className }: { delta: number | null; digits: number; className: string }) {
   if (delta === null || Math.abs(delta) < Math.pow(10, -digits) / 2) return null
+  const magnitude = Math.abs(delta).toFixed(digits)
   return (
-    <span className={`tabular-nums ${className}`}>
+    <span
+      className={`tabular-nums ${className}`}
+      title={`Quarterly change: ${delta > 0 ? '+' : '-'}${magnitude}`}
+    >
       {delta > 0 ? '▲' : '▼'}
-      {Math.abs(delta).toFixed(digits)}
+      <span className="rack-delta-magnitude">{magnitude}</span>
     </span>
   )
 }
@@ -53,7 +57,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
     : null
 
   // one row, one height, whatever is inside it
-  const frame = 'group flex w-full items-center gap-2 overflow-hidden border pr-2 text-left'
+  const frame = 'group flex w-full items-center gap-1 overflow-hidden border pr-1 text-left'
   const skin =
     maturity === 'terminal'
       ? 'border-terminal-grid bg-terminal-bg text-terminal-primary hover:border-terminal-primary/60'
@@ -72,12 +76,12 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
           ? `${names.dossier} — ${latest.value.toFixed(1)}, ${latest.lag}Q late.${names.note ? ` ${names.note}` : ''} Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
           : access.availability === 'awaiting'
             ? `${names.needs} is commissioned; its first return has not arrived. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
-            : `Not fitted. Fund ${names.needs.toLowerCase()} by raising the statistical office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)}. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
+            : `Not fitted. Fund ${names.needs} by raising the statistical office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)}. Click to ${pinned ? 'replace on' : 'put on'} the watch board.`
       }
       aria-pressed={pinned}
     >
       <span
-        className={`flex h-full w-7 shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${
+        className={`flex h-full w-5 shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${
           pinned
             ? 'border-current bg-current/10'
             : 'border-current/20 opacity-35 group-hover:opacity-70'
@@ -86,10 +90,10 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
       >
         {pinned ? String(slot ?? 0).padStart(2, '0') : '+'}
       </span>
-      <span className="min-w-0 flex-1 truncate font-mono text-[10px] tracking-[0.06em]">{names.short}</span>
+      <span className="min-w-0 flex-1 truncate font-mono text-[10px]">{names.short}</span>
 
       {latest ? (
-        <span className="flex shrink-0 items-baseline gap-1.5 font-mono text-[10px]">
+        <span className="flex shrink-0 items-baseline gap-1 font-mono text-[10px]">
           {stamped && (
             <span
               className={maturity === 'terminal' ? 'text-terminal-alert' : 'text-dossier-warn'}
@@ -105,8 +109,8 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
       ) : (
         <span className="max-w-[52%] shrink-0 truncate font-mono text-[8px] tracking-[0.08em] opacity-75">
           {access.availability === 'awaiting'
-            ? 'RETURN PENDING'
-            : `${names.needs} · ${Math.round(access.fundedAt * 100)}`}
+            ? 'PENDING'
+            : `NEEDS ${Math.round(access.fundedAt * 100)}`}
         </span>
       )}
     </button>

@@ -14,6 +14,7 @@ import {
   SOCIETY_CHECK,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
+  TECH_EXPOSURE,
   taxEfficiency,
 } from '../constants'
 import { clamp } from '../math'
@@ -31,6 +32,30 @@ import {
 
 export function potentialOutput(s: Sector): number {
   return s.tfp * Math.pow(Math.max(s.capital, 1e-9), CAPITAL_ELASTICITY) * Math.pow(Math.max(s.employment, 1e-9), LABOR_ELASTICITY)
+}
+
+/** How much of the currently reachable world technique is operating at home.
+ * Each sector is compared with its own exposure-adjusted frontier, then
+ * weighted by current output. Unlike a 1946-base productivity index this can
+ * fall while domestic technique still rises: that means the world frontier
+ * is pulling away, which is precisely the development fact the player needs
+ * the technology instrument to reveal. */
+export function technologyAttainment(state: TrueState): number {
+  let weighted = 0
+  let weightSum = 0
+  for (const sector of state.sectors) {
+    const target = Math.pow(state.tech.frontier, TECH_EXPOSURE[sector.id])
+    const weight = Math.max(0, sector.output)
+    weighted += weight * (state.tech.attained[sector.id] / Math.max(target, 1e-9))
+    weightSum += weight
+  }
+  if (weightSum > 1e-9) return weighted / weightSum
+  return (
+    SECTOR_IDS.reduce((sum, id) => {
+      const target = Math.pow(state.tech.frontier, TECH_EXPOSURE[id])
+      return sum + state.tech.attained[id] / Math.max(target, 1e-9)
+    }, 0) / SECTOR_IDS.length
+  )
 }
 
 /** Labor needed to produce q given current tfp and capital. */

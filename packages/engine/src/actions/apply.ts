@@ -86,6 +86,7 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   'spending.transfers': { financiers: 0.5, unions: -0.6, landowners: 0.2, industrialists: 0.2 },
   'spending.procurement': { industrialists: -0.4, financiers: 0.4 },
   'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
+  'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
   policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
@@ -182,7 +183,7 @@ const rate = (key: 'income' | 'corporate' | 'tariff' | 'fuel', max: number): Dia
   scale: () => 1,
 })
 
-const spend = (key: 'transfers' | 'procurement' | 'investment'): DialSpec => ({
+const spend = (key: 'transfers' | 'procurement' | 'investment' | 'research'): DialSpec => ({
   get: (s) => s.gov.dials.spending[key],
   set: (s, v) => ({
     ...s,
@@ -219,6 +220,7 @@ const DIALS: Record<DialPath, DialSpec> = {
   'spending.transfers': spend('transfers'),
   'spending.procurement': spend('procurement'),
   'spending.investment': spend('investment'),
+  'spending.research': spend('research'),
   policyRate: {
     get: (s) => s.gov.dials.policyRate,
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, policyRate: v } } }),
