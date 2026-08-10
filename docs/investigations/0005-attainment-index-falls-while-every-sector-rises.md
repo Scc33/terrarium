@@ -1,4 +1,4 @@
-# 0003 — `technology_attainment` falls while every sector's technique rises
+# 0005 — `technology_attainment` falls while every sector's technique rises
 
 **Status:** Open
 **Raised by:** shipping the `productivity` indicator and reworking the research model
