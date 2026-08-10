@@ -14,6 +14,75 @@ test('component gallery', async ({ page }) => {
   await expect(page).toHaveScreenshot('component-gallery.png', { fullPage: true })
 })
 
+/**
+ * The screenshot is not enough on its own, and it is worth knowing why.
+ *
+ * `maxDiffPixelRatio: 0.01` over a full-page gallery render tolerates ~28k
+ * differing pixels. A board slot is 213×218, and the name/readout bands that
+ * shear are ~213×26 each — so the terminal ticker can drop every figure it
+ * publishes off the right-hand edge and still compare EQUAL to a clean
+ * baseline. Measured, not assumed: the suite passed a fixed render against a
+ * sheared one. That is not a tolerance to tighten, either — the suite runs on
+ * macOS locally and Linux in CI, and the ratio is what absorbs the font
+ * rendering.
+ *
+ * So the shear gets asserted directly instead, as the invariant it actually
+ * is: nothing inside a wall tile may paint past the tile's own edges. This is
+ * the `verify-the-wall` overflow probe, run by the machine rather than by
+ * hand — and unlike a pixel diff it is platform-independent and names the
+ * element that broke.
+ */
+interface ShearReport {
+  tile: string
+  element: string
+  text: string
+  overRight: number
+  overBottom: number
+}
+
+/** Passed to `page.evaluate` as source text, like the focus probe below: this
+ * project has no DOM lib, so a callback would not typecheck. */
+const SHEAR_PROBE = `(() => {
+  const bad = []
+  document.querySelectorAll('figure > div').forEach((slot) => {
+    const tile = slot.firstElementChild
+    if (!tile) return
+    const box = tile.getBoundingClientRect()
+    // only the fixed-size instrument slots; the wide chart figures flex
+    if (Math.round(box.width) > 400) return
+    tile.querySelectorAll('*').forEach((el) => {
+      const r = el.getBoundingClientRect()
+      if (r.width === 0 && r.height === 0) return
+      const overRight = r.right - box.right
+      const overBottom = r.bottom - box.bottom
+      if (overRight > 0.5 || overBottom > 0.5) {
+        bad.push({
+          tile: slot.parentElement?.querySelector('figcaption')?.textContent?.trim() ?? '?',
+          element: el.tagName,
+          text: (el.textContent ?? '').trim().slice(0, 40),
+          overRight: Math.round(overRight),
+          overBottom: Math.round(overBottom),
+        })
+      }
+    })
+  })
+  return bad
+})()`
+
+test('no fitted instrument shears inside its board slot', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const overflowing = (await page.evaluate(SHEAR_PROBE)) as ShearReport[]
+
+  // guard against the assertion passing vacuously: the gallery must actually
+  // be rendering fitted instruments for the probe to have looked at anything
+  const slots = await page.locator('figure > div').count()
+  expect(slots).toBeGreaterThan(0)
+  expect(overflowing).toEqual([])
+})
+
 test('dashboard with empty instruments', async ({ page }) => {
   await openGame(page)
   await expect(page).toHaveScreenshot('dashboard-empty.png')
