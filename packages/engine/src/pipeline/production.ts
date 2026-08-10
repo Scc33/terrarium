@@ -30,7 +30,13 @@ import {
 import { clamp, leontiefGross, sectorRecord } from '../math'
 import { SECTOR_IDS, type CohortId } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { cohortCpi, effectiveBlocPower, effectivePrice, potentialOutput } from './derive'
+import {
+  cohortCpi,
+  effectiveBlocPower,
+  effectivePrice,
+  potentialOutput,
+  privateRealRate,
+} from './derive'
 
 export const production: PipelineStep = {
   name: 'production',
@@ -79,7 +85,7 @@ export const production: PipelineStep = {
     })
 
     // --- investment demand (private responds to the real rate) ---
-    const realRate = gov.dials.policyRate - state.ledger.inflationExpectations
+    const realRate = privateRealRate(state)
     const avgUtil =
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)

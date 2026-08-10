@@ -10,9 +10,7 @@ import {
   CAPACITY_DECAY_BY_ID,
   DEBT_CEILING,
   FIN_FAVOR_DEPTH,
-  FIN_FAVOR_PREMIUM,
   LAND_FAVOR_TAX,
-  RISK_PREMIUM_SLOPE,
   taxEfficiency,
 } from '../constants'
 import { clamp, sumRecord } from '../math'
@@ -24,7 +22,7 @@ import {
   type RevenueSplit,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { effectiveBlocPower } from './derive'
+import { effectiveBlocPower, financierAnger, sovereignRiskPremium } from './derive'
 
 export const fiscal: PipelineStep = {
   name: 'fiscal',
@@ -36,9 +34,7 @@ export const fiscal: PipelineStep = {
     const landAnger =
       Math.max(0, -state.institutions.blocs.landowners.favor) *
       effectiveBlocPower(state, 'landowners')
-    const moneyAnger =
-      Math.max(0, -state.institutions.blocs.financiers.favor) *
-      effectiveBlocPower(state, 'financiers')
+    const moneyAnger = financierAnger(state)
     const eff = taxEfficiency(gov.capacity.tax) * (1 - LAND_FAVOR_TAX * landAnger)
     const tariffEff = 0.5 + 0.5 * gov.capacity.tax // customs posts are easy to man
     const fuelEff = 0.7 + 0.3 * gov.capacity.tax // excise at the depot, likewise
@@ -64,8 +60,7 @@ export const fiscal: PipelineStep = {
     const debtToGdp = gov.debt / Math.max(4 * flows.nominalGdp, 1e-9)
     // a capital strike is not a scripted penalty: it is a yield, and it shows
     // up in the itemised books as a fatter interest line
-    const riskPremium =
-      Math.max(0, debtToGdp - 0.5) * RISK_PREMIUM_SLOPE + FIN_FAVOR_PREMIUM * moneyAnger
+    const riskPremium = sovereignRiskPremium(state)
     const outlaysByProgramme: OutlaySplit = {
       transfers: gov.dials.spending.transfers,
       procurement: gov.dials.spending.procurement,

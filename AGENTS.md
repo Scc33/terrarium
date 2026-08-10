@@ -164,6 +164,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   — only a policy rate cut or a genuine profit surge inflates a bubble. The crisis a player
   gets is the one their own cheap money earned. The bank-capital cap is deliberately SLACK in
   booms and bites only after a crisis writes capital down — that IS the forced deleveraging.
+- **Crowding out is a funding price, not a forced outcome sign.** The private rate reads last
+  quarter's bond issuance (deficit minus printing), softened by openness, plus part of the
+  sovereign premium. Charging the gross deficit double-counts printed money; charging only the
+  debt stock misses moderate auctions. A spending boom can still lift investment through demand
+  and inflation, so calibrate this channel with a demand-neutral tax deficit and an isolated debt
+  shock as well as the headline spending cases.
 - **Political responses are reference-dependent, and it is load-bearing.** Cohort approval
   judges income against an EMA of itself; bloc favour judges policy against the 1946 settlement
   (`BLOC_FAVOR_BASE`); unrest judges hardship against experienced conditions. Each was a *bug
