@@ -61,6 +61,7 @@ A passing golden diff is necessary, not sufficient — 40 quarters hides century
 ```bash
 pnpm batch -- --runs 1000 --ticks 120 --policy random
 pnpm batch -- --runs 1000 --ticks 400 --policy passive
+pnpm stability -- --runs 120 --policy all --country all
 ```
 
 **Healthy passive century:** growth ≈ 2.5%/yr · inflation ≈ 0 · unemployment ≈ 12.4% century
@@ -74,6 +75,15 @@ past 3%. Do not "fix" it.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
+
+The stability harness is the future-facing balance check. It compares fixed eras through
+2050, reports the inflation and real-growth tails that century means conceal, and conditions
+the reversal on drought, fuel, and banking-crisis onsets. Its balance sample stops on the
+quarter a government is deposed: `runOne` deliberately keeps simulating afterward to expose
+raw engine failures, but those quarters are not player-reachable. Read both the reachable/raw
+failure count and the era tails. `tests/properties/future-stability.test.ts` runs a calibrated
+all-country passive/developmental subset in every ordinary test and CI run; use the full CLI
+sweep whenever engine behavior moves.
 
 ## The seam check
 
