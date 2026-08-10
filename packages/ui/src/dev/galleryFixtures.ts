@@ -5,11 +5,15 @@
  * until now it pinned no FITTED instrument: it rendered `BlankPlate` and a
  * hand-written phosphor swatch, and every other visual test opens a 1946
  * dashboard where nothing has been surveyed yet. So no screenshot in the suite
- * had ever contained a working gauge or ticker, and a horizontal shear in the
- * terminal ticker's header shipped and survived every visual run — the figures
- * were pushed off the right edge of a 213 px board slot and clipped by
- * `WallTile`'s `overflow-hidden`, which is exactly the fourth failure mode that
- * component's module comment warns about. It was found by hand in a browser.
+ * had ever contained a working gauge or ticker — which is how the terminal
+ * ticker sheared its own readout off the right edge of a 213 px board slot,
+ * shipped, and survived every visual run until somebody found it by hand in a
+ * browser (see `TerminalTicker`'s module comment for the fix).
+ *
+ * These fixtures are the standing guard against the next one. They are the
+ * reason `tests/visual/ui.spec.ts` can assert that nothing inside a wall tile
+ * paints past the tile's own edges: that probe needs a fitted instrument at a
+ * real slot width to have anything to look at.
  *
  * WHAT THESE NUMBERS ARE. Values, revisions and GDP levels are lifted from real
  * engine runs rather than invented, so the tiles show figures the wall can
@@ -17,10 +21,10 @@
  *
  *   - `gdp_growth` comes from Costona at 2040–2049 — the one curated country
  *     with a big enough population to carry FOUR-DIGIT GDP levels, which is
- *     what makes its `R…/N…` string the widest thing the header ever holds.
+ *     what makes its `R…/N…` string the widest thing a tile ever prints.
  *   - `household_saving_rate` comes from a fully-surveyed procedural century.
- *     It is the only indicator left carrying a `complement` (`SPEND …`), the
- *     extra right-hand header segment that used to belong to the withdrawn
+ *     It is the only indicator left carrying a `complement` (`SPEND …`), which
+ *     occupies the same band as the levels and used to belong to the withdrawn
  *     `government_demand_share` (schema 16, see docs/metrics-changelog.md).
  *
  * The one synthesis: error bands are a WELL-SURVEYED office's, not the office
@@ -28,7 +32,7 @@
  * statistical capacity, and Costona — poor, large, hard — never sustains that,
  * so in a single natural run four-digit levels and a `±` band never co-occur.
  * They are independent per-print fields, and the gallery's job is to pin the
- * WIDEST header the component can emit, not the modal one.
+ * WIDEST tile the component can emit, not the modal one.
  *
  * Everything here is a literal. No RNG, no clock: the screenshot is stable.
  */
@@ -211,14 +215,15 @@ const SAVING_RATE_QUARTERS: readonly FixtureQuarter[] = [
 /**
  * The two indicators worth putting in a board slot, and why each is here.
  *
- * `gdp_growth` is the only spec with `withLevels`, so it is the only header
- * carrying `R…/N…` at all — and with the longest `terminal` mnemonic in
- * `labels.ts` (`REAL.GDP.GRW %/YR`) on the other side of the same row, it is
- * the widest header the wall can print.
+ * `gdp_growth` is the only spec with `withLevels`, so it is the only tile
+ * carrying `R…/N…` at all — and it holds one of the longest `terminal`
+ * mnemonics in `labels.ts` (`REAL.GDP.GRW %/YR`) in the band above it, so it
+ * loads both of a tile's two truncating halves at once.
  *
  * `household_saving_rate` is the widest of the rest: the only indicator still
- * carrying a `complement`, which hangs `SPEND …` off the right of the figure
- * cluster on top of the value, the band and the quarter delta.
+ * carrying a `complement`, which puts `SPEND …` in the same truncating half
+ * that `gdp_growth` fills with its levels — the other way that half gets
+ * loaded, and the only way to exercise it.
  */
 export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: IndicatorSeries }[] = [
   {

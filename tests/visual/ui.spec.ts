@@ -17,12 +17,14 @@ test('component gallery', async ({ page }) => {
 /**
  * The screenshot is not enough on its own, and it is worth knowing why.
  *
- * `maxDiffPixelRatio: 0.01` over a 1280×2177 full-page render tolerates ~28k
- * differing pixels. A board slot is 213×218, and the header that shears is a
- * 213×26 band inside it — so the terminal ticker can drop every figure it
+ * `maxDiffPixelRatio: 0.01` over a full-page gallery render tolerates ~28k
+ * differing pixels. A board slot is 213×218, and the name/readout bands that
+ * shear are ~213×26 each — so the terminal ticker can drop every figure it
  * publishes off the right-hand edge and still compare EQUAL to a clean
- * baseline. That is not a tolerance to tighten: the suite runs on macOS
- * locally and Linux in CI, and the ratio is what absorbs the font rendering.
+ * baseline. Measured, not assumed: the suite passed a fixed render against a
+ * sheared one. That is not a tolerance to tighten, either — the suite runs on
+ * macOS locally and Linux in CI, and the ratio is what absorbs the font
+ * rendering.
  *
  * So the shear gets asserted directly instead, as the invariant it actually
  * is: nothing inside a wall tile may paint past the tile's own edges. This is

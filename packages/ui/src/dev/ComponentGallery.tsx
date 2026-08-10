@@ -117,9 +117,10 @@ export function ComponentGallery() {
           <Panel tone="felt" title="FITTED INSTRUMENTS · ONE BOARD SLOT EACH" bodyClassName="space-y-3 p-3">
             <p className="max-w-[78ch] font-mono text-[9px] leading-relaxed text-dossier-paper/60">
               Each tile is sized to a single watch-board slot at the 1280×720 reference viewport, not to
-              the page. Rendering these full width would prove nothing — the terminal header shears at
-              this width or not at all, and `WallTile` clips the evidence. Both eras of the same series
-              sit together, because a graduating instrument must stay the same chart.
+              the page. Rendering these full width would prove nothing — a tile shears at this width or
+              not at all, and `WallTile` clips the evidence rather than spilling it somewhere visible.
+              Both eras of the same series sit together, because a graduating instrument must stay the
+              same chart.
             </p>
             <div className="flex flex-wrap gap-3">
               {GALLERY_INSTRUMENTS.map(({ indicator, series }) => (
