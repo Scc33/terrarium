@@ -35,7 +35,7 @@
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { gaugeDomain } from '../../domains'
-import { complementReading, NAMES } from '../labels'
+import { complementReading, NAMES, readingDigits } from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from '../series'
 import { WallTile } from '../WallTile/WallTile'
 
@@ -66,7 +66,14 @@ export function TerminalTicker({
   const points = shapeSeries(series, fullHistory ? Number.MAX_SAFE_INTEGER : 40, now)
   if (points.length < 2) return null
   const latest = points[points.length - 1]
-  const complement = complementReading(indicator, latest.value, 2)
+  // The phosphor register is the SAME quantity better measured (see the module
+  // note), so it keeps exactly one digit more than the brass one rather than a
+  // fixed two: a rate reads 6.21 against the gauge's 6.2, and an index past a
+  // thousand reads 992.7 against the gauge's 993 instead of claiming 992.70 on
+  // a confessed ±12.5 band. Graduating an instrument must not restate its
+  // precision — that is a number the player has to relearn.
+  const digits = readingDigits(latest.value) + 1
+  const complement = complementReading(indicator, latest.value, digits)
 
   const x0 = points[0].forQtr
   const x1 = Math.max(latest.forQtr, x0 + 4)
@@ -147,15 +154,15 @@ export function TerminalTicker({
         <span className="truncate opacity-60">{complement}</span>
       )}
       <span className="whitespace-nowrap">
-        {latest.value.toFixed(2)}
+        {latest.value.toFixed(digits)}
         {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
         {(() => {
           const d = quarterDelta(points)
-          if (d === null || Math.abs(d) < 0.005) return null
+          if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
           return (
             <span className="ml-1.5 opacity-80">
               {d > 0 ? '▲' : '▼'}
-              {Math.abs(d).toFixed(2)}
+              {Math.abs(d).toFixed(digits)}
             </span>
           )
         })()}
@@ -242,12 +249,12 @@ export function TerminalTicker({
           <div className="pointer-events-none absolute right-1 top-1 border border-terminal-grid bg-terminal-bg px-2 py-1 font-mono text-[9px] leading-relaxed text-terminal-primary">
             <div>{qtrLabel(hover.forQtr)}</div>
             <div>
-              {hover.value.toFixed(2)}
+              {hover.value.toFixed(digits)}
               {hover.errorBand > 0 ? ` ±${hover.errorBand.toFixed(1)}` : ''}
             </div>
             {hover.visiblyRevised ? (
               <div className="text-terminal-alert">
-                <s>{hover.firstPrint.toFixed(2)}</s> REVISED
+                <s>{hover.firstPrint.toFixed(digits)}</s> REVISED
               </div>
             ) : (
               <div className="opacity-60">{hover.revision >= 2 ? 'FINAL' : `PRINT ${hover.revision + 1}`}</div>
