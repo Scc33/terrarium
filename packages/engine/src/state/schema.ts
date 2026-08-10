@@ -122,6 +122,13 @@ export const INDICATOR_IDS = [
   'payrolls',
   'capital_stock',
   'technology_attainment',
+  // What the technology instrument beside it cannot say. `technology_attainment`
+  // is a RATIO to a frontier you can push, so a country that funds research
+  // hard raises its own denominator and the needle goes quiet while the
+  // economy underneath it transforms — measured, the dial moves ten points in
+  // the first decade and four points in the eighty years after. Output per
+  // worker is the level that kept moving.
+  'productivity',
   'conf_consumer',
   'conf_business',
   'approval',
@@ -330,6 +337,12 @@ export interface TechState {
   /** economy-wide attained tfp growth last quarter — what wage bargaining
    * passes through near full employment */
   tfpGrowthQ: number
+  /** the research base: accumulated appropriations that are still delivering,
+   * as a share of quarterly GDP. Laboratories and trained people outlive the
+   * cheque that bought them, so this decays rather than resets — a programme
+   * coasts through a bad budget year, and strangling one takes a while to
+   * show up in anything the player can see. */
+  researchStock: number
 }
 
 // ---------- the financial sector (§12 M5: fragility) ----------
@@ -483,6 +496,18 @@ export interface StatRecord {
   inflationQ: number
   unemployment: Ratio
   payrolls: number // millions, ex-agri
+  /** annualized real output per employed person, economy-wide and INCLUDING
+   * agriculture. The published indicator indexes it against its own 1946
+   * value; the level is kept here because it is the honest thing to file.
+   *
+   * Economy-wide is the deliberate choice, and it is the opposite of the
+   * `payrolls` convention beside it. The subsistence valve keeps the
+   * impoverished nominally employed in the fields, so an ex-agri productivity
+   * series would quietly delete the dual-economy drag — the exact fact this
+   * instrument exists to show. A country that industrializes moves people from
+   * a sector with low output per head to one with high output per head, and
+   * this number is supposed to notice. */
+  labourProductivity: number
   capitalTotal: Money
   /** output-weighted domestic technique relative to the sector-adjusted world frontier */
   technologyAttainment: number
@@ -639,7 +664,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 18 // v18: research policy + published technology attainment
+export const SCHEMA_VERSION = 19 // v19: research as a stock, lumpy breakthroughs, published productivity
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

@@ -34,7 +34,16 @@ export interface TrajectoryPoint {
   approval: number[]
   politicalCapital: number
   inPower: boolean
+  /** First releases arriving this quarter, in the units printed on the wall.
+   * Null means the office did not publish that indicator this quarter. */
+  publishedInflation: number | null
+  publishedRealGrowth: number | null
+  /** Runner-only event tags. They make shock-conditioned balance analysis
+   * independent of player-facing prose and never enter engine state. */
+  events: MacroEvent[]
 }
+
+export type MacroEvent = 'drought' | 'fuel' | 'banking_crisis'
 
 export interface RunResult {
   seed: string
@@ -65,9 +74,34 @@ export interface RunOptions {
   lenient?: boolean
 }
 
-function point(s: TrueState): TrajectoryPoint {
+function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
+  const events: MacroEvent[] = []
+  if (
+    before.external.shocks.droughtQtrsLeft === 0 &&
+    after.external.shocks.droughtQtrsLeft > 0
+  ) {
+    events.push('drought')
+  }
+  if (before.finance.crisisQtrsLeft === 0 && after.finance.crisisQtrsLeft > 0) {
+    events.push('banking_crisis')
+  }
+  // Energy ruptures do not leave a dedicated state flag: the world step
+  // immediately begins reverting the jumped price. The onset wire item is
+  // therefore the durable runner-visible event marker.
+  const newWire = after.stats.news.slice(before.stats.news.length)
+  if (newWire.some((item) => item.text === 'Crisis abroad: world fuel markets are in tumult.')) {
+    events.push('fuel')
+  }
+  return events
+}
+
+function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
   const prices = {} as Record<SectorId, number>
   for (const sid of SECTOR_IDS) prices[sid] = s.market.prices[sid]
+  const firstPrint = (id: 'inflation' | 'gdp_growth'): number | null =>
+    s.stats.series[id]
+      ?.find((print) => print.publishedAt === s.meta.tick && print.revision === 0)
+      ?.value ?? null
   return {
     tick: s.meta.tick,
     realGdp: s.flows.realGdp,
@@ -80,6 +114,9 @@ function point(s: TrueState): TrajectoryPoint {
     approval: s.cohorts.map((c) => c.approval),
     politicalCapital: s.politics.politicalCapital,
     inPower: s.politics.inPower,
+    publishedInflation: firstPrint('inflation'),
+    publishedRealGrowth: firstPrint('gdp_growth'),
+    events,
   }
 }
 
@@ -108,8 +145,9 @@ export function runOne(opts: RunOptions): RunResult {
         else throw e
       }
     }
+    const before = s
     s = step(s)
-    const p = point(s)
+    const p = point(s, eventsBetween(before, s))
     trajectory.push(p)
     for (const v of [p.realGdp, p.nominalGdp, p.inflationQ, p.unemployment, ...Object.values(p.prices)]) {
       if (!Number.isFinite(v)) nanCount++

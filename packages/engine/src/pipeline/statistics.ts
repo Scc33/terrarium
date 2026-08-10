@@ -151,6 +151,28 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 3,
   },
   {
+    // Output per worker, against this country's own 1946. The companion to
+    // `technology_attainment`, and the one that carries the LEVEL: attainment
+    // is a ratio to a moving frontier and saturates near 90 for anybody
+    // running a decent research programme, which makes it silent about the
+    // eighty years in which the economy tripled its output per head.
+    //
+    // Deliberately labour productivity and not TFP. A statistical office can
+    // count output and count workers; TFP is a RESIDUAL from an assumed
+    // production function, which is a thing this engine knows and an office
+    // does not. Capital deepening is inside this number on purpose — the
+    // player who built the capital stock did that too.
+    id: 'productivity',
+    trueValue: (h, q) =>
+      h[0].labourProductivity > 1e-12
+        ? (100 * h[q].labourProductivity) / h[0].labourProductivity
+        : 100,
+    // Two independently surveyed aggregates divided by each other, so the
+    // error is roughly the sum of the accounts' and the labour survey's.
+    baseSd: 0.06,
+    relativeSd: true,
+  },
+  {
     id: 'conf_consumer',
     trueValue: (h, q) => h[q].confConsumer * 100,
     baseSd: 5,
@@ -248,6 +270,10 @@ function recordOf(state: TrueState): StatRecord {
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
+    labourProductivity: (() => {
+      const employed = sectors.reduce((s, x) => s + x.employment, 0)
+      return employed > 1e-9 ? (4 * flows.realGdp) / employed : 0
+    })(),
     capitalTotal: sectors.reduce((s, x) => s + x.capital, 0),
     technologyAttainment: technologyAttainment(state),
     confConsumer: ledger.confidence.consumer,

@@ -225,6 +225,61 @@ const SAVING_RATE_QUARTERS: readonly FixtureQuarter[] = [
  * that `gdp_growth` fills with its levels — the other way that half gets
  * loaded, and the only way to exercise it.
  */
+/**
+ * Veltravia, fully surveyed, running research — 2040 Q1 – 2049 Q4. This is the
+ * WIDEST FIGURE the wall can print: an index against 1946 that has passed a
+ * thousand, carrying a ±12.5 band beside it. `gdp_growth` above holds the
+ * longest mnemonic and the levels; this one holds the longest number, which is
+ * the other way a header runs out of room.
+ *
+ * That matters because `GALLERY_INSTRUMENTS` is an ARRAY, not a total `Record`
+ * over `IndicatorId` — the same trap `INDICATOR_SPECS` sets one layer down. A
+ * new indicator is not covered by the shear probe until somebody puts it here,
+ * and nothing fails if nobody does.
+ */
+const PRODUCTIVITY_QUARTERS: readonly FixtureQuarter[] = [
+  [782.2, 821.5],
+  [796.1, 819.2],
+  [826.0, 811.2],
+  [803.1, 827.9],
+  [810.6, 839.8],
+  [840.8, 847.0],
+  [840.9, 861.8],
+  [896.7, 885.3],
+  [878.4, 895.4],
+  [939.4, 913.9],
+  [882.2, 939.2],
+  [911.8, 955.1],
+  [944.9, 960.5],
+  [984.4, 969.1],
+  [936.7, 976.4],
+  [984.6, 973.4],
+  [969.3, 990.7],
+  [1011.6, 1002.2],
+  [1000.4, 1002.4],
+  [1016.8, 1005.6],
+  [1005.6, 994.9],
+  [974.5, 1001.3],
+  [1008.5, 998.0],
+  [969.0, 986.4],
+  [948.3, 967.7],
+  [917.4, 956.6],
+  [1017.1, 936.9],
+  [913.1, 928.5],
+  [958.3, 910.4],
+  [928.2, 927.6],
+  [938.8, 924.3],
+  [909.1, 923.9],
+  [962.7, 931.6],
+  [950.4, 931.5],
+  [939.5, 931.8],
+  [958.8, 942.7],
+  [970.8, 944.0],
+  [1001.3, 964.7],
+  [1011.5, 1011.5],
+  [992.7, 992.7],
+]
+
 export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: IndicatorSeries }[] = [
   {
     indicator: 'gdp_growth',
@@ -238,6 +293,16 @@ export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: Ind
       '% disposable',
       SAVING_RATE_QUARTERS,
       2.3,
+    ),
+  },
+  {
+    indicator: 'productivity',
+    series: buildSeries(
+      'productivity',
+      'Output per worker',
+      '1946=100',
+      PRODUCTIVITY_QUARTERS,
+      12.5,
     ),
   },
 ]

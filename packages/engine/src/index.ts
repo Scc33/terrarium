@@ -203,6 +203,12 @@ export type {
   WorldPartner,
   WorldState,
 } from './state/schema'
-export { absorptiveCapacity, frontierGrowthAt, researchAllocation } from './pipeline/technology'
+export {
+  absorptiveCapacity,
+  breakthroughHazard,
+  frontierGrowthAt,
+  researchAllocation,
+  researchIntensity,
+} from './pipeline/technology'
 export type { ResearchAllocation } from './pipeline/technology'
 export { termsOfTrade } from './pipeline/derive'

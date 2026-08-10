@@ -4,8 +4,11 @@
  * ATTAINED chases each sector's slice of it at a speed set by absorptive
  * capacity — schools first, openness second. Poor countries close the gap
  * fast when they can absorb at all (catch-up growth is real); countries
- * that never build schools watch the gap widen for a century. Deterministic:
- * the frontier is history, not dice.
+ * that never build schools watch the gap widen for a century.
+ *
+ * The frontier's HISTORICAL schedule is deterministic — it is history, not
+ * dice. Your own contribution to it is not: original research is a hazard
+ * process, and the lump lands when it lands (see `breakthroughHazard`).
  */
 
 import {
@@ -13,6 +16,8 @@ import {
   ABSORB_EDU_GAIN,
   ABSORB_OPENNESS_WEIGHT,
   adminEffectiveness,
+  BREAKTHROUGH_HAZARD_MAX,
+  BREAKTHROUGH_SIZE,
   CATCHUP_Q,
   FRONTIER_ERAS,
   FRONTIER_OWN_DRIFT_Q,
@@ -21,12 +26,13 @@ import {
   RESEARCH_FRONTIER_GAIN_Q,
   RESEARCH_FRONTIER_START,
   RESEARCH_SKILL_FLOOR,
+  RESEARCH_STOCK_DECAY_Q,
   TECH_EXPOSURE,
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
-import type { TrueState } from '../state/schema'
+import { SECTOR_IDS, type NewsItem, type SectorId, type TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { creativeDestruction, technologyAttainment } from './derive'
+import { creativeDestruction } from './derive'
 
 /** annual frontier growth in force at a given quarter */
 export function frontierGrowthAt(tick: number): number {
@@ -59,21 +65,42 @@ export function absorptiveCapacity(state: TrueState): number {
   )
 }
 
+/** The flow-equivalent of a research stock: what a programme this size would
+ * have been appropriating, had it been appropriating steadily. Everything
+ * downstream reads THIS rather than the quarter's cheque, which is the whole
+ * point of holding a stock — see `RESEARCH_STOCK_DECAY_Q`. */
+export const researchIntensity = (stock: number): number => stock * RESEARCH_STOCK_DECAY_Q
+
 export interface ResearchAllocation {
   /** appropriated research money that survives administration and staffing,
-   * as a share of quarterly GDP */
+   * as a share of quarterly GDP. This is the CHEQUE — it enters the stock and
+   * only reaches the laboratories through it. */
   effectiveShare: number
-  /** share devoted to adapting known techniques */
+  /** the research base actually working this quarter, in the same units:
+   * the stock's flow-equivalent. Equals `effectiveShare` in a steady state. */
+  intensity: number
+  /** share of effort devoted to adapting known techniques, per sector */
+  catchupBySector: Record<SectorId, number>
+  /** share devoted to original work at the frontier, per sector */
+  frontierBySector: Record<SectorId, number>
+  /** output-weighted aggregates of the two above — what the country's research
+   * programme looks like from the ministry, one number each */
   catchupShare: number
-  /** share devoted to original work at the frontier */
   frontierShare: number
 }
 
-/** The same research programme changes character as the gap closes. A country
+/**
+ * The same research programme changes character as the gap closes. A country
  * behind the frontier funds adaptation; a country operating near it funds
  * original work. This split is derived from position, never chosen from a tech
  * tree, and the appropriated money still needs administrators and skilled
- * researchers before it becomes useful technique. */
+ * researchers before it becomes useful technique.
+ *
+ * Position is read PER SECTOR. An economy is not uniformly behind: the same
+ * budget buys imitation in the fields and invention in the machine shops, and
+ * a single blended split could not say that. The aggregates are output-weighted
+ * so the ministry-level number still means what it used to.
+ */
 export function researchAllocation(state: TrueState): ResearchAllocation {
   const appropriatedShare =
     state.gov.dials.spending.research / Math.max(state.flows.nominalGdp, 1e-9)
@@ -85,27 +112,106 @@ export function researchAllocation(state: TrueState): ResearchAllocation {
     0,
     RESEARCH_EFFECTIVE_SHARE_MAX,
   )
-  const position = clamp(technologyAttainment(state), 0, 1)
-  const frontierShare = clamp(
-    (position - RESEARCH_FRONTIER_START) / (1 - RESEARCH_FRONTIER_START),
-    0,
-    1,
-  )
-  return { effectiveShare, catchupShare: 1 - frontierShare, frontierShare }
+
+  const frontierBySector = sectorRecord((sid) => {
+    const target = Math.pow(state.tech.frontier, TECH_EXPOSURE[sid])
+    const position = clamp(state.tech.attained[sid] / Math.max(target, 1e-9), 0, 1)
+    return clamp((position - RESEARCH_FRONTIER_START) / (1 - RESEARCH_FRONTIER_START), 0, 1)
+  })
+  const catchupBySector = sectorRecord((sid) => 1 - frontierBySector[sid])
+
+  const frontierShare = outputWeighted(state, (sid) => frontierBySector[sid])
+  return {
+    effectiveShare,
+    intensity: researchIntensity(state.tech.researchStock),
+    catchupBySector,
+    frontierBySector,
+    catchupShare: 1 - frontierShare,
+    frontierShare,
+  }
 }
+
+/** Weight a per-sector quantity by current output. Falls back to an unweighted
+ * mean in the degenerate quarter where nothing was produced at all. */
+function outputWeighted(state: TrueState, f: (sid: SectorId) => number): number {
+  let weighted = 0
+  let weightSum = 0
+  for (const sector of state.sectors) {
+    const weight = Math.max(0, sector.output)
+    weighted += weight * f(sector.id)
+    weightSum += weight
+  }
+  if (weightSum > 1e-9) return weighted / weightSum
+  return SECTOR_IDS.reduce((sum, sid) => sum + f(sid), 0) / SECTOR_IDS.length
+}
+
+/**
+ * The chance that this quarter's original research actually lands something,
+ * and with it the whole reason the frontier tree is not a second catch-up tree.
+ *
+ * Effort is output-weighted across sectors and weighted AGAIN by
+ * `TECH_EXPOSURE`: a country at best practice in its machine shops pushes the
+ * world's technique outward, one at best practice in its barbershops does not,
+ * and the exposure table already says which is which. Then the whole thing is
+ * gated on `creativeDestruction` — the incumbents who veto absorbing somebody
+ * else's invention veto financing your own at least as hard (§4.3). That gate
+ * is the fix for a real inconsistency: before it, a captured economy could not
+ * absorb what others had invented but could still buy original innovation with
+ * money, which is backwards on this model's own logic.
+ */
+export function breakthroughHazard(
+  state: TrueState,
+  research: ResearchAllocation,
+  intensity: number,
+): number {
+  const effort =
+    intensity *
+    creativeDestruction(state) *
+    outputWeighted(state, (sid) => research.frontierBySector[sid] * TECH_EXPOSURE[sid])
+  return clamp((RESEARCH_FRONTIER_GAIN_Q * effort) / BREAKTHROUGH_SIZE, 0, BREAKTHROUGH_HAZARD_MAX)
+}
+
+const BREAKTHROUGH_NEWS = [
+  'National laboratories announce a breakthrough; the world will be some time catching up.',
+  'A domestic process patent is filed that nobody abroad can yet work around.',
+  'The state institutes publish a result the foreign journals will spend a decade arguing with.',
+  'Industry and the universities jointly demonstrate a technique with no precedent abroad.',
+]
 
 export const technology: PipelineStep = {
   name: 'technology',
-  run(state) {
+  run(state, rng) {
     const historicalFrontier =
       state.tech.frontier * (1 + frontierGrowthAt(state.meta.tick) / 4)
     const research = researchAllocation(state)
-    const researchFrontierGrowthQ =
-      RESEARCH_FRONTIER_GAIN_Q * research.effectiveShare * research.frontierShare
-    const frontier = historicalFrontier * (1 + researchFrontierGrowthQ)
+
+    // the cheque joins the base, the base decays, and what is left is what the
+    // laboratories can actually work with this quarter
+    const researchStock =
+      state.tech.researchStock * (1 - RESEARCH_STOCK_DECAY_Q) + research.effectiveShare
+    const intensity = researchIntensity(researchStock)
+
+    // A breakthrough is announced by the laboratory, not measured by the
+    // office, so it makes the wire with certainty — the same rule a drought
+    // gets. You may have no idea what it did to your productivity; you still
+    // read about it in the newspaper.
+    const news: NewsItem[] = []
+    let frontier = historicalFrontier
+    if (rng.next() < breakthroughHazard(state, research, intensity)) {
+      frontier = historicalFrontier * (1 + BREAKTHROUGH_SIZE)
+      news.push({
+        tick: state.meta.tick,
+        // A hazard process clusters — two in a year is ordinary Poisson, not a
+        // bug — so the wire rotates its phrasing. One sentence repeated verbatim
+        // three quarters running reads as a stuck ticker rather than as luck.
+        text: BREAKTHROUGH_NEWS[Math.floor(rng.next() * BREAKTHROUGH_NEWS.length)],
+        tone: 'good',
+      })
+    }
 
     // each sector chases its own slice of the frontier; the gap closes at a
-    // rate human capital allows, and at a rate the incumbents allow
+    // rate human capital allows, at a rate the incumbents allow, and faster
+    // where the country's own research is still adapting rather than inventing
     const absorption = absorptiveCapacity(state)
     const attained = sectorRecord((sid) => {
       const historicalTarget = Math.pow(historicalFrontier, TECH_EXPOSURE[sid])
@@ -116,7 +222,7 @@ export const technology: PipelineStep = {
       // reassociation alone.
       const catchupRate =
         CATCHUP_Q * absorption +
-        absorption * RESEARCH_CATCHUP_GAIN_Q * research.effectiveShare * research.catchupShare
+        absorption * RESEARCH_CATCHUP_GAIN_Q * intensity * research.catchupBySector[sid]
       // A frontier country immediately owns the increment its laboratories
       // created; everybody else has to absorb that knowledge in later quarters.
       const ownInnovation = Math.max(0, target - historicalTarget)
@@ -140,6 +246,12 @@ export const technology: PipelineStep = {
     })
     const tfpGrowthQ = weightSum > 1e-9 ? growthSum / weightSum : 0
 
-    return { ...state, sectors, tech: { frontier, attained, tfpGrowthQ } }
+    return {
+      ...state,
+      sectors,
+      tech: { frontier, attained, tfpGrowthQ, researchStock },
+      stats:
+        news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
+    }
   },
 }

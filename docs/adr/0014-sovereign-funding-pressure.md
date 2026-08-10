@@ -1,4 +1,4 @@
-# ADR-0013 — Sovereign funding pressure enters one common private rate
+# ADR-0014 — Sovereign funding pressure enters one common private rate
 
 **Status:** Accepted · **Date:** 2026-08-10
 

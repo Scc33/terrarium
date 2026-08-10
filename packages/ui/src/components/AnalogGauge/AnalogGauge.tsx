@@ -20,7 +20,7 @@
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
-import { complementReading, NAMES } from '../labels'
+import { complementReading, NAMES, readingDigits } from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { WallTile } from '../WallTile/WallTile'
 
@@ -76,6 +76,9 @@ export function AnalogGauge({
   const stamped = stampWorthyRevision(points, domain)
   const mark = FACE_MARK[indicator]
   const complement = complementReading(indicator, latest.value)
+  // one rule for the whole tile, so the headline, its band, the delta chip and
+  // the revision row can never disagree about how precise this print was
+  const digits = readingDigits(latest.value)
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
 
   const header = (
@@ -108,10 +111,14 @@ export function AnalogGauge({
       >
         <span className="flex min-w-0 items-baseline gap-1.5">
           <span className="font-mono text-lg font-medium leading-tight tabular-nums text-dossier-ink">
-            {latest.value.toFixed(1)}
+            {latest.value.toFixed(digits)}
           </span>
-          {band > 0 && <span className="font-mono text-[10px] tabular-nums text-dossier-ink/55">±{band.toFixed(1)}</span>}
-          <DeltaChip delta={quarterDelta(points)} digits={1} />
+          {band > 0 && (
+            <span className="font-mono text-[10px] tabular-nums text-dossier-ink/55">
+              ±{band.toFixed(digits)}
+            </span>
+          )}
+          <DeltaChip delta={quarterDelta(points)} digits={digits} />
         </span>
         <span className="shrink truncate font-mono text-[9px] tracking-[0.1em] text-dossier-ink/55">
           {qtrLabel(latest.forQtr).slice(2)} · {latest.lag}Q LATE
@@ -121,7 +128,9 @@ export function AnalogGauge({
         {points.slice(-4, -1).map((p) => (
           <span key={p.forQtr} className="truncate font-mono text-[9px] tabular-nums text-dossier-ink/60">
             {qtrLabel(p.forQtr).slice(2)}{' '}
-            <span className={p.visiblyRevised ? 'font-medium text-dossier-warn' : ''}>{p.value.toFixed(1)}</span>
+            <span className={p.visiblyRevised ? 'font-medium text-dossier-warn' : ''}>
+              {p.value.toFixed(digits)}
+            </span>
           </span>
         ))}
       </div>

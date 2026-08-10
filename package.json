@@ -22,6 +22,7 @@
     "test:visual:update": "playwright test --update-snapshots",
     "coverage": "vitest run --coverage",
     "batch": "pnpm --filter @terrarium/runner batch",
+    "stability": "pnpm --filter @terrarium/runner stability",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "ranges": "tsx tools/indicator-ranges.ts"

@@ -18,7 +18,7 @@
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import type { InstrumentAccess } from '../../maturity'
 import { gaugeDomain } from '../../domains'
-import { NAMES } from '../labels'
+import { NAMES, readingDigits } from '../labels'
 import { quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { RACK_ROW_H } from '../../wallPlan'
 
@@ -102,8 +102,14 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
               ✱
             </span>
           )}
-          <span className="font-medium tabular-nums">{latest.value.toFixed(1)}</span>
-          <Delta delta={quarterDelta(points)} digits={1} className="text-[9px] opacity-70" />
+          <span className="font-medium tabular-nums">
+            {latest.value.toFixed(readingDigits(latest.value))}
+          </span>
+          <Delta
+            delta={quarterDelta(points)}
+            digits={readingDigits(latest.value)}
+            className="text-[9px] opacity-70"
+          />
           <span className="text-[9px] opacity-50">{latest.lag}Q</span>
         </span>
       ) : (

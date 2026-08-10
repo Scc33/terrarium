@@ -48,6 +48,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   unemployment: { dossier: 'UNEMPLOYMENT · %', terminal: 'UNEMP %', plate: 'UNEMPLOYMENT', short: 'UNEMPLOY.', needs: 'LABOUR FORCE SURVEY' },
   payrolls: { dossier: 'PAYROLLS EX-AGRI · M', terminal: 'PAYROLL.XA M', plate: 'PAYROLLS', short: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY' },
   capital_stock: { dossier: 'CAPITAL STOCK · IDX', terminal: 'CAP.STOCK IDX', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY' },
+  productivity: { dossier: 'OUTPUT PER WORKER · IDX', terminal: 'PROD.LAB IDX', plate: 'OUTPUT PER WORKER', short: 'OUTPUT/WKR', needs: 'LABOUR PRODUCTIVITY ACCOUNTS', note: 'Real output divided by everyone in work, against this country’s own 1946. Counts the fields, so moving people out of subsistence raises it. Rises with better technique, with capital per worker, and with structural change — the level the technology plate beside it cannot carry, since that one is a ratio to a frontier you may be pushing yourself.' },
   technology_attainment: { dossier: 'TECHNOLOGY ATTAINED · % FRONTIER', terminal: 'TECH.ATTAIN %FRT', plate: 'TECHNOLOGY ATTAINED', short: 'TECH LEVEL', needs: 'PRODUCTIVITY ACCOUNTS', note: 'Output-weighted productive technique already operating at home, relative to current world practice. Rising means the country is catching up; falling means the frontier is pulling away. Research accelerates adaptation when behind and original work when near the frontier.' },
   conf_consumer: { dossier: 'CONSUMER CONFIDENCE', terminal: 'CONF.CONS IDX', plate: 'CONSUMER CONFIDENCE', short: 'CONS. CONF', needs: 'SENTIMENT SURVEYS' },
   conf_business: { dossier: 'BUSINESS CONFIDENCE', terminal: 'CONF.BIZ IDX', plate: 'BUSINESS CONFIDENCE', short: 'BIZ. CONF', needs: 'SENTIMENT SURVEYS' },
@@ -61,6 +62,23 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION' },
   unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS' },
 }
+
+/**
+ * How many decimals a printed reading deserves.
+ *
+ * One decimal everywhere was fine while every instrument lived under 100. The
+ * index instruments do not: output per worker runs to ~870, the capital stock
+ * to ~900, household income to ~260. At those magnitudes a trailing decimal is
+ * false precision — a print of 271.4 carrying a confessed ±16 band claims four
+ * significant figures it has not got — and it is also a sixth character in a
+ * readout budgeted for five, which is how the revision row started truncating
+ * to `271…` in the last board slot.
+ *
+ * Both problems have the same fix, so the rule is magnitude, not identity:
+ * hundreds print whole, everything below keeps its decimal. Nothing currently
+ * under 100 changes, which is every rate and every percentage on the wall.
+ */
+export const readingDigits = (value: number): number => (Math.abs(value) >= 100 ? 0 : 1)
 
 /** Saving/consumption and government/private are two sides of one accounting
  * identity, not separate noisy instruments. Keep the complement derived from

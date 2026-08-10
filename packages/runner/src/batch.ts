@@ -6,41 +6,13 @@
  */
 
 import {
-  CAPACITY_IDS,
   COUNTRY_CATALOG,
-  SECTOR_IDS,
-  type Action,
   type CountryScenarioId,
-  type Rng,
-  type TrueState,
 } from '@terrarium/engine'
 import { runOne, type RunResult } from './run'
 import { cagr, meanAnnualInflation, meanUnemployment, summarize } from './metrics'
+import { POLICY_IDS, policyFor, randomPolicy, type PolicyId } from './policies'
 import { printReport } from './report'
-
-export function randomPolicy(state: TrueState, rng: Rng, _tick: number): Action[] {
-  if (rng.next() > 0.15) return [] // most quarters: leave the dials alone
-  const gdp = state.flows.nominalGdp
-  const roll = rng.next()
-  const pick = <T>(xs: readonly T[]): T => xs[Math.floor(rng.next() * xs.length)]
-  if (roll < 0.2) {
-    const path = pick(['taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel'] as const)
-    return [{ kind: 'setDial', path, value: rng.range(0, 0.6) }]
-  } else if (roll < 0.45) {
-    const path = pick([
-      'spending.transfers',
-      'spending.procurement',
-      'spending.investment',
-      'spending.research',
-    ] as const)
-    return [{ kind: 'setDial', path, value: rng.range(0, 0.12) * gdp }]
-  } else if (roll < 0.6) {
-    return [{ kind: 'setDial', path: 'policyRate', value: rng.range(0, 0.2) }]
-  } else if (roll < 0.8) {
-    return [{ kind: 'setDial', path: `subsidies.${pick(SECTOR_IDS)}`, value: rng.range(0, 0.05) * gdp }]
-  }
-  return [{ kind: 'investCapacity', target: pick(CAPACITY_IDS), amount: rng.range(0.02, 0.2) * gdp }]
-}
 
 export interface BatchResult {
   runs: RunResult[]
@@ -50,7 +22,7 @@ export interface BatchResult {
 export function runBatch(opts: {
   runs: number
   ticks: number
-  policy?: 'random' | 'passive'
+  policy?: PolicyId
   seedPrefix?: string
   /** one scenario, or an even round-robin matrix over the full catalogue */
   country?: CountryScenarioId | 'baseline' | 'all'
@@ -72,7 +44,7 @@ export function runBatch(opts: {
         seed,
         ticks: opts.ticks,
         country: country === 'baseline' ? undefined : country,
-        policy: opts.policy === 'random' ? randomPolicy : undefined,
+        policy: policyFor(opts.policy ?? 'passive'),
       }),
     )
   }
@@ -88,10 +60,11 @@ const isMain = process.argv[1]?.endsWith('batch.ts')
 if (isMain) {
   const runs = Number(arg('runs', '1000'))
   const ticks = Number(arg('ticks', '120'))
-  const policy = arg('policy', 'random') as 'random' | 'passive'
+  const policy = arg('policy', 'random') as PolicyId
   const country = arg('country', 'baseline') as CountryScenarioId | 'baseline' | 'all'
   const valid = country === 'all' || country === 'baseline' || COUNTRY_CATALOG.some((profile) => profile.id === country)
   if (!valid) throw new Error(`unknown country '${country}'; use baseline, ${COUNTRY_CATALOG.map((profile) => profile.id).join(', ')}, or all`)
+  if (!POLICY_IDS.includes(policy)) throw new Error(`unknown policy '${policy}'; use ${POLICY_IDS.join(', ')}`)
   const batch = runBatch({ runs, ticks, policy, country })
   printReport(batch, { runs, ticks, policy, country })
   // fail the process (and CI) on either failure mode — NaN or a runaway price
@@ -99,4 +72,4 @@ if (isMain) {
   process.exitCode = bad > 0 ? 1 : 0
 }
 
-export { cagr, meanAnnualInflation, meanUnemployment, summarize }
+export { cagr, meanAnnualInflation, meanUnemployment, randomPolicy, summarize }

@@ -18,10 +18,12 @@
  * look like an instrument slammed against its stop, not like a calm needle
  * on a quietly rescaled face.
  *
- * One exception: a stock that grows an order of magnitude over the century
- * (capital stock, 175 → 900) has no single honest face. It RATCHETS — bounds
- * from the whole published history, which only ever grows, so the face can
- * expand but never shrinks back under the needle.
+ * The exception is a series that grows an order of magnitude over the century
+ * — the capital stock (175 → 900), household income and output per worker
+ * (87 → 872), all of which are levels indexed against 1946 rather than rates
+ * that revert. None has a single honest face, so they RATCHET: bounds from the
+ * whole published history, which only ever grows, so the face can expand but
+ * never shrinks back under the needle.
  */
 
 import { ELECTION_WIN_THRESHOLD, NATURAL_UNEMPLOYMENT, REFORM_WINDOW_AT } from '@terrarium/engine'
@@ -68,6 +70,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // Measured across 12 seeds × 6 countries × 400 quarters: 1st–99th
   // percentile 53.4–94.6, extrema 47.5–96.5. Keep the frontier mark visible
   // with headroom for exceptional play and let true failures peg low.
+  // Measured 87 → 872 (p01 121, p50 360, p99 740): an order of magnitude, so
+  // no fixed face is honest. On a 0–900 dial the first thirty years would live
+  // in the bottom fifth and the player would learn nothing from the decade
+  // that matters most. Ratchets, like the capital stock it partly measures.
+  productivity: 'ratchet',
   technology_attainment: { lo: 45, hi: 105 },
   conf_consumer: { lo: 20, hi: 80 },
   conf_business: { lo: 20, hi: 90 },

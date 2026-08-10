@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "run-one": "tsx src/run.ts",
-    "batch": "tsx src/batch.ts"
+    "batch": "tsx src/batch.ts",
+    "stability": "tsx src/stability-cli.ts"
   },
   "dependencies": {
     "@terrarium/engine": "workspace:*",

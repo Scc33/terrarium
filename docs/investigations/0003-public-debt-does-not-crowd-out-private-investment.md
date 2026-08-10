@@ -1,6 +1,6 @@
 # 0003 — Public debt does not crowd out private investment during play
 
-**Status:** Resolved by [ADR-0013](../adr/0013-sovereign-funding-pressure.md) and engine
+**Status:** Resolved by [ADR-0014](../adr/0014-sovereign-funding-pressure.md) and engine
 `aa97426`
 **Raised by:** a playtest in which sustained deficits produced little visible penalty.
 **Measured at:** engine `1e91d44`, 200 paired seeds × 80 quarters on Meridia. The
