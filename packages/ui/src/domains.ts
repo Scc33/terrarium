@@ -65,6 +65,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   unemployment: { lo: 0, hi: 25 },
   payrolls: { lo: 0, hi: 50 },
   capital_stock: 'ratchet',
+  // Measured across 12 seeds × 6 countries × 400 quarters: 1st–99th
+  // percentile 53.4–94.6, extrema 47.5–96.5. Keep the frontier mark visible
+  // with headroom for exceptional play and let true failures peg low.
+  technology_attainment: { lo: 45, hi: 105 },
   conf_consumer: { lo: 20, hi: 80 },
   conf_business: { lo: 20, hi: 90 },
   approval: { lo: 20, hi: 80 },
@@ -99,6 +103,7 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   // into two readings the player otherwise has to know the constant to make
   // — needle at the line is churn, needle to the right of it is a slump.
   unemployment: { at: NATURAL_UNEMPLOYMENT * 100, label: 'FRICTIONAL' },
+  technology_attainment: { at: 100, label: 'FRONTIER' },
 }
 
 /**

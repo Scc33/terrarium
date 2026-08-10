@@ -10,7 +10,9 @@ import {
   applyActions,
   frontierGrowthAt,
   init,
+  researchAllocation,
   step,
+  technologyAttainment,
   type TrueState,
 } from '@terrarium/engine'
 import { standardCountry } from '@terrarium/fixtures'
@@ -29,6 +31,30 @@ function run(seed: string, ticks: number, education?: number, invest = false): T
     }
     s = step(s)
   }
+  return s
+}
+
+function researchCountry(development: number, education = 0.7, administrative = 0.7) {
+  return {
+    ...standardCountry,
+    development,
+    capacities: { ...standardCountry.capacities, education, administrative },
+  }
+}
+
+function runResearch(
+  seed: string,
+  ticks: number,
+  development: number,
+  research: boolean,
+): TrueState {
+  let s = init(researchCountry(development), seed)
+  if (research) {
+    s = applyActions(s, [
+      { kind: 'setDial', path: 'spending.research', value: 0.02 * s.flows.nominalGdp },
+    ])
+  }
+  for (let t = 0; t < ticks; t++) s = step(s)
   return s
 }
 
@@ -65,5 +91,50 @@ describe('two trees and the gap (§9)', () => {
     expect(invested.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf)
     // and schooling pulls fertility down beyond the income channel (§8)
     expect(invested.demography.tfr).toBeLessThan(passive.demography.tfr)
+  })
+
+  it('one research policy changes character with position: catch-up behind, invention near the frontier', () => {
+    const poor = init(researchCountry(0.1), 'tech-rd-poor')
+    const rich = init(researchCountry(0.9), 'tech-rd-rich')
+    const fund = (s: TrueState) =>
+      applyActions(s, [
+        { kind: 'setDial', path: 'spending.research', value: 0.02 * s.flows.nominalGdp },
+      ])
+
+    const poorAllocation = researchAllocation(fund(poor))
+    const richAllocation = researchAllocation(fund(rich))
+    expect(poorAllocation.catchupShare).toBeGreaterThan(0.95)
+    expect(poorAllocation.frontierShare).toBeLessThan(0.05)
+    expect(richAllocation.frontierShare).toBeGreaterThan(0.5)
+    expect(richAllocation.catchupShare).toBeLessThan(0.5)
+  })
+
+  it('research grants accelerate domestic attainment when the country is behind', () => {
+    const passive = runResearch('tech-rd-catchup', 40, 0.1, false)
+    const funded = runResearch('tech-rd-catchup', 40, 0.1, true)
+    expect(funded.tech.frontier).toBeCloseTo(passive.tech.frontier, 10)
+    expect(funded.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf * 1.03)
+    expect(technologyAttainment(funded)).toBeGreaterThan(technologyAttainment(passive) + 0.02)
+  })
+
+  it('near-frontier research pushes the frontier, slowly', () => {
+    const passive = runResearch('tech-rd-frontier', 40, 0.9, false)
+    const funded = runResearch('tech-rd-frontier', 40, 0.9, true)
+    expect(funded.tech.frontier).toBeGreaterThan(passive.tech.frontier * 1.005)
+    expect(funded.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf)
+    // Original research is the expensive end of the same policy, not a growth cheat.
+    expect(funded.tech.frontier).toBeLessThan(passive.tech.frontier * 1.02)
+  })
+
+  it('research money needs both administration and educated staff', () => {
+    const allocate = (education: number, administrative: number) => {
+      const s = init(researchCountry(0.4, education, administrative), `tech-rd-${education}`)
+      return researchAllocation(
+        applyActions(s, [
+          { kind: 'setDial', path: 'spending.research', value: 0.02 * s.flows.nominalGdp },
+        ]),
+      ).effectiveShare
+    }
+    expect(allocate(0.8, 0.8)).toBeGreaterThan(allocate(0.05, 0.05) * 5)
   })
 })

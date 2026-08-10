@@ -12,6 +12,14 @@ describe('applyActions', () => {
     expect(s1.politics.politicalCapital).toBeLessThan(s0.politics.politicalCapital)
   })
 
+  it('sets recurring public research as an ordinary spending policy', () => {
+    const s0 = fresh()
+    const value = 0.02 * s0.flows.nominalGdp
+    const s1 = applyActions(s0, [{ kind: 'setDial', path: 'spending.research', value }])
+    expect(s1.gov.dials.spending.research).toBe(value)
+    expect(s1.politics.politicalCapital).toBeLessThan(s0.politics.politicalCapital)
+  })
+
   it('quotes the same political cost that application charges', () => {
     const s0 = fresh()
     const action = { kind: 'setDial', path: 'taxRates.fuel', value: 0.3 } as const

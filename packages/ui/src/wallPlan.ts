@@ -52,8 +52,10 @@ export const DOCKED_MIN_H = 150
 export const SECTION_BAR_H = 20
 /** how many instruments the board holds */
 export const BOARD_SLOTS = 4
-/** a rack strip narrower than this cannot show label + figure + delta */
-export const RACK_MIN_COL_W = 200
+/** The watch board stays four-up, but the complete roster becomes five-up on
+ * a full desktop. Its strips have compact chrome and retain label, figure,
+ * trend and lag; this is a different information density, not a fifth gauge. */
+export const DESKTOP_RACK_COLS = 5
 
 /** the dials a new government finds already on the wall: the two halves of
  * the misery index, the growth number politics actually reads, and the poll
@@ -84,8 +86,13 @@ export function wallWidthPx(viewportW: number = REFERENCE_VIEWPORT.w): number {
 }
 
 export function rackColumns(viewportW: number = REFERENCE_VIEWPORT.w): number {
-  const usable = wallWidthPx(viewportW)
-  return Math.max(1, Math.min(BOARD_SLOTS, Math.floor(usable / RACK_MIN_COL_W)))
+  // Keep these breakpoints synchronized with .instrument-rack in index.css.
+  // Below lg the wall scrolls; these values still make the reported roster
+  // height match the CSS instead of pretending every viewport is desktop.
+  if (viewportW >= REFERENCE_VIEWPORT.w) return DESKTOP_RACK_COLS
+  if (viewportW >= 1024) return BOARD_SLOTS
+  if (viewportW >= 640) return 3
+  return 2
 }
 
 /**

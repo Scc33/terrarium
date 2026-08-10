@@ -71,6 +71,8 @@ function actionKey(a: Action): string {
   switch (a.kind) {
     case 'setDial':
       return `dial:${a.path}`
+    case 'setSpendingRule':
+      return `dial:spending.${a.programme}`
     case 'investCapacity':
       return `cap:${a.target}`
     case 'reform':

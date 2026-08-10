@@ -69,6 +69,14 @@ export const production: PipelineStep = {
       const share = sid === 'manuf' ? 0.4 : sid === 'services' ? 0.6 : 0
       return (gov.dials.spending.procurement * adminEff * share) / market.prices[sid]
     })
+    // Research is real government final demand as well as a technology input:
+    // laboratories buy mostly skilled services and some equipment. The tech
+    // step decides what knowledge that work produced; this keeps the money from
+    // vanishing from national accounts while avoiding physical capital gains.
+    const researchReal = sectorRecord((sid) => {
+      const share = sid === 'manuf' ? 0.2 : sid === 'services' ? 0.8 : 0
+      return (gov.dials.spending.research * adminEff * share) / market.prices[sid]
+    })
 
     // --- investment demand (private responds to the real rate) ---
     const realRate = gov.dials.policyRate - state.ledger.inflationExpectations
@@ -109,7 +117,8 @@ export const production: PipelineStep = {
     const privateDomesticDemandReal =
       SECTOR_IDS.reduce((sum, sid) => sum + householdDemand[sid], 0) + privateInvReal
     const governmentDomesticDemandReal =
-      SECTOR_IDS.reduce((sum, sid) => sum + procurementReal[sid], 0) + govInvReal
+      SECTOR_IDS.reduce((sum, sid) => sum + procurementReal[sid] + researchReal[sid], 0) +
+      govInvReal
     const invDemand = sectorRecord((sid) =>
       sid === 'manuf' ? 0.6 * investmentReal : sid === 'services' ? 0.4 * investmentReal : 0,
     )
@@ -144,6 +153,7 @@ export const production: PipelineStep = {
           0,
           householdDemand[sid] +
             procurementReal[sid] +
+            researchReal[sid] +
             invDemand[sid] +
             exportsReal[sid] -
             importsReal[sid],

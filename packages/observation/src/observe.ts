@@ -44,6 +44,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   unemployment: { label: 'Unemployment', unit: '%' },
   payrolls: { label: 'Payrolls ex-agri', unit: 'M jobs' },
   capital_stock: { label: 'Capital stock', unit: 'index' },
+  technology_attainment: { label: 'Technology attained', unit: '% frontier' },
   conf_consumer: { label: 'Consumer confidence', unit: 'idx' },
   conf_business: { label: 'Business confidence', unit: 'idx' },
   approval: { label: 'Approval poll', unit: '%' },
@@ -155,6 +156,7 @@ export function observe(state: TrueState): PublishedState {
     country: state.params.name,
     indicators,
     dials: structuredClone(state.gov.dials),
+    spendingRules: structuredClone(state.gov.spendingRules),
     treasury: {
       ...state.gov.budget,
       debt: state.gov.debt,

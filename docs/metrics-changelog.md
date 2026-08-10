@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 16)
+## Current contract (schema 18)
 
 ### Inputs
 
@@ -36,11 +36,12 @@ contract, so it's called out below.
 | `pyramid` | 1946 age structure, 17 five-year bands *(added v6)* |
 | `structure` | optional normalized sector composition, opening debt/credit/reserves, and inherited institutions *(added v13; omitted means the historical Meridia defaults)* |
 
-**Policy levers** (`DialState`, set via the `setDial` action)
+**Policy levers** (`DialState` plus `SpendingRules`)
 | Lever | Range |
 |---|---|
 | `taxRates.income / corporate / tariff / fuel` | rates; collection is capacity-gated |
-| `spending.transfers / procurement / investment` | money/quarter; delivery leaks |
+| `spending.transfers / procurement / investment / research` | resolved money/quarter; delivery leaks |
+| `spendingRules.<programme>` | `fixed` cash, `indexed` cash following official CPI first releases, or `gdpShare` of latest official nominal GDP |
 | `policyRate` | annualized nominal rate |
 | `subsidies.<sector>` | money/quarter per sector |
 
@@ -53,15 +54,16 @@ contract, so it's called out below.
 | `courts` | raises societal power; the money interest approves |
 | `repression` | buys PC and lowers the electoral bar; sinks societal power, raises state power, walks the dot toward despotism |
 
-**Actions**: `setDial` (move a lever) · `investCapacity` (build a Layer-2 stock over 8 quarters)
-· `reform` (move a Layer-3 stock by `REFORM_STEP`, ±1) · `campaign` (commit an election
-platform, only inside the 2-quarter campaign window).
+**Actions**: `setDial` (move a lever; legacy spending paths vote fixed cash) ·
+`setSpendingRule` (replace a programme's recurring appropriation) · `investCapacity` (build a
+Layer-2 stock over 8 quarters) · `reform` (move a Layer-3 stock by `REFORM_STEP`, ±1) ·
+`campaign` (commit an election platform, only inside the 2-quarter campaign window).
 
 **Campaign platforms** (`PlatformId`): `record` · `largesse` (transfers +50 %, permanently) ·
 `coalition` (a bloc's machine, and its claim on you for a full term) · `suppression`
 (repression +0.15; the mandate is recorded as taken) · `franchise` (suffrage +0.2).
 
-Every `setDial` and `reform` is priced by the **veto players**: the PC cost is multiplied by
+Every `setDial`, `setSpendingRule`, and `reform` is priced by the **veto players**: the PC cost is multiplied by
 `1 + VETO_COST_GAIN × Σ (effective bloc power × how much that bloc minds the move)`, doubled for
 a bloc you owe a pledge to, and discounted while a reform window is open. It is never infinite —
 the game does not say no, it lets you find out.
@@ -106,6 +108,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
 | `household_saving_rate` | % disposable income | 0.45 | v15 | disposable income not consumed; consumption is the complement |
+| `technology_attainment` | % frontier | 0.45 | v18 | output-weighted domestic technique ÷ sector-adjusted world frontier |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
@@ -121,9 +124,10 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | Output | Since | Contents |
 |---|---|---|
 | `dials` | v1 | your own lever settings |
+| `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
 | ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
-| ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
+| ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |
 | `institutions` | v12 | the five Layer-3 stocks, as set |
 | `reformCost` | v12 | PC each reform costs right now — veto premium and window discount already applied |
@@ -158,6 +162,44 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 18 — Technology policy and the gap
+- **Inputs +**: `spending.research`, a recurring money-per-quarter Layer-1 programme. Like the
+  other standing appropriations it can be fixed cash, CPI-indexed cash, or a share of the latest
+  official nominal-GDP release; it is priced by the room and booked as its own exact treasury line.
+- **Mechanism +**: research appropriations are normalized by current GDP, delivered through
+  administrative capacity, and staffed through education capacity. Behind the frontier they add
+  to catch-up; near it an increasing share produces smaller original gains. Original work advances
+  both the world frontier and the domestic technique that created it. Research is also delivered
+  government final demand (services plus equipment), but it adds no physical capital.
+- **Outputs +**: `technology_attainment` (fogged, unlock 0.45, unit `% frontier`) — current-output-
+  weighted attained technique relative to each sector's exposure-adjusted frontier. The statistic
+  can fall while domestic technique rises, correctly reporting that the world is pulling away.
+- **Exact books +**: `outlaysByProgramme.research`. The ledger preserves all seven exact lines in
+  data and prints the research amount separately; its six-colour composition chart combines
+  research and active ministry construction into one state-building band.
+- **Pipeline**: unchanged order. Research is read by the existing `technology`, `production`, and
+  `fiscal` steps. With the inherited research rule fixed at zero, the passive economy is
+  behaviorally unchanged; golden movement is the schema stamp, worksheet field, and added series.
+- **Decision**: ADR-0012 records why this is a moving gap and one position-dependent policy rather
+  than a technology tree or separate catch-up/frontier controls.
+
+### schema 17 — Rule-based recurring expenditure
+- **Inputs +**: `setSpendingRule` writes one of three standing appropriations per transfer,
+  procurement, or public-investment programme: fixed nominal cash, CPI-indexed cash, or a share
+  of officially published nominal GDP. Existing `setDial` spending actions retain their old
+  fixed-cash meaning, so prior save action logs replay without translation.
+- **Outputs +**: exact `PublishedState.spendingRules`; `dials.spending` remains the currently
+  resolved money-per-quarter amount, and the treasury continues to book that amount in full.
+- **Fog boundary**: CPI indexation advances once for each new revision-0 `inflation` release;
+  later revisions do not rewrite past cheques. GDP-share rules use the latest nominal level the
+  statistics office attached to a published `gdp_growth` print, never hidden live GDP. Before a
+  denominator exists, the last voted amount holds.
+- **Pipeline**: the 15-step order is unchanged. After `statistics` has put this quarter's releases
+  on the desk and the fold completes, rules resolve the dials for next quarter; production,
+  fiscal, cohorts, and institutions still read one common `dials.spending` amount.
+- **Economics**: all opening rules are fixed, so passive and legacy-action replays are
+  economically unchanged; golden hashes move for the schema stamp and additive rule state only.
 
 ### schema 16 — The expenditure accounts
 - **Outputs +**: `consumption_share`, `investment_share`, `export_share` — all fogged, all

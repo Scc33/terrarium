@@ -54,8 +54,14 @@ import {
   type InstitutionId,
   type PlatformId,
   type SectorId,
+  type SpendingProgramId,
   type TrueState,
 } from '../state/schema'
+import {
+  createSpendingRule,
+  scaleSpendingRule,
+  spendingRuleTarget,
+} from '../state/spending'
 import type { Action, DialPath } from './types'
 
 export class IllegalActionError extends Error {}
@@ -80,6 +86,7 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   'spending.transfers': { financiers: 0.5, unions: -0.6, landowners: 0.2, industrialists: 0.2 },
   'spending.procurement': { industrialists: -0.4, financiers: 0.4 },
   'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
+  'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
   policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
@@ -176,11 +183,17 @@ const rate = (key: 'income' | 'corporate' | 'tariff' | 'fuel', max: number): Dia
   scale: () => 1,
 })
 
-const spend = (key: 'transfers' | 'procurement' | 'investment'): DialSpec => ({
+const spend = (key: 'transfers' | 'procurement' | 'investment' | 'research'): DialSpec => ({
   get: (s) => s.gov.dials.spending[key],
   set: (s, v) => ({
     ...s,
-    gov: { ...s.gov, dials: { ...s.gov.dials, spending: { ...s.gov.dials.spending, [key]: v } } },
+    gov: {
+      ...s.gov,
+      dials: { ...s.gov.dials, spending: { ...s.gov.dials.spending, [key]: v } },
+      // Legacy `setDial` spending actions remain valid save inputs. Their
+      // semantics are exactly the old semantics: vote a fixed cash amount.
+      spendingRules: { ...s.gov.spendingRules, [key]: { kind: 'fixed', amount: v } },
+    },
   }),
   min: 0,
   // you can announce a UBI your tax base can't support — the game never says no
@@ -207,6 +220,7 @@ const DIALS: Record<DialPath, DialSpec> = {
   'spending.transfers': spend('transfers'),
   'spending.procurement': spend('procurement'),
   'spending.investment': spend('investment'),
+  'spending.research': spend('research'),
   policyRate: {
     get: (s) => s.gov.dials.policyRate,
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, policyRate: v } } }),
@@ -237,6 +251,27 @@ function dialObjections(state: TrueState, path: DialPath, value: number): Record
   const spec = DIALS[path]
   const delta = value - spec.get(state)
   return objections(DIAL_STANCE[path], Math.sign(delta), Math.abs(delta) / spec.scale(state))
+}
+
+const spendingPath = (programme: SpendingProgramId): DialPath => `spending.${programme}`
+
+function targetForSpendingRule(
+  state: TrueState,
+  action: Extract<Action, { kind: 'setSpendingRule' }>,
+): number {
+  try {
+    return spendingRuleTarget(state, action.mode, action.value)
+  } catch (error) {
+    throw new IllegalActionError(error instanceof Error ? error.message : 'invalid spending rule')
+  }
+}
+
+function spendingRuleObjections(
+  state: TrueState,
+  programme: SpendingProgramId,
+  target: number,
+): Record<BlocId, number> {
+  return dialObjections(state, spendingPath(programme), target)
 }
 
 /** …and to a reform, which is always a full step. */
@@ -296,6 +331,30 @@ export function politicalCostOfAction(state: TrueState, action: Action): number 
         vetoMultiplier(state, dialObjections(state, action.path, action.value))
       )
     }
+    case 'setSpendingRule': {
+      const { programme, mode, value } = action
+      if (!Number.isFinite(value)) {
+        throw new IllegalActionError(`non-finite ${mode} spending rule on ${programme}`)
+      }
+      if (value < 0 || (mode === 'gdpShare' && value > 1)) {
+        throw new IllegalActionError(
+          `${programme} ${mode} rule=${value} out of bounds [0, ${mode === 'gdpShare' ? '1' : 'current GDP'}]`,
+        )
+      }
+      const target = targetForSpendingRule(state, action)
+      if (target > state.flows.nominalGdp) {
+        throw new IllegalActionError(
+          `${programme} rule exceeds the current statutory spending ceiling`,
+        )
+      }
+      const path = spendingPath(programme)
+      const spec = DIALS[path]
+      const relChange = Math.abs(target - spec.get(state)) / spec.scale(state)
+      return (
+        (PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange) *
+        vetoMultiplier(state, spendingRuleObjections(state, programme, target))
+      )
+    }
     case 'investCapacity': {
       const { target, amount } = action
       if (!Number.isFinite(amount) || amount <= 0) {
@@ -339,6 +398,29 @@ export function applyAction(state: TrueState, action: Action): TrueState {
       // minded, and earned when the lever moves their way
       const objection = dialObjections(state, action.path, action.value)
       return spec.set(applyObjections(spendPc(state, cost, action.path), objection), action.value)
+    }
+    case 'setSpendingRule': {
+      const { programme, mode, value } = action
+      const target = targetForSpendingRule(state, action)
+      const objection = spendingRuleObjections(state, programme, target)
+      const s = applyObjections(
+        spendPc(state, cost, `set ${programme} spending rule`),
+        objection,
+      )
+      return {
+        ...s,
+        gov: {
+          ...s.gov,
+          dials: {
+            ...s.gov.dials,
+            spending: { ...s.gov.dials.spending, [programme]: target },
+          },
+          spendingRules: {
+            ...s.gov.spendingRules,
+            [programme]: createSpendingRule(state, mode, value),
+          },
+        },
+      }
     }
     case 'investCapacity': {
       const { target, amount } = action
@@ -387,12 +469,17 @@ export function applyAction(state: TrueState, action: Action): TrueState {
           // that walking it back is a cut, and cuts cost approval too
           const before = s.gov.dials.spending.transfers
           const after = Math.min(before * (1 + LARGESSE_BUMP), s.flows.nominalGdp)
+          const factor = before > 1e-9 ? after / before : 1
           swing += LARGESSE_SWING_GAIN * ((after - before) / Math.max(s.flows.nominalGdp, 1e-9))
           s = {
             ...s,
             gov: {
               ...s.gov,
               dials: { ...s.gov.dials, spending: { ...s.gov.dials.spending, transfers: after } },
+              spendingRules: {
+                ...s.gov.spendingRules,
+                transfers: scaleSpendingRule(s.gov.spendingRules.transfers, factor),
+              },
             },
           }
           break

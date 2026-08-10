@@ -15,4 +15,18 @@ describe('SegmentedControl', () => {
     const html = renderToStaticMarkup(<SegmentedControl label="Chart mode" value="level" options={options} onChange={() => {}} />)
     expect(html.match(/type="button"/g)).toHaveLength(2)
   })
+
+  it('supports disabled choices and an inverted cabinet treatment', () => {
+    const html = renderToStaticMarkup(
+      <SegmentedControl
+        label="Rule mode"
+        value="level"
+        tone="inverted"
+        options={[options[0], { ...options[1], disabled: true }]}
+        onChange={() => {}}
+      />,
+    )
+    expect(html).toContain('disabled=""')
+    expect(html).toContain('border-dossier-brass')
+  })
 })

@@ -141,12 +141,28 @@ input[type='range']::-moz-range-thumb {
   background-size: 16px 16px;
 }
 
-/* The full war room is four bays wide. Below small-laptop width it becomes a
-   deliberate two-row board with a three-column rack instead of squeezing the
-   instruments until their labels and controls clip. */
-.instrument-board,
+/* The watch board remains four large bays. The complete roster can carry five
+   compact strips across at the reference desktop width; below that it steps
+   down independently instead of squeezing the full gauges. */
+.instrument-board {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .instrument-rack {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (min-width: 1280px) {
+  .instrument-rack {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  /* In the five-bay roster the arrow carries direction at a glance. The exact
+     quarterly magnitude remains in its tooltip and reappears in the roomier
+     four-bay layout. */
+  .instrument-rack .rack-delta-magnitude {
+    display: none;
+  }
 }
 
 @media (max-width: 1023px) {

@@ -58,6 +58,14 @@ describe('the wall fits the reference viewport', () => {
     )
   })
 
+  it('uses a five-bay dense roster without changing the four-slot watch board', () => {
+    expect(rackColumns(1280)).toBe(5)
+    expect(rackColumns(1279)).toBe(4)
+    expect(rackColumns(1023)).toBe(3)
+    expect(rackColumns(639)).toBe(2)
+    expect(BOARD_SLOTS).toBe(4)
+  })
+
   it('still fits with everything the roadmap could plausibly add', () => {
     const grown = [...INDICATOR_IDS, ...future(rackHeadroom(INDICATOR_IDS))]
     expect(wallFits(planWall(DEFAULT_PINS, grown))).toBe(true)

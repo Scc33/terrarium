@@ -160,6 +160,9 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   unemployment: 0.35,
   payrolls: 0.3,
   capital_stock: 0.3,
+  // productivity accounts need both an industrial census and international
+  // comparisons; the plate unlocks beside the confidence surveys
+  technology_attainment: 0.45,
   conf_consumer: 0.45,
   conf_business: 0.45,
   approval: 0.25,
@@ -248,6 +251,25 @@ export const FRONTIER_OWN_DRIFT_Q = 0.0008
  * available immediately to whoever can absorb */
 export const TECH_ATTAINED_BASE = 0.45
 export const TECH_ATTAINED_DEV_GAIN = 0.5
+/** Public research is entered as quarterly money and normalized by quarterly
+ * GDP. Administration decides what reaches laboratories; education decides
+ * how much useful work the country can staff. Past five percent of GDP the
+ * bottleneck is projects and people, so extra money is still booked but buys
+ * no extra technique. */
+export const RESEARCH_EFFECTIVE_SHARE_MAX = 0.05
+export const RESEARCH_SKILL_FLOOR = 0.2
+/** Behind the frontier, research adapts known techniques. This is an addition
+ * to the ordinary catch-up coefficient per point of effective GDP share, and
+ * remains gated by openness, schools, and creative destruction. */
+export const RESEARCH_CATCHUP_GAIN_Q = 0.4
+/** Near the frontier, the same programme becomes original research. The gain
+ * is deliberately smaller: at one percent of effective GDP fully allocated
+ * to frontier work, it adds about 0.14 percentage points of annual frontier
+ * growth. */
+export const RESEARCH_FRONTIER_GAIN_Q = 0.035
+/** Below this share of frontier practice all effective research is adaptation;
+ * above it the budget shifts linearly toward original work. */
+export const RESEARCH_FRONTIER_START = 0.7
 
 // ---------- demography (§8) ----------
 /** schooling suppresses fertility beyond the income channel (§8: female

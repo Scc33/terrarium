@@ -15,7 +15,11 @@ import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/
 export interface IndicatorNames {
   /** dossier-era gauge header: the ministry's own wording, with units */
   dossier: string
-  /** terminal-era mnemonic: what a wire service would call it */
+  /** terminal-era mnemonic: what a wire service would call it. Keep to 20
+   * characters — that is what a board slot's header leaves once the window
+   * toggle is paid for at 1280×720, and the ticker ellipsises past it rather
+   * than pushing the figures off the tile. `GOV/PRIVATE DEMAND %` is at the
+   * limit; anything longer loses its unit. */
   terminal: string
   /** blank brass plate: the instrument's name, engraved, no units */
   plate: string
@@ -44,6 +48,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   unemployment: { dossier: 'UNEMPLOYMENT · %', terminal: 'UNEMP %', plate: 'UNEMPLOYMENT', short: 'UNEMPLOY.', needs: 'LABOUR FORCE SURVEY' },
   payrolls: { dossier: 'PAYROLLS EX-AGRI · M', terminal: 'PAYROLL.XA M', plate: 'PAYROLLS', short: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY' },
   capital_stock: { dossier: 'CAPITAL STOCK · IDX', terminal: 'CAP.STOCK IDX', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY' },
+  technology_attainment: { dossier: 'TECHNOLOGY ATTAINED · % FRONTIER', terminal: 'TECH.ATTAIN %FRT', plate: 'TECHNOLOGY ATTAINED', short: 'TECH LEVEL', needs: 'PRODUCTIVITY ACCOUNTS', note: 'Output-weighted productive technique already operating at home, relative to current world practice. Rising means the country is catching up; falling means the frontier is pulling away. Research accelerates adaptation when behind and original work when near the frontier.' },
   conf_consumer: { dossier: 'CONSUMER CONFIDENCE', terminal: 'CONF.CONS IDX', plate: 'CONSUMER CONFIDENCE', short: 'CONS. CONF', needs: 'SENTIMENT SURVEYS' },
   conf_business: { dossier: 'BUSINESS CONFIDENCE', terminal: 'CONF.BIZ IDX', plate: 'BUSINESS CONFIDENCE', short: 'BIZ. CONF', needs: 'SENTIMENT SURVEYS' },
   approval: { dossier: 'APPROVAL POLL · %', terminal: 'APPROVAL %', plate: 'APPROVAL POLL', short: 'APPROVAL', needs: 'FIELD POLLING' },

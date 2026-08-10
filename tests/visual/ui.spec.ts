@@ -86,11 +86,75 @@ test('dashboard with empty instruments', async ({ page }) => {
   await expect(page).toHaveScreenshot('dashboard-empty.png')
 })
 
+test('dense desktop rack fits every instrument name on one screen', async ({ page }) => {
+  await openGame(page)
+  // This project typechecks Playwright under the Node libs, so keep browser
+  // globals inside the evaluated source string rather than adding DOM types to
+  // the entire test suite.
+  const fit = (await page.evaluate(`(() => {
+    const doc = document.scrollingElement;
+    const labels = [...document.querySelectorAll('.instrument-rack > button > span:nth-child(2)')];
+    return {
+      horizontalScroll: (doc?.scrollWidth ?? 0) > (doc?.clientWidth ?? 0),
+      pageScroll: (doc?.scrollHeight ?? 0) > (doc?.clientHeight ?? 0),
+      clippedLabels: labels
+        .filter((label) => label.scrollWidth > label.clientWidth)
+        .map((label) => label.textContent),
+      rackBelowFold:
+        (document.querySelector('.instrument-rack')?.getBoundingClientRect().bottom ?? 0) >
+        window.innerHeight,
+    };
+  })()`)) as {
+    horizontalScroll: boolean
+    pageScroll: boolean
+    clippedLabels: Array<string | null>
+    rackBelowFold: boolean
+  }
+  expect(fit).toEqual({
+    horizontalScroll: false,
+    pageScroll: false,
+    clippedLabels: [],
+    rackBelowFold: false,
+  })
+})
+
 test('cabinet draft review', async ({ page }) => {
   await openGame(page)
   await page.getByRole('button', { name: 'Increase Income' }).click()
   await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
   await expect(page).toHaveScreenshot('cabinet-draft.png')
+})
+
+test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'SPENDING 4 CONTROLS' }).click()
+  const transfers = page.getByRole('group', { name: 'Transfers spending rule' })
+  const procurement = page.getByRole('group', { name: 'Procurement spending rule' })
+  const gdpRule = procurement.getByRole('button', { name: '% GDP', exact: true })
+  await expect(gdpRule).toBeDisabled()
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (const quarter of ['1946 Q2', '1946 Q3', '1946 Q4']) {
+    await advance.click()
+    await expect(page.getByText(quarter, { exact: true })).toBeVisible()
+  }
+  await expect(gdpRule).toBeEnabled()
+  await transfers.getByRole('button', { name: 'CPI', exact: true }).click()
+  await gdpRule.click()
+  await page.getByRole('button', { name: 'Increase Procurement' }).click()
+  await expect(transfers.getByRole('button', { name: 'CPI', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(procurement.getByRole('button', { name: '% GDP', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByText('2 ORDERS DRAFTED')).toBeVisible()
+  await expect(page.getByRole('tabpanel')).not.toContainText('WHO IT REACHES')
+  await page.getByRole('tabpanel').evaluate((panel) => {
+    panel.scrollTop = 0
+  })
+  await expect(page).toHaveScreenshot('spending-rule-draft.png')
 })
 
 test('unfitted instrument routes to its capacity investment', async ({ page }) => {
