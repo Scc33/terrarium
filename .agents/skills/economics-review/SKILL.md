@@ -64,14 +64,32 @@ pnpm batch -- --runs 1000 --ticks 400 --policy passive
 pnpm stability -- --runs 120 --policy all --country all
 ```
 
-**Healthy passive century:** growth ≈ 2.5%/yr · inflation ≈ 0 · unemployment ≈ 12.4% century
-mean · ~7% deposed by 400q.
+Medians from 1000 runs on `country=baseline`, measured at `78063a5`. Re-measure rather than
+trusting these — they drift, and a stale baseline is worse than none because it invites you to
+"fix" an engine that was fine.
+
+**Healthy passive century:** growth ≈ 2.5%/yr · inflation ≈ 0.1 · unemployment ≈ 12.8% ·
+**9% deposed** by 400q (median quarter 336).
 
 That elevated unemployment is **designed**, not a bug: it is the §8 youth-bulge bomb an
-unschooled do-nothing government earns. Funding education absorbs it to ~7% and lifts growth
-past 3%. Do not "fix" it.
+unschooled do-nothing government earns. Do not "fix" it.
 
-**Healthy random policy, 120q:** ~30% deposed · no NaN · no price explosions.
+Building the four state capacities (`--policy developmental`) does absorb it — **12.8% → 10.0%**
+— and that is the mechanism working. But note what the same run does to the headline:
+
+| 1000 × 400q | passive | developmental |
+|---|---|---|
+| real growth %/yr | 2.52 | **2.32** |
+| unemployment % | 12.80 | **10.03** |
+| deposed | 9% | 16% |
+
+**Real growth is LOWER on the developmental path, not higher.** That is a live surprise, not a
+documented design claim, and it is recorded here only so the next reader does not mistake it
+for a regression they caused. Nobody has ruled on whether it is correct (capacity costs and the
+schooling→fertility→labour-force channel both plausibly explain it, and per-head growth is not
+what this table measures) — so measure it, do not reason from it.
+
+**Healthy random policy, 120q:** **36% deposed** · no NaN · no price explosions.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.

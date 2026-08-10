@@ -68,8 +68,16 @@ pnpm ranges
 
 Take a face covering roughly **p01–p99, rounded outward** to a readable number, and let the
 extremes peg. A dial redrawn under its own needle teaches nothing (ADR-0006), so faces are
-fixed constants. Use `'ratchet'` only for a stock that grows an order of magnitude over the
-century and has no single honest face — today that is `capital_stock` alone.
+fixed constants. Use `'ratchet'` only for a series that grows an order of magnitude over the
+century and therefore has no single honest face — today `capital_stock`, `income_real` and
+`productivity`, all three of them levels indexed against 1946 rather than rates that revert.
+
+Reach for it when the measured range spans a factor of ten or so: on a fixed face wide enough
+for the end of the century, the first thirty years live in the bottom fifth of the dial and the
+decade that matters most teaches nothing.
+
+**`gauge-domains` will not tell you a face is too wide** — it fails on pegging, so it only
+catches faces that are too narrow. Read the `pnpm ranges` percentiles yourself.
 
 ### 6. Schema bump + changelog
 
