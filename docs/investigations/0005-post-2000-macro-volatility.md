@@ -7,6 +7,17 @@ by deflation alongside very high reported real growth.
 
 **Measured at:** `1e91d44` on 2026-08-10.
 
+## Follow-up: the coverage gap is now harnessed
+
+The long-horizon stability harness proposed below now lives in `packages/runner/src/stability.ts`
+and is exposed as `pnpm stability`. It reports fixed-era true and first-release wall tails,
+shock-conditioned peaks/reversals, and raw versus player-reachable failures. The ordinary
+`future-stability` property suite runs passive and capacity-building governments across every
+country recipe through 2050, so later engine changes cannot silently reopen the testing gap.
+
+This does not resolve the modeling choice below. No economic constant or reporting convention
+was changed; the harness makes the current behavior measurable and gives a future retune a gate.
+
 ## What was tested
 
 The engine was measured from 1946 through 2046 under three kinds of play:

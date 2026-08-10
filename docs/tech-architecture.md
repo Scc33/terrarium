@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 18. Companion to the design doc
+*How the code is actually arranged, as of schema 19. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -68,8 +68,8 @@ terrarium/
 │   │   │   └── devScenario.ts    # dev-console scenarios (pure, tested) — ADR-0010
 │   │   └── package.json
 │   │
-│   ├── runner/                   # headless batch runner (Node CLI)
-│   │   └── src/                  # run.ts · batch.ts · metrics.ts · report.ts
+│   ├── runner/                   # headless batch + long-horizon stability CLIs (Node)
+│   │   └── src/                  # run · policies · batch · stability analysis/reporting
 │   │
 │   ├── fixtures/                 # shared test data
 │   │   ├── countries/standard.ts # parameter vectors
@@ -319,6 +319,18 @@ exit criteria — the design's load-bearing claims. *If a change breaks them, th
 wrong, not the test.* Standing invariants: no NaN/Infinity, prices within per-tick caps,
 budget identity holds, replay determinism (run twice, hash-compare).
 
+`future-stability.test.ts` is the long-horizon balance gate. It runs passive and
+capacity-building governments through 2050 across every country recipe, truncates each
+balance trajectory at deposition, and pins post-2000 inflation, real-growth, unemployment,
+first-release wall prints, and drought-response tails. Raw post-deposition failures remain
+visible to engine diagnostics, but cannot be mislabeled as gameplay.
+
+The same definitions power `pnpm stability`: four fixed eras, p01/p50/p99 quarterly tails,
+and shock-conditioned peaks and reversals for droughts, fuel ruptures, and banking crises.
+Use `--policy passive|developmental|random|all` and `--country baseline|all|<recipe>` to narrow
+a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
+initialization convergence.
+
 ### 7.3 Contract (`tests/contract/`)
 
 `published-state.test.ts` guards the data boundary described in §1.1.
@@ -386,6 +398,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm diff-state` | what moved between two states — read before blessing |
 | `pnpm bless` | re-bless golden snapshots after an intentional change |
 | `pnpm ranges` | measure a surveyed century; the input to dial faces |
+| `pnpm stability -- --runs 120 --policy all --country all` | player-reachable macro tails through 2050 |
 | `pnpm architecture` | scan the source and open the engine atlas on localhost:4174 |
 | `pnpm architecture:build` | regenerate and production-build the engine atlas |
 | `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |
