@@ -7,7 +7,16 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { init, rngFor, step, TICK_ORDER, type TrueState } from '@terrarium/engine'
+import {
+  bondIssuanceShare,
+  init,
+  privateFundingSpread,
+  privateRealRate,
+  rngFor,
+  step,
+  TICK_ORDER,
+  type TrueState,
+} from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -66,6 +75,85 @@ describe('the credit cycle (§12)', () => {
     const qPassive = Math.max(...passive.map((s) => s.finance.assetPrice))
     expect(levLoose).toBeGreaterThan(levPassive) // more borrowing…
     expect(qLoose).toBeGreaterThan(qPassive) // …and a taller bubble
+  })
+})
+
+describe('sovereign funding pressure', () => {
+  const base = century('fin-sovereign', null)[40]
+
+  function fundedState({
+    debtToGdp = 0.3,
+    bondIssuance = 0,
+    printed = 0,
+    openness = base.params.openness,
+  }: {
+    debtToGdp?: number
+    bondIssuance?: number
+    printed?: number
+    openness?: number
+  }): TrueState {
+    const quarterlyGdp = base.flows.nominalGdp
+    return {
+      ...base,
+      params: { ...base.params, openness },
+      gov: {
+        ...base.gov,
+        debt: debtToGdp * 4 * quarterlyGdp,
+        budget: {
+          ...base.gov.budget,
+          balance: -bondIssuance * quarterlyGdp,
+        },
+      },
+      flows: {
+        ...base.flows,
+        printedThisQtr: printed * quarterlyGdp,
+      },
+      institutions: {
+        ...base.institutions,
+        blocs: {
+          ...base.institutions.blocs,
+          financiers: {
+            ...base.institutions.blocs.financiers,
+            favor: 0,
+          },
+        },
+      },
+    }
+  }
+
+  it('bond issuance crowds private finance while an equally sized print does not', () => {
+    const bondFunded = fundedState({ bondIssuance: 0.04 })
+    const moneyFunded = fundedState({ bondIssuance: 0.04, printed: 0.04 })
+
+    expect(bondIssuanceShare(bondFunded)).toBeCloseTo(0.04)
+    expect(privateFundingSpread(bondFunded)).toBeGreaterThan(0)
+    expect(bondIssuanceShare(moneyFunded)).toBe(0)
+    expect(privateFundingSpread(moneyFunded)).toBe(0)
+  })
+
+  it('openness lets foreign balance sheets absorb more of the auction', () => {
+    const closed = fundedState({ bondIssuance: 0.04, openness: 0.25 })
+    const open = fundedState({ bondIssuance: 0.04, openness: 2 })
+    expect(privateFundingSpread(closed)).toBeGreaterThan(privateFundingSpread(open))
+  })
+
+  it('high sovereign risk raises the common private real rate', () => {
+    const lowDebt = fundedState({ debtToGdp: 0.3 })
+    const highDebt = fundedState({ debtToGdp: 1 })
+    expect(privateRealRate(highDebt)).toBeGreaterThan(privateRealRate(lowDebt))
+  })
+
+  it('funding pressure tightens bank credit and asset valuation', () => {
+    const lowDebt = runStep('finance', fundedState({ debtToGdp: 0.3 }))
+    const highDebt = runStep('finance', fundedState({ debtToGdp: 1 }))
+    expect(highDebt.finance.creditToGdp).toBeLessThan(lowDebt.finance.creditToGdp)
+    expect(highDebt.finance.assetPrice).toBeLessThan(lowDebt.finance.assetPrice)
+  })
+
+  it('funding pressure lowers private investment demand', () => {
+    const lowDebt = runStep('production', fundedState({ debtToGdp: 0.3 }))
+    const highDebt = runStep('production', fundedState({ debtToGdp: 1 }))
+    expect(highDebt.flows.investmentReal).toBeLessThan(lowDebt.flows.investmentReal)
   })
 })
 

@@ -133,6 +133,13 @@ export const BOND_MARKET_DEPTH = 0.05
 /** …and beyond this debt/GDP, markets close entirely */
 export const DEBT_CEILING = 1.2
 export const RISK_PREMIUM_SLOPE = 0.06 // adds to interest as debt/GDP grows past 0.5
+/** Share of the sovereign premium that reaches domestic private funding costs. */
+export const SOVEREIGN_PRIVATE_PREMIUM_SHARE = 0.5
+/** Bond issuance as a share of quarterly GDP bids up the private annual rate.
+ * Openness determines how much of the auction domestic balance sheets carry. */
+export const BOND_CROWDING_RATE_GAIN = 1.0
+export const domesticBondFundingShare = (openness: number): number =>
+  1 / (1 + Math.max(0, openness))
 
 // ---------- capacity (Layer 2) ----------
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity

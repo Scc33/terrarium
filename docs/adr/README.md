@@ -25,3 +25,4 @@ the old one and update the Status line of both.
 | [0010](0010-dev-console.md) | The dev console shows truth without weakening the boundary | Accepted |
 | [0011](0011-countries-are-replayable-recipes.md) | Countries are replayable recipes, not alternate engines | Accepted |
 | [0012](0012-technology-is-a-gap-not-a-tree.md) | Technology is a moving gap, not an unlock tree | Accepted |
+| [0013](0013-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Accepted |
