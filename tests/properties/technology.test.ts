@@ -8,11 +8,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyActions,
+  BLOC_IDS,
+  breakthroughHazard,
   frontierGrowthAt,
   init,
   researchAllocation,
+  SECTOR_IDS,
   step,
-  technologyAttainment,
   type TrueState,
 } from '@terrarium/engine'
 import { standardCountry } from '@terrarium/fixtures'
@@ -110,20 +112,122 @@ describe('two trees and the gap (§9)', () => {
   })
 
   it('research grants accelerate domestic attainment when the country is behind', () => {
-    const passive = runResearch('tech-rd-catchup', 40, 0.1, false)
-    const funded = runResearch('tech-rd-catchup', 40, 0.1, true)
+    const passive = runResearch('tech-rd-catchup', 80, 0.1, false)
+    const funded = runResearch('tech-rd-catchup', 80, 0.1, true)
+    // a country this far back funds adaptation, and adaptation alone
     expect(funded.tech.frontier).toBeCloseTo(passive.tech.frontier, 10)
+    // EVERY sector's technique improves. The assertion is deliberately
+    // per-sector rather than on `technologyAttainment`: the aggregate is
+    // output-weighted, research makes the economy grow, and growth shifts
+    // output toward services — the sector Baumol keeps furthest from its own
+    // frontier. So the index can fall in a quarter when every single sector
+    // in it rose. That is a property of the measure, not of the policy, and
+    // a test that pins the policy must not be hostage to it.
+    for (const id of SECTOR_IDS) {
+      expect(funded.tech.attained[id]).toBeGreaterThan(passive.tech.attained[id])
+    }
     expect(funded.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf * 1.03)
-    expect(technologyAttainment(funded)).toBeGreaterThan(technologyAttainment(passive) + 0.02)
   })
 
-  it('near-frontier research pushes the frontier, slowly', () => {
-    const passive = runResearch('tech-rd-frontier', 40, 0.9, false)
-    const funded = runResearch('tech-rd-frontier', 40, 0.9, true)
-    expect(funded.tech.frontier).toBeGreaterThan(passive.tech.frontier * 1.005)
-    expect(funded.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf)
-    // Original research is the expensive end of the same policy, not a growth cheat.
-    expect(funded.tech.frontier).toBeLessThan(passive.tech.frontier * 1.02)
+  it('near-frontier research pushes the frontier — in lumps, so on average', () => {
+    // Invention is a hazard process now: effort buys shots on goal, not a
+    // delivery date. Any ONE century is a coin the engine flips, so the claim
+    // is about the mean — which is exactly the quantity BREAKTHROUGH_SIZE was
+    // chosen to leave unchanged.
+    const seeds = Array.from({ length: 12 }, (_, i) => `tech-rd-frontier-${i}`)
+    let ratioSum = 0
+    let everPushed = 0
+    for (const seed of seeds) {
+      const passive = runResearch(seed, 80, 0.9, false)
+      const funded = runResearch(seed, 80, 0.9, true)
+      // nobody's research ever makes the frontier RETREAT
+      expect(funded.tech.frontier).toBeGreaterThanOrEqual(passive.tech.frontier)
+      ratioSum += funded.tech.frontier / passive.tech.frontier
+      if (funded.tech.frontier > passive.tech.frontier) everPushed++
+    }
+    const mean = ratioSum / seeds.length
+    expect(mean).toBeGreaterThan(1.004)
+    // Original research is the expensive end of the same policy, not a growth
+    // cheat: twenty years of it buys low single-digit percents of frontier.
+    expect(mean).toBeLessThan(1.03)
+    // and it is a bet, not a purchase — some countries get nothing for it
+    expect(everPushed).toBeGreaterThan(2)
+    expect(everPushed).toBeLessThan(seeds.length)
+  })
+
+  it('a research base is inherited: it coasts through a bad budget year', () => {
+    // The stock is the whole point. A programme cut to zero keeps delivering
+    // for years, which is what makes strangling one a slow political act
+    // rather than a switch the player flips.
+    let s = init(researchCountry(0.5), 'tech-rd-stock')
+    s = applyActions(s, [
+      { kind: 'setDial', path: 'spending.research', value: 0.03 * s.flows.nominalGdp },
+    ])
+    for (let t = 0; t < 60; t++) s = step(s)
+    const built = s.tech.researchStock
+    expect(built).toBeGreaterThan(0)
+
+    // the cheque stops entirely
+    s = applyActions(s, [{ kind: 'setDial', path: 'spending.research', value: 0 }])
+    let afterFourQuarters = 0
+    for (let t = 0; t < 24; t++) {
+      s = step(s)
+      if (t === 3) afterFourQuarters = s.tech.researchStock
+    }
+    // a year later most of the base is still working…
+    expect(afterFourQuarters).toBeGreaterThan(0.7 * built)
+    // …six years later it has largely gone
+    expect(s.tech.researchStock).toBeLessThan(0.35 * built)
+  })
+
+  it('entrenched incumbents veto invention, not just imitation (§4.3)', () => {
+    // The gate this closes: absorption was already priced by creative
+    // destruction, so a captured economy could not absorb what others had
+    // invented — but could still buy original innovation with money. That is
+    // backwards on this model's own logic, and on Acemoglu's.
+    const base = runResearch('tech-rd-capture', 40, 0.9, true)
+    const withCapture = (power: number): TrueState => ({
+      ...base,
+      institutions: {
+        ...base.institutions,
+        blocs: Object.fromEntries(
+          BLOC_IDS.map((id) => [id, { ...base.institutions.blocs[id], power }]),
+        ) as typeof base.institutions.blocs,
+      },
+    })
+    const checked = withCapture(0.1)
+    const captured = withCapture(0.95)
+    const intensity = base.tech.researchStock * 0.05
+    const hazardOf = (s: TrueState) =>
+      breakthroughHazard(s, researchAllocation(s), intensity)
+
+    expect(hazardOf(checked)).toBeGreaterThan(0)
+    expect(hazardOf(captured)).toBeLessThan(hazardOf(checked))
+    // and it damps rather than forbids — a bloc makes things expensive, never
+    // impossible, the same rule every other veto in the game follows
+    expect(hazardOf(captured)).toBeGreaterThan(0)
+  })
+
+  it('one budget, two programmes: invention where you lead, imitation where you lag', () => {
+    // Sector-directed research is what lets an economy be honestly uneven.
+    // A blended split could only ever say one thing about a whole country.
+    const base = init(researchCountry(0.5), 'tech-rd-uneven')
+    const uneven: TrueState = {
+      ...base,
+      tech: {
+        ...base.tech,
+        // machine shops at world practice, the fields a generation behind
+        attained: { ...base.tech.attained, manuf: 0.99, agri: 0.4 },
+      },
+    }
+    const split = researchAllocation(uneven)
+    expect(split.frontierBySector.manuf).toBeGreaterThan(0.9)
+    expect(split.frontierBySector.agri).toBe(0)
+    expect(split.catchupBySector.agri).toBe(1)
+    // the ministry-level number is the output-weighted blend of the two
+    expect(split.frontierShare).toBeGreaterThan(0)
+    expect(split.frontierShare).toBeLessThan(split.frontierBySector.manuf)
+    expect(split.catchupShare).toBeCloseTo(1 - split.frontierShare, 12)
   })
 
   it('research money needs both administration and educated staff', () => {

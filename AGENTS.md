@@ -200,6 +200,24 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   how `government_demand_share` shipped a 0–20 face for a series that lived at 1–3 %. Read the
   `pnpm ranges` percentiles when you add a face; a passing test is not evidence the dial is
   legible.
+- **A ratio to a moving target saturates, and a saturated dial is a silent one.**
+  `technology_attainment` is attainment ÷ frontier, and research pushes the frontier — so the
+  better the programme, the harder its own dial is to move. Measured: a maximum research
+  programme moves it ten points in its first decade and four in the eighty years after, while
+  output per worker triples. That is why `productivity` exists beside it. When an indicator
+  divides by something the player can change, check it still moves at the top of the range.
+- **An aggregate index can fall while every component of it rises.** `technologyAttainment` is
+  output-weighted, and growth shifts output toward services — the sector Baumol keeps furthest
+  from its frontier. So funding research can lower the index it is supposed to raise. Assert
+  policy claims per sector; the composition effect belongs to the measure, not the policy.
+- **Preserve the expectation when you make a mechanic stochastic.** Breakthroughs are a hazard
+  process whose `hazard × size` equals the deterministic term they replaced, so the calibrated
+  century survives and only any single century became a gamble. The corollary is a test
+  discipline: a claim about a lumpy mechanic has to be asserted over seeds, never one run.
+- **Research is a stock, and that is what makes a research programme political.** Money enters
+  `tech.researchStock` and decays; gains read the stock, not the cheque. A steady programme is
+  arithmetically identical to the old flow model — only the transients moved — which is how a
+  behavioural change ships without a recalibration.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a

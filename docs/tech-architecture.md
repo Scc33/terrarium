@@ -254,9 +254,17 @@ introduced it:
 
 Technology is deliberately a gap rather than a tree (ADR-0012). The historical world frontier
 advances without player input. `spending.research` becomes effective only after administrative
-delivery and skilled staffing: behind the frontier it raises the existing catch-up rate; near the
-frontier it increasingly produces smaller original gains. The player sees only the fogged
-`technology_attainment` ratio, never the exact frontier, sector attainment, or TFP.
+delivery and skilled staffing, then accumulates into a decaying research stock rather than
+becoming technique the same quarter (ADR-0013) — so a programme coasts through a bad budget year
+and takes years to strangle. Behind the frontier it raises the existing catch-up rate; near it
+the same budget funds original work, which lands as a stochastic breakthrough rather than a drip,
+and which the incumbents can veto exactly as they veto absorption (§4.3). The split is derived
+per sector, so one economy can imitate in the fields and invent in the machine shops.
+
+The player sees two fogged instruments and never the frontier, sector attainment, or TFP:
+`technology_attainment` (the ratio — are we catching up?) and `productivity` (the level — output
+per worker against our own 1946). Two are needed because the ratio saturates: research pushes the
+frontier it is measured against, so the better the programme the quieter its own dial goes.
 
 ---
 

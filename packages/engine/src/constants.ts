@@ -160,6 +160,13 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   unemployment: 0.35,
   payrolls: 0.3,
   capital_stock: 0.3,
+  // Output per worker needs the accounts and a labour force survey reconciled
+  // against each other — more than either alone, and less than the industrial
+  // census plus international comparisons `technology_attainment` waits for.
+  // It therefore arrives one rung EARLIER than the technology plate, which is
+  // the right order to learn them in: "we are getting more per worker" is a
+  // fact about you, and reads without knowing what the world is doing.
+  productivity: 0.4,
   // productivity accounts need both an industrial census and international
   // comparisons; the plate unlocks beside the confidence surveys
   technology_attainment: 0.45,
@@ -268,8 +275,36 @@ export const RESEARCH_CATCHUP_GAIN_Q = 0.4
  * growth. */
 export const RESEARCH_FRONTIER_GAIN_Q = 0.035
 /** Below this share of frontier practice all effective research is adaptation;
- * above it the budget shifts linearly toward original work. */
+ * above it the budget shifts linearly toward original work. Read PER SECTOR:
+ * a country at best practice in manufacturing and a generation behind in the
+ * fields funds original work in the one and adaptation in the other, which is
+ * what every real industrial policy has actually looked like. */
 export const RESEARCH_FRONTIER_START = 0.7
+/** Research is a STOCK, not a cheque. Money buys laboratories, trained people
+ * and half-finished programmes, and those keep delivering for years after the
+ * appropriation stops — which is why a research base is something a government
+ * INHERITS, and why strangling one is slow enough to be deniable. Decay is per
+ * quarter; 0.05 is a half-life near fourteen quarters, so a programme coasts
+ * about three years on momentum and takes about five to reach full stride.
+ *
+ * The steady-state stock is `effectiveShare / RESEARCH_STOCK_DECAY_Q` and every
+ * downstream gain reads `intensity = stock × decay`, so a programme held steady
+ * behaves EXACTLY as the old flow model did. Only the transients changed, which
+ * is what keeps the coefficients below calibrated. */
+export const RESEARCH_STOCK_DECAY_Q = 0.05
+/** Original research arrives in lumps. Catch-up is reliable — the technique
+ * exists and somebody is selling it — but invention is a hazard process: effort
+ * buys shots on goal, not a delivery date. So effort sets the HAZARD and the
+ * size of a breakthrough is a constant of nature. That way a modest programme
+ * gets the occasional windfall instead of a permanent trickle too small to see,
+ * and the player learns that research is a bet rather than a purchase.
+ *
+ * Expectation is preserved exactly: `hazard = RESEARCH_FRONTIER_GAIN_Q × effort
+ * / BREAKTHROUGH_SIZE`, so hazard × size returns the deterministic term this
+ * replaced and the century-long average is unchanged. The clamp is a safety
+ * rail: realistic effort puts the hazard near 0.1, not near it. */
+export const BREAKTHROUGH_SIZE = 0.012
+export const BREAKTHROUGH_HAZARD_MAX = 0.5
 
 // ---------- demography (§8) ----------
 /** schooling suppresses fertility beyond the income channel (§8: female

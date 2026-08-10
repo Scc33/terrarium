@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 18)
+## Current contract (schema 19)
 
 ### Inputs
 
@@ -108,6 +108,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
 | `household_saving_rate` | % disposable income | 0.45 | v15 | disposable income not consumed; consumption is the complement |
+| `productivity` | 1946=100 | 0.40 | v19 | annualized real GDP ÷ total employment (incl. agriculture), indexed to own 1946 |
 | `technology_attainment` | % frontier | 0.45 | v18 | output-weighted domestic technique ÷ sector-adjusted world frontier |
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
@@ -162,6 +163,46 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 19 — Research as a stock, invention as a bet
+
+- **Outputs +**: `productivity` (fogged, unlock 0.40, unit `1946=100`) — annualized real GDP ÷
+  total employment, indexed to this country's own 1946. Economy-wide *including* agriculture,
+  which is the opposite of the `payrolls` convention: the subsistence valve keeps the
+  impoverished nominally employed, so an ex-agri series would delete the dual-economy drag this
+  instrument exists to show. Published as labour productivity rather than TFP because an office
+  can count output and count workers, whereas TFP is a residual from an assumed production
+  function. It unlocks one rung *below* `technology_attainment`: "we are getting more per
+  worker" is a fact about you and reads without knowing what the world is doing.
+  Added because attainment is a ratio to a frontier the player can push, so it saturates —
+  measured, a maximum research programme moves that dial ten points in its first decade and
+  four points in the eighty years after, while output per worker keeps climbing.
+- **Inputs**: unchanged. No new lever; `spending.research` behaves as in v18.
+- **Mechanism (research is now a stock)**: appropriations accumulate into `tech.researchStock`
+  and decay at `RESEARCH_STOCK_DECAY_Q`; every downstream gain reads the stock's flow-equivalent
+  rather than the quarter's cheque. A steady programme is arithmetically identical to v18 — only
+  the transients changed — but a programme now takes about five years to reach full stride and
+  keeps delivering about three after it is cut.
+- **Mechanism (invention is a hazard)**: the country's own contribution to the world frontier is
+  no longer a deterministic drip. Effort sets a per-quarter hazard and a breakthrough is a fixed
+  `BREAKTHROUGH_SIZE` jump, with `hazard × size` equal to the v18 term, so the expected century
+  is unchanged and any single century is not. A breakthrough writes an unconditional news item —
+  announced by the laboratory, not measured by the office, the same rule a drought gets.
+  The *historical* frontier schedule stays deterministic.
+- **Mechanism (research is sector-directed)**: the catch-up/invention split is derived per sector
+  from that sector's own position, not from one blended national figure, so the same budget buys
+  imitation in the fields and original work in the machine shops. A sector's contribution to the
+  *world* frontier is weighted by `TECH_EXPOSURE`, so frontier manufacturing pushes world
+  technique and frontier haircuts largely do not.
+- **Mechanism (the elite gate)**: `creativeDestruction` now prices original research as well as
+  absorption. Before this, a captured economy could not absorb what others had invented but could
+  still buy invention with money — backwards on §4.3's own logic.
+- **Pipeline**: unchanged order. The `technology` step now draws from its own (previously unused)
+  RNG substream; substreams are per-step, so no other step's sequence moved.
+- **Economy**: passive and fuel-tax replays are *bit-identical* apart from the schema stamp and
+  the added fields — a zero-research government has an empty stock, a zero hazard, and a
+  `catchupRate` that reduces to exactly the v18 expression. Verified with
+  `pnpm diff-state --moved-only` and by running the 400×400 passive batch against master.
 
 ### schema 18 — Technology policy and the gap
 - **Inputs +**: `spending.research`, a recurring money-per-quarter Layer-1 programme. Like the
