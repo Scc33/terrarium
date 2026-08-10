@@ -174,7 +174,6 @@ export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
   adminEffectiveness,
   CORRIDOR_HALF_WIDTH,
-  DROUGHT_RECOVERY_QTRS,
   ELECTION_WIN_THRESHOLD,
   INDICATOR_FUNDED_AT,
   LEGITIMACY_GRADE_ELECTIONS,

@@ -320,9 +320,7 @@ export interface ExternalState {
   shocks: {
     /** quarters of failed harvest still to run; 0 = no drought */
     droughtQtrsLeft: Qtr
-    /** quarters of gradual harvest recovery still to run; 0 = not recovering */
-    droughtRecoveryQtrsLeft: Qtr
-    /** agri tfp multiplier applied at onset and unwound during recovery */
+    /** agri tfp multiplier applied while the drought runs (restored after) */
     droughtSeverity: number
   }
 }
@@ -665,7 +663,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 20 // v20: drought recovery is gradual and explicit in state
+export const SCHEMA_VERSION = 19 // v19: research as a stock, lumpy breakthroughs, published productivity
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

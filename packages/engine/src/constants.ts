@@ -219,9 +219,6 @@ export const ENERGY_SHOCK_JUMP: [number, number] = [1.5, 2.2]
 export const DROUGHT_P = 0.012
 export const DROUGHT_SEVERITY: [number, number] = [0.78, 0.9] // agri tfp multiplier
 export const DROUGHT_EXTRA_QTRS: [number, number] = [1, 3] // beyond the onset quarter
-/** Harvest capacity returns over a year after the rain, rather than appearing
- * all at once in a single quarterly growth print. */
-export const DROUGHT_RECOVERY_QTRS = 4
 /** world prices drift home after a rupture — this is what makes a shock a
  * crisis instead of a new normal (half-life ≈ 5–6 years) */
 export const WORLD_PRICE_REVERT = 0.03

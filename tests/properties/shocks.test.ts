@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  DROUGHT_RECOVERY_QTRS,
-  init,
-  rngFor,
-  step,
-  TICK_ORDER,
-  type TrueState,
-} from '@terrarium/engine'
+import { init, step, type TrueState } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -24,11 +17,6 @@ function century(seed: string, ticks = 400): TrueState[] {
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(xs.length, 1)
 
-function runStep(name: string, state: TrueState): TrueState {
-  const pipelineStep = TICK_ORDER.find((candidate) => candidate.name === name)!
-  return pipelineStep.run(state, rngFor(state.meta.seed, name, state.meta.tick))
-}
-
 describe('the crisis clock (Pillar 4)', () => {
   const states = century('crisis-2')
   const news = states[states.length - 1].stats.news
@@ -44,57 +32,10 @@ describe('the crisis clock (Pillar 4)', () => {
 
   it('droughts bite: agri gets scarcer relative to services while the rain stays away', () => {
     const ratio = (s: TrueState) => s.market.prices.agri / s.market.prices.services
-    const inDrought = states.filter(
-      (s) =>
-        s.external.shocks.droughtQtrsLeft > 0 ||
-        s.external.shocks.droughtRecoveryQtrsLeft > 0,
-    )
-    const dry = states.filter(
-      (s) =>
-        s.external.shocks.droughtQtrsLeft === 0 &&
-        s.external.shocks.droughtRecoveryQtrsLeft === 0,
-    )
+    const inDrought = states.filter((s) => s.external.shocks.droughtQtrsLeft > 0)
+    const dry = states.filter((s) => s.external.shocks.droughtQtrsLeft === 0)
     expect(inDrought.length).toBeGreaterThan(4)
     expect(mean(inDrought.map(ratio))).toBeGreaterThan(mean(dry.map(ratio)) * 1.02)
-  })
-
-  it('leaves the gradual restoration experiment as an executable engine artifact', () => {
-    const normal = init(standardCountry, 'drought-recovery-artifact')
-    const severity = 0.81
-    const normalAgriTfp = normal.sectors.find((sector) => sector.id === 'agri')!.tfp
-    let state: TrueState = {
-      ...normal,
-      sectors: normal.sectors.map((sector) =>
-        sector.id === 'agri' ? { ...sector, tfp: sector.tfp * severity } : sector,
-      ),
-      external: {
-        ...normal.external,
-        shocks: {
-          droughtQtrsLeft: 1,
-          droughtRecoveryQtrsLeft: 0,
-          droughtSeverity: severity,
-        },
-      },
-    }
-
-    const recoveryPath: number[] = []
-    for (let quarter = 0; quarter < DROUGHT_RECOVERY_QTRS; quarter++) {
-      state = runStep('shocks', state)
-      recoveryPath.push(state.sectors.find((sector) => sector.id === 'agri')!.tfp)
-    }
-
-    expect(recoveryPath[0]).toBeGreaterThan(normalAgriTfp * severity)
-    expect(recoveryPath[0]).toBeLessThan(normalAgriTfp)
-    for (let index = 1; index < recoveryPath.length; index++) {
-      expect(recoveryPath[index]).toBeGreaterThan(recoveryPath[index - 1])
-    }
-    expect(recoveryPath[recoveryPath.length - 1]).toBeCloseTo(normalAgriTfp, 10)
-    expect(state.external.shocks).toEqual({
-      droughtQtrsLeft: 0,
-      droughtRecoveryQtrsLeft: 0,
-      droughtSeverity: 1,
-    })
-    expect(state.stats.news.filter((item) => item.text.startsWith('Rains return'))).toHaveLength(1)
   })
 
   it('oil ruptures are crises, not new normals: spikes on impact, home in the mean', () => {

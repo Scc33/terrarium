@@ -8,14 +8,7 @@
  * certainty — a drought is not fog, everyone can see the sky.
  */
 
-import {
-  DROUGHT_EXTRA_QTRS,
-  DROUGHT_P,
-  DROUGHT_RECOVERY_QTRS,
-  DROUGHT_SEVERITY,
-  ENERGY_SHOCK_JUMP,
-  ENERGY_SHOCK_P,
-} from '../constants'
+import { DROUGHT_EXTRA_QTRS, DROUGHT_P, DROUGHT_SEVERITY, ENERGY_SHOCK_JUMP, ENERGY_SHOCK_P } from '../constants'
 import type { NewsItem } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 
@@ -25,28 +18,21 @@ export const shocks: PipelineStep = {
     const { external, stats } = state
     let sectors = state.sectors
     let worldPrices = external.worldPrices
-    let { droughtQtrsLeft, droughtRecoveryQtrsLeft, droughtSeverity } = external.shocks
+    let { droughtQtrsLeft, droughtSeverity } = external.shocks
     const news: NewsItem[] = []
 
-    // --- drought bookkeeping: run down, then recover one harvest at a time ---
+    // --- drought bookkeeping: run down, then the next harvest comes in ---
     if (droughtQtrsLeft > 0) {
       droughtQtrsLeft -= 1
       if (droughtQtrsLeft === 0) {
-        droughtRecoveryQtrsLeft = DROUGHT_RECOVERY_QTRS
-        const recovery = Math.pow(1 / droughtSeverity, 1 / DROUGHT_RECOVERY_QTRS)
-        sectors = sectors.map((s) => (s.id === 'agri' ? { ...s, tfp: s.tfp * recovery } : s))
-        droughtRecoveryQtrsLeft -= 1
+        sectors = sectors.map((s) => (s.id === 'agri' ? { ...s, tfp: s.tfp / droughtSeverity } : s))
+        droughtSeverity = 1
         news.push({
           tick: state.meta.tick,
-          text: 'Rains return; the harvest begins a gradual recovery.',
+          text: 'Rains return; the provinces expect a decent harvest.',
           tone: 'good',
         })
       }
-    } else if (droughtRecoveryQtrsLeft > 0) {
-      const recovery = Math.pow(1 / droughtSeverity, 1 / DROUGHT_RECOVERY_QTRS)
-      sectors = sectors.map((s) => (s.id === 'agri' ? { ...s, tfp: s.tfp * recovery } : s))
-      droughtRecoveryQtrsLeft -= 1
-      if (droughtRecoveryQtrsLeft === 0) droughtSeverity = 1
     } else if (rng.next() < DROUGHT_P) {
       droughtSeverity = rng.range(...DROUGHT_SEVERITY)
       droughtQtrsLeft = Math.floor(rng.range(DROUGHT_EXTRA_QTRS[0], DROUGHT_EXTRA_QTRS[1] + 1))
@@ -72,19 +58,14 @@ export const shocks: PipelineStep = {
     if (
       sectors === state.sectors &&
       worldPrices === external.worldPrices &&
-      droughtQtrsLeft === external.shocks.droughtQtrsLeft &&
-      droughtRecoveryQtrsLeft === external.shocks.droughtRecoveryQtrsLeft
+      droughtQtrsLeft === external.shocks.droughtQtrsLeft
     ) {
       return state // a quiet quarter — most are
     }
     return {
       ...state,
       sectors,
-      external: {
-        ...external,
-        worldPrices,
-        shocks: { droughtQtrsLeft, droughtRecoveryQtrsLeft, droughtSeverity },
-      },
+      external: { ...external, worldPrices, shocks: { droughtQtrsLeft, droughtSeverity } },
       stats: news.length > 0 ? { ...stats, news: [...stats.news, ...news] } : stats,
     }
   },
