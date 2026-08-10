@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import {
   Button,
   ChartFrame,
@@ -13,7 +13,11 @@ import {
   SliderField,
 } from '../components/ui'
 import { SHARE_INKS } from '../shares'
+import { AnalogGauge } from '../components/AnalogGauge/AnalogGauge'
 import { BlankPlate } from '../components/BlankPlate/BlankPlate'
+import { TerminalTicker } from '../components/TerminalTicker/TerminalTicker'
+import { NAMES } from '../components/labels'
+import { BOARD_SLOT, GALLERY_INSTRUMENTS, GALLERY_NOW } from './galleryFixtures'
 
 const TREND = [
   { tick: 0, value: 100 },
@@ -108,6 +112,39 @@ export function ComponentGallery() {
           <EmptyState title="NO RETURNS FILED" requirement="BANK SUPERVISION">Fund the supervisor before the leverage becomes legible.</EmptyState>
           <EmptyState title="RECORD TOO SHORT" compact>Advance several quarters to establish a trend.</EmptyState>
         </Panel>
+
+        <div className="lg:col-span-2">
+          <Panel tone="felt" title="FITTED INSTRUMENTS · ONE BOARD SLOT EACH" bodyClassName="space-y-3 p-3">
+            <p className="max-w-[78ch] font-mono text-[9px] leading-relaxed text-dossier-paper/60">
+              Each tile is sized to a single watch-board slot at the 1280×720 reference viewport, not to
+              the page. Rendering these full width would prove nothing — the terminal header shears at
+              this width or not at all, and `WallTile` clips the evidence. Both eras of the same series
+              sit together, because a graduating instrument must stay the same chart.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {GALLERY_INSTRUMENTS.map(({ indicator, series }) => (
+                <Fragment key={indicator}>
+                  <figure className="m-0">
+                    <figcaption className="mb-1 font-mono text-[8px] tracking-[0.18em] text-dossier-paper/55">
+                      DOSSIER · {NAMES[indicator].plate}
+                    </figcaption>
+                    <div style={{ width: BOARD_SLOT.w, height: BOARD_SLOT.h }}>
+                      <AnalogGauge indicator={indicator} series={series} now={GALLERY_NOW} />
+                    </div>
+                  </figure>
+                  <figure className="m-0">
+                    <figcaption className="mb-1 font-mono text-[8px] tracking-[0.18em] text-dossier-paper/55">
+                      TERMINAL · {NAMES[indicator].plate}
+                    </figcaption>
+                    <div style={{ width: BOARD_SLOT.w, height: BOARD_SLOT.h }}>
+                      <TerminalTicker indicator={indicator} series={series} now={GALLERY_NOW} />
+                    </div>
+                  </figure>
+                </Fragment>
+              ))}
+            </div>
+          </Panel>
+        </div>
 
         <div className="lg:col-span-2">
           <Panel tone="felt" title="INSTRUMENT ACCESS STATES" bodyClassName="grid gap-3 p-3 sm:grid-cols-2">

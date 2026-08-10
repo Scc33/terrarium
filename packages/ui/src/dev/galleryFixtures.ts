@@ -1,0 +1,238 @@
+/**
+ * Deterministic published series for the component gallery.
+ *
+ * The gallery existed to pin every visual state a screenshot suite needs, but
+ * until now it pinned no FITTED instrument: it rendered `BlankPlate` and a
+ * hand-written phosphor swatch, and every other visual test opens a 1946
+ * dashboard where nothing has been surveyed yet. So no screenshot in the suite
+ * had ever contained a working gauge or ticker, and a horizontal shear in the
+ * terminal ticker's header shipped and survived every visual run — the figures
+ * were pushed off the right edge of a 213 px board slot and clipped by
+ * `WallTile`'s `overflow-hidden`, which is exactly the fourth failure mode that
+ * component's module comment warns about. It was found by hand in a browser.
+ *
+ * WHAT THESE NUMBERS ARE. Values, revisions and GDP levels are lifted from real
+ * engine runs rather than invented, so the tiles show figures the wall can
+ * actually print:
+ *
+ *   - `gdp_growth` comes from Costona at 2040–2049 — the one curated country
+ *     with a big enough population to carry FOUR-DIGIT GDP levels, which is
+ *     what makes its `R…/N…` string the widest thing the header ever holds.
+ *   - `household_saving_rate` comes from a fully-surveyed procedural century.
+ *     It is the only indicator left carrying a `complement` (`SPEND …`), the
+ *     extra right-hand header segment that used to belong to the withdrawn
+ *     `government_demand_share` (schema 16, see docs/metrics-changelog.md).
+ *
+ * The one synthesis: error bands are a WELL-SURVEYED office's, not the office
+ * each trace actually had. The engine only confesses a band above 0.45
+ * statistical capacity, and Costona — poor, large, hard — never sustains that,
+ * so in a single natural run four-digit levels and a `±` band never co-occur.
+ * They are independent per-print fields, and the gallery's job is to pin the
+ * WIDEST header the component can emit, not the modal one.
+ *
+ * Everything here is a literal. No RNG, no clock: the screenshot is stable.
+ */
+
+import type { IndicatorId, IndicatorPoint, IndicatorSeries } from '@terrarium/observation'
+
+/** One watch-board slot at the 1280×720 reference viewport, measured against
+ * the running app (`.instrument-board > *`). Rendering these tiles full-width
+ * would prove nothing — the shear only appears in a slot this narrow. */
+export const BOARD_SLOT = { w: 213, h: 218 } as const
+
+/** 2050 Q1 — the end of the playable century, where the levels are largest. */
+export const GALLERY_NOW = 416
+
+/**
+ * The office's release schedule, mirrored from `printsDue` in
+ * `engine/src/pipeline/statistics.ts` (`REVISION_DELAYS = [0, 2, 5]`, and a
+ * one-quarter lag once the statistical service is worth having). A quarter is
+ * therefore carrying, at `GALLERY_NOW`:
+ *
+ *   revision 2 (final)  q ≤ now−6
+ *   revision 1          now−5 … now−3
+ *   revision 0 (first)  now−2 … now−1
+ *
+ * The traces below were sampled at their own `now` and are laid down against
+ * this schedule unchanged, so each quarter carries the revision the engine
+ * really had published for it.
+ */
+const REVISION_DELAYS = [0, 2, 5] as const
+const PUBLICATION_LAG = 1
+/** each revision narrows the office's confessed band by this factor */
+const REVISION_BAND_DECAY = 0.45
+
+/** `[firstPrint, latestPrint]`, plus `[real, nominal]` GDP levels where the
+ * indicator carries them (`withLevels` — `gdp_growth` alone). */
+type FixtureQuarter = readonly [number, number] | readonly [number, number, number, number]
+
+const topRevisionAt = (forQtr: number, now: number): number => {
+  for (let r = REVISION_DELAYS.length - 1; r >= 0; r--) {
+    if (forQtr + PUBLICATION_LAG + REVISION_DELAYS[r] <= now) return r
+  }
+  return 0
+}
+
+/**
+ * Lay a trace down as the prints an office would actually have released by
+ * `GALLERY_NOW`: the first print always, plus the latest revision where one is
+ * due. The middle revision is omitted where a final exists — `shapeSeries`
+ * keeps only the first and the highest, so nothing on screen can tell.
+ */
+function buildSeries(
+  id: IndicatorId,
+  label: string,
+  unit: string,
+  quarters: readonly FixtureQuarter[],
+  firstBand: number,
+): IndicatorSeries {
+  const points: IndicatorPoint[] = []
+  quarters.forEach((quarter, i) => {
+    const forQtr = GALLERY_NOW - quarters.length + i
+    const [first, latest] = quarter
+    const levels = quarter.length === 4 ? { real: quarter[2], nominal: quarter[3] } : undefined
+    points.push({
+      forQtr,
+      publishedAt: forQtr + PUBLICATION_LAG,
+      value: first,
+      revision: 0,
+      errorBand: firstBand,
+      ...(levels ? { levels } : {}),
+    })
+    const top = topRevisionAt(forQtr, GALLERY_NOW)
+    if (top > 0) {
+      points.push({
+        forQtr,
+        publishedAt: forQtr + PUBLICATION_LAG + REVISION_DELAYS[top],
+        value: latest,
+        revision: top,
+        errorBand: firstBand * Math.pow(REVISION_BAND_DECAY, top),
+        ...(levels ? { levels } : {}),
+      })
+    }
+  })
+  return { id, label, unit, points }
+}
+
+/**
+ * Costona, 2040 Q1 – 2049 Q4. A boom, a five-year slump that takes the needle
+ * off the bottom of the −15…15 face, and a sharp recovery — and the office
+ * revising 2048 Q1 from +0.97 to +7.84 along the way, which is what earns the
+ * REVISED stamp the gauge prints. Levels run 1228 → 1671 real.
+ */
+const GDP_GROWTH_QUARTERS: readonly FixtureQuarter[] = [
+  [-1.85, 0.83, 1228, 1392],
+  [0.74, 2.89, 1258, 1417],
+  [-2.96, 2.07, 1254, 1407],
+  [-0.37, 0.01, 1266, 1415],
+  [0.57, 2.48, 1271, 1411],
+  [-0.05, 1.35, 1279, 1413],
+  [2.22, 3.86, 1295, 1417],
+  [3.73, 2.64, 1306, 1420],
+  [7.38, 3.34, 1328, 1437],
+  [1.59, 2.83, 1312, 1413],
+  [7.94, 3.56, 1337, 1432],
+  [3.77, 2.31, 1342, 1433],
+  [8.37, 5.87, 1347, 1431],
+  [6.62, 3.66, 1365, 1448],
+  [4.28, 3.42, 1389, 1474],
+  [12.37, 13.61, 1422, 1500],
+  [5.3, 7.5, 1452, 1537],
+  [1.53, 2.95, 1467, 1565],
+  [0.6, 0.69, 1475, 1590],
+  [7.21, 0.46, 1480, 1612],
+  [-1.37, -0.28, 1489, 1639],
+  [2.6, -0.42, 1476, 1641],
+  [-4.49, -2.09, 1464, 1640],
+  [-1.49, -2.39, 1465, 1656],
+  [-2.73, -2.02, 1458, 1650],
+  [-1.31, -0.38, 1447, 1641],
+  [1.15, -1.71, 1435, 1626],
+  [-2.85, -1.42, 1442, 1627],
+  [-2.83, -1.38, 1440, 1616],
+  [-3.37, -3.53, 1423, 1591],
+  [-9.08, -7.11, 1393, 1594],
+  [-3.55, -4.85, 1384, 1606],
+  [0.34, -2.07, 1380, 1605],
+  [3.53, 3.36, 1392, 1584],
+  [4.41, 3.07, 1405, 1562],
+  [1.9, 5.22, 1417, 1540],
+  [0.97, 7.84, 1442, 1532],
+  [9.38, 12.03, 1467, 1522],
+  [4.55, 4.55, 1474, 1497],
+  [10.76, 10.76, 1671, 1659],
+]
+
+/** A fully-surveyed procedural century: households save through a good decade,
+ * dip into drawdown below the DRAWDOWN mark on the face, and recover. */
+const SAVING_RATE_QUARTERS: readonly FixtureQuarter[] = [
+  [1.32, 2.39],
+  [0.94, 2.58],
+  [1.98, 2.95],
+  [2.86, 3.75],
+  [1.03, 3.95],
+  [5.5, 4.03],
+  [0.91, 3.4],
+  [4.01, 2.62],
+  [2.12, 3.05],
+  [3.64, 2.51],
+  [1.72, 2.45],
+  [1.51, 2.24],
+  [3.66, 2.55],
+  [4.09, 2.73],
+  [0.85, 1.75],
+  [1.03, 2.48],
+  [3.31, 2.37],
+  [2.96, 2.11],
+  [0.88, 2.01],
+  [1.41, 2.17],
+  [-0.96, 0.98],
+  [0.54, 0.58],
+  [1.33, 1.51],
+  [0.13, 0.96],
+  [2.12, 0.39],
+  [-1.19, 0.55],
+  [-0.43, -0.07],
+  [-0.38, 0.07],
+  [0.15, 0.81],
+  [-0.61, 0.44],
+  [1.31, 0.43],
+  [0.61, 1.22],
+  [3.47, 1.04],
+  [0.09, 2.11],
+  [0.49, 2.89],
+  [1.53, 2.77],
+  [3.24, 3.61],
+  [3.54, 4.06],
+  [3.24, 3.24],
+  [3.52, 3.52],
+]
+
+/**
+ * The two indicators worth putting in a board slot, and why each is here.
+ *
+ * `gdp_growth` is the only spec with `withLevels`, so it is the only header
+ * carrying `R…/N…` at all — and with the longest `terminal` mnemonic in
+ * `labels.ts` (`REAL.GDP.GRW %/YR`) on the other side of the same row, it is
+ * the widest header the wall can print.
+ *
+ * `household_saving_rate` is the widest of the rest: the only indicator still
+ * carrying a `complement`, which hangs `SPEND …` off the right of the figure
+ * cluster on top of the value, the band and the quarter delta.
+ */
+export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: IndicatorSeries }[] = [
+  {
+    indicator: 'gdp_growth',
+    series: buildSeries('gdp_growth', 'Real GDP growth', '% / yr', GDP_GROWTH_QUARTERS, 1.92),
+  },
+  {
+    indicator: 'household_saving_rate',
+    series: buildSeries(
+      'household_saving_rate',
+      'Household saving rate',
+      '% disposable',
+      SAVING_RATE_QUARTERS,
+      2.3,
+    ),
+  },
+]

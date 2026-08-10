@@ -10,6 +10,30 @@
  * `../domains`. That second one matters more than it looks — an indicator
  * graduating from brass to phosphor should be the same quantity better
  * measured, not a different-shaped chart the player has to relearn.
+ *
+ * THE HEADER FITS ACROSS, TOO, and that had to be made true the hard way.
+ * A board slot is 213 px at the reference viewport, which leaves 191 px of
+ * header content. The mnemonic, the window toggle, the figure, the band, the
+ * delta and the cursor together wanted 314 px on `gdp_growth`, so the whole
+ * figure cluster was pushed off the right edge and clipped by `WallTile`'s
+ * `overflow-hidden` — the fourth failure mode in that component's comment,
+ * one axis over from the ones it already warned about. The ticker published
+ * a mnemonic and no number, which is worse than publishing nothing.
+ *
+ * Two things keep it fitting now, and BOTH are load-bearing:
+ *
+ *   - the derived readings — the GDP levels, and a share's accounting
+ *     complement — are printed in the chart's bottom gutter rather than the
+ *     header. They are supplementary to the headline, they are the widest
+ *     things the header ever held (a four-digit country runs `R1671/N1659`),
+ *     and the gutter is the one band no trace can ever reach. With the
+ *     complement still in the header, `household_saving_rate` truncated its
+ *     mnemonic to nothing at all — a tile with no name on it;
+ *   - the header itself is now `min-w-0` + `truncate` on the mnemonic against
+ *     a `shrink-0` figure cluster — the same rule the dossier gauge has always
+ *     used. The figures are the reading; the name is recoverable from the
+ *     `title` and from the rack. So when something has to give, the name
+ *     gives. Without this the next long mnemonic simply shears again.
  */
 
 import { useState } from 'react'
@@ -47,6 +71,15 @@ export function TerminalTicker({
   if (points.length < 2) return null
   const latest = points[points.length - 1]
   const complement = complementReading(indicator, latest.value, 2)
+  /** the one derived reading this instrument prints under its chart */
+  const gutter = latest.levels
+    ? {
+        text: `R${latest.levels.real.toFixed(0)}/N${latest.levels.nominal.toFixed(0)}`,
+        note: 'Estimated GDP level behind the growth print: Real (base-year prices) / Nominal (current prices).',
+      }
+    : complement
+      ? { text: complement, note: NAMES[indicator].note ?? '' }
+      : null
 
   const x0 = points[0].forQtr
   const x1 = Math.max(latest.forQtr, x0 + 4)
@@ -93,28 +126,21 @@ export function TerminalTicker({
         className="flex items-baseline justify-between gap-2 border-b border-terminal-grid px-2.5 py-1"
         title={NAMES[indicator].note}
       >
-        <span className="flex items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
-          {NAMES[indicator].terminal}
+        <span className="flex min-w-0 items-baseline gap-2 font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
+          <span className="truncate" title={NAMES[indicator].terminal}>
+            {NAMES[indicator].terminal}
+          </span>
           <button
             onClick={() => setFullHistory((v) => !v)}
             title="Toggle between the recent window and the whole published history"
-            className="border border-terminal-grid px-1 text-[8px] tracking-normal text-terminal-primary/70 hover:text-terminal-primary"
+            className="shrink-0 border border-terminal-grid px-1 text-[8px] tracking-normal text-terminal-primary/70 hover:text-terminal-primary"
           >
             {fullHistory ? 'ALL' : '40Q'}
           </button>
         </span>
-        <span className="font-mono text-[10px] tabular-nums text-terminal-primary">
-          {latest.levels && (
-            <span
-              className="mr-2 opacity-70"
-              title="Estimated GDP level behind the growth print: Real (base-year prices) / Nominal (current prices)."
-            >
-              R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
-            </span>
-          )}
+        <span className="shrink-0 font-mono text-[10px] tabular-nums text-terminal-primary">
           {latest.value.toFixed(2)}
           {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
-          {complement && <span className="ml-2 opacity-60">{complement}</span>}
           {(() => {
             const d = quarterDelta(points)
             if (d === null || Math.abs(d) < 0.005) return null
@@ -155,6 +181,26 @@ export function TerminalTicker({
           <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.55">
             {qtrLabel(latest.forQtr)}
           </text>
+          {/* The DERIVED readings, centred in the axis gutter between the two
+              vintage labels: the GDP levels behind a growth print, or the
+              accounting complement of a share. Both are supplementary to the
+              headline and both are wide, and between them they were what
+              pushed the header past the tile. Below the frame, so no trace can
+              ever cross them. No indicator carries both, so one slot does. */}
+          {gutter && (
+            <text
+              x={(PAD_L + W - PAD_R) / 2}
+              y={H - 3}
+              textAnchor="middle"
+              fontSize="8"
+              fontFamily="var(--font-mono)"
+              fill="var(--color-terminal-primary)"
+              opacity="0.55"
+            >
+              <title>{gutter.note}</title>
+              {gutter.text}
+            </text>
+          )}
 
           {band && <path d={band} fill="var(--color-terminal-primary)" opacity="0.08" />}
           {/* superseded first prints: struck through, dim */}
