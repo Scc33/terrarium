@@ -1,6 +1,7 @@
 # 0003 — Public debt does not crowd out private investment during play
 
-**Status:** Open
+**Status:** Resolved by [ADR-0013](../adr/0013-sovereign-funding-pressure.md) and engine
+`aa97426`
 **Raised by:** a playtest in which sustained deficits produced little visible penalty.
 **Measured at:** engine `1e91d44`, 200 paired seeds × 80 quarters on Meridia. The
 reproducible harness is `tools/measure-deficit-effects.ts`.
@@ -166,3 +167,39 @@ and deliberately high-debt countries; inspect distributional incidence; and veri
 M1 fuel-tax and subsidy claims still hold. A private-rate channel should be tested on flows, not
 only final debt/GDP, so a one-quarter deficit and a decade of forced borrowing do not receive the
 same penalty.
+
+## Resolution
+
+Engine `aa97426` implements option 1 as one common private funding rate. Last quarter's bond
+issuance raises the rate in proportion to the domestic share of the auction, so openness softens
+the pressure. Half of the existing sovereign premium also passes through to private finance.
+`finance` and `production` both read the same derived rate. Printing is excluded from issuance and
+continues to work through inflation, so the two financing modes are not charged twice. The
+pipeline and state schema are unchanged; the auction effect arrives with the existing one-quarter
+pipeline lag.
+
+The original 200-seed, 80-quarter harness was rerun at that commit. The moderate, fully
+bond-funded `transfer-4` case now carries a 1.7-point funding spread and private investment is 4.2
+% below passive at q20, instead of 3.0 % above it in the original measurement. It remains 5.2 %
+below passive at q80. The demand-neutral tax-cut deficit leaves private investment 14.7 % below
+passive at q80.
+
+The isolated 100 %-of-GDP debt shock now raises the funding spread 4.2 points on the shock step,
+raises the private real rate to 5.5 %, lowers private investment 4.2 %, and lowers real GDP 0.2 %.
+By q80 its capital stock is 0.4 % below passive rather than 8.1 % above. Private investment can
+still be above passive late in that path because coupon income and monetization remain real
+expansionary channels; crowding out is a force in the model, not a scripted sign imposed on every
+outcome.
+
+The deliberately large `transfer-8%` and `spend-6+6` expansions likewise still raise private
+investment at q80, by 39.7 % and 36.5 %. Their 3.6- and 3.4-point funding spreads offset part of
+the monetary and demand boom without erasing it. This is intentional: once a deficit exceeds the
+bond market's 5 %-of-quarterly-GDP depth, the marginal finance is printed rather than competing
+for private funds.
+
+The required stability sweeps found no new instability. Against the exact pre-change engine, the
+1,000 × 400 passive sweep retained the same 93 depositions and 2.52 % median annual real growth;
+median unemployment moved from 12.80 % to 12.81 %. In the 1,000 × 120 random-policy sweep,
+depositions moved from 362 to 348, median growth from 3.73 % to 3.67 %, unemployment from 12.12 %
+to 12.22 %, and final debt/GDP from 41 % to 43 %. A 200 × 120 all-country random sweep had zero
+NaN or price-explosion runs in every recipe.
