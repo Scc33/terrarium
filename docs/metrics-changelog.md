@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 19)
+## Current contract (schema 20)
 
 ### Inputs
 
@@ -163,6 +163,15 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 20 — Gradual drought recovery experiment
+
+- **Internal state +**: `external.shocks.droughtRecoveryQtrsLeft`, separating the failed
+  harvest clock from a four-quarter recovery clock.
+- **Pipeline**: unchanged order. `shocks` geometrically unwinds the agricultural TFP loss over
+  four quarters after rain returns instead of restoring it in one step.
+- **Inputs and published outputs**: unchanged. The recovery duration is an engine constant,
+  not a player lever; the wire announces the start of recovery as before.
 
 ### schema 19 — Research as a stock, invention as a bet
 

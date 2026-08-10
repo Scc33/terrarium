@@ -354,7 +354,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
         exportDemand: sectorRecord(() => 1),
       },
-      shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
+      shocks: { droughtQtrsLeft: 0, droughtRecoveryQtrsLeft: 0, droughtSeverity: 1 },
     },
     institutions: {
       stocks: { suffrage: 0, press: 0, labor_rights: 0, courts: 0, repression: 0 },
