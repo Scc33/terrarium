@@ -322,11 +322,15 @@ budget identity holds, replay determinism (run twice, hash-compare).
 `future-stability.test.ts` is the long-horizon balance gate. It runs passive and
 capacity-building governments through 2050 across every country recipe, truncates each
 balance trajectory at deposition, and pins post-2000 inflation, real-growth, unemployment,
-first-release wall prints, and drought-response tails. Raw post-deposition failures remain
-visible to engine diagnostics, but cannot be mislabeled as gameplay.
+first-release wall prints, drought-response tails, survivor trend growth, and the number of
+governments reaching 2050. Raw post-deposition failures remain visible to engine diagnostics,
+but cannot be mislabeled as gameplay.
 
 The same definitions power `pnpm stability`: four fixed eras, p01/p50/p99 quarterly tails,
 and shock-conditioned peaks and reversals for droughts, fuel ruptures, and banking crises.
+It also reports “quiet” true and wall tails after excluding each shock onset and the following
+eight quarters. Those tails separate background late-economy instability from a transient
+event response; a shock retune must improve the latter without worsening the former.
 Use `--policy passive|developmental|random|all` and `--country baseline|all|<recipe>` to narrow
 a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
 initialization convergence.
