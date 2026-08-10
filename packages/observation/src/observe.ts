@@ -44,6 +44,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   unemployment: { label: 'Unemployment', unit: '%' },
   payrolls: { label: 'Payrolls ex-agri', unit: 'M jobs' },
   capital_stock: { label: 'Capital stock', unit: 'index' },
+  productivity: { label: 'Output per worker', unit: '1946=100' },
   technology_attainment: { label: 'Technology attained', unit: '% frontier' },
   conf_consumer: { label: 'Consumer confidence', unit: 'idx' },
   conf_business: { label: 'Business confidence', unit: 'idx' },

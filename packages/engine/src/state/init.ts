@@ -291,6 +291,10 @@ export function init(params: CountryParams, seed: Seed): TrueState {
         () => TECH_ATTAINED_BASE + TECH_ATTAINED_DEV_GAIN * params.development,
       ),
       tfpGrowthQ: 0,
+      // 1946 opens with no research appropriation at all, so there is no base
+      // to inherit and nothing to calibrate here — the stock is whatever the
+      // player builds
+      researchStock: 0,
     },
     cohorts,
     finance: {
