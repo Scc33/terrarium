@@ -103,6 +103,13 @@ failure count and the era tails. `tests/properties/future-stability.test.ts` run
 all-country passive/developmental subset in every ordinary test and CI run; use the full CLI
 sweep whenever engine behavior moves.
 
+For a shock change, read three views together: the event-conditioned response, the “quiet”
+tails that exclude onset plus eight quarters, and century trend/survival. Improvement in only
+one is not a win. The four-quarter drought-recovery experiment at `815a0aa` lowered some
+developmental inflation peaks while worsening passive deflation/rebound, quiet tails, and
+developmental survival; it was reverted. Its frozen A/B is intentionally retained in
+`tests/unit/drought-recovery-experiment.test.ts` and investigation 0005.
+
 ## The seam check
 
 The economy and the politics are separate machines. They meet in exactly two places:

@@ -201,6 +201,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
 - Player-facing constants get calibrated, not guessed, and pinned as a rate against a measured
   century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). The tests re-measure
   rather than snapshot, so a retune that pushes an instrument off its dial fails by name.
+- **Shock smoothing is not automatically stabilization.** A four-quarter geometric drought
+  recovery (`815a0aa`) lowered some inflation peaks but deepened passive deflation and rebound
+  growth, widened quiet tails, and reduced developmental 2050 survival. Any shock retune must
+  pass all three views: event response, onset-plus-eight-quarter-excluded tails, and century
+  trend/survival. The rejected A/B remains executable in
+  `tests/unit/drought-recovery-experiment.test.ts`; see investigation 0005.
 - **`gauge-domains` catches a face that is too NARROW, never one that is too wide.** It fails on
   pegging, and a needle parked against the left rail without crossing it is not pegged — which is
   how `government_demand_share` shipped a 0–20 face for a series that lived at 1–3 %. Read the

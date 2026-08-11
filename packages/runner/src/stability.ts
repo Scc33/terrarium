@@ -22,6 +22,10 @@ export const STABILITY_ERAS: readonly StabilityEra[] = [
 ] as const
 
 export const MACRO_EVENTS: readonly MacroEvent[] = ['drought', 'fuel', 'banking_crisis']
+/** A supply/finance rupture can dominate several annualized quarterly prints.
+ * Quiet-quarter tails exclude the onset and the following two years so the
+ * harness can distinguish background instability from a shock response. */
+export const SHOCK_EXCLUSION_QTRS = 8
 
 export interface StabilityRun {
   seed: string
@@ -47,10 +51,15 @@ export interface EraStability {
   era: StabilityEra
   runsEntered: number
   quarters: number
+  quietQuarters: number
   inflation: TailSummary
   realGrowth: TailSummary
+  quietInflation: TailSummary
+  quietRealGrowth: TailSummary
   publishedInflation: TailSummary
   publishedRealGrowth: TailSummary
+  quietPublishedInflation: TailSummary
+  quietPublishedRealGrowth: TailSummary
   unemployment: TailSummary
 }
 
@@ -150,17 +159,38 @@ function inEra(tick: number, era: StabilityEra): boolean {
   return tick >= era.firstTick && tick <= era.lastTick
 }
 
-function eraReport(readingsByRun: readonly MacroReading[][], era: StabilityEra): EraStability {
+function quietReadings(readings: readonly MacroReading[]): MacroReading[] {
+  const onsets = readings
+    .filter((point) => point.events.length > 0)
+    .map((point) => point.tick)
+  return readings.filter(
+    (point) => !onsets.some(
+      (onset) => point.tick >= onset && point.tick <= onset + SHOCK_EXCLUSION_QTRS,
+    ),
+  )
+}
+
+function eraReport(
+  readingsByRun: readonly MacroReading[][],
+  quietByRun: readonly MacroReading[][],
+  era: StabilityEra,
+): EraStability {
   const entered = readingsByRun.map((readings) => readings.filter((point) => inEra(point.tick, era)))
   const points = entered.flat()
+  const quiet = quietByRun.flatMap((readings) => readings.filter((point) => inEra(point.tick, era)))
   return {
     era,
     runsEntered: entered.filter((readings) => readings.length > 0).length,
     quarters: points.length,
+    quietQuarters: quiet.length,
     inflation: summarizeTails(points.map((point) => point.inflation)),
     realGrowth: summarizeTails(points.map((point) => point.realGrowth)),
+    quietInflation: summarizeTails(quiet.map((point) => point.inflation)),
+    quietRealGrowth: summarizeTails(quiet.map((point) => point.realGrowth)),
     publishedInflation: summarizeTails(points.map((point) => point.publishedInflation)),
     publishedRealGrowth: summarizeTails(points.map((point) => point.publishedRealGrowth)),
+    quietPublishedInflation: summarizeTails(quiet.map((point) => point.publishedInflation)),
+    quietPublishedRealGrowth: summarizeTails(quiet.map((point) => point.publishedRealGrowth)),
     unemployment: summarizeTails(points.map((point) => point.unemployment)),
   }
 }
@@ -207,6 +237,7 @@ function shockReport(
 export function analyzeStability(runs: readonly StabilityRun[]): StabilityReport {
   const playableByRun = runs.map(playableTrajectory)
   const readingsByRun = runs.map(macroReadings)
+  const quietByRun = readingsByRun.map(quietReadings)
   return {
     runs: runs.length,
     rawPriceExplosionRuns: runs.filter((run) => run.priceExplosions > 0).map((run) => run.seed),
@@ -216,7 +247,7 @@ export function analyzeStability(runs: readonly StabilityRun[]): StabilityReport
     reachableNonFiniteRuns: runs
       .filter((_run, index) => playableByRun[index].some(hasNonFinite))
       .map((run) => run.seed),
-    eras: STABILITY_ERAS.map((era) => eraReport(readingsByRun, era)),
+    eras: STABILITY_ERAS.map((era) => eraReport(readingsByRun, quietByRun, era)),
     shocks: STABILITY_ERAS.flatMap((era) =>
       MACRO_EVENTS.map((event) => shockReport(readingsByRun, era, event)),
     ),

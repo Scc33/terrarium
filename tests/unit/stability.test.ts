@@ -112,6 +112,7 @@ describe('long-horizon stability analysis', () => {
       point(222, { realGdp: 105 }),
       point(223, { realGdp: 106 }),
       point(224, { realGdp: 107 }),
+      point(225, { realGdp: 108, inflation: 1 }),
     ]
     const shock = analyzeStability([run(trajectory)]).shocks.find(
       (entry) => entry.era.id === 'early_2000s' && entry.event === 'drought',
@@ -122,6 +123,12 @@ describe('long-horizon stability analysis', () => {
     expect(shock.peakInflation.p50).toBe(20)
     expect(shock.laterInflationTrough.p50).toBe(-4)
     expect(shock.reboundGrowth.p50).toBeCloseTo(12.68, 1)
+
+    const era = analyzeStability([run(trajectory)]).eras.find(
+      (entry) => entry.era.id === 'early_2000s',
+    )!
+    expect(era.quietQuarters).toBe(1)
+    expect(era.quietInflation.p50).toBe(1)
   })
 
   it('drops non-finite observations instead of corrupting tail quantiles', () => {

@@ -27,12 +27,27 @@ export function printStabilityReport(
     )
   }
 
+  console.log('  quiet-quarter true tails, excluding onset + 8q (p01 / p50 / p99):')
+  console.log('    era          quiet qtrs       inflation %        real growth %')
+  for (const row of report.eras) {
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${String(row.quietQuarters).padStart(10)}  ${tails(row.quietInflation)}  ${tails(row.quietRealGrowth)}`,
+    )
+  }
+
   if (report.eras.some((era) => era.publishedInflation.count > 0)) {
     console.log('  first-release wall tails (p01 / p50 / p99):')
     console.log('    era             inflation %        real growth %       prints CPI/GDP')
     for (const row of report.eras) {
       console.log(
         `    ${row.era.label.padEnd(11)}  ${tails(row.publishedInflation)}  ${tails(row.publishedRealGrowth)}  ${String(row.publishedInflation.count).padStart(7)}/${row.publishedRealGrowth.count}`,
+      )
+    }
+    console.log('  quiet-quarter wall tails (p01 / p50 / p99):')
+    console.log('    era             inflation %        real growth %       prints CPI/GDP')
+    for (const row of report.eras) {
+      console.log(
+        `    ${row.era.label.padEnd(11)}  ${tails(row.quietPublishedInflation)}  ${tails(row.quietPublishedRealGrowth)}  ${String(row.quietPublishedInflation.count).padStart(7)}/${row.quietPublishedRealGrowth.count}`,
       )
     }
   }

@@ -1,23 +1,29 @@
 import { COUNTRY_CATALOG } from '@terrarium/engine'
 import { describe, expect, it } from 'vitest'
 import { developmentalPolicy } from '../../packages/runner/src/policies'
+import type { RunnerPolicy } from '../../packages/runner/src/policies'
+import { cagr, summarize } from '../../packages/runner/src/metrics'
 import { runOne } from '../../packages/runner/src/run'
 import { analyzeStability } from '../../packages/runner/src/stability'
 
 describe('the playable economy through 2050', () => {
   it('keeps post-2000 macro tails bounded across countries and plausible play', () => {
-    const runs = COUNTRY_CATALOG.flatMap((country) =>
-      Array.from({ length: 5 }, (_, index) =>
-        [undefined, developmentalPolicy].map((policy) =>
+    const runsFor = (name: string, policy?: RunnerPolicy) =>
+      COUNTRY_CATALOG.flatMap((country) =>
+        Array.from({ length: 5 }, (_, index) =>
           runOne({
             country: country.id,
-            seed: `future-stability-${country.id}-${index}-${policy ? 'developmental' : 'passive'}`,
+            seed: `future-stability-${country.id}-${index}-${name}`,
             ticks: 416,
             policy,
           }),
         ),
-      ).flat(),
-    )
+      )
+    const policyRuns = {
+      passive: runsFor('passive'),
+      developmental: runsFor('developmental', developmentalPolicy),
+    }
+    const runs = [...policyRuns.passive, ...policyRuns.developmental]
     const report = analyzeStability(runs)
 
     expect(report.reachableNonFiniteRuns).toEqual([])
@@ -38,6 +44,11 @@ describe('the playable economy through 2050', () => {
       expect(era.publishedRealGrowth.count, `${era.era.label} GDP sample`).toBeGreaterThan(250)
       expect(era.publishedRealGrowth.p01, `${era.era.label} published growth downside`).toBeGreaterThan(-30)
       expect(era.publishedRealGrowth.p99, `${era.era.label} published growth upside`).toBeLessThan(35)
+      expect(era.quietQuarters, `${era.era.label} quiet sample`).toBeGreaterThan(500)
+      expect(era.quietInflation.p01, `${era.era.label} quiet inflation downside`).toBeGreaterThan(-10)
+      expect(era.quietInflation.p99, `${era.era.label} quiet inflation upside`).toBeLessThan(10)
+      expect(era.quietRealGrowth.p01, `${era.era.label} quiet growth downside`).toBeGreaterThan(-10)
+      expect(era.quietRealGrowth.p99, `${era.era.label} quiet growth upside`).toBeLessThan(12)
 
       const inflationWidth = era.inflation.p99 - era.inflation.p01
       const lateCenturyInflationWidth = lateCentury.inflation.p99 - lateCentury.inflation.p01
@@ -45,6 +56,15 @@ describe('the playable economy through 2050', () => {
         lateCenturyInflationWidth * 1.75,
       )
     }
+
+    const future = report.eras.find((era) => era.era.id === 'future')!
+    const quietWidth = (tail: typeof future.quietInflation) => tail.p99 - tail.p01
+    expect(quietWidth(future.quietInflation), 'quiet future inflation widened').toBeLessThan(
+      quietWidth(lateCentury.quietInflation) * 1.6,
+    )
+    expect(quietWidth(future.quietRealGrowth), 'quiet future growth widened').toBeLessThan(
+      quietWidth(lateCentury.quietRealGrowth) * 1.5,
+    )
 
     const lateDroughts = report.shocks.filter(
       (shock) =>
@@ -57,5 +77,20 @@ describe('the playable economy through 2050', () => {
       expect(shock.laterInflationTrough.p05, `${shock.era.label} drought deflation`).toBeGreaterThan(-20)
       expect(shock.reboundGrowth.p95, `${shock.era.label} drought rebound`).toBeLessThan(35)
     }
+
+    // Exact 40-quarter opening behavior is owned by the goldens. These
+    // survivor bands keep a shock retune from buying smoother prints by
+    // silently lowering century trend growth or ending more governments.
+    const passiveSurvivors = policyRuns.passive.filter((run) => run.deposedAt === null)
+    const developmentalSurvivors = policyRuns.developmental.filter((run) => run.deposedAt === null)
+    // Sovereign funding pressure on current master changes one fixed passive
+    // outcome from deposition to survival; keep the exact cohort pinned to the
+    // engine this branch is actually proposed against.
+    expect(passiveSurvivors).toHaveLength(23)
+    expect(developmentalSurvivors).toHaveLength(17)
+    expect(summarize(passiveSurvivors.map(cagr)).p50).toBeGreaterThan(2.3)
+    expect(summarize(passiveSurvivors.map(cagr)).p50).toBeLessThan(2.8)
+    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeGreaterThan(1.9)
+    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeLessThan(2.5)
   })
 })

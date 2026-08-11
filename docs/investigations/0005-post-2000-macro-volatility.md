@@ -18,6 +18,50 @@ country recipe through 2050, so later engine changes cannot silently reopen the 
 This does not resolve the modeling choice below. No economic constant or reporting convention
 was changed; the harness makes the current behavior measurable and gives a future retune a gate.
 
+## Follow-up: quiet quarters and a rejected recovery experiment
+
+**Baseline engine:** `78063a5`; quiet-tail harness: `88f849d`; four-quarter recovery candidate:
+`815a0aa`; explicit revert: `2a08d2f`. Measured 2026-08-10.
+
+“Quiet” excludes a shock onset and the following eight quarters. On a 120-seed all-country
+sweep, removing those windows narrows the distributions sharply but does **not** remove the
+late deterioration:
+
+| policy | quiet measure | 1973-1999 | 2026-2050 |
+|---|---|---:|---:|
+| passive | inflation p01 / p99 | -5.94 / 4.51 | -7.06 / 6.22 |
+| passive | real growth p01 / p99 | -2.94 / 8.52 | -5.66 / 8.56 |
+| developmental | inflation p01 / p99 | -7.48 / 4.90 | -7.46 / 5.79 |
+| developmental | real growth p01 / p99 | -4.10 / 9.66 | -6.92 / 8.37 |
+
+The spectacular spike/reversal belongs to shocks, but the late downside-growth tail also exists
+in the background economy. Drought recovery therefore cannot be the whole stability fix.
+
+Candidate `815a0aa` tested the obvious local intervention: preserve the drought onset and full
+damage duration, then geometrically restore agricultural TFP over four quarters instead of one.
+The comparison used the identical fixed 5-seed × 6-country cohort through 2050:
+
+| policy | future measure | abrupt baseline | gradual candidate | result |
+|---|---|---:|---:|---|
+| passive | drought deflation p05 | -8.78 | -10.49 | worse |
+| passive | drought rebound growth p95 | 9.87 | 12.75 | worse |
+| passive | quiet inflation p01 | -7.89 | -8.60 | worse |
+| passive | quiet growth p01 | -5.50 | -5.91 | worse |
+| developmental | drought inflation peak p95 | 15.94 | 13.51 | better |
+| developmental | drought deflation p05 | -6.38 | -7.73 | worse |
+| developmental | drought rebound growth p95 | 12.55 | 10.78 | better |
+| developmental | governments reaching 2050 | 17 / 30 | 14 / 30 | worse |
+
+Century growth among survivors stayed in range, and `pnpm diff-state --moved-only` showed the
+opening decade was economically bit-identical aside from the candidate schema stamp and recovery
+field. But the acceptance rule was conjunctive: improve the drought response **without** making
+quiet dynamics, trend, or survival worse. The candidate failed and was reverted.
+
+The measured comparison remains executable in
+`tests/unit/drought-recovery-experiment.test.ts`; the candidate commit remains checkoutable.
+The next engine investigation should target the quiet late-economy downside—particularly the
+price/wage and secular-productivity path—before attempting another shock-shape retune.
+
 ## What was tested
 
 The engine was measured from 1946 through 2046 under three kinds of play:
