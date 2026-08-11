@@ -327,10 +327,14 @@ governments reaching 2050. Raw post-deposition failures remain visible to engine
 but cannot be mislabeled as gameplay.
 
 The same definitions power `pnpm stability`: four fixed eras, p01/p50/p99 quarterly tails,
-and shock-conditioned peaks and reversals for droughts, fuel ruptures, and banking crises.
+and shock-conditioned peaks and reversals for droughts, fuel ruptures, banking crises, and
+foreign-partner crises.
 It also reports “quiet” true and wall tails after excluding each shock onset and the following
 eight quarters. Those tails separate background late-economy instability from a transient
-event response; a shock retune must improve the latter without worsening the former.
+event response; a shock retune must improve the latter without worsening the former. Runner-only
+driver rows decompose quiet GDP into output-per-worker and employment contributions beside TFP,
+labor force, utilization, real wages, demand satisfaction, and final-demand components. These
+diagnostics consume true state in the headless runner and never enter `PublishedState`.
 Use `--policy passive|developmental|random|all` and `--country baseline|all|<recipe>` to narrow
 a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
 initialization convergence.

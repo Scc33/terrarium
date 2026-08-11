@@ -96,12 +96,19 @@ CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caugh
 
 The stability harness is the future-facing balance check. It compares fixed eras through
 2050, reports the inflation and real-growth tails that century means conceal, and conditions
-the reversal on drought, fuel, and banking-crisis onsets. Its balance sample stops on the
+the reversal on drought, fuel, banking-crisis, and foreign-partner-crisis onsets. Its balance sample stops on the
 quarter a government is deposed: `runOne` deliberately keeps simulating afterward to expose
 raw engine failures, but those quarters are not player-reachable. Read both the reachable/raw
 failure count and the era tails. `tests/properties/future-stability.test.ts` runs a calibrated
 all-country passive/developmental subset in every ordinary test and CI run; use the full CLI
 sweep whenever engine behavior moves.
+
+When quiet growth moves, read the driver rows before tuning. They split GDP into additive
+output-per-worker and employment contributions and show TFP, labor force, utilization, real
+wages, demand satisfaction, and demand components. Investigation 0006 found the post-2000
+downside to be demand-led while TFP stayed positive; openness amplified it in a paired country
+sensitivity. A frontier or wage-productivity retune aimed at that symptom would hit the wrong
+channel.
 
 For a shock change, read three views together: the event-conditioned response, the “quiet”
 tails that exclude onset plus eight quarters, and century trend/survival. Improvement in only

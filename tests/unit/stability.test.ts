@@ -17,6 +17,7 @@ function point(
     events?: MacroEvent[]
     publishedInflation?: number | null
     publishedRealGrowth?: number | null
+    drivers?: Partial<TrajectoryPoint['drivers']>
   } = {},
 ): TrajectoryPoint {
   const price = options.price ?? 1
@@ -35,6 +36,22 @@ function point(
     publishedInflation: options.publishedInflation ?? null,
     publishedRealGrowth: options.publishedRealGrowth ?? null,
     events: options.events ?? [],
+    drivers: {
+      laborForce: 100 + tick,
+      employment: 90 + tick,
+      laborProductivity: (options.realGdp ?? 100 + tick) / (90 + tick),
+      realWage: 1 + tick / 100,
+      utilization: 0.85,
+      demandSatisfaction: 1,
+      tfpGrowthQ: 0.002,
+      investmentRate: 0.2,
+      finalDemand: 100 + tick,
+      householdDemand: 80 + tick,
+      investment: 20 + tick,
+      governmentDemand: 5 + tick,
+      exports: 10 + tick,
+      ...options.drivers,
+    },
   }
 }
 
@@ -76,6 +93,8 @@ describe('long-horizon stability analysis', () => {
     expect(postwar.realGrowth.p50).toBeCloseTo(4.04, 2)
     expect(postwar.publishedInflation).toMatchObject({ count: 1, p50: 5 })
     expect(postwar.publishedRealGrowth).toMatchObject({ count: 1, p50: 7 })
+    expect(postwar.quietDrivers.observations).toBe(2)
+    expect(postwar.quietDrivers.laborProductivityGrowth.count).toBe(2)
 
     const early2000s = report.eras.find((era) => era.era.id === 'early_2000s')!
     expect(early2000s.quarters).toBe(1)
@@ -133,5 +152,48 @@ describe('long-horizon stability analysis', () => {
 
   it('drops non-finite observations instead of corrupting tail quantiles', () => {
     expect(summarizeTails([1, Number.NaN, 3])).toMatchObject({ count: 2, p50: 2 })
+  })
+
+  it('treats foreign partner crises as shocks when selecting quiet quarters', () => {
+    const trajectory = [
+      point(215, { realGdp: 100 }),
+      point(216, { realGdp: 99, events: ['world_crisis'] }),
+      ...Array.from({ length: 9 }, (_, index) =>
+        point(217 + index, { realGdp: 100 + index }),
+      ),
+    ]
+    const report = analyzeStability([run(trajectory)])
+    const era = report.eras.find((entry) => entry.era.id === 'early_2000s')!
+    const shock = report.shocks.find(
+      (entry) => entry.era.id === 'early_2000s' && entry.event === 'world_crisis',
+    )!
+
+    expect(era.quietQuarters).toBe(1)
+    expect(shock.onsets).toBe(1)
+    expect(shock.completeWindows).toBe(1)
+  })
+
+  it('decomposes quiet GDP downside into additive productivity and employment contributions', () => {
+    const report = analyzeStability([
+      run([
+        point(107, {
+          realGdp: 100,
+          drivers: { employment: 100, laborProductivity: 1 },
+        }),
+        point(108, {
+          realGdp: 99,
+          drivers: { employment: 99, laborProductivity: 1 },
+        }),
+      ]),
+    ])
+    const downside = report.eras.find((era) => era.era.id === 'late_century')!
+      .quietDrivers.downside
+
+    expect(downside.observations).toBe(1)
+    expect(downside.laborProductivityContribution.p50).toBeCloseTo(0)
+    expect(downside.employmentContribution.p50).toBeCloseTo(Math.log(0.99) * 400)
+    expect(
+      downside.laborProductivityContribution.p50 + downside.employmentContribution.p50,
+    ).toBeCloseTo(Math.log(0.99) * 400)
   })
 })
