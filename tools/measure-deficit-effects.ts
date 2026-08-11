@@ -10,6 +10,8 @@ import {
   applyActions,
   init,
   MERIDIA_PARAMS,
+  privateFundingSpread,
+  privateRealRate,
   step,
   technologyAttainment,
   type Action,
@@ -91,6 +93,7 @@ interface Point {
   inflation: number
   expectedInflation: number
   privateRealRate: number
+  privateFundingSpread: number
   creditToGdp: number
   assetPrice: number
   financierPower: number
@@ -114,7 +117,8 @@ function point(state: TrueState): Point {
     printedToGdp: state.flows.printedThisQtr / quarterlyGdp,
     inflation: 4 * state.flows.inflationQ,
     expectedInflation: state.ledger.inflationExpectations,
-    privateRealRate: state.gov.dials.policyRate - state.ledger.inflationExpectations,
+    privateRealRate: privateRealRate(state),
+    privateFundingSpread: privateFundingSpread(state),
     creditToGdp: state.finance.creditToGdp,
     assetPrice: state.finance.assetPrice,
     financierPower: state.institutions.blocs.financiers.power,
@@ -161,6 +165,7 @@ for (const horizon of HORIZONS) {
       'print/GDP'.padStart(10),
       'infl'.padStart(7),
       'real r'.padStart(7),
+      'fund spr'.padStart(8),
       'GDP vs p'.padStart(9),
       'priv I vs p'.padStart(11),
       'K vs p'.padStart(8),
@@ -194,6 +199,7 @@ for (const horizon of HORIZONS) {
         pct(mean(values('printedToGdp'))).padStart(10),
         pct(mean(values('inflation'))).padStart(7),
         pct(mean(values('privateRealRate'))).padStart(7),
+        pct(mean(values('privateFundingSpread'))).padStart(8),
         pct(pairedRatio('realGdp')).padStart(9),
         pct(pairedRatio('privateInvestment')).padStart(11),
         pct(pairedRatio('capital')).padStart(8),
@@ -207,11 +213,15 @@ for (const horizon of HORIZONS) {
 
 const passiveRuns = samples.get('passive')!
 const shockRuns = samples.get('debt-shock*')!
-const maxShockStepDifference = (key: 'realGdp' | 'privateInvestment'): number =>
-  Math.max(...shockRuns.map((points, i) => Math.abs(points[4][key] - passiveRuns[i][4][key])))
+const shockStepRatio = (key: 'realGdp' | 'privateInvestment'): number =>
+  mean(shockRuns.map((points, i) => points[4][key] / passiveRuns[i][4][key] - 1))
+const shockStepMean = (key: 'privateFundingSpread' | 'privateRealRate'): number =>
+  mean(shockRuns.map((points) => points[4][key]))
 console.log('\nDEBT-STOCK ISOLATION AT THE Q4 SHOCK STEP')
-console.log(`max |GDP shock - passive|: ${maxShockStepDifference('realGdp')}`)
-console.log(`max |private investment shock - passive|: ${maxShockStepDifference('privateInvestment')}`)
+console.log(`funding spread: ${pct(shockStepMean('privateFundingSpread'))}%`)
+console.log(`private real rate: ${pct(shockStepMean('privateRealRate'))}%`)
+console.log(`real GDP vs passive: ${pct(shockStepRatio('realGdp'))}%`)
+console.log(`private investment vs passive: ${pct(shockStepRatio('privateInvestment'))}%`)
 
 console.log('\nEVENT RATES THROUGH FINAL QUARTER')
 console.log('scenario       ever-print debt>120% deposed')

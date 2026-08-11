@@ -56,6 +56,7 @@ import {
 import { clamp } from '../math'
 import { SECTOR_IDS, type NewsItem, type Sector } from '../state/schema'
 import type { PipelineStep } from './pipeline'
+import { privateRealRate } from './derive'
 
 export const finance: PipelineStep = {
   name: 'finance',
@@ -64,7 +65,7 @@ export const finance: PipelineStep = {
     const news: NewsItem[] = []
 
     const annualGdp = Math.max(4 * flows.nominalGdp, 1e-9)
-    const realRate = gov.dials.policyRate - ledger.inflationExpectations
+    const realRate = privateRealRate(state)
     const profitRate =
       SECTOR_IDS.reduce((s, sid) => s + flows.profits[sid], 0) / Math.max(flows.nominalGdp, 1e-9)
     const businessConf = ledger.confidence.business

@@ -42,8 +42,9 @@ export type RevenueSourceId = (typeof REVENUE_SOURCE_IDS)[number]
 export type RevenueSplit = Record<RevenueSourceId, Money>
 
 /** `capacity` is the Layer-2 build pipeline; `interest` is the coupon bill.
- * Neither is a dial you move this quarter — that they crowd out the ones you
- * can is exactly what the breakdown is for. */
+ * Neither is a dial you move this quarter. Interest does not silently cut a
+ * voted programme: it enlarges the funding need, and bond issuance crowds
+ * private finance through the ordinary rate channel. */
 export const OUTLAY_IDS = [
   'transfers',
   'procurement',
