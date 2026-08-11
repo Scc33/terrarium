@@ -9,7 +9,7 @@ import { runOne } from '../../packages/runner/src/run'
 describe('export-demand household-feedback experiment', () => {
   it('keeps its untreated path exactly equivalent to the engine runner', () => {
     const seed = 'export-feedback-equivalence'
-    const ticks = 48
+    const ticks = END_OF_HISTORY_TICK
     const experiment = runExportFeedbackExperiment({ seed, ticks, params: MERIDIA_PARAMS })
     const baseline = runOne({ seed, ticks, params: MERIDIA_PARAMS })
 
