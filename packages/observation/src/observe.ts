@@ -33,6 +33,7 @@ import type { Grade, IndicatorId, PublishedBloc, PublishedState, ReportCard } fr
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'Real GDP growth', unit: '% / yr' },
   gdp_per_capita: { label: 'Real GDP per head', unit: 'real / head / yr' },
+  debt_to_gdp: { label: 'Public debt', unit: '% of GDP' },
   consumption_per_capita: { label: 'Real consumption per head', unit: 'real / head / yr' },
   household_saving_rate: { label: 'Household saving rate', unit: '% disposable' },
   consumption_share: { label: 'Household consumption', unit: '% final expenditure' },

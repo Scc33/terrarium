@@ -179,6 +179,7 @@ export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
   adminEffectiveness,
   CORRIDOR_HALF_WIDTH,
+  DEBT_RISK_PREMIUM_AT,
   ELECTION_WIN_THRESHOLD,
   INDICATOR_FUNDED_AT,
   LEGITIMACY_GRADE_ELECTIONS,

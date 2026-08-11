@@ -4,6 +4,7 @@ import {
   BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
   CORRIDOR_HALF_WIDTH,
+  DEBT_RISK_PREMIUM_AT,
   ELITE_CAPTURE_NEUTRAL,
   ELITE_VETO_ABSORB,
   ELITE_ABSORB_CLAMP,
@@ -50,7 +51,7 @@ export function financierAnger(state: TrueState): number {
 export function sovereignRiskPremium(state: TrueState): number {
   const debtToGdp = state.gov.debt / Math.max(4 * state.flows.nominalGdp, 1e-9)
   return (
-    Math.max(0, debtToGdp - 0.5) * RISK_PREMIUM_SLOPE +
+    Math.max(0, debtToGdp - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE +
     FIN_FAVOR_PREMIUM * financierAnger(state)
   )
 }
