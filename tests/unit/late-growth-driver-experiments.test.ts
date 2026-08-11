@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 /**
  * Executable record of the paired sensitivities behind investigation 0006.
  *
- * Measured at ef83ea5 with ten identical seeds per column through 2050. The
+ * Measured at ec63e9c with ten identical seeds per column through 2050. The
  * openness comparison changed only MERIDIA_PARAMS.openness. The age comparison
  * replaced Meridia's within-band 1946 pyramid with Costona's younger shape,
  * rescaled separately below and above retirement so opening population and
@@ -12,18 +12,18 @@ import { describe, expect, it } from 'vitest'
  */
 const OPENNESS = {
   passive: {
-    low: { futureGrowthP01: -3.0086, downsideGrowthP50: -2.1639, exportShare: 8.7042 },
-    high: { futureGrowthP01: -5.1611, downsideGrowthP50: -4.2943, exportShare: 18.0175 },
+    low: { futureGrowthP01: -3.0074, downsideGrowthP50: -2.1608, exportShare: 8.7121 },
+    high: { futureGrowthP01: -5.1613, downsideGrowthP50: -4.2931, exportShare: 18.0179 },
   },
   developmental: {
-    low: { futureGrowthP01: -4.4565, downsideGrowthP50: -3.5596, exportShare: 17.1830 },
-    high: { futureGrowthP01: -7.7130, downsideGrowthP50: -6.0596, exportShare: 26.0381 },
+    low: { futureGrowthP01: -4.4541, downsideGrowthP50: -3.5558, exportShare: 17.1927 },
+    high: { futureGrowthP01: -7.7119, downsideGrowthP50: -6.0590, exportShare: 26.0407 },
   },
 } as const
 
 const OPENING_AGE_SHAPE = {
-  passive: { standardFutureGrowthP01: -5.3945, youngerFutureGrowthP01: -5.3490 },
-  developmental: { standardFutureGrowthP01: -5.7229, youngerFutureGrowthP01: -5.7384 },
+  passive: { standardFutureGrowthP01: -5.3907, youngerFutureGrowthP01: -5.3445 },
+  developmental: { standardFutureGrowthP01: -5.7207, youngerFutureGrowthP01: -5.7354 },
 } as const
 
 describe('quiet late-growth driver experiments', () => {

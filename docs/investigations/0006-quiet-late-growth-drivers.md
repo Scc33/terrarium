@@ -5,7 +5,8 @@
 **Raised by:** the onset-plus-eight-quarter exclusion in investigation 0005 still showed a
 wider post-2000 downside-growth tail after the spectacular drought reversals were removed.
 
-**Measured at:** `ef83ea5` on 2026-08-10.
+**Measured at:** driver and paired sensitivities at `ec63e9c`; foreign-crisis classification
+A/B at `ef83ea5`, both on 2026-08-10.
 
 ## A quiet-quarter classification gap was real but not decisive
 
@@ -37,10 +38,10 @@ Across 120 runs per policy and every country recipe, the median quarter within e
 
 | policy / era | GDP | productivity contribution | employment contribution | TFP | labor force | utilization change | demand met |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| passive 1973-1999 | -1.82% | -1.74 | -0.29 | 1.12% | 0.60% | -0.70 pt | 100% |
-| passive 2026-2050 | -4.24% | -3.08 | -1.42 | 0.86% | -0.21% | -0.93 pt | 100% |
-| developmental 1973-1999 | -2.53% | -1.97 | -0.94 | 1.24% | -0.03% | -0.84 pt | 100% |
-| developmental 2026-2050 | -5.32% | -3.80 | -1.78 | 0.87% | -1.07% | -1.11 pt | 100% |
+| passive 1973-1999 | -1.78% | -1.74 | -0.24 | 1.12% | 0.60% | -0.69 pt | 100% |
+| passive 2026-2050 | -4.22% | -3.06 | -1.44 | 0.86% | -0.21% | -0.93 pt | 100% |
+| developmental 1973-1999 | -2.54% | -1.98 | -0.94 | 1.24% | -0.03% | -0.84 pt | 100% |
+| developmental 2026-2050 | -5.32% | -3.80 | -1.80 | 0.88% | -1.07% | -1.12 pt | 100% |
 
 TFP remains positive and tightly distributed in the bad quarters. Its historical slowdown
 lowers the late trend, but the negative tail itself is realized demand falling below available
@@ -52,12 +53,12 @@ The demand components in those same worst quarters show a broad contraction:
 
 | policy / era | final demand | household demand | investment | government demand | exports | export share |
 |---|---:|---:|---:|---:|---:|---:|
-| passive 1973-1999 | -1.82% | -0.37% | 0.89% | -1.73% | -6.41% | 15.86% |
-| passive 2026-2050 | -4.24% | -2.50% | 0.27% | -2.16% | -8.45% | 16.09% |
-| developmental 1973-1999 | -2.53% | -1.04% | 0.55% | -0.91% | -6.90% | 19.19% |
-| developmental 2026-2050 | -5.32% | -2.91% | -0.59% | -2.04% | -10.84% | 23.38% |
+| passive 1973-1999 | -1.78% | -0.34% | 0.89% | -1.74% | -6.38% | 15.92% |
+| passive 2026-2050 | -4.22% | -2.48% | 0.28% | -2.13% | -8.35% | 16.15% |
+| developmental 1973-1999 | -2.54% | -1.03% | 0.57% | -0.91% | -6.89% | 19.28% |
+| developmental 2026-2050 | -5.32% | -2.91% | -0.64% | -2.03% | -10.79% | 23.44% |
 
-Real wages in the bad quarter move from roughly flat in 1973-1999 to -0.96% passive and -0.86%
+Real wages in the bad quarter move from roughly flat in 1973-1999 to -0.96% passive and -0.92%
 developmental in 2026-2050. That can reinforce household demand, but this measurement does not
 establish whether wages lead the contraction or follow the loss of utilization.
 
@@ -70,9 +71,9 @@ column:
 
 | policy | openness | 1973-1999 quiet p01 | 2026-2050 quiet p01 | future downside p50 | export share in downside | survivors |
 |---|---:|---:|---:|---:|---:|---:|
-| passive | 0.68 | -0.02% | -3.01% | -2.16% | 8.70% | 10/10 |
+| passive | 0.68 | -0.02% | -3.01% | -2.16% | 8.71% | 10/10 |
 | passive | 1.55 | -2.08% | -5.16% | -4.29% | 18.02% | 9/10 |
-| developmental | 0.68 | -0.88% | -4.46% | -3.56% | 17.18% | 7/10 |
+| developmental | 0.68 | -0.87% | -4.45% | -3.56% | 17.19% | 7/10 |
 | developmental | 1.55 | -3.45% | -7.71% | -6.06% | 26.04% | 6/10 |
 
 Openness is therefore an amplifier, not merely a label attached to different country recipes.
