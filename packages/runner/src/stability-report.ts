@@ -35,6 +35,31 @@ export function printStabilityReport(
     )
   }
 
+  console.log('  quiet-quarter drivers (p01 / p50 / p99):')
+  console.log('    era          productivity growth    employment growth      TFP growth       utilization')
+  for (const row of report.eras) {
+    console.log(
+      `    ${row.era.label.padEnd(11)}  ${tails(row.quietDrivers.laborProductivityGrowth)}  ${tails(row.quietDrivers.employmentGrowth)}  ${tails(row.quietDrivers.tfpGrowth)}  ${tails(row.quietDrivers.utilization)}`,
+    )
+  }
+
+  console.log('  worst 5% of quiet growth, median driver (log-growth points unless marked):')
+  console.log('    era             GDP     productivity  employment    TFP  labor force  real wage   d.util  demand met')
+  for (const row of report.eras) {
+    const d = row.quietDrivers.downside
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${fmt(d.realGrowth.p50).padStart(7)} ${fmt(d.laborProductivityContribution.p50).padStart(12)} ${fmt(d.employmentContribution.p50).padStart(11)} ${fmt(d.tfpGrowth.p50).padStart(6)} ${fmt(d.laborForceGrowth.p50).padStart(12)} ${fmt(d.realWageGrowth.p50).padStart(10)} ${fmt(d.utilizationChange.p50).padStart(8)} ${fmt(d.demandSatisfaction.p50).padStart(10)}`,
+    )
+  }
+  console.log('  demand in the worst 5% of quiet growth, median annualized change:')
+  console.log('    era          final demand  household  investment  government     exports  export share  inv/GDP')
+  for (const row of report.eras) {
+    const d = row.quietDrivers.downside
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${fmt(d.finalDemandGrowth.p50).padStart(13)} ${fmt(d.householdDemandGrowth.p50).padStart(10)} ${fmt(d.investmentGrowth.p50).padStart(11)} ${fmt(d.governmentDemandGrowth.p50).padStart(11)} ${fmt(d.exportGrowth.p50).padStart(11)} ${fmt(d.exportShare.p50).padStart(12)} ${fmt(d.investmentRate.p50).padStart(8)}`,
+    )
+  }
+
   if (report.eras.some((era) => era.publishedInflation.count > 0)) {
     console.log('  first-release wall tails (p01 / p50 / p99):')
     console.log('    era             inflation %        real growth %       prints CPI/GDP')

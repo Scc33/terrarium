@@ -21,7 +21,12 @@ export const STABILITY_ERAS: readonly StabilityEra[] = [
   { id: 'future', label: '2026-2050', firstTick: 320, lastTick: END_OF_HISTORY_TICK },
 ] as const
 
-export const MACRO_EVENTS: readonly MacroEvent[] = ['drought', 'fuel', 'banking_crisis']
+export const MACRO_EVENTS: readonly MacroEvent[] = [
+  'drought',
+  'fuel',
+  'banking_crisis',
+  'world_crisis',
+]
 /** A supply/finance rupture can dominate several annualized quarterly prints.
  * Quiet-quarter tails exclude the onset and the following two years so the
  * harness can distinguish background instability from a shock response. */
@@ -61,6 +66,49 @@ export interface EraStability {
   quietPublishedInflation: TailSummary
   quietPublishedRealGrowth: TailSummary
   unemployment: TailSummary
+  quietDrivers: QuietDriverSummary
+}
+
+export interface QuietDriverSummary {
+  observations: number
+  laborProductivityGrowth: TailSummary
+  employmentGrowth: TailSummary
+  laborForceGrowth: TailSummary
+  realWageGrowth: TailSummary
+  tfpGrowth: TailSummary
+  utilization: TailSummary
+  utilizationChange: TailSummary
+  demandSatisfaction: TailSummary
+  investmentRate: TailSummary
+  finalDemandGrowth: TailSummary
+  householdDemandGrowth: TailSummary
+  investmentGrowth: TailSummary
+  governmentDemandGrowth: TailSummary
+  exportGrowth: TailSummary
+  exportShare: TailSummary
+  householdShare: TailSummary
+  downside: QuietDownsideSummary
+}
+
+export interface QuietDownsideSummary {
+  observations: number
+  growthCutoff: number
+  realGrowth: TailSummary
+  laborProductivityContribution: TailSummary
+  employmentContribution: TailSummary
+  tfpGrowth: TailSummary
+  laborForceGrowth: TailSummary
+  realWageGrowth: TailSummary
+  utilizationChange: TailSummary
+  demandSatisfaction: TailSummary
+  investmentRate: TailSummary
+  finalDemandGrowth: TailSummary
+  householdDemandGrowth: TailSummary
+  investmentGrowth: TailSummary
+  governmentDemandGrowth: TailSummary
+  exportGrowth: TailSummary
+  exportShare: TailSummary
+  householdShare: TailSummary
 }
 
 export interface ShockStability {
@@ -90,6 +138,8 @@ interface MacroReading {
   publishedInflation: number
   publishedRealGrowth: number
   events: readonly MacroEvent[]
+  point: TrajectoryPoint
+  previous: TrajectoryPoint | undefined
 }
 
 export function summarizeTails(values: readonly number[]): TailSummary {
@@ -142,6 +192,19 @@ function annualizedGrowth(previous: TrajectoryPoint | undefined, point: Trajecto
   return (Math.pow(point.realGdp / previous.realGdp, 4) - 1) * 100
 }
 
+function annualizedLevelGrowth(previous: number, current: number): number {
+  if (previous <= 0 || current < 0) return NaN
+  return (Math.pow(current / previous, 4) - 1) * 100
+}
+
+/** Additive contribution to annualized log growth. Productivity and
+ * employment contributions sum exactly to log GDP growth because
+ * GDP = output per worker × employment. */
+function annualizedLogContribution(previous: number, current: number): number {
+  if (previous <= 0 || current <= 0) return NaN
+  return Math.log(current / previous) * 400
+}
+
 function macroReadings(run: StabilityRun): MacroReading[] {
   const playable = playableTrajectory(run)
   return playable.map((point, index) => ({
@@ -152,6 +215,8 @@ function macroReadings(run: StabilityRun): MacroReading[] {
     publishedInflation: point.publishedInflation ?? NaN,
     publishedRealGrowth: point.publishedRealGrowth ?? NaN,
     events: point.events ?? [],
+    point,
+    previous: playable[index - 1],
   }))
 }
 
@@ -168,6 +233,112 @@ function quietReadings(readings: readonly MacroReading[]): MacroReading[] {
       (onset) => point.tick >= onset && point.tick <= onset + SHOCK_EXCLUSION_QTRS,
     ),
   )
+}
+
+interface DriverReading {
+  realGrowth: number
+  laborProductivityGrowth: number
+  employmentGrowth: number
+  laborForceGrowth: number
+  realWageGrowth: number
+  laborProductivityContribution: number
+  employmentContribution: number
+  tfpGrowth: number
+  utilization: number
+  utilizationChange: number
+  demandSatisfaction: number
+  investmentRate: number
+  finalDemandGrowth: number
+  householdDemandGrowth: number
+  investmentGrowth: number
+  governmentDemandGrowth: number
+  exportGrowth: number
+  exportShare: number
+  householdShare: number
+}
+
+function driverReading(reading: MacroReading): DriverReading | null {
+  const previous = reading.previous
+  if (!previous || reading.point.tick !== previous.tick + 1) return null
+  const drivers = reading.point.drivers
+  const prior = previous.drivers
+  return {
+    realGrowth: reading.realGrowth,
+    laborProductivityGrowth: annualizedLevelGrowth(
+      prior.laborProductivity,
+      drivers.laborProductivity,
+    ),
+    employmentGrowth: annualizedLevelGrowth(prior.employment, drivers.employment),
+    laborForceGrowth: annualizedLevelGrowth(prior.laborForce, drivers.laborForce),
+    realWageGrowth: annualizedLevelGrowth(prior.realWage, drivers.realWage),
+    laborProductivityContribution: annualizedLogContribution(
+      prior.laborProductivity,
+      drivers.laborProductivity,
+    ),
+    employmentContribution: annualizedLogContribution(prior.employment, drivers.employment),
+    tfpGrowth: annualizedLevelGrowth(1, 1 + drivers.tfpGrowthQ),
+    utilization: drivers.utilization * 100,
+    utilizationChange: (drivers.utilization - prior.utilization) * 100,
+    demandSatisfaction: drivers.demandSatisfaction * 100,
+    investmentRate: drivers.investmentRate * 100,
+    finalDemandGrowth: annualizedLevelGrowth(prior.finalDemand, drivers.finalDemand),
+    householdDemandGrowth: annualizedLevelGrowth(prior.householdDemand, drivers.householdDemand),
+    investmentGrowth: annualizedLevelGrowth(prior.investment, drivers.investment),
+    governmentDemandGrowth: annualizedLevelGrowth(
+      prior.governmentDemand,
+      drivers.governmentDemand,
+    ),
+    exportGrowth: annualizedLevelGrowth(prior.exports, drivers.exports),
+    exportShare: (drivers.exports / Math.max(drivers.finalDemand, 1e-9)) * 100,
+    householdShare: (drivers.householdDemand / Math.max(drivers.finalDemand, 1e-9)) * 100,
+  }
+}
+
+function driverSummary(readings: readonly MacroReading[]): QuietDriverSummary {
+  const points = readings.map(driverReading).filter((point): point is DriverReading => point !== null)
+  const growthCutoff = summarizeTails(points.map((point) => point.realGrowth)).p05
+  const downside = points.filter((point) => point.realGrowth <= growthCutoff)
+  const tails = (key: keyof DriverReading, sample: readonly DriverReading[] = points) =>
+    summarizeTails(sample.map((point) => point[key]))
+  return {
+    observations: points.length,
+    laborProductivityGrowth: tails('laborProductivityGrowth'),
+    employmentGrowth: tails('employmentGrowth'),
+    laborForceGrowth: tails('laborForceGrowth'),
+    realWageGrowth: tails('realWageGrowth'),
+    tfpGrowth: tails('tfpGrowth'),
+    utilization: tails('utilization'),
+    utilizationChange: tails('utilizationChange'),
+    demandSatisfaction: tails('demandSatisfaction'),
+    investmentRate: tails('investmentRate'),
+    finalDemandGrowth: tails('finalDemandGrowth'),
+    householdDemandGrowth: tails('householdDemandGrowth'),
+    investmentGrowth: tails('investmentGrowth'),
+    governmentDemandGrowth: tails('governmentDemandGrowth'),
+    exportGrowth: tails('exportGrowth'),
+    exportShare: tails('exportShare'),
+    householdShare: tails('householdShare'),
+    downside: {
+      observations: downside.length,
+      growthCutoff,
+      realGrowth: tails('realGrowth', downside),
+      laborProductivityContribution: tails('laborProductivityContribution', downside),
+      employmentContribution: tails('employmentContribution', downside),
+      tfpGrowth: tails('tfpGrowth', downside),
+      laborForceGrowth: tails('laborForceGrowth', downside),
+      realWageGrowth: tails('realWageGrowth', downside),
+      utilizationChange: tails('utilizationChange', downside),
+      demandSatisfaction: tails('demandSatisfaction', downside),
+      investmentRate: tails('investmentRate', downside),
+      finalDemandGrowth: tails('finalDemandGrowth', downside),
+      householdDemandGrowth: tails('householdDemandGrowth', downside),
+      investmentGrowth: tails('investmentGrowth', downside),
+      governmentDemandGrowth: tails('governmentDemandGrowth', downside),
+      exportGrowth: tails('exportGrowth', downside),
+      exportShare: tails('exportShare', downside),
+      householdShare: tails('householdShare', downside),
+    },
+  }
 }
 
 function eraReport(
@@ -192,6 +363,7 @@ function eraReport(
     quietPublishedInflation: summarizeTails(quiet.map((point) => point.publishedInflation)),
     quietPublishedRealGrowth: summarizeTails(quiet.map((point) => point.publishedRealGrowth)),
     unemployment: summarizeTails(points.map((point) => point.unemployment)),
+    quietDrivers: driverSummary(quiet),
   }
 }
 

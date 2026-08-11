@@ -13,6 +13,8 @@ import {
   step,
   IllegalActionError,
   SECTOR_IDS,
+  potentialOutput,
+  totalLaborForce,
   type Action,
   type ActionLog,
   type CountryParams,
@@ -41,9 +43,36 @@ export interface TrajectoryPoint {
   /** Runner-only event tags. They make shock-conditioned balance analysis
    * independent of player-facing prose and never enter engine state. */
   events: MacroEvent[]
+  /** True-state macro drivers retained only by the headless runner. These are
+   * not published to the player; they let the stability harness explain a GDP
+   * tail rather than merely report that one exists. */
+  drivers: MacroDrivers
 }
 
-export type MacroEvent = 'drought' | 'fuel' | 'banking_crisis'
+export interface MacroDrivers {
+  laborForce: number
+  employment: number
+  laborProductivity: number
+  realWage: number
+  utilization: number
+  demandSatisfaction: number
+  tfpGrowthQ: number
+  investmentRate: number
+  finalDemand: number
+  householdDemand: number
+  investment: number
+  governmentDemand: number
+  exports: number
+}
+
+export type MacroEvent = 'drought' | 'fuel' | 'banking_crisis' | 'world_crisis'
+
+const WORLD_CRISIS_NEWS = new Set([
+  'A commodity crash abroad: exporting nations slash output overnight.',
+  'The manufacturing giant seizes up; global supply chains snarl.',
+  'A sudden stop: the world’s money centres freeze, lending dries up.',
+  'The regional economy collapses into crisis, and it is next door.',
+])
 
 export interface RunResult {
   seed: string
@@ -92,6 +121,7 @@ function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
   if (newWire.some((item) => item.text === 'Crisis abroad: world fuel markets are in tumult.')) {
     events.push('fuel')
   }
+  if (newWire.some((item) => WORLD_CRISIS_NEWS.has(item.text))) events.push('world_crisis')
   return events
 }
 
@@ -102,6 +132,23 @@ function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
     s.stats.series[id]
       ?.find((print) => print.publishedAt === s.meta.tick && print.revision === 0)
       ?.value ?? null
+  const employment = s.sectors.reduce((sum, sector) => sum + sector.employment, 0)
+  const potential = s.sectors.reduce((sum, sector) => sum + potentialOutput(sector), 0)
+  const output = s.sectors.reduce((sum, sector) => sum + sector.output, 0)
+  const grossDemand = SECTOR_IDS.reduce((sum, sid) => sum + s.flows.grossDemand[sid], 0)
+  const wage = s.sectors.reduce(
+    (sum, sector) => sum + s.market.wages[sector.id] * sector.employment,
+    0,
+  ) / Math.max(employment, 1e-9)
+  const householdDemand = SECTOR_IDS.reduce(
+    (sum, sid) => sum + s.flows.householdDemand[sid],
+    0,
+  )
+  const cpi = SECTOR_IDS.reduce((sum, sid) => {
+    const weight = householdDemand > 1e-9 ? s.flows.householdDemand[sid] / householdDemand : 0.2
+    const fuel = sid === 'energy' ? 1 + s.gov.dials.taxRates.fuel : 1
+    return sum + weight * s.market.prices[sid] * fuel
+  }, 0)
   return {
     tick: s.meta.tick,
     realGdp: s.flows.realGdp,
@@ -117,6 +164,21 @@ function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
     publishedInflation: firstPrint('inflation'),
     publishedRealGrowth: firstPrint('gdp_growth'),
     events,
+    drivers: {
+      laborForce: totalLaborForce(s),
+      employment,
+      laborProductivity: s.flows.realGdp / Math.max(employment, 1e-9),
+      realWage: wage / Math.max(cpi, 1e-9),
+      utilization: output / Math.max(potential, 1e-9),
+      demandSatisfaction: output / Math.max(grossDemand, 1e-9),
+      tfpGrowthQ: s.tech.tfpGrowthQ,
+      investmentRate: s.flows.investmentReal / Math.max(s.flows.realGdp, 1e-9),
+      finalDemand: SECTOR_IDS.reduce((sum, sid) => sum + s.flows.finalDemand[sid], 0),
+      householdDemand,
+      investment: s.flows.investmentReal,
+      governmentDemand: s.flows.governmentDomesticDemandReal,
+      exports: SECTOR_IDS.reduce((sum, sid) => sum + s.flows.exportsReal[sid], 0),
+    },
   }
 }
 
