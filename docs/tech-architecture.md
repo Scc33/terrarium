@@ -407,6 +407,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm bless` | re-bless golden snapshots after an intentional change |
 | `pnpm ranges` | measure a surveyed century; the input to dial faces |
 | `pnpm stability -- --runs 120 --policy all --country all` | player-reachable macro tails through 2050 |
+| `pnpm export-feedback -- --runs 40 --openness all` | paired foreign-demand and household-feedback counterfactuals |
 | `pnpm architecture` | scan the source and open the engine atlas on localhost:4174 |
 | `pnpm architecture:build` | regenerate and production-build the engine atlas |
 | `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |

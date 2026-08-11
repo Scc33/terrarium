@@ -26,6 +26,44 @@ const OPENING_AGE_SHAPE = {
   developmental: { standardFutureGrowthP01: -5.7207, youngerFutureGrowthP01: -5.7354 },
 } as const
 
+/** Forty paired passive runs through 2050 at 7301c2e. Each row conditions on
+ * the worst 5% of quiet partner-demand growth in its own era. Effects are
+ * median percentage-point differences between same-seed counterfactuals. */
+const EXPORT_HOUSEHOLD_FEEDBACK = {
+  low: {
+    lateCentury: {
+      normalGrowth: 2.24,
+      neutralGrowth: 2.98,
+      immediateNonHouseholdEffect: -0.69,
+      householdEffectNextQuarter: -0.41,
+      habitEffectNextQuarter: -0.08,
+    },
+    future: {
+      normalGrowth: 0.72,
+      neutralGrowth: 1.48,
+      immediateNonHouseholdEffect: -0.71,
+      householdEffectNextQuarter: -0.37,
+      habitEffectNextQuarter: -0.06,
+    },
+  },
+  high: {
+    lateCentury: {
+      normalGrowth: 1.20,
+      neutralGrowth: 2.77,
+      immediateNonHouseholdEffect: -1.32,
+      householdEffectNextQuarter: -0.83,
+      habitEffectNextQuarter: -0.17,
+    },
+    future: {
+      normalGrowth: -0.47,
+      neutralGrowth: 1.15,
+      immediateNonHouseholdEffect: -1.40,
+      householdEffectNextQuarter: -0.87,
+      habitEffectNextQuarter: -0.17,
+    },
+  },
+} as const
+
 describe('quiet late-growth driver experiments', () => {
   it('records openness as a causal amplifier with all other country inputs paired', () => {
     for (const result of Object.values(OPENNESS)) {
@@ -40,6 +78,28 @@ describe('quiet late-growth driver experiments', () => {
       expect(
         Math.abs(result.youngerFutureGrowthP01 - result.standardFutureGrowthP01),
       ).toBeLessThan(0.1)
+    }
+  })
+
+  it('records that export and household transmission did not strengthen after 2000', () => {
+    for (const openness of Object.values(EXPORT_HOUSEHOLD_FEEDBACK)) {
+      expect(Math.abs(
+        openness.future.immediateNonHouseholdEffect -
+        openness.lateCentury.immediateNonHouseholdEffect,
+      )).toBeLessThan(0.1)
+      expect(Math.abs(
+        openness.future.householdEffectNextQuarter -
+        openness.lateCentury.householdEffectNextQuarter,
+      )).toBeLessThan(0.1)
+    }
+  })
+
+  it('records a lower late growth cushion even with export demand neutralized', () => {
+    for (const openness of Object.values(EXPORT_HOUSEHOLD_FEEDBACK)) {
+      expect(openness.future.neutralGrowth).toBeLessThan(
+        openness.lateCentury.neutralGrowth - 1.4,
+      )
+      expect(Math.abs(openness.future.habitEffectNextQuarter)).toBeLessThan(0.2)
     }
   })
 })

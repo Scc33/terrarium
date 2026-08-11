@@ -50,6 +50,7 @@ function point(
       investment: 20 + tick,
       governmentDemand: 5 + tick,
       exports: 10 + tick,
+      partnerDemand: 1,
       ...options.drivers,
     },
   }

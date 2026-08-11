@@ -6,7 +6,7 @@
 wider post-2000 downside-growth tail after the spectacular drought reversals were removed.
 
 **Measured at:** driver and paired sensitivities at `ec63e9c`; foreign-crisis classification
-A/B at `ef83ea5`, both on 2026-08-10.
+A/B at `ef83ea5`; export-feedback counterfactuals at `7301c2e`, all on 2026-08-10.
 
 ## A quiet-quarter classification gap was real but not decisive
 
@@ -93,21 +93,65 @@ initial pyramid. The frozen paired results live in
 `tests/unit/late-growth-driver-experiments.test.ts` so a future agent can see which intuitively
 plausible explanations were already separated.
 
+## Export feedback is real, but it did not become stronger after 2000
+
+The export-feedback harness advances four passive Meridia paths in lockstep with identical RNG
+substreams. The normal path is pinned exactly against `runOne`; the other paths intervene only
+between `world` and `production`:
+
+1. `normal` leaves partner demand and households untouched;
+2. `neutralExports` fixes every sector's export-demand multiplier at its neutral value of 1;
+3. `habitClamped` leaves normal exports in place but gives production the neutral path's
+   `lastRealIncome`;
+4. `householdClamped` additionally substitutes the neutral path's disposable-income inputs,
+   savings, and consumer confidence.
+
+This makes the current export order observable before household incomes respond. The normal
+minus fully clamped path is total household feedback; normal minus habit-clamped is the habitual
+income part; and fully clamped minus export-neutral is the immediate export and non-household
+path. The harness excludes the union of all paths' shock-onset-plus-eight-quarter windows, then
+conditions on the worst 5% of remaining partner-demand growth in each era.
+
+Forty paired seeds through 2050 produced these median annualized growth rates and same-seed
+percentage-point effects. `h0` is the contraction quarter and `h1` the following quarter:
+
+| openness / era | normal GDP h0 | export-neutral GDP h0 | non-household effect h0 | all household feedback h1 | habitual-income part h1 |
+|---|---:|---:|---:|---:|---:|
+| 0.68 / 1973-1999 | 2.24% | 2.98% | -0.69 | -0.41 | -0.08 |
+| 0.68 / 2026-2050 | 0.72% | 1.48% | -0.71 | -0.37 | -0.06 |
+| 1.55 / 1973-1999 | 1.20% | 2.77% | -1.32 | -0.83 | -0.17 |
+| 1.55 / 2026-2050 | -0.47% | 1.15% | -1.40 | -0.87 | -0.17 |
+
+Ordinary foreign contraction therefore has the expected shape. Openness roughly doubles the
+immediate GDP hit; household demand adds a material one-quarter-lagged contraction; and the
+habitual-income term carries only part of that feedback. The rest comes through current wage,
+profit and transfer income, savings, and confidence. The household drag mostly dissipates after
+two quarters, with habit providing more of the small residual at four quarters.
+
+But neither transmission became materially stronger in the future era. At each openness the
+immediate non-household effect changed by at most 0.08 point, the next-quarter household effect
+by at most 0.04 point, and the habitual-income part was flat to within 0.02 point. What changed
+was the growth underneath the event: export-neutral median growth in the same contractions fell
+about 1.5-1.6 points between eras. Post-2000 export contractions cross zero more often because
+the economy has less trend cushion, not because habitual-income smoothing destabilizes them.
+
+The executable experiment is `pnpm export-feedback -- --runs 40 --openness all`. Its live
+equivalence and response checks are in `tests/properties/export-feedback.test.ts`; the measured
+comparisons are frozen beside the earlier sensitivities in
+`tests/unit/late-growth-driver-experiments.test.ts`.
+
 ## What this implies
 
-The next tuning candidate should not begin with drought restoration, the frontier schedule, or
-wage-productivity passthrough. It should first decide how much ordinary foreign-cycle exposure
-and endogenous population contraction should widen aggregate quarterly GDP in a mature economy.
-Both are real economic risks; erasing them would make openness and the demographic transition
-cosmetic. But their interaction with habitual household income and lagged employment currently
-turns a smaller trend cushion into wider output tails.
+The next tuning candidate should not begin with drought restoration, the frontier schedule,
+wage-productivity passthrough, or weaker habitual-income smoothing. Ordinary foreign exposure
+and its household echo are economically legible and approximately stationary across eras.
+Erasing either would make openness cosmetic without addressing the falling growth cushion.
 
 The next controlled comparisons should separate:
 
-1. the direct export-demand contribution from the household-income feedback it induces;
-2. level growth from per-capita growth when the labor force is shrinking;
-3. whether the employment-adjustment lag damps a demand fall or stores up the following rebound;
-4. whether any candidate narrows quiet and shock tails while preserving survivor CAGR and the
+1. level growth from per-capita growth when the labor force is shrinking;
+2. whether the employment-adjustment lag damps a demand fall or stores up the following rebound;
+3. whether any candidate narrows quiet and shock tails while preserving survivor CAGR and the
    exact 1946 opening.
 
 Until those are measured, this investigation does not recommend an engine constant.
