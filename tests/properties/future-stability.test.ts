@@ -83,7 +83,10 @@ describe('the playable economy through 2050', () => {
     // silently lowering century trend growth or ending more governments.
     const passiveSurvivors = policyRuns.passive.filter((run) => run.deposedAt === null)
     const developmentalSurvivors = policyRuns.developmental.filter((run) => run.deposedAt === null)
-    expect(passiveSurvivors).toHaveLength(22)
+    // Sovereign funding pressure on current master changes one fixed passive
+    // outcome from deposition to survival; keep the exact cohort pinned to the
+    // engine this branch is actually proposed against.
+    expect(passiveSurvivors).toHaveLength(23)
     expect(developmentalSurvivors).toHaveLength(17)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeGreaterThan(2.3)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeLessThan(2.8)
