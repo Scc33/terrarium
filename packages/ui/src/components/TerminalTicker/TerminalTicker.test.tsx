@@ -16,7 +16,11 @@ describe('TerminalTicker', () => {
     expect(renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} />)).toContain('2.50')
   })
 
-  it('exposes the history-window control', () => {
-    expect(renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} />)).toContain('40Q')
+  it('exposes raw-history and rolling-average chart views', () => {
+    const html = renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} />)
+
+    expect(html).toContain('40Q')
+    expect(html).toContain('R3M, R6M and R12M')
+    expect(html).toContain('The readout below remains the latest raw published figure')
   })
 })

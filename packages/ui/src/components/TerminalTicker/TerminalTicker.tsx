@@ -36,7 +36,14 @@ import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { gaugeDomain } from '../../domains'
 import { complementReading, NAMES, readingDigits } from '../labels'
-import { qtrLabel, quarterDelta, shapeSeries, type ShapedPoint } from '../series'
+import {
+  qtrLabel,
+  quarterDelta,
+  rollingAverage,
+  shapeSeries,
+  type RollingMonths,
+  type ShapedPoint,
+} from '../series'
 import { WallTile } from '../WallTile/WallTile'
 
 // The viewBox aspect is chosen to match a board slot, not to be a tidy
@@ -52,6 +59,21 @@ const PAD_R = 8
 const PAD_T = 10
 const PAD_B = 18
 
+type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12'
+
+const CHART_VIEWS: readonly {
+  view: ChartView
+  label: string
+  title: string
+  rollingMonths?: RollingMonths
+}[] = [
+  { view: 'recent', label: '40Q', title: 'Raw releases from the most recent 40 quarters' },
+  { view: 'all', label: 'ALL', title: 'Raw releases from the whole published history' },
+  { view: 'rolling3', label: 'R3M', title: 'Rolling 3-month mean (one quarterly release)', rollingMonths: 3 },
+  { view: 'rolling6', label: 'R6M', title: 'Rolling 6-month mean (two quarterly releases)', rollingMonths: 6 },
+  { view: 'rolling12', label: 'R12M', title: 'Rolling 12-month mean (four quarterly releases)', rollingMonths: 12 },
+]
+
 export function TerminalTicker({
   indicator,
   series,
@@ -62,10 +84,20 @@ export function TerminalTicker({
   now: number
 }) {
   const [hover, setHover] = useState<ShapedPoint | null>(null)
-  const [fullHistory, setFullHistory] = useState(false)
-  const points = shapeSeries(series, fullHistory ? Number.MAX_SAFE_INTEGER : 40, now)
-  if (points.length < 2) return null
-  const latest = points[points.length - 1]
+  const [chartView, setChartView] = useState<ChartView>('recent')
+  const allPoints = shapeSeries(series, Number.MAX_SAFE_INTEGER, now)
+  if (allPoints.length < 2) return null
+  const latest = allPoints[allPoints.length - 1]
+  const viewIndex = CHART_VIEWS.findIndex((candidate) => candidate.view === chartView)
+  const view = CHART_VIEWS[viewIndex]
+  const recentCutoff = now - 40
+  const points = (
+    view.rollingMonths
+      ? rollingAverage(allPoints, view.rollingMonths)
+      : chartView === 'all'
+        ? allPoints
+        : allPoints.filter((point) => point.forQtr >= recentCutoff)
+  ).filter((point) => chartView === 'all' || point.forQtr >= recentCutoff)
   // The phosphor register is the SAME quantity better measured (see the module
   // note), so it keeps exactly one digit more than the brass one rather than a
   // fixed two: a rate reads 6.21 against the gauge's 6.2, and an index past a
@@ -75,8 +107,9 @@ export function TerminalTicker({
   const digits = readingDigits(latest.value) + 1
   const complement = complementReading(indicator, latest.value, digits)
 
-  const x0 = points[0].forQtr
-  const x1 = Math.max(latest.forQtr, x0 + 4)
+  const chartLatest = points[points.length - 1]
+  const x0 = points[0]?.forQtr ?? Math.max(0, latest.forQtr - 4)
+  const x1 = Math.max(chartLatest?.forQtr ?? latest.forQtr, x0 + 4)
   // the same fixed face the dossier gauge prints — the axis does not move
   // under the trace as the window rolls
   const { lo, hi } = gaugeDomain(
@@ -87,7 +120,9 @@ export function TerminalTicker({
   const sx = (q: number) => PAD_L + ((q - x0) / (x1 - x0)) * (W - PAD_L - PAD_R)
   const clampY = (v: number) => Math.min(hi, Math.max(lo, v))
   const sy = (v: number) => PAD_T + ((hi - clampY(v)) / (hi - lo)) * (H - PAD_T - PAD_B)
-  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.forQtr).toFixed(1)},${sy(p.value).toFixed(1)}`).join(' ')
+  const line = points.length >= 2
+    ? points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.forQtr).toFixed(1)},${sy(p.value).toFixed(1)}`).join(' ')
+    : null
   const banded = points.filter((p) => p.errorBand > 0)
   const band =
     banded.length >= 2
@@ -96,6 +131,7 @@ export function TerminalTicker({
         'Z'
       : null
   const zeroVisible = lo < 0 && hi > 0
+  const chartSummary = `${NAMES[indicator].plate}. ${view.title}. The readout below remains the latest raw published figure.`
 
   const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -129,11 +165,13 @@ export function TerminalTicker({
         {NAMES[indicator].terminal}
       </span>
       <button
-        onClick={() => setFullHistory((v) => !v)}
-        title="Toggle between the recent window and the whole published history"
+        type="button"
+        onClick={() => setChartView(CHART_VIEWS[(viewIndex + 1) % CHART_VIEWS.length].view)}
+        title={`${view.title}. Click to cycle 40Q, ALL, R3M, R6M and R12M.`}
+        aria-label={`Chart view: ${view.title}. Click to cycle chart views.`}
         className="border border-terminal-grid px-1 font-mono text-[8px] text-terminal-primary/70 hover:text-terminal-primary"
       >
-        {fullHistory ? 'ALL' : '40Q'}
+        {view.label}
       </button>
     </div>
   )
@@ -157,7 +195,7 @@ export function TerminalTicker({
         {latest.value.toFixed(digits)}
         {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
         {(() => {
-          const d = quarterDelta(points)
+          const d = quarterDelta(allPoints)
           if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
           return (
             <span className="ml-1.5 opacity-80">
@@ -179,7 +217,10 @@ export function TerminalTicker({
           className="block h-full w-full cursor-crosshair"
           onMouseMove={onMove}
           onMouseLeave={() => setHover(null)}
+          role="img"
+          aria-label={chartSummary}
         >
+          <title>{chartSummary}</title>
           {/* hairline frame + zero line */}
           <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
           <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
@@ -196,7 +237,7 @@ export function TerminalTicker({
             {qtrLabel(x0)}
           </text>
           <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.55">
-            {qtrLabel(latest.forQtr)}
+            {qtrLabel(chartLatest?.forQtr ?? latest.forQtr)}
           </text>
 
           {band && <path d={band} fill="var(--color-terminal-primary)" opacity="0.08" />}
@@ -224,7 +265,21 @@ export function TerminalTicker({
                 />
               </g>
             ))}
-          <path d={line} fill="none" stroke="var(--color-terminal-primary)" strokeWidth="1.6" strokeLinejoin="round" />
+          {line ? (
+            <path d={line} fill="none" stroke="var(--color-terminal-primary)" strokeWidth="1.6" strokeLinejoin="round" />
+          ) : (
+            <text
+              x={W / 2}
+              y={H / 2}
+              textAnchor="middle"
+              fontSize="9"
+              fontFamily="var(--font-mono)"
+              fill="var(--color-terminal-primary)"
+              opacity="0.6"
+            >
+              {view.rollingMonths ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY` : 'INSUFFICIENT HISTORY'}
+            </text>
+          )}
           {points.map((p) =>
             p.revision >= 2 ? (
               <circle key={p.forQtr} cx={sx(p.forQtr)} cy={sy(p.value)} r="1.6" fill="var(--color-terminal-primary)" />
@@ -248,6 +303,7 @@ export function TerminalTicker({
         {hover && (
           <div className="pointer-events-none absolute right-1 top-1 border border-terminal-grid bg-terminal-bg px-2 py-1 font-mono text-[9px] leading-relaxed text-terminal-primary">
             <div>{qtrLabel(hover.forQtr)}</div>
+            {view.rollingMonths && <div className="opacity-60">{view.rollingMonths}M ROLLING AVG</div>}
             <div>
               {hover.value.toFixed(digits)}
               {hover.errorBand > 0 ? ` ±${hover.errorBand.toFixed(1)}` : ''}

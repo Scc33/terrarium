@@ -60,6 +60,58 @@ export function shapeSeries(series: IndicatorSeries, windowQtrs: number, now: nu
     .sort((a, b) => a.forQtr - b.forQtr)
 }
 
+export type RollingMonths = 3 | 6 | 12
+
+/**
+ * A trailing mean of the releases the chart actually has on the desk.
+ *
+ * Instruments publish quarterly, so the player-facing 3/6/12 month choices
+ * are one, two and four consecutive quarterly prints. A gap restarts the
+ * window: reaching back across an unfunded survey would draw a smooth line
+ * through a period the state never measured, which is more certainty than the
+ * published record contains.
+ *
+ * The averaged uncertainty is conservative. The mean of the component error
+ * bounds remains a valid bound on their mean without assuming independent
+ * measurement errors. First prints are averaged separately so later revisions
+ * can still leave the same quiet correction marks as the raw chart.
+ */
+export function rollingAverage(
+  points: readonly ShapedPoint[],
+  months: RollingMonths,
+): ShapedPoint[] {
+  const windowQtrs = months / 3
+  const result: ShapedPoint[] = []
+  const mean = (window: readonly ShapedPoint[], read: (point: ShapedPoint) => number) =>
+    window.reduce((sum, point) => sum + read(point), 0) / window.length
+
+  for (let i = windowQtrs - 1; i < points.length; i++) {
+    const window = points.slice(i - windowQtrs + 1, i + 1)
+    const latest = window[window.length - 1]
+    const firstQtr = latest.forQtr - windowQtrs + 1
+    if (window.some((point, offset) => point.forQtr !== firstQtr + offset)) continue
+
+    const value = mean(window, (point) => point.value)
+    const firstPrint = mean(window, (point) => point.firstPrint)
+    const firstBand = mean(window, (point) => point.firstBand)
+    const revisionDelta = value - firstPrint
+    result.push({
+      forQtr: latest.forQtr,
+      value,
+      firstPrint,
+      errorBand: mean(window, (point) => point.errorBand),
+      firstBand,
+      revision: Math.min(...window.map((point) => point.revision)),
+      lag: latest.lag,
+      revisionDelta,
+      visiblyRevised: Math.abs(revisionDelta) > firstBand * 0.5,
+      levels: latest.levels,
+    })
+  }
+
+  return result
+}
+
 /**
  * How many quarters back a revision still counts as news. Beyond this the
  * player has stopped acting on the number, so re-stamping it is noise.

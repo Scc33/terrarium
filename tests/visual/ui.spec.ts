@@ -83,6 +83,31 @@ test('no fitted instrument shears inside its board slot', async ({ page }) => {
   expect(overflowing).toEqual([])
 })
 
+test('rolling chart mode remains legible inside a fitted board slot', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const viewButtons = page.getByRole('button', { name: /^Chart view:/ })
+  const count = await viewButtons.count()
+  expect(count).toBeGreaterThan(0)
+  for (let i = 0; i < count; i++) {
+    const button = viewButtons.nth(i)
+    for (let click = 0; click < 4; click++) await button.click()
+    await expect(button).toHaveText('R12M')
+  }
+
+  const rollingChart = page.getByRole('img', { name: /Rolling 12-month mean/ }).first()
+  await expect(rollingChart).toBeVisible()
+  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+
+  const gdpTicker = page
+    .locator('figure')
+    .filter({ hasText: 'TERMINAL · REAL GDP GROWTH' })
+    .locator('> div')
+  await expect(gdpTicker).toHaveScreenshot('rolling-chart-12m.png')
+})
+
 test('dashboard with empty instruments', async ({ page }) => {
   await openGame(page)
   await expect(page).toHaveScreenshot('dashboard-empty.png')
