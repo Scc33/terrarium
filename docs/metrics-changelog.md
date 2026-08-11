@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 19)
+## Current contract (schema 20)
 
 ### Inputs
 
@@ -91,6 +91,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 |---|---|---:|---|---|
 | `gdp_growth` | % / yr | 0.00 | v1 | **real** GDP growth (+ real and nominal level estimates) |
 | `gdp_per_capita` | real / head / yr | 0.00 | v15 | annualized real GDP ÷ census population |
+| `debt_to_gdp` | % of GDP | 0.00 | v20 | treasury debt ÷ annualized nominal GDP |
 | `inflation` | % / yr | 0.08 | v1 | quarterly CPI inflation ×4 |
 | `price_food` | 1946=100 | 0.20 | v5 | effective agri price |
 | `price_fuel` | 1946=100 | 0.20 | v5 | effective energy price (incl. fuel excise) |
@@ -163,6 +164,14 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 20 — Debt in the scale of the economy
+
+- **Outputs +**: `debt_to_gdp` (fogged, unlock 0.00, unit `% of GDP`) — the exact treasury
+  debt stock divided by the statistical office's annualized nominal-GDP estimate. The ratio
+  makes the existing debt book legible against the country's capacity to carry it without
+  exposing hidden live GDP; its lag, revisions, and uncertainty follow the national accounts.
+- **Inputs**: unchanged.
 
 ### schema 19 — Research as a stock, invention as a bet
 

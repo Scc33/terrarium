@@ -132,7 +132,9 @@ export const adminEffectiveness = (capacity: number): number => 0.35 + 0.65 * Ma
 export const BOND_MARKET_DEPTH = 0.05
 /** …and beyond this debt/GDP, markets close entirely */
 export const DEBT_CEILING = 1.2
-export const RISK_PREMIUM_SLOPE = 0.06 // adds to interest as debt/GDP grows past 0.5
+/** Debt/GDP above this point begins adding to the sovereign risk premium. */
+export const DEBT_RISK_PREMIUM_AT = 0.5
+export const RISK_PREMIUM_SLOPE = 0.06
 /** Share of the sovereign premium that reaches domestic private funding costs. */
 export const SOVEREIGN_PRIVATE_PREMIUM_SHARE = 0.5
 /** Bond issuance as a share of quarterly GDP bids up the private annual rate.
@@ -150,6 +152,7 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
 export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   gdp_growth: 0,
   gdp_per_capita: 0,
+  debt_to_gdp: 0,
   consumption_per_capita: 0.25,
   household_saving_rate: 0.45,
   // The expenditure accounts are ONE publication, so all four unlock together

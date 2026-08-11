@@ -40,6 +40,31 @@ describe('the national accounts instruments', () => {
     expect(observe(state).indicators.gdp_growth!.label).toBe('Real GDP growth')
   })
 
+  it('puts the treasury debt stock over annualized nominal GDP', () => {
+    const state = play('accounts-debt', 16)
+    const q = state.stats.record.length - 1
+    const record = state.stats.record
+    const debtRatio = INDICATOR_SPECS.find((spec) => spec.id === 'debt_to_gdp')!
+
+    expect(debtRatio.trueValue(record, q)).toBeCloseTo(
+      (100 * record[q].debt) / (4 * record[q].nominalGdp),
+      10,
+    )
+    expect(
+      debtRatio.trueValue(
+        record.map((row, i) => (i === q ? { ...row, debt: row.debt * 2 } : row)),
+        q,
+      ),
+    ).toBeCloseTo(2 * debtRatio.trueValue(record, q), 10)
+    expect(
+      debtRatio.trueValue(
+        record.map((row, i) => (i === q ? { ...row, nominalGdp: row.nominalGdp * 2 } : row)),
+        q,
+      ),
+    ).toBeCloseTo(0.5 * debtRatio.trueValue(record, q), 10)
+    expect(observe(state).indicators.debt_to_gdp!.unit).toBe('% of GDP')
+  })
+
   it('records lived consumption per head and the household saving identity', () => {
     const state = play('accounts-households', 20)
     const latest = state.stats.record[state.stats.record.length - 1]
@@ -100,6 +125,7 @@ describe('the national accounts instruments', () => {
 
   it('unlocks each account only when the office can compile it', () => {
     expect(observe(play('accounts-gate', 12, 0.1)).indicators.gdp_per_capita).toBeDefined()
+    expect(observe(play('accounts-gate', 12, 0.1)).indicators.debt_to_gdp).toBeDefined()
     expect(observe(play('accounts-gate', 12, 0.22)).indicators.consumption_per_capita).toBeUndefined()
     expect(observe(play('accounts-gate', 12, 0.3)).indicators.consumption_per_capita).toBeDefined()
     // the expenditure accounts arrive as one event, all three together

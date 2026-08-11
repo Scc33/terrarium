@@ -61,6 +61,17 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'debt_to_gdp',
+    // Debt is a stock; the worksheet's GDP is a quarterly flow. Annualize the
+    // denominator before reporting the conventional public-debt ratio.
+    trueValue: (h, q) =>
+      h[q].nominalGdp > 1e-9 ? (100 * h[q].debt) / (4 * h[q].nominalGdp) : 0,
+    // The treasury knows the numerator exactly. Uncertainty comes from the
+    // office's nominal-output estimate, so it scales with the ratio itself.
+    baseSd: 0.05,
+    relativeSd: true,
+  },
+  {
     id: 'consumption_per_capita',
     trueValue: (h, q) => h[q].realConsumptionPerCapita,
     baseSd: 0.05,

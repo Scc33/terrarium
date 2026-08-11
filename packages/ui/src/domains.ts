@@ -26,7 +26,12 @@
  * never shrinks back under the needle.
  */
 
-import { ELECTION_WIN_THRESHOLD, NATURAL_UNEMPLOYMENT, REFORM_WINDOW_AT } from '@terrarium/engine'
+import {
+  DEBT_RISK_PREMIUM_AT,
+  ELECTION_WIN_THRESHOLD,
+  NATURAL_UNEMPLOYMENT,
+  REFORM_WINDOW_AT,
+} from '@terrarium/engine'
 import type { IndicatorId } from '@terrarium/observation'
 
 export interface Domain {
@@ -51,6 +56,9 @@ export interface Reading {
 export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   gdp_growth: { lo: -15, hi: 15 },
   gdp_per_capita: { lo: 0, hi: 120 },
+  // Across 12 seeds × 6 countries × 400 quarters: p01–p99 0.0–74.5,
+  // maximum 95.3. Let borrowing beyond a measured century peg visibly.
+  debt_to_gdp: { lo: 0, hi: 100 },
   consumption_per_capita: { lo: 0, hi: 90 },
   household_saving_rate: { lo: -10, hi: 20 },
   // The expenditure shares differ in magnitude by two orders of magnitude in
@@ -98,6 +106,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
 export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string }>> = {
   approval: { at: ELECTION_WIN_THRESHOLD * 100, label: 'THE LINE' },
   gdp_growth: { at: 0, label: 'FLAT' },
+  debt_to_gdp: { at: DEBT_RISK_PREMIUM_AT * 100, label: 'PREMIUM' },
   household_saving_rate: { at: 0, label: 'DRAWDOWN' },
   inflation: { at: 0, label: 'STABLE' },
   credit_growth: { at: 0, label: 'FLAT' },

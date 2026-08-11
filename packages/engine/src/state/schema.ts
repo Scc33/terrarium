@@ -96,6 +96,7 @@ export type PlatformId = (typeof PLATFORM_IDS)[number]
 export const INDICATOR_IDS = [
   'gdp_growth',
   'gdp_per_capita',
+  'debt_to_gdp',
   'consumption_per_capita',
   'household_saving_rate',
   // The expenditure accounts (§2.2): who the economy's output is FOR. A
@@ -664,7 +665,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 19 // v19: research as a stock, lumpy breakthroughs, published productivity
+export const SCHEMA_VERSION = 20 // v20: published debt as a percentage of GDP
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
