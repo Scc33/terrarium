@@ -63,6 +63,8 @@ export interface MacroDrivers {
   investment: number
   governmentDemand: number
   exports: number
+  /** Output-weighted foreign activity multiplier seen by exporters. */
+  partnerDemand: number
 }
 
 export type MacroEvent = 'drought' | 'fuel' | 'banking_crisis' | 'world_crisis'
@@ -103,7 +105,7 @@ export interface RunOptions {
   lenient?: boolean
 }
 
-function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
+export function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
   const events: MacroEvent[] = []
   if (
     before.external.shocks.droughtQtrsLeft === 0 &&
@@ -125,7 +127,7 @@ function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
   return events
 }
 
-function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
+export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
   const prices = {} as Record<SectorId, number>
   for (const sid of SECTOR_IDS) prices[sid] = s.market.prices[sid]
   const firstPrint = (id: 'inflation' | 'gdp_growth'): number | null =>
@@ -144,6 +146,11 @@ function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
     (sum, sid) => sum + s.flows.householdDemand[sid],
     0,
   )
+  const exports = SECTOR_IDS.reduce((sum, sid) => sum + s.flows.exportsReal[sid], 0)
+  const partnerDemand = SECTOR_IDS.reduce((sum, sid) => {
+    const weight = exports > 1e-9 ? s.flows.exportsReal[sid] / exports : 1 / SECTOR_IDS.length
+    return sum + weight * s.external.world.exportDemand[sid]
+  }, 0)
   const cpi = SECTOR_IDS.reduce((sum, sid) => {
     const weight = householdDemand > 1e-9 ? s.flows.householdDemand[sid] / householdDemand : 0.2
     const fuel = sid === 'energy' ? 1 + s.gov.dials.taxRates.fuel : 1
@@ -177,7 +184,8 @@ function point(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
       householdDemand,
       investment: s.flows.investmentReal,
       governmentDemand: s.flows.governmentDomesticDemandReal,
-      exports: SECTOR_IDS.reduce((sum, sid) => sum + s.flows.exportsReal[sid], 0),
+      exports,
+      partnerDemand,
     },
   }
 }
@@ -209,7 +217,7 @@ export function runOne(opts: RunOptions): RunResult {
     }
     const before = s
     s = step(s)
-    const p = point(s, eventsBetween(before, s))
+    const p = trajectoryPoint(s, eventsBetween(before, s))
     trajectory.push(p)
     for (const v of [p.realGdp, p.nominalGdp, p.inflationQ, p.unemployment, ...Object.values(p.prices)]) {
       if (!Number.isFinite(v)) nanCount++

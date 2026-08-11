@@ -6,7 +6,8 @@
   "scripts": {
     "run-one": "tsx src/run.ts",
     "batch": "tsx src/batch.ts",
-    "stability": "tsx src/stability-cli.ts"
+    "stability": "tsx src/stability-cli.ts",
+    "export-feedback": "tsx src/export-feedback-cli.ts"
   },
   "dependencies": {
     "@terrarium/engine": "workspace:*",
