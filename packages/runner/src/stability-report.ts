@@ -27,11 +27,38 @@ export function printStabilityReport(
     )
   }
 
+  console.log('  quiet growth identity, mean annualized log-growth points:')
+  console.log('    era             GDP   per capita  population  productivity  emp. rate  LF / pop  labor force')
+  for (const row of report.eras) {
+    const d = row.quietDrivers
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${fmt(d.aggregateLogGrowth.mean).padStart(7)} ${fmt(d.realGdpPerCapitaContribution.mean).padStart(11)} ${fmt(d.populationContribution.mean).padStart(11)} ${fmt(d.laborProductivityContribution.mean).padStart(13)} ${fmt(d.employmentRateContribution.mean).padStart(10)} ${fmt(d.laborForceShareContribution.mean).padStart(9)} ${fmt(d.laborForceContribution.mean).padStart(12)}`,
+    )
+  }
+
+  console.log('  quiet quarters with a contracting labor force, mean log-growth points:')
+  console.log('    era          quarters  labor force   GDP  per capita  population  productivity  emp. rate  LF / pop')
+  for (const row of report.eras) {
+    const d = row.quietDrivers.laborContraction
+    const observed = (value: number) => d.observations > 0 ? fmt(value) : '—'
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${String(d.observations).padStart(8)} ${observed(d.laborForceGrowth.mean).padStart(12)} ${observed(d.aggregateLogGrowth.mean).padStart(5)} ${observed(d.realGdpPerCapitaContribution.mean).padStart(11)} ${observed(d.populationContribution.mean).padStart(11)} ${observed(d.laborProductivityContribution.mean).padStart(13)} ${observed(d.employmentRateContribution.mean).padStart(10)} ${observed(d.laborForceShareContribution.mean).padStart(9)}`,
+    )
+  }
+
   console.log('  quiet-quarter true tails, excluding onset + 8q (p01 / p50 / p99):')
   console.log('    era          quiet qtrs       inflation %        real growth %')
   for (const row of report.eras) {
     console.log(
       `    ${row.era.label.padEnd(11)} ${String(row.quietQuarters).padStart(10)}  ${tails(row.quietInflation)}  ${tails(row.quietRealGrowth)}`,
+    )
+  }
+  console.log('  population identity in the worst 5% of quiet growth, median log-growth points:')
+  console.log('    era          GDP log  per capita  population  productivity  emp. rate  LF / pop')
+  for (const row of report.eras) {
+    const d = row.quietDrivers.downside
+    console.log(
+      `    ${row.era.label.padEnd(11)} ${fmt(d.aggregateLogGrowth.p50).padStart(7)} ${fmt(d.realGdpPerCapitaContribution.p50).padStart(11)} ${fmt(d.populationContribution.p50).padStart(11)} ${fmt(d.laborProductivityContribution.p50).padStart(13)} ${fmt(d.employmentRateContribution.p50).padStart(10)} ${fmt(d.laborForceShareContribution.p50).padStart(9)}`,
     )
   }
 

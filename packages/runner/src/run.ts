@@ -50,6 +50,7 @@ export interface TrajectoryPoint {
 }
 
 export interface MacroDrivers {
+  population: number
   laborForce: number
   employment: number
   laborProductivity: number
@@ -135,6 +136,7 @@ export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryP
       ?.find((print) => print.publishedAt === s.meta.tick && print.revision === 0)
       ?.value ?? null
   const employment = s.sectors.reduce((sum, sector) => sum + sector.employment, 0)
+  const population = s.demography.pyramid.reduce((sum, size) => sum + size, 0)
   const potential = s.sectors.reduce((sum, sector) => sum + potentialOutput(sector), 0)
   const output = s.sectors.reduce((sum, sector) => sum + sector.output, 0)
   const grossDemand = SECTOR_IDS.reduce((sum, sid) => sum + s.flows.grossDemand[sid], 0)
@@ -172,6 +174,7 @@ export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryP
     publishedRealGrowth: firstPrint('gdp_growth'),
     events,
     drivers: {
+      population,
       laborForce: totalLaborForce(s),
       employment,
       laborProductivity: s.flows.realGdp / Math.max(employment, 1e-9),
