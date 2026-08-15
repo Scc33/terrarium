@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 20. Companion to the design doc
+*How the code is actually arranged, as of schema 21. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -122,7 +122,7 @@ somehow obtains one anyway, the contract test fails.
 The live engine is three functions; country recipes materialize their immutable input:
 
 ```ts
-export function init(params: CountryParams, seed: Seed): TrueState
+export function init(params: CountryParams, seed: Seed, mode?: GameMode): TrueState
 export function applyActions(s: TrueState, actions: Action[]): TrueState
 export function step(s: TrueState): TrueState          // one quarter
 export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams
@@ -132,12 +132,14 @@ export function generateCountryParams(seed: Seed, options?): CountryParams
 All pure. A game is:
 
 ```ts
-let s = init(params, seed)
+let s = init(params, seed, mode)
 for (const turn of actionLog) s = step(applyActions(s, turn.actions))
 ```
 
-The save file is literally `{version, params, seed, actionLog, tick}` — state is *derived*,
-never stored (ADR-0001). `replay(save, untilTick?)` reconstructs any point in the run.
+The save file is literally `{version, params, seed, mode, actionLog, tick}` — state is *derived*,
+never stored (ADR-0001). `mode` is immutable for the run (`standard` or the testing-oriented
+`god` mode). `replay(save, untilTick?)` reconstructs any point in the run; pre-v21 saves omit
+`mode` and load as `standard` (ADR-0015).
 
 ---
 
@@ -148,7 +150,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 
 ```ts
 interface TrueState {
-  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed }
+  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; mode: GameMode }
   params: CountryParams        // immutable after init
   demography: DemographyState  // the age pyramid; cohort sizes derive from it
   tech: TechState              // global frontier + domestic attainment; research moves both
@@ -187,6 +189,7 @@ downstream tables typed as total `Record<Id, …>` **fail the build** until a ne
 interface PublishedState {
   tick: Qtr
   country: string
+  mode: GameMode              // exact immutable opening rule
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share

@@ -15,6 +15,7 @@ import {
   type ActionLog,
   type CountryParams,
   type CountryScenarioId,
+  type GameMode,
   type TrueState,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
@@ -25,6 +26,7 @@ let state: TrueState | null = null
 let params: CountryParams | null = null
 let seed = ''
 let actionLog: ActionLog = []
+let mode: GameMode = 'standard'
 
 const post = (m: WorkerMessage) => postMessage(m)
 
@@ -33,14 +35,15 @@ function publish(): void {
   post({
     type: 'published',
     published: observe(state),
-    save: createSave(params, seed, actionLog, state.meta.tick),
+    save: createSave(params, seed, actionLog, state.meta.tick, mode),
   })
 }
 
-function startNew(newSeed: string, country: CountryScenarioId): void {
+function startNew(newSeed: string, country: CountryScenarioId, newMode: GameMode): void {
   seed = newSeed
+  mode = newMode
   params = createCountryParams(country, seed)
-  state = init(params, seed)
+  state = init(params, seed, mode)
   actionLog = []
   publish()
 }
@@ -50,11 +53,13 @@ function load(save: {
   seed: string
   actionLog: ActionLog
   tick: number
+  mode?: GameMode
 }): void {
   seed = save.seed
+  mode = save.mode ?? 'standard'
   params = save.params
   actionLog = save.actionLog
-  state = init(params, seed)
+  state = init(params, seed, mode)
   const byTick = new Map(actionLog.map((t) => [t.tick, t.actions]))
   while (state.meta.tick < save.tick) {
     const acts = byTick.get(state.meta.tick)
@@ -188,8 +193,9 @@ function handleDev(msg: ClientMessage): void {
  */
 function devScenario(sc: DevScenario): void {
   seed = sc.seed
+  mode = 'standard'
   params = applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc)
-  state = init(params, seed)
+  state = init(params, seed, mode)
   actionLog = []
   const target = tickForYear(sc.year, END_OF_HISTORY_TICK)
   while (state.meta.tick < target) state = step(state)
@@ -208,7 +214,7 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     }
     switch (msg.type) {
       case 'new':
-        startNew(msg.seed, msg.country)
+        startNew(msg.seed, msg.country, msg.mode)
         break
       case 'load':
         load(msg.save)

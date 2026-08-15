@@ -42,7 +42,10 @@ export function HeaderBar({
           <div className="font-dossier text-base font-semibold leading-none tracking-wide text-dossier-paper sm:text-lg">
             {pub.country}
           </div>
-          <div className="mt-1 font-mono text-[9px] tabular-nums tracking-[0.14em] text-dossier-brass">{qtrLabel(pub.tick)}</div>
+          <div className="mt-1 font-mono text-[9px] tabular-nums tracking-[0.14em] text-dossier-brass">
+            {qtrLabel(pub.tick)}
+            {pub.mode === 'god' && <span className="ml-1.5 text-dossier-paper/70">· GOD MODE</span>}
+          </div>
         </div>
       </div>
 

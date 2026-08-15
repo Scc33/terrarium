@@ -201,6 +201,62 @@ describe('the two ways out that are not the ballot box', () => {
   })
 })
 
+describe('God mode keeps a test run alive', () => {
+  const politicsStep = TICK_ORDER.find((x) => x.name === 'politics')!
+  const rollOf = (u: number) =>
+    ({ next: () => u, range: (a: number, b: number) => (a + b) / 2, normal: () => 0 }) as never
+
+  it('blocks revolt and coup deposition', () => {
+    const base = init(standardCountry, 'inst-god-crisis', 'god')
+    const seething: TrueState = {
+      ...base,
+      institutions: { ...base.institutions, unrest: 1 },
+    }
+    const afterRevolt = politicsStep.run(seething, rollOf(0))
+    expect(afterRevolt.politics.inPower).toBe(true)
+    expect(afterRevolt.politics.deposedAt).toBeNull()
+
+    const hostile: TrueState = {
+      ...base,
+      institutions: {
+        ...base.institutions,
+        unrest: 0,
+        societalPower: 0,
+        blocs: {
+          ...base.institutions.blocs,
+          landowners: { power: 1, favor: -1 },
+          industrialists: { power: 1, favor: -1 },
+          financiers: { power: 1, favor: -1 },
+        },
+      },
+    }
+    const afterCoup = politicsStep.run(hostile, rollOf(0))
+    expect(afterCoup.politics.inPower).toBe(true)
+    expect(afterCoup.politics.deposedAt).toBeNull()
+  })
+
+  it('records a lost election but starts another term instead of deposing the player', () => {
+    const base = init(standardCountry, 'inst-god-election', 'god')
+    const rejected: TrueState = {
+      ...base,
+      cohorts: base.cohorts.map((cohort) => ({ ...cohort, approval: 0 })),
+      institutions: {
+        ...base.institutions,
+        unrest: 0,
+        societalPower: 1,
+      },
+      politics: { ...base.politics, quartersToElection: 1 },
+    }
+    const after = politicsStep.run(rejected, rollOf(1))
+    expect(after.politics.lastElection?.won).toBe(false)
+    expect(after.politics.electionsWon).toBe(0)
+    expect(after.politics.inPower).toBe(true)
+    expect(after.politics.quartersToElection).toBe(16)
+    expect(after.politics.deposedAt).toBeNull()
+    expect(after.stats.news.at(-1)?.text).toContain('GOD MODE')
+  })
+})
+
 describe('the veto players gate the levers (§4.3)', () => {
   const s0 = last(century('inst-v', { ticks: 24 }))
 

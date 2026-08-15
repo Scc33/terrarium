@@ -156,6 +156,7 @@ export function observe(state: TrueState): PublishedState {
   return {
     tick: state.meta.tick,
     country: state.params.name,
+    mode: state.meta.mode,
     indicators,
     dials: structuredClone(state.gov.dials),
     spendingRules: structuredClone(state.gov.spendingRules),

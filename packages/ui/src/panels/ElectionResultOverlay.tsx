@@ -38,7 +38,13 @@ export function ElectionResultOverlay({
                   : 'border-dossier-warn text-dossier-warn'
             }`}
           >
-            {r.suppressed ? 'RETURNED — UNOPPOSED' : r.won ? 'RETURNED' : 'DEFEATED'}
+            {r.suppressed
+              ? 'RETURNED — UNOPPOSED'
+              : r.won
+                ? 'RETURNED'
+                : pub.mode === 'god'
+                  ? 'DEFEATED — GOD MODE'
+                  : 'DEFEATED'}
           </div>
           <div className="mt-2 font-mono text-[11px] tabular-nums tracking-[0.2em] text-dossier-ink/70">
             {yearOf(r.tick)} · {pub.country}
@@ -89,7 +95,9 @@ export function ElectionResultOverlay({
             ? 'The result was never in doubt; that is precisely what the historians will record. A mandate taken is not a mandate given, and the Legitimacy grade counts them separately.'
             : r.won
               ? 'A mandate, for sixteen more quarters. What you spent to get it comes due over the same period.'
-              : 'The electorate has withdrawn its consent. The country, of course, carries on without you.'}
+              : pub.mode === 'god'
+                ? 'The electorate has withdrawn its consent. God mode records the defeat, resets the electoral clock, and keeps the simulation under your control.'
+                : 'The electorate has withdrawn its consent. The country, of course, carries on without you.'}
         </p>
       </div>
     </Modal>

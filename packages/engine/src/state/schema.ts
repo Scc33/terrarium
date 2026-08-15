@@ -8,6 +8,10 @@ import type { Seed } from '../rng/rng'
 export type Qtr = number // quarters since 1946Q1
 export type Money = number // base-year units
 export type Ratio = number // 0..1 unless noted
+/** Immutable rule selected before the opening state is created. `god` keeps
+ * the simulation playable after a lost election, revolt, or coup while still
+ * recording the underlying political result. */
+export type GameMode = 'standard' | 'god'
 
 export const SECTOR_IDS = ['agri', 'manuf', 'energy', 'services', 'transport'] as const
 export type SectorId = (typeof SECTOR_IDS)[number]
@@ -631,6 +635,8 @@ export interface TrueState {
     engineVersion: string
     tick: Qtr
     seed: Seed
+    /** part of the replay contract: a protected run must reload protected */
+    mode: GameMode
   }
   params: CountryParams
   demography: DemographyState
@@ -665,7 +671,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 20 // v20: published debt as a percentage of GDP
+export const SCHEMA_VERSION = 21 // v21: replay-safe God mode
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
