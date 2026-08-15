@@ -272,8 +272,9 @@ per worker against our own 1946). Two are needed because the ratio saturates: re
 frontier it is measured against, so the better the programme the quieter its own dial goes.
 
 Foreign direct investment is an owned capital stock, not another name for openness (ADR-0017).
-Small-country scale, external access and catch-up room set the structural FDI/GDP draw; current
-administration, after-tax returns, export intensity, confidence, price stability, tariffs,
+Small-country scale and external access set the structural FDI/GDP draw; the mean of sector
+frontier gaps supplies composition-invariant catch-up room. Current administration, after-tax
+returns, export intensity, confidence, price stability, tariffs,
 foreign activity and crises move it. Inflows join the ordinary investment order book and bring reserves in; imported
 plant is gross capital formation but lands on the import bill instead of domestic demand. The
 foreign-owned share of after-tax profits is remitted later, leaving reserves and never entering

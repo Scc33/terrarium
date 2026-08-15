@@ -147,20 +147,20 @@ describe('the faces fit the economy the engine actually produces', () => {
     const pegged = new Map<IndicatorId, number>()
 
     for (const country of COUNTRY_CATALOG) {
-      for (const seed of SURVEY_SEEDS.slice(0, 2)) {
+      for (const seed of SURVEY_SEEDS) {
         eachQuarter(`${seed}-${country.id}`, SURVEY_TICKS, (pub, tick) => {
-        for (const id of INDICATOR_IDS) {
-          const series = pub.indicators[id]
-          if (!series) continue
-          // only judge the print the player is looking at this quarter
-          const latest = series.points.filter((p) => p.publishedAt === tick)
-          if (latest.length === 0) continue
-          const domain = gaugeDomain(id, series.points.map((p) => p.value))
-          for (const p of latest) {
-            total.set(id, (total.get(id) ?? 0) + 1)
-            if (readNeedle(domain, p.value).pegged) pegged.set(id, (pegged.get(id) ?? 0) + 1)
+          for (const id of INDICATOR_IDS) {
+            const series = pub.indicators[id]
+            if (!series) continue
+            // only judge the print the player is looking at this quarter
+            const latest = series.points.filter((p) => p.publishedAt === tick)
+            if (latest.length === 0) continue
+            const domain = gaugeDomain(id, series.points.map((p) => p.value))
+            for (const p of latest) {
+              total.set(id, (total.get(id) ?? 0) + 1)
+              if (readNeedle(domain, p.value).pegged) pegged.set(id, (pegged.get(id) ?? 0) + 1)
+            }
           }
-        }
         }, country.id)
       }
     }

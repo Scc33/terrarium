@@ -54,15 +54,21 @@ export interface Reading {
  * indicator to the engine and this file stops compiling until it has a face.
  */
 export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
-  // Re-measured with schema 23's foreign-investment demand: p01–p99
-  // -7.7–17.0 across 12 seeds × 6 countries × 400 quarters. Keep the old
-  // recession rail and give export-led investment booms an honest upper face.
+  // Re-measured for schema 23: p01–p99 -7.7–17.0 across 12 seeds × 6
+  // countries × 400 quarters. Growth already exceeded the old 15% rail on
+  // master; FDI widened the upper tail further. Keep the recession rail and
+  // give investment booms an honest upper face.
   gdp_growth: { lo: -15, hi: 20 },
-  gdp_per_capita: { lo: 0, hi: 120 },
+  // Schema 23 p99 132.0, maximum 156.8. The exceptional tail still pegs,
+  // while a capacity-building country's ordinary late century stays on-face
+  // and the upper rail lands on a labelled gridline.
+  gdp_per_capita: { lo: 0, hi: 150 },
   // Across 12 seeds × 6 countries × 400 quarters: p01–p99 0.0–74.5,
   // maximum 95.3. Let borrowing beyond a measured century peg visibly.
   debt_to_gdp: { lo: 0, hi: 100 },
-  consumption_per_capita: { lo: 0, hi: 90 },
+  // Schema 23 p99 98.6, maximum 122.9. Round outward to the nearest clean
+  // hundred rather than hiding late-century consumption against the rail.
+  consumption_per_capita: { lo: 0, hi: 100 },
   household_saving_rate: { lo: -10, hi: 20 },
   // The expenditure shares differ in magnitude by two orders of magnitude in
   // this economy, so they get four very different faces rather than a shared

@@ -24,11 +24,11 @@ import {
   FDI_RETURN_GAIN,
   fdiStructuralAttraction,
   taxEfficiency,
+  TECH_EXPOSURE,
 } from '../constants'
 import { clamp } from '../math'
 import { SECTOR_IDS } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { technologyAttainment } from './derive'
 
 export const foreignInvestment: PipelineStep = {
   name: 'foreignInvestment',
@@ -72,8 +72,18 @@ export const foreignInvestment: PipelineStep = {
       0.15,
       1,
     )
+    // Read the gap sector by sector, then average it. The published technology
+    // instrument is output-weighted and can fall merely because output shifts
+    // toward services; using it here would turn that composition artifact into
+    // a real investment subsidy even when every sector's technique is unchanged.
+    const meanCatchUpGap =
+      SECTOR_IDS.reduce((sum, id) => {
+        const target = Math.pow(state.tech.frontier, TECH_EXPOSURE[id])
+        const position = state.tech.attained[id] / Math.max(target, 1e-9)
+        return sum + clamp(1 - position, 0, 1)
+      }, 0) / SECTOR_IDS.length
     const catchUpFactor = clamp(
-      FDI_CATCHUP_FLOOR + FDI_CATCHUP_GAIN * (1 - technologyAttainment(state)),
+      FDI_CATCHUP_FLOOR + FDI_CATCHUP_GAIN * meanCatchUpGap,
       0.5,
       1.25,
     )

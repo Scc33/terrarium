@@ -89,7 +89,8 @@ describe('every real dial face survives its own measured century', () => {
     inflation: [-18.5, 41.9],
     unrest: [-12.5, 75.9],
     asset_prices: [58.5, 158.2],
-    gdp_per_capita: [5.0, 132.0],
+    gdp_per_capita: [5.0, 156.8],
+    consumption_per_capita: [3.5, 122.9],
   }
 
   it('draws the whole excursion, and marks where the dial ended', () => {

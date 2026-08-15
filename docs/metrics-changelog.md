@@ -187,8 +187,9 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
   order and its external-account settlement.
 - **Pipeline +**: `foreignInvestment` runs after `finance` and before `production`. Inflow/GDP
   is structurally larger for smaller, more open, less-developed countries, then responds to
-  current catch-up room, exports, administration, after-tax returns, confidence, price stability,
-  tariffs, foreign activity, crises and foreign-ownership saturation. The inflow joins ordinary capital
+  the equal-weighted mean of sector catch-up gaps, exports, administration, after-tax returns,
+  confidence, price stability, tariffs, foreign activity, crises and foreign-ownership
+  saturation. The inflow joins ordinary capital
   formation; imported machinery is booked to imports rather than domestic demand, and remitted
   profits are removed from domestic household income and reserves.
 - **Outputs +**: `fdi_inflows` (fogged, unlock 0.40, unit `% of GDP`) — company and
@@ -198,7 +199,10 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
   move the flow systemically. See ADR-0017.
 - **Calibration**: across 12 seeds × 6 scenarios × 400 quarters, published FDI inflows measure
   p01–p99 0.3–1.6% of GDP (extrema 0.1–2.6). The fixed face is 0–2%; exceptional small-country
-  surges peg. The same sweep moved real-growth p99 to 17.0%, so that face is now −15–20%/yr.
+  surges peg. The same sweep puts real-growth p99 at 17.0%, GDP/head p99 at 132.0 and
+  consumption/head p99 at 98.6, so those faces are now −15–20%/yr, 0–150 and 0–100. The
+  dial-fit regression runs a funded 400-quarter century; the former 240-quarter sample missed
+  both per-capita overruns after 2006.
 
 ### schema 22 — Labour force participation
 

@@ -24,17 +24,21 @@ quarter a dedicated `foreignInvestment` step runs after `finance` and before `pr
 
 1. A structural draw makes FDI/GDP fall with population and rise with trade access and the
    development gap, while absolute inflows can still be larger in a larger economy.
-2. Current technology catch-up room, export intensity, administrative delivery, after-tax
-   profits, business confidence, tariffs, macro price stability, the foreign cycle and a
-   domestic banking crisis move the marginal project around that structural draw.
+2. The equal-weighted mean of the sector frontier gaps supplies catch-up room; current output
+   weights are deliberately excluded so a shift toward services cannot manufacture a larger
+   technology gap. Export intensity, administrative delivery, after-tax profits, business
+   confidence, tariffs, macro price stability, the foreign cycle and a domestic banking crisis
+   move the marginal project around that structural draw.
 3. Foreign-ownership saturation slows acquisitions before foreign capital can become the whole
    productive stock. A crisis shelves new projects but does not liquidate a factory overnight.
 
-`production` adds the real inflow to the ordinary investment order book. Imported machinery is
-capital formation and joins the stock, but is booked as an import rather than domestic demand;
-construction and services remain local. Production also assigns the foreign-owned share of
-positive after-tax profits to remittances. `trade` settles the nominal inflow, imported plant and
-remittances through reserves; `labor` depreciates and accumulates the owned stock; `cohorts`
+`production` adds the real inflow to the ordinary investment order book. The imported share is
+35% of real capital-goods volume; its share of the nominal inflow floats with the domestic/world
+capital-goods price ratio. Imported machinery is capital formation and joins the stock, but is
+booked as an import rather than domestic demand; construction and services remain local.
+Production also assigns the foreign-owned share of positive after-tax profits to remittances.
+`trade` settles the nominal inflow, imported plant and remittances through reserves; `labor`
+depreciates and accumulates the owned stock; `cohorts`
 distributes only the remaining profits to domestic households. GDP still counts production
 inside the country, while household income and the balance of payments carry the cost of foreign
 ownership.
@@ -55,6 +59,10 @@ instrument in percent of GDP once balance-of-payments statistics are funded.
 - **Author an FDI/GDP parameter for every country recipe.** Rejected as the primary mechanism:
   the issue's small/open/developing result should survive procedural generation and policy
   changes. Curated flags would make the behavior descriptive rather than causal.
+- **Make tariffs attract import-substituting or tariff-jumping FDI.** Deferred: this was an
+  important post-war channel, but the aggregate stock cannot yet distinguish an export platform
+  from a protected domestic-market subsidiary. Until sector/market destination exists, tariffs
+  only raise the cost of imported plant and repel marginal projects.
 - **Track foreign ownership by sector and multinational parent.** Deferred: it would support
   sector-specific remittances and political blocs, but requires an ownership matrix and
   allocation rules disproportionate to the first-order macro channel. The aggregate stock keeps
@@ -68,10 +76,26 @@ instrument in percent of GDP once balance-of-payments statistics are funded.
 **Good:** Small, open and catch-up economies can now depend materially more on FDI than large
 domestic markets; foreign capital raises capacity through the same production system as every
 other investment; taxation, administration, confidence, price stability, trade performance and
-crises have coherent indirect effects; reserves and household income expose the cost of foreign ownership.
+crises have coherent indirect effects; reserves and household income expose the cost of foreign
+ownership.
 
 **Bad:** Aggregate ownership assumes foreign capital earns the economy-wide positive profit
 rate rather than a sector-specific one. The flow is always inward—crises stop projects and
-depreciation runs the stock down, but outright divestment is not yet modeled. Because FDI is real
-investment demand, it changes the passive macro and political baselines and requires a schema
-bump, golden replays, range calibration and full stability review.
+depreciation runs the stock down, but outright divestment is not yet modeled. Remittances are a
+senior claim on each profitable sector while domestic households also absorb losses elsewhere,
+so they amplify a slump by draining income procyclically. The aggregate stock gives no bloc a
+distinct opinion and creates no domestic political constituency for foreign owners; both that
+politics and sector-specific ownership remain deferred.
+
+**Growth consequence:** The inflow is additive capital formation and does not crowd out domestic
+replacement investment. It therefore raises the capital-stock growth rate, not merely its level:
+the larger stock becomes the base for later domestic replacement. In the independently reviewed
+passive sample at `909f551`, median 2046 capital was 968 → 1894 in Meridia and 279 → 774 in
+Oranga versus master; GDP per head was 33% and 51% higher respectively, and annual growth was
+0.19 and 0.27 points higher. That is a large century-scale result from a median flow near 0.6% of
+GDP. This first implementation accepts that ratchet rather than inventing a crowd-out rule, but
+the magnitude is a calibration cost to revisit if capital productivity or domestic replacement
+investment is disaggregated.
+
+Because FDI is real investment demand, it changes the passive macro and political baselines and
+requires a schema bump, golden replays, range calibration and full stability review.

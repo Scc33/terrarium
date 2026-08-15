@@ -61,6 +61,22 @@ describe('foreign direct investment terrain', () => {
     expect(inflowShare(meridia)).toBeGreaterThan(inflowShare(costona))
   })
 
+  it('does not turn a change in output composition into a larger technology gap', () => {
+    let base = init(standardCountry, 'fdi-composition')
+    for (let tick = 0; tick < 12; tick++) base = step(base)
+
+    const servicesHeavy = {
+      ...base,
+      sectors: base.sectors.map((sector) => ({
+        ...sector,
+        output: sector.id === 'services' ? sector.output * 20 : sector.output * 0.1,
+      })),
+    }
+    const ordinaryFlow = runStep('foreignInvestment', base)
+    const servicesHeavyFlow = runStep('foreignInvestment', servicesHeavy)
+    expect(inflowShare(servicesHeavyFlow)).toBeCloseTo(inflowShare(ordinaryFlow), 12)
+  })
+
   it('rewards trade access, administration and after-tax returns', () => {
     let base = init(standardCountry, 'fdi-policy')
     for (let tick = 0; tick < 12; tick++) base = step(base)

@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "08f1655",
+  "revision": "909f551",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 30,
-      "lines": 7077
+      "lines": 7087
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 66,
-      "lines": 8519
+      "lines": 8524
     }
   ],
   "modules": [
@@ -2217,7 +2217,6 @@ export const architecture = {
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/finance.ts",
         "packages/engine/src/pipeline/fiscal.ts",
-        "packages/engine/src/pipeline/foreignInvestment.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/labor.ts",
         "packages/engine/src/pipeline/politics.ts",
@@ -2291,7 +2290,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 3.75 — foreign direct investment. Direct investors build productive capital rather than buying a liquid claim, so the flow is sticky and enters the ordinary investment order book. Attraction is systemic: small-country scale, trade access, catch-up room, administration, re…",
-      "lines": 127,
+      "lines": 137,
       "exports": [
         {
           "name": "foreignInvestment",
@@ -2303,7 +2302,6 @@ export const architecture = {
       "imports": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
-        "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -5382,7 +5380,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 182,
+      "lines": 187,
       "exports": [
         {
           "name": "Domain",
@@ -5406,25 +5404,25 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 117
+          "line": 122
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 151
+          "line": 156
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 165
+          "line": 170
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 174
+          "line": 179
         }
       ],
       "imports": [
@@ -6821,11 +6819,6 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/foreignInvestment.ts",
       "target": "packages/engine/src/math.ts",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/engine/src/pipeline/foreignInvestment.ts",
-      "target": "packages/engine/src/pipeline/derive.ts",
       "typeOnly": false
     },
     {
@@ -8537,12 +8530,12 @@ export const architecture = {
         "ledger",
         "market",
         "params",
-        "sectors"
+        "sectors",
+        "tech"
       ],
       "dependencies": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
-        "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "exports": [
