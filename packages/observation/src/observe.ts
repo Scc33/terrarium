@@ -43,6 +43,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   price_food: { label: 'Food price board', unit: '1946=100' },
   price_fuel: { label: 'Fuel price board', unit: '1946=100' },
   unemployment: { label: 'Unemployment', unit: '%' },
+  labor_force_participation: { label: 'Labor force participation', unit: '% of population' },
   payrolls: { label: 'Payrolls ex-agri', unit: 'M jobs' },
   capital_stock: { label: 'Capital stock', unit: 'index' },
   productivity: { label: 'Output per worker', unit: '1946=100' },
