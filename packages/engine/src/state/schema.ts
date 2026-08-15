@@ -124,6 +124,7 @@ export const INDICATOR_IDS = [
   'price_food',
   'price_fuel',
   'unemployment',
+  'labor_force_participation',
   'payrolls',
   'capital_stock',
   'technology_attainment',
@@ -500,6 +501,10 @@ export interface StatRecord {
   exportShare: Ratio
   inflationQ: number
   unemployment: Ratio
+  /** labor force as a share of the whole census population. This is the
+   * LF / population term in the exact per-capita growth identity; unlike the
+   * live head count, the published share comes from the labour force survey. */
+  laborForceParticipation: Ratio
   payrolls: number // millions, ex-agri
   /** annualized real output per employed person, economy-wide and INCLUDING
    * agriculture. The published indicator indexes it against its own 1946
@@ -671,7 +676,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 21 // v21: replay-safe God mode
+export const SCHEMA_VERSION = 22 // v22: published labour-force participation
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

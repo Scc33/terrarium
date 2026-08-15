@@ -73,6 +73,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },
   unemployment: { lo: 0, hi: 25 },
+  // Measured across 12 seeds × 6 countries × 400 quarters: p01–p99
+  // 44.0–56.1, extrema 41.4–57.4. Keep enough rail for exceptional
+  // demographic paths without flattening the normal dividend and ageing arc.
+  labor_force_participation: { lo: 40, hi: 60 },
   payrolls: { lo: 0, hi: 50 },
   capital_stock: 'ratchet',
   // Measured across 12 seeds × 6 countries × 400 quarters: 1st–99th
