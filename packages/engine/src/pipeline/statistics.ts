@@ -28,6 +28,7 @@ import {
   realIncomePerHead,
   technologyAttainment,
   termsOfTrade,
+  totalLaborForce,
 } from './derive'
 
 interface IndicatorSpec {
@@ -141,6 +142,14 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     id: 'unemployment',
     trueValue: (h, q) => h[q].unemployment * 100,
     baseSd: 2.0,
+  },
+  {
+    id: 'labor_force_participation',
+    trueValue: (h, q) => h[q].laborForceParticipation * 100,
+    // The numerator comes from the same household returns as unemployment;
+    // the census denominator is exact, so uncertainty is in percentage
+    // points rather than proportional to the size of the population.
+    baseSd: 1.5,
   },
   {
     id: 'payrolls',
@@ -280,6 +289,7 @@ function recordOf(state: TrueState): StatRecord {
     exportShare: shareOf(exports),
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
+    laborForceParticipation: population > 1e-9 ? totalLaborForce(state) / population : 0,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
     labourProductivity: (() => {
       const employed = sectors.reduce((s, x) => s + x.employment, 0)

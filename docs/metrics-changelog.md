@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 21)
+## Current contract (schema 22)
 
 ### Inputs
 
@@ -106,6 +106,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
+| `labor_force_participation` | % of population | 0.35 | v22 | labour force ÷ census population |
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
@@ -169,6 +170,17 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 22 — Labour force participation
+
+- **Outputs +**: `labor_force_participation` (fogged, unlock 0.35, unit `% of population`) —
+  the model's total labour force divided by the exact census head count. This is the
+  `labour force / population` term in the per-capita growth identity, so it makes the
+  demographic dividend and the later ageing squeeze visible to the player instead of leaving
+  them in runner-only diagnostics. The labour force survey supplies the numerator; the census
+  denominator remains exact.
+- **Inputs and pipeline**: unchanged. The economic state and behaviour are bit-identical to v21;
+  this is additive measurement only.
 
 ### schema 21 — God mode
 

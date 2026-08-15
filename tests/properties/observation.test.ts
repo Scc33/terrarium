@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { init, rngFor, step, TICK_ORDER, type TrueState } from '@terrarium/engine'
+import { init, rngFor, step, TICK_ORDER, totalLaborForce, type TrueState } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -43,9 +43,26 @@ describe('the fog', () => {
     expect(err(prints[2])).toBeLessThan(Math.max(err(prints[0]), 0.5))
   })
 
-  it('unemployment series requires a funded labor force survey', () => {
-    expect(observe(play('fog-4', 12, 0.1)).indicators.unemployment).toBeUndefined()
-    expect(observe(play('fog-4', 12, 0.6)).indicators.unemployment).toBeDefined()
+  it('the labor force survey publishes unemployment and participation together', () => {
+    const dark = observe(play('fog-4', 12, 0.1))
+    expect(dark.indicators.unemployment).toBeUndefined()
+    expect(dark.indicators.labor_force_participation).toBeUndefined()
+
+    const surveyedState = play('fog-4', 12, 0.6)
+    const surveyed = observe(surveyedState)
+    expect(surveyed.indicators.unemployment).toBeDefined()
+    expect(surveyed.indicators.labor_force_participation).toBeDefined()
+
+    const latestRecord = surveyedState.stats.record.at(-1)!
+    const population = surveyedState.demography.pyramid.reduce((sum, people) => sum + people, 0)
+    expect(latestRecord.laborForceParticipation).toBeCloseTo(
+      totalLaborForce(surveyedState) / population,
+      10,
+    )
+    for (const point of surveyed.indicators.labor_force_participation!.points) {
+      expect(point.value).toBeGreaterThan(0)
+      expect(point.value).toBeLessThan(100)
+    }
   })
 
   it('polling is an instrument you buy: no approval series until the office can field it', () => {
