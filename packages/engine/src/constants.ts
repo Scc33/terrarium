@@ -168,6 +168,7 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   price_food: 0.2,
   price_fuel: 0.2,
   unemployment: 0.35,
+  labor_force_participation: 0.35,
   payrolls: 0.3,
   capital_stock: 0.3,
   // Output per worker needs the accounts and a labour force survey reconciled

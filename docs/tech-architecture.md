@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 22. Companion to the design doc
+*How the code is actually arranged, as of schema 23. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.

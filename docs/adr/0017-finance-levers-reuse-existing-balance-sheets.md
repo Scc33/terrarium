@@ -43,7 +43,7 @@ must live with the fragility of the former choice.
 
 Both settings are ordinary exact `DialState` inputs, moved through `setDial`, priced by
 `politicalCostOfAction`, and published exactly because a central bank knows its own orders. The
-pipeline order and RNG substreams do not change. Schema 22 adds only the two dial fields.
+pipeline order and RNG substreams do not change. Schema 23 adds only the two dial fields.
 
 ## Alternatives considered
 
