@@ -11,6 +11,21 @@
  * graduating from brass to phosphor should be the same quantity better
  * measured, not a different-shaped chart the player has to relearn.
  *
+ * The face FRAMES the chart; it does not bound it. This component used to
+ * clamp every value into the dial's face, which drew a hyperinflation and a
+ * calm plateau as the same flat line pinned along the rail — and over a
+ * measured century that is not rare (`price_fuel` reaches 152 against a 130
+ * face, `gdp_growth` spans −33 to +54 against ±15). A dial PEGS, with a
+ * chevron, and that is correct for a needle whose position must mean
+ * magnitude. A chart has printed axis numbers and can simply show the
+ * excursion, so it extends the axis and rules the face's own bound instead.
+ * See the y-axis note in `../../plot`.
+ *
+ * The geometry and the painting both live one level down now — `../../plot`
+ * for the scales, `../ui/TimeSeriesChart` for the ink. What stays here is
+ * what only this instrument knows: which window is on screen, the phosphor
+ * era's extra digit, and the strike marks over superseded first prints.
+ *
  * …which is also why the readout sits in a FOOTER band, exactly where the
  * dossier gauge stamps its figure, rather than sharing one line with the
  * instrument's name. It used to share that line, and the line quietly
@@ -44,6 +59,7 @@ import {
   type RollingMonths,
   type ShapedPoint,
 } from '../series'
+import { TimeSeriesChart } from '../ui'
 import { WallTile } from '../WallTile/WallTile'
 
 // The viewBox aspect is chosen to match a board slot, not to be a tidy
@@ -54,10 +70,10 @@ import { WallTile } from '../WallTile/WallTile'
 // stretch the axis labels along with the trace.
 const W = 300
 const H = 300
-const PAD_L = 34
-const PAD_R = 8
-const PAD_T = 10
-const PAD_B = 18
+
+/** the plot's own points, carrying the shaped print they came from so the
+ * hover readout can speak about revisions rather than just a number */
+type TickerPoint = ShapedPoint & { tick: number }
 
 type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12'
 
@@ -83,7 +99,6 @@ export function TerminalTicker({
   series: IndicatorSeries
   now: number
 }) {
-  const [hover, setHover] = useState<ShapedPoint | null>(null)
   const [chartView, setChartView] = useState<ChartView>('recent')
   const allPoints = shapeSeries(series, Number.MAX_SAFE_INTEGER, now)
   if (allPoints.length < 2) return null
@@ -107,46 +122,18 @@ export function TerminalTicker({
   const digits = readingDigits(latest.value) + 1
   const complement = complementReading(indicator, latest.value, digits)
 
-  const chartLatest = points[points.length - 1]
-  const x0 = points[0]?.forQtr ?? Math.max(0, latest.forQtr - 4)
-  const x1 = Math.max(chartLatest?.forQtr ?? latest.forQtr, x0 + 4)
-  // the same fixed face the dossier gauge prints — the axis does not move
-  // under the trace as the window rolls
-  const { lo, hi } = gaugeDomain(
+  const plotted: TickerPoint[] = points.map((p) => ({ ...p, tick: p.forQtr }))
+  // The dossier gauge's own face — the frame is the same instrument, so the
+  // trace sits at the height the needle points to. It FRAMES rather than
+  // clamps: this chart used to pin values into the face, which drew a
+  // hyperinflation and a calm plateau as the same flat line along the rail.
+  // See the y-axis note in `../../plot`.
+  const face = gaugeDomain(
     indicator,
     series.points.map((p) => p.value),
   )
-
-  const sx = (q: number) => PAD_L + ((q - x0) / (x1 - x0)) * (W - PAD_L - PAD_R)
-  const clampY = (v: number) => Math.min(hi, Math.max(lo, v))
-  const sy = (v: number) => PAD_T + ((hi - clampY(v)) / (hi - lo)) * (H - PAD_T - PAD_B)
-  const line = points.length >= 2
-    ? points.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.forQtr).toFixed(1)},${sy(p.value).toFixed(1)}`).join(' ')
-    : null
-  const banded = points.filter((p) => p.errorBand > 0)
-  const band =
-    banded.length >= 2
-      ? banded.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.forQtr).toFixed(1)},${sy(p.value + p.errorBand).toFixed(1)}`).join(' ') +
-        [...banded].reverse().map((p) => `L${sx(p.forQtr).toFixed(1)},${sy(p.value - p.errorBand).toFixed(1)}`).join(' ') +
-        'Z'
-      : null
-  const zeroVisible = lo < 0 && hi > 0
+  const banded = plotted.filter((p) => p.errorBand > 0).map((p) => ({ ...p, band: p.errorBand }))
   const chartSummary = `${NAMES[indicator].plate}. ${view.title}. The readout below remains the latest raw published figure.`
-
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const mx = ((e.clientX - rect.left) / rect.width) * W
-    let best: ShapedPoint | null = null
-    let bestD = Infinity
-    for (const p of points) {
-      const d = Math.abs(sx(p.forQtr) - mx)
-      if (d < bestD) {
-        bestD = d
-        best = p
-      }
-    }
-    setHover(best)
-  }
 
   // Both bands: `minmax(0,1fr)` for the half that may truncate, `auto` for the
   // half that must not. Spelled out as literals — Tailwind scans source text,
@@ -211,112 +198,84 @@ export function TerminalTicker({
 
   return (
     <WallTile className="border border-terminal-grid bg-terminal-bg" header={header} footer={footer}>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="xMidYMid meet"
-          className="block h-full w-full cursor-crosshair"
-          onMouseMove={onMove}
-          onMouseLeave={() => setHover(null)}
-          role="img"
-          aria-label={chartSummary}
-        >
-          <title>{chartSummary}</title>
-          {/* hairline frame + zero line */}
-          <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
-          <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-terminal-grid)" strokeWidth="1" />
-          {zeroVisible && (
-            <line x1={PAD_L} x2={W - PAD_R} y1={sy(0)} y2={sy(0)} stroke="var(--color-terminal-grid)" strokeWidth="1" strokeDasharray="2 3" />
-          )}
-          <text x={PAD_L - 4} y={sy(hi) + 6} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
-            {hi}
-          </text>
-          <text x={PAD_L - 4} y={sy(lo)} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.6">
-            {lo}
-          </text>
-          <text x={PAD_L} y={H - 3} fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.55">
-            {qtrLabel(x0)}
-          </text>
-          <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-terminal-primary)" opacity="0.55">
-            {qtrLabel(chartLatest?.forQtr ?? latest.forQtr)}
-          </text>
-
-          {band && <path d={band} fill="var(--color-terminal-primary)" opacity="0.08" />}
-          {/* superseded first prints: struck through, dim */}
-          {points
-            .filter((p) => p.visiblyRevised)
-            .map((p) => (
-              <g key={`rev-${p.forQtr}`} opacity="0.55">
-                <line
-                  x1={sx(p.forQtr) - 4}
-                  x2={sx(p.forQtr) + 4}
-                  y1={sy(p.firstPrint)}
-                  y2={sy(p.firstPrint)}
-                  stroke="var(--color-terminal-alert)"
-                  strokeWidth="1.4"
+      <TimeSeriesChart
+        register="terminal"
+        width={W}
+        height={H}
+        fill
+        traces={[{ key: indicator, points: plotted, width: 1.6, lead: true }]}
+        ribbon={banded.length >= 2 ? { points: banded } : undefined}
+        face={face}
+        rules={face.lo < 0 && face.hi > 0 ? [{ axis: 'y', at: 0 }] : []}
+        formatReading={(v) => v.toFixed(digits)}
+        formatTick={qtrLabel}
+        summary={chartSummary}
+        emptyLabel={
+          view.rollingMonths ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY` : 'INSUFFICIENT HISTORY'
+        }
+        hover
+        hoverDetail={(point) => {
+          const p = point as TickerPoint
+          return (
+            <>
+              {view.rollingMonths && <div className="opacity-60">{view.rollingMonths}M ROLLING AVG</div>}
+              {p.errorBand > 0 && <div className="opacity-60">±{p.errorBand.toFixed(1)}</div>}
+              {p.visiblyRevised ? (
+                <div className="text-terminal-alert">
+                  <s>{p.firstPrint.toFixed(digits)}</s> REVISED
+                </div>
+              ) : (
+                <div className="opacity-60">{p.revision >= 2 ? 'FINAL' : `PRINT ${p.revision + 1}`}</div>
+              )}
+            </>
+          )
+        }}
+        overlay={({ sx, sy }) => (
+          <>
+            {/* superseded first prints: struck through, dim — the machine
+                remembers what it told you */}
+            {plotted
+              .filter((p) => p.visiblyRevised)
+              .map((p) => (
+                <g key={`rev-${p.tick}`} opacity="0.55">
+                  <line
+                    x1={sx(p.tick) - 4}
+                    x2={sx(p.tick) + 4}
+                    y1={sy(p.firstPrint)}
+                    y2={sy(p.firstPrint)}
+                    stroke="var(--color-terminal-alert)"
+                    strokeWidth="1.4"
+                  />
+                  <line
+                    x1={sx(p.tick)}
+                    x2={sx(p.tick)}
+                    y1={sy(p.firstPrint)}
+                    y2={sy(p.value)}
+                    stroke="var(--color-terminal-alert)"
+                    strokeWidth="0.7"
+                    strokeDasharray="1.5 1.5"
+                  />
+                </g>
+              ))}
+            {plotted.map((p) =>
+              p.revision >= 2 ? (
+                <circle key={p.tick} cx={sx(p.tick)} cy={sy(p.value)} r="1.6" fill="var(--color-terminal-primary)" />
+              ) : (
+                <rect
+                  key={p.tick}
+                  x={sx(p.tick) - 1.8}
+                  y={sy(p.value) - 1.8}
+                  width="3.6"
+                  height="3.6"
+                  fill="var(--color-terminal-bg)"
+                  stroke="var(--color-terminal-primary)"
+                  strokeWidth="0.9"
                 />
-                <line
-                  x1={sx(p.forQtr)}
-                  x2={sx(p.forQtr)}
-                  y1={sy(p.firstPrint)}
-                  y2={sy(p.value)}
-                  stroke="var(--color-terminal-alert)"
-                  strokeWidth="0.7"
-                  strokeDasharray="1.5 1.5"
-                />
-              </g>
-            ))}
-          {line ? (
-            <path d={line} fill="none" stroke="var(--color-terminal-primary)" strokeWidth="1.6" strokeLinejoin="round" />
-          ) : (
-            <text
-              x={W / 2}
-              y={H / 2}
-              textAnchor="middle"
-              fontSize="9"
-              fontFamily="var(--font-mono)"
-              fill="var(--color-terminal-primary)"
-              opacity="0.6"
-            >
-              {view.rollingMonths ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY` : 'INSUFFICIENT HISTORY'}
-            </text>
-          )}
-          {points.map((p) =>
-            p.revision >= 2 ? (
-              <circle key={p.forQtr} cx={sx(p.forQtr)} cy={sy(p.value)} r="1.6" fill="var(--color-terminal-primary)" />
-            ) : (
-              <rect
-                key={p.forQtr}
-                x={sx(p.forQtr) - 1.8}
-                y={sy(p.value) - 1.8}
-                width="3.6"
-                height="3.6"
-                fill="var(--color-terminal-bg)"
-                stroke="var(--color-terminal-primary)"
-                strokeWidth="0.9"
-              />
-            ),
-          )}
-          {hover && (
-            <line x1={sx(hover.forQtr)} x2={sx(hover.forQtr)} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-terminal-primary)" strokeWidth="0.7" opacity="0.5" />
-          )}
-        </svg>
-        {hover && (
-          <div className="pointer-events-none absolute right-1 top-1 border border-terminal-grid bg-terminal-bg px-2 py-1 font-mono text-[9px] leading-relaxed text-terminal-primary">
-            <div>{qtrLabel(hover.forQtr)}</div>
-            {view.rollingMonths && <div className="opacity-60">{view.rollingMonths}M ROLLING AVG</div>}
-            <div>
-              {hover.value.toFixed(digits)}
-              {hover.errorBand > 0 ? ` ±${hover.errorBand.toFixed(1)}` : ''}
-            </div>
-            {hover.visiblyRevised ? (
-              <div className="text-terminal-alert">
-                <s>{hover.firstPrint.toFixed(digits)}</s> REVISED
-              </div>
-            ) : (
-              <div className="opacity-60">{hover.revision >= 2 ? 'FINAL' : `PRINT ${hover.revision + 1}`}</div>
+              ),
             )}
-          </div>
+          </>
         )}
+      />
     </WallTile>
   )
 }

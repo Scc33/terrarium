@@ -14,31 +14,27 @@
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
-import { ChartFrame, Modal, OverlayLayout } from '../components/ui'
+import { ChartFrame, Modal, OverlayLayout, TimeSeriesChart } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
 
 /** latest revision per measured quarter, oldest first — the office's best
  * current word on each period */
-function settled(points: IndicatorPoint[]): Array<{ q: number; value: number }> {
+function settled(points: IndicatorPoint[]): Array<{ tick: number; value: number }> {
   const best = new Map<number, { value: number; revision: number }>()
   for (const p of points) {
     const cur = best.get(p.forQtr)
     if (!cur || p.revision > cur.revision) best.set(p.forQtr, { value: p.value, revision: p.revision })
   }
   return [...best.entries()]
-    .map(([q, v]) => ({ q, value: v.value }))
-    .sort((a, b) => a.q - b.q)
+    .map(([tick, v]) => ({ tick, value: v.value }))
+    .sort((a, b) => a.tick - b.tick)
 }
 
 // ---- the transition diagram: birth & death rates over time (fogged) ----
 const RW = 470
 const RH = 150
-const PL = 26
-const PR = 8
-const PT = 10
-const PB = 16
 
 function TransitionChart({
   birth,
@@ -47,32 +43,13 @@ function TransitionChart({
   xMax,
   markTick,
 }: {
-  birth: Array<{ q: number; value: number }>
-  death: Array<{ q: number; value: number }>
+  birth: Array<{ tick: number; value: number }>
+  death: Array<{ tick: number; value: number }>
   xMin: number
   xMax: number
   markTick: number
 }) {
   const funded = birth.length >= 2 || death.length >= 2
-  const yMax = Math.max(45, ...birth.map((p) => p.value), ...death.map((p) => p.value)) * 1.05
-  const sx = (q: number) => PL + ((q - xMin) / Math.max(xMax - xMin, 1)) * (RW - PL - PR)
-  const sy = (v: number) => PT + ((yMax - v) / yMax) * (RH - PT - PB)
-  const path = (s: Array<{ q: number; value: number }>) =>
-    s.map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.q).toFixed(1)},${sy(p.value).toFixed(1)}`).join(' ')
-
-  // natural-increase wedge: birth on top, back along death (shared quarters)
-  const deathAt = new Map(death.map((p) => [p.q, p.value]))
-  const overlap = birth.filter((p) => deathAt.has(p.q))
-  const wedge =
-    overlap.length >= 2
-      ? path(overlap) +
-        ' ' +
-        [...overlap]
-          .reverse()
-          .map((p) => `L${sx(p.q).toFixed(1)},${sy(deathAt.get(p.q)!).toFixed(1)}`)
-          .join(' ') +
-        'Z'
-      : null
   const latestBirth = birth[birth.length - 1]?.value
   const latestDeath = death[death.length - 1]?.value
   const summary = funded
@@ -90,31 +67,31 @@ function TransitionChart({
       ] : []}
     >
       {funded ? (
-        <svg viewBox={`0 0 ${RW} ${RH}`} className="block w-full">
-          {/* frame + gridlines every 10 */}
-          {[0, 10, 20, 30, 40].map((v) =>
-            v <= yMax ? (
-              <g key={v}>
-                <line x1={PL} x2={RW - PR} y1={sy(v)} y2={sy(v)} stroke="var(--color-dossier-ink)" strokeWidth="0.4" opacity="0.15" />
-                <text x={PL - 3} y={sy(v) + 3} textAnchor="end" fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-                  {v}
-                </text>
-              </g>
-            ) : null,
-          )}
-          {/* the year the pyramid is scrubbed to */}
-          <line x1={sx(markTick)} x2={sx(markTick)} y1={PT} y2={RH - PB} stroke="var(--color-dossier-brass)" strokeWidth="1" strokeDasharray="2 2" opacity="0.8" />
-          {wedge && <path d={wedge} fill="var(--color-dossier-felt)" opacity="0.12" />}
-          {death.length >= 2 && <path d={path(death)} fill="none" stroke="var(--color-dossier-warn)" strokeWidth="1.4" />}
-          {birth.length >= 2 && <path d={path(birth)} fill="none" stroke="var(--color-dossier-felt)" strokeWidth="1.4" />}
-          {/* x labels */}
-          <text x={PL} y={RH - 4} fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-            {yearOf(xMin)}
-          </text>
-          <text x={RW - PR} y={RH - 4} textAnchor="end" fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-            {yearOf(xMax)}
-          </text>
-        </svg>
+        <TimeSeriesChart
+          width={RW}
+          height={RH}
+          traces={[
+            { key: 'death', points: death, color: 'var(--color-dossier-warn)' },
+            { key: 'birth', points: birth, color: 'var(--color-dossier-felt)', lead: true },
+          ]}
+          // the natural-increase wedge: how far births ran ahead of deaths,
+          // which is the whole transition in one shaded region
+          wedge={{ over: 'birth', under: 'death', color: 'var(--color-dossier-felt)' }}
+          // a rate per thousand is read against zero, and the face keeps a
+          // decade of quiet rates from filling the box
+          include={[0, 45]}
+          rules={[
+            // the year the pyramid beside this is scrubbed to
+            { axis: 'x', at: markTick, color: 'var(--color-dossier-brass)', opacity: 0.8 },
+          ]}
+          // the two share a timeline with the head count below, so the axis is
+          // pinned rather than taken from whichever register published longer
+          xDomain={{ x0: xMin, x1: xMax }}
+          formatTick={(t) => String(yearOf(t))}
+          formatReading={(v) => `${v.toFixed(1)} BIRTHS/1,000`}
+          summary={summary}
+          hover
+        />
       ) : (
         <div className="flex h-[150px] flex-col items-center justify-center gap-1 bg-gradient-to-b from-[#c2a06b] to-dossier-brass">
           <div className="font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
@@ -148,24 +125,36 @@ function PopulationStrip({
   xMax: number
   markTick: number
 }) {
-  const popMax = Math.max(...census.map((c) => c.population)) * 1.05
-  const sx = (q: number) => 2 + ((q - xMin) / Math.max(xMax - xMin, 1)) * (PW - 4)
-  const sy = (v: number) => 4 + ((popMax - v) / popMax) * (PH - 8)
-  const line = census.map((c, i) => `${i === 0 ? 'M' : 'L'}${sx(c.tick).toFixed(1)},${sy(c.population).toFixed(1)}`).join(' ')
-  const area = `${line} L${sx(census[census.length - 1].tick).toFixed(1)},${PH} L${sx(census[0].tick).toFixed(1)},${PH} Z`
   const latest = census[census.length - 1]
+  const summary = `Exact population count from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest count ${latest.population.toFixed(1)} million.`
   return (
     <ChartFrame
       title="HEAD COUNT"
       detail="MILLIONS · EXACT"
       value={`${latest.population.toFixed(1)}M`}
-      summary={`Exact population count from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest count ${latest.population.toFixed(1)} million.`}
+      summary={summary}
     >
-      <svg viewBox={`0 0 ${PW} ${PH}`} className="block w-full">
-        <path d={area} fill="var(--color-dossier-ink)" opacity="0.08" />
-        <path d={line} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="1.4" />
-        <line x1={sx(markTick)} x2={sx(markTick)} y1={2} y2={PH - 2} stroke="var(--color-dossier-brass)" strokeWidth="1" strokeDasharray="2 2" opacity="0.8" />
-      </svg>
+      <TimeSeriesChart
+        width={PW}
+        height={PH}
+        traces={[
+          {
+            key: 'population',
+            points: census.map((c) => ({ tick: c.tick, value: c.population })),
+            fillTo: 0,
+            lead: true,
+          },
+        ]}
+        // a head count is read against zero, and shares the vital rates' axis
+        // above it so the two figures line up quarter for quarter
+        include={[0]}
+        xDomain={{ x0: xMin, x1: xMax }}
+        rules={[{ axis: 'x', at: markTick, color: 'var(--color-dossier-brass)', opacity: 0.8 }]}
+        formatTick={(t) => String(yearOf(t))}
+        formatReading={(v) => `${v.toFixed(1)}M`}
+        summary={summary}
+        hover
+      />
     </ChartFrame>
   )
 }

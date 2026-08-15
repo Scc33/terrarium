@@ -11,6 +11,7 @@ import {
   ProgressBar,
   SegmentedControl,
   SliderField,
+  TimeSeriesChart,
 } from '../components/ui'
 import { SHARE_INKS } from '../shares'
 import { AnalogGauge } from '../components/AnalogGauge/AnalogGauge'
@@ -25,6 +26,19 @@ const TREND = [
   { tick: 8, value: 99 },
   { tick: 12, value: 106 },
   { tick: 16, value: 112 },
+]
+
+/** a price board leaving its own face — the excursion the old chart clamped
+ * flat. The peak is the measured `price_fuel` maximum over a surveyed
+ * century, against that indicator's real 40–130 face. */
+const FUEL_SHOCK = [
+  { tick: 0, value: 62 },
+  { tick: 8, value: 71 },
+  { tick: 16, value: 96 },
+  { tick: 24, value: 128 },
+  { tick: 28, value: 152.1 },
+  { tick: 36, value: 141 },
+  { tick: 44, value: 118 },
 ]
 
 /** A deterministic, data-rich surface for visual review at `/?gallery=1`.
@@ -89,6 +103,29 @@ export function ComponentGallery() {
             summary="National output rose from 100 to 112 between 1946 and 1950."
           >
             <div className="p-2"><LineChart data={TREND} primaryColor="var(--color-dossier-felt)" /></div>
+          </ChartFrame>
+          {/* The case the whole chart consolidation exists for: a series that
+              leaves its dial face. The axis extends and the face's own bound is
+              ruled — it is NOT clamped flat along the rail (ADR-0016). Kept in
+              the gallery because this is invisible in a normal century, so a
+              regression here would otherwise only surface during a crisis. */}
+          <ChartFrame
+            title="FUEL PRICE BOARD · OFF THE DIAL"
+            detail="1946=100 · FACE 40–130"
+            value="152.1"
+            legend={[{ label: 'DIAL LIMIT', color: 'var(--color-dossier-warn)', dashed: true }]}
+            summary="Fuel prices ran from 62 to 152.1, past the 130 top of the instrument's printed face."
+          >
+            <div className="p-2">
+              <TimeSeriesChart
+                traces={[{ key: 'fuel', points: FUEL_SHOCK, color: 'var(--color-dossier-warn)' }]}
+                face={{ lo: 40, hi: 130 }}
+                height={110}
+                formatTick={(t) => `${1946 + Math.floor(t / 4)}`}
+                summary="Fuel prices ran from 62 to 152.1, past the 130 top of the instrument's printed face."
+                hover
+              />
+            </div>
           </ChartFrame>
           <DonutChart
             shares={[
