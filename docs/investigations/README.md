@@ -30,3 +30,4 @@ drift. Re-measure before acting on one.
 | [0004](0004-attainment-index-falls-while-every-sector-rises.md) | `technology_attainment` falls while every sector's technique rises | Open |
 | [0005](0005-post-2000-macro-volatility.md) | Post-2000 shocks produce wider inflation and growth tails | Open |
 | [0006](0006-quiet-late-growth-drivers.md) | Quiet late growth is demand-led and openness-amplified | Open |
+| [0007](0007-aggregate-versus-per-capita-growth.md) | Population decline lowers late aggregate growth but does not explain the downside | Open |

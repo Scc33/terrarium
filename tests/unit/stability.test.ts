@@ -37,6 +37,7 @@ function point(
     publishedRealGrowth: options.publishedRealGrowth ?? null,
     events: options.events ?? [],
     drivers: {
+      population: 130 + tick,
       laborForce: 100 + tick,
       employment: 90 + tick,
       laborProductivity: (options.realGdp ?? 100 + tick) / (90 + tick),
@@ -196,5 +197,104 @@ describe('long-horizon stability analysis', () => {
     expect(
       downside.laborProductivityContribution.p50 + downside.employmentContribution.p50,
     ).toBeCloseTo(Math.log(0.99) * 400)
+  })
+
+  it('separates aggregate growth into population and per-capita identities', () => {
+    const report = analyzeStability([
+      run([
+        point(107, {
+          realGdp: 100,
+          drivers: {
+            population: 100,
+            laborForce: 60,
+            employment: 54,
+            laborProductivity: 100 / 54,
+          },
+        }),
+        point(108, {
+          realGdp: 99,
+          drivers: {
+            population: 98,
+            laborForce: 57,
+            employment: 52,
+            laborProductivity: 99 / 52,
+          },
+        }),
+      ]),
+    ])
+    const downside = report.eras.find((era) => era.era.id === 'late_century')!
+      .quietDrivers.downside
+
+    expect(downside.aggregateLogGrowth.p50).toBeCloseTo(
+      downside.realGdpPerCapitaContribution.p50 + downside.populationContribution.p50,
+    )
+    expect(downside.realGdpPerCapitaContribution.p50).toBeCloseTo(
+      downside.laborProductivityContribution.p50 +
+      downside.employmentRateContribution.p50 +
+      downside.laborForceShareContribution.p50,
+    )
+    expect(downside.realGdpPerCapitaGrowth.p50).toBeGreaterThan(0)
+    expect(downside.realGrowth.p50).toBeLessThan(0)
+  })
+
+  it('conditions the population identity on contracting labor-force quarters', () => {
+    const report = analyzeStability([
+      run([
+        point(107, {
+          realGdp: 100,
+          drivers: {
+            population: 100,
+            laborForce: 60,
+            employment: 54,
+            laborProductivity: 100 / 54,
+          },
+        }),
+        point(108, {
+          realGdp: 101,
+          drivers: {
+            population: 99,
+            laborForce: 59,
+            employment: 53,
+            laborProductivity: 101 / 53,
+          },
+        }),
+        point(109, {
+          realGdp: 103,
+          drivers: {
+            population: 100,
+            laborForce: 60,
+            employment: 54,
+            laborProductivity: 103 / 54,
+          },
+        }),
+      ]),
+    ])
+    const contraction = report.eras.find((era) => era.era.id === 'late_century')!
+      .quietDrivers.laborContraction
+
+    expect(contraction.observations).toBe(1)
+    expect(contraction.laborForceGrowth.p50).toBeLessThan(0)
+    expect(contraction.aggregateLogGrowth.p50).toBeCloseTo(
+      contraction.realGdpPerCapitaContribution.p50 + contraction.populationContribution.p50,
+    )
+  })
+
+  it('separates survivor trend into population and per-capita growth', () => {
+    const report = analyzeStability([
+      run([
+        point(1, { realGdp: 100, drivers: { population: 100 } }),
+        point(5, { realGdp: 110, drivers: { population: 90 } }),
+      ]),
+      run([point(1), point(5)], { deposedAt: 5 }),
+    ])
+
+    expect(report.survivorTrend.survivors).toBe(1)
+    expect(report.survivorTrend.aggregateCagr.p50).toBeCloseTo(10)
+    expect(report.survivorTrend.realGdpPerCapitaCagr.p50).toBeCloseTo(100 * (110 / 90 - 1))
+    expect(report.survivorTrend.populationCagr.p50).toBeCloseTo(-10)
+    expect(report.survivorTrend.aggregateLogGrowth.p50).toBeCloseTo(
+      report.survivorTrend.realGdpPerCapitaLogGrowth.p50 +
+      report.survivorTrend.populationLogGrowth.p50,
+    )
   })
 })

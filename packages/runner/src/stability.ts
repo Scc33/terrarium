@@ -71,9 +71,18 @@ export interface EraStability {
 
 export interface QuietDriverSummary {
   observations: number
+  aggregateLogGrowth: TailSummary
+  realGdpPerCapitaGrowth: TailSummary
+  realGdpPerCapitaContribution: TailSummary
+  populationGrowth: TailSummary
+  populationContribution: TailSummary
   laborProductivityGrowth: TailSummary
+  laborProductivityContribution: TailSummary
   employmentGrowth: TailSummary
+  employmentRateContribution: TailSummary
   laborForceGrowth: TailSummary
+  laborForceContribution: TailSummary
+  laborForceShareContribution: TailSummary
   realWageGrowth: TailSummary
   tfpGrowth: TailSummary
   utilization: TailSummary
@@ -87,15 +96,35 @@ export interface QuietDriverSummary {
   exportGrowth: TailSummary
   exportShare: TailSummary
   householdShare: TailSummary
+  laborContraction: QuietLaborContractionSummary
   downside: QuietDownsideSummary
+}
+
+export interface QuietLaborContractionSummary {
+  observations: number
+  laborForceGrowth: TailSummary
+  aggregateLogGrowth: TailSummary
+  realGdpPerCapitaContribution: TailSummary
+  populationContribution: TailSummary
+  laborProductivityContribution: TailSummary
+  employmentRateContribution: TailSummary
+  laborForceShareContribution: TailSummary
 }
 
 export interface QuietDownsideSummary {
   observations: number
   growthCutoff: number
   realGrowth: TailSummary
+  aggregateLogGrowth: TailSummary
+  realGdpPerCapitaGrowth: TailSummary
+  realGdpPerCapitaContribution: TailSummary
+  populationGrowth: TailSummary
+  populationContribution: TailSummary
   laborProductivityContribution: TailSummary
   employmentContribution: TailSummary
+  employmentRateContribution: TailSummary
+  laborForceContribution: TailSummary
+  laborForceShareContribution: TailSummary
   tfpGrowth: TailSummary
   laborForceGrowth: TailSummary
   realWageGrowth: TailSummary
@@ -123,11 +152,22 @@ export interface ShockStability {
 
 export interface StabilityReport {
   runs: number
+  survivorTrend: SurvivorTrendSummary
   rawPriceExplosionRuns: string[]
   reachablePriceExplosionRuns: string[]
   reachableNonFiniteRuns: string[]
   eras: EraStability[]
   shocks: ShockStability[]
+}
+
+export interface SurvivorTrendSummary {
+  survivors: number
+  aggregateCagr: TailSummary
+  realGdpPerCapitaCagr: TailSummary
+  populationCagr: TailSummary
+  aggregateLogGrowth: TailSummary
+  realGdpPerCapitaLogGrowth: TailSummary
+  populationLogGrowth: TailSummary
 }
 
 interface MacroReading {
@@ -237,12 +277,20 @@ function quietReadings(readings: readonly MacroReading[]): MacroReading[] {
 
 interface DriverReading {
   realGrowth: number
+  aggregateLogGrowth: number
+  realGdpPerCapitaGrowth: number
+  realGdpPerCapitaContribution: number
+  populationGrowth: number
+  populationContribution: number
   laborProductivityGrowth: number
   employmentGrowth: number
   laborForceGrowth: number
   realWageGrowth: number
   laborProductivityContribution: number
   employmentContribution: number
+  employmentRateContribution: number
+  laborForceContribution: number
+  laborForceShareContribution: number
   tfpGrowth: number
   utilization: number
   utilizationChange: number
@@ -262,8 +310,19 @@ function driverReading(reading: MacroReading): DriverReading | null {
   if (!previous || reading.point.tick !== previous.tick + 1) return null
   const drivers = reading.point.drivers
   const prior = previous.drivers
+  const perCapita = reading.point.realGdp / Math.max(drivers.population, 1e-9)
+  const priorPerCapita = previous.realGdp / Math.max(prior.population, 1e-9)
+  const employmentRate = drivers.employment / Math.max(drivers.laborForce, 1e-9)
+  const priorEmploymentRate = prior.employment / Math.max(prior.laborForce, 1e-9)
+  const laborForceShare = drivers.laborForce / Math.max(drivers.population, 1e-9)
+  const priorLaborForceShare = prior.laborForce / Math.max(prior.population, 1e-9)
   return {
     realGrowth: reading.realGrowth,
+    aggregateLogGrowth: annualizedLogContribution(previous.realGdp, reading.point.realGdp),
+    realGdpPerCapitaGrowth: annualizedLevelGrowth(priorPerCapita, perCapita),
+    realGdpPerCapitaContribution: annualizedLogContribution(priorPerCapita, perCapita),
+    populationGrowth: annualizedLevelGrowth(prior.population, drivers.population),
+    populationContribution: annualizedLogContribution(prior.population, drivers.population),
     laborProductivityGrowth: annualizedLevelGrowth(
       prior.laborProductivity,
       drivers.laborProductivity,
@@ -276,6 +335,15 @@ function driverReading(reading: MacroReading): DriverReading | null {
       drivers.laborProductivity,
     ),
     employmentContribution: annualizedLogContribution(prior.employment, drivers.employment),
+    employmentRateContribution: annualizedLogContribution(
+      priorEmploymentRate,
+      employmentRate,
+    ),
+    laborForceContribution: annualizedLogContribution(prior.laborForce, drivers.laborForce),
+    laborForceShareContribution: annualizedLogContribution(
+      priorLaborForceShare,
+      laborForceShare,
+    ),
     tfpGrowth: annualizedLevelGrowth(1, 1 + drivers.tfpGrowthQ),
     utilization: drivers.utilization * 100,
     utilizationChange: (drivers.utilization - prior.utilization) * 100,
@@ -298,13 +366,23 @@ function driverSummary(readings: readonly MacroReading[]): QuietDriverSummary {
   const points = readings.map(driverReading).filter((point): point is DriverReading => point !== null)
   const growthCutoff = summarizeTails(points.map((point) => point.realGrowth)).p05
   const downside = points.filter((point) => point.realGrowth <= growthCutoff)
+  const laborContraction = points.filter((point) => point.laborForceGrowth < 0)
   const tails = (key: keyof DriverReading, sample: readonly DriverReading[] = points) =>
     summarizeTails(sample.map((point) => point[key]))
   return {
     observations: points.length,
+    aggregateLogGrowth: tails('aggregateLogGrowth'),
+    realGdpPerCapitaGrowth: tails('realGdpPerCapitaGrowth'),
+    realGdpPerCapitaContribution: tails('realGdpPerCapitaContribution'),
+    populationGrowth: tails('populationGrowth'),
+    populationContribution: tails('populationContribution'),
     laborProductivityGrowth: tails('laborProductivityGrowth'),
+    laborProductivityContribution: tails('laborProductivityContribution'),
     employmentGrowth: tails('employmentGrowth'),
+    employmentRateContribution: tails('employmentRateContribution'),
     laborForceGrowth: tails('laborForceGrowth'),
+    laborForceContribution: tails('laborForceContribution'),
+    laborForceShareContribution: tails('laborForceShareContribution'),
     realWageGrowth: tails('realWageGrowth'),
     tfpGrowth: tails('tfpGrowth'),
     utilization: tails('utilization'),
@@ -318,12 +396,39 @@ function driverSummary(readings: readonly MacroReading[]): QuietDriverSummary {
     exportGrowth: tails('exportGrowth'),
     exportShare: tails('exportShare'),
     householdShare: tails('householdShare'),
+    laborContraction: {
+      observations: laborContraction.length,
+      laborForceGrowth: tails('laborForceGrowth', laborContraction),
+      aggregateLogGrowth: tails('aggregateLogGrowth', laborContraction),
+      realGdpPerCapitaContribution: tails(
+        'realGdpPerCapitaContribution',
+        laborContraction,
+      ),
+      populationContribution: tails('populationContribution', laborContraction),
+      laborProductivityContribution: tails(
+        'laborProductivityContribution',
+        laborContraction,
+      ),
+      employmentRateContribution: tails('employmentRateContribution', laborContraction),
+      laborForceShareContribution: tails(
+        'laborForceShareContribution',
+        laborContraction,
+      ),
+    },
     downside: {
       observations: downside.length,
       growthCutoff,
       realGrowth: tails('realGrowth', downside),
+      aggregateLogGrowth: tails('aggregateLogGrowth', downside),
+      realGdpPerCapitaGrowth: tails('realGdpPerCapitaGrowth', downside),
+      realGdpPerCapitaContribution: tails('realGdpPerCapitaContribution', downside),
+      populationGrowth: tails('populationGrowth', downside),
+      populationContribution: tails('populationContribution', downside),
       laborProductivityContribution: tails('laborProductivityContribution', downside),
       employmentContribution: tails('employmentContribution', downside),
+      employmentRateContribution: tails('employmentRateContribution', downside),
+      laborForceContribution: tails('laborForceContribution', downside),
+      laborForceShareContribution: tails('laborForceShareContribution', downside),
       tfpGrowth: tails('tfpGrowth', downside),
       laborForceGrowth: tails('laborForceGrowth', downside),
       realWageGrowth: tails('realWageGrowth', downside),
@@ -406,12 +511,72 @@ function shockReport(
   }
 }
 
+interface RunTrend {
+  aggregateCagr: number
+  realGdpPerCapitaCagr: number
+  populationCagr: number
+  aggregateLogGrowth: number
+  realGdpPerCapitaLogGrowth: number
+  populationLogGrowth: number
+}
+
+function annualizedTrend(previous: number, current: number, years: number): number {
+  if (years <= 0 || previous <= 0 || current <= 0) return Number.NaN
+  return (Math.pow(current / previous, 1 / years) - 1) * 100
+}
+
+function annualizedLogTrend(previous: number, current: number, years: number): number {
+  if (years <= 0 || previous <= 0 || current <= 0) return Number.NaN
+  return (Math.log(current / previous) / years) * 100
+}
+
+function runTrend(run: StabilityRun): RunTrend | null {
+  if (run.deposedAt !== null) return null
+  const first = run.trajectory[0]
+  const last = run.trajectory.at(-1)
+  if (!first || !last) return null
+  const years = (last.tick - first.tick) / 4
+  const firstPerCapita = first.realGdp / Math.max(first.drivers.population, 1e-9)
+  const lastPerCapita = last.realGdp / Math.max(last.drivers.population, 1e-9)
+  return {
+    aggregateCagr: annualizedTrend(first.realGdp, last.realGdp, years),
+    realGdpPerCapitaCagr: annualizedTrend(firstPerCapita, lastPerCapita, years),
+    populationCagr: annualizedTrend(
+      first.drivers.population,
+      last.drivers.population,
+      years,
+    ),
+    aggregateLogGrowth: annualizedLogTrend(first.realGdp, last.realGdp, years),
+    realGdpPerCapitaLogGrowth: annualizedLogTrend(firstPerCapita, lastPerCapita, years),
+    populationLogGrowth: annualizedLogTrend(
+      first.drivers.population,
+      last.drivers.population,
+      years,
+    ),
+  }
+}
+
+function survivorTrend(runs: readonly StabilityRun[]): SurvivorTrendSummary {
+  const trends = runs.map(runTrend).filter((trend): trend is RunTrend => trend !== null)
+  const tails = (key: keyof RunTrend) => summarizeTails(trends.map((trend) => trend[key]))
+  return {
+    survivors: trends.length,
+    aggregateCagr: tails('aggregateCagr'),
+    realGdpPerCapitaCagr: tails('realGdpPerCapitaCagr'),
+    populationCagr: tails('populationCagr'),
+    aggregateLogGrowth: tails('aggregateLogGrowth'),
+    realGdpPerCapitaLogGrowth: tails('realGdpPerCapitaLogGrowth'),
+    populationLogGrowth: tails('populationLogGrowth'),
+  }
+}
+
 export function analyzeStability(runs: readonly StabilityRun[]): StabilityReport {
   const playableByRun = runs.map(playableTrajectory)
   const readingsByRun = runs.map(macroReadings)
   const quietByRun = readingsByRun.map(quietReadings)
   return {
     runs: runs.length,
+    survivorTrend: survivorTrend(runs),
     rawPriceExplosionRuns: runs.filter((run) => run.priceExplosions > 0).map((run) => run.seed),
     reachablePriceExplosionRuns: runs
       .filter((_run, index) => playableByRun[index].some(hasPriceExplosion))

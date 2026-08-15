@@ -147,11 +147,12 @@ wage-productivity passthrough, or weaker habitual-income smoothing. Ordinary for
 and its household echo are economically legible and approximately stationary across eras.
 Erasing either would make openness cosmetic without addressing the falling growth cushion.
 
-The next controlled comparisons should separate:
+Investigation [0007](0007-aggregate-versus-per-capita-growth.md) resolves the first comparison:
+population decline lowers the aggregate trend cushion, but most downside deterioration remains
+per-capita. The remaining controlled comparisons should separate:
 
-1. level growth from per-capita growth when the labor force is shrinking;
-2. whether the employment-adjustment lag damps a demand fall or stores up the following rebound;
-3. whether any candidate narrows quiet and shock tails while preserving survivor CAGR and the
-   exact 1946 opening.
+1. whether the employment-adjustment lag damps a demand fall or stores up the following rebound;
+2. whether any candidate narrows quiet and shock tails while preserving survivor aggregate and
+   per-capita CAGR and the exact 1946 opening.
 
 Until those are measured, this investigation does not recommend an engine constant.
