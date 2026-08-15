@@ -333,8 +333,10 @@ It also reports “quiet” true and wall tails after excluding each shock onset
 eight quarters. Those tails separate background late-economy instability from a transient
 event response; a shock retune must improve the latter without worsening the former. Runner-only
 driver rows decompose quiet GDP into output-per-worker and employment contributions beside TFP,
-labor force, utilization, real wages, demand satisfaction, and final-demand components. These
-diagnostics consume true state in the headless runner and never enter `PublishedState`.
+labor force, utilization, real wages, demand satisfaction, and final-demand components. The
+population identity additionally splits aggregate growth into per-capita and population growth,
+then per-capita growth into productivity, employment-rate, and labor-force-share contributions.
+These diagnostics consume true state in the headless runner and never enter `PublishedState`.
 Use `--policy passive|developmental|random|all` and `--country baseline|all|<recipe>` to narrow
 a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
 initialization convergence.
