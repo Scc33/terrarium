@@ -37,7 +37,7 @@ export const cohorts: PipelineStep = {
     const totalProfitsNet = SECTOR_IDS.reduce((s, sid) => {
       const gross = flows.profits[sid]
       return s + (gross > 0 ? gross * (1 - corpTaxEff) : gross)
-    }, 0)
+    }, 0) - flows.foreignProfitRemittances
     const transfersDelivered = gov.dials.spending.transfers * adminEff
     const lf = laborForce(state)
 

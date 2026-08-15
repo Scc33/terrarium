@@ -97,12 +97,22 @@ export const labor: PipelineStep = {
         s.capital * (1 - DEPRECIATION_Q) + flows.investmentReal * (pressures[i] / pressureSum),
       ),
     }))
+    const capitalTotal = sectors.reduce((sum, sector) => sum + sector.capital, 0)
+    const foreignOwnedCapital = Math.min(
+      capitalTotal,
+      Math.max(
+        0,
+        state.external.foreignOwnedCapital * (1 - DEPRECIATION_Q) +
+          flows.foreignDirectInvestmentReal,
+      ),
+    )
 
     const unemployment = clamp(1 - sectors.reduce((a, s) => a + s.employment, 0) / lf, 0, 1)
 
     return {
       ...state,
       sectors,
+      external: { ...state.external, foreignOwnedCapital },
       market: { ...market, wages: newWages },
       flows: { ...flows, unemployment },
     }

@@ -14,6 +14,8 @@ import {
   DEPRECIATION_Q,
   FIN_CRUNCH_DRAG,
   FIN_INVEST_Q_GAIN,
+  FDI_IMPORTED_CAPITAL_SHARE,
+  FDI_PROFIT_REMIT_SHARE,
   IND_FAVOR_INVEST,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
@@ -41,7 +43,7 @@ import {
 export const production: PipelineStep = {
   name: 'production',
   run(state) {
-    const { io, market, gov, external } = state
+    const { io, market, gov, external, flows } = state
 
     // technology now arrives via the tech step (§9) — production just works
     // with the tfp it was handed
@@ -50,6 +52,7 @@ export const production: PipelineStep = {
 
     // --- household demand from last tick's net incomes ---
     const incomeTaxEff = gov.dials.taxRates.income * taxEfficiency(gov.capacity.tax)
+    const corporateTaxEff = gov.dials.taxRates.corporate * taxEfficiency(gov.capacity.tax)
     const cohortSpend = {} as Record<CohortId, number>
     const householdDemand = sectorRecord(() => 0)
     for (const c of state.cohorts) {
@@ -111,17 +114,18 @@ export const production: PipelineStep = {
       0.5,
       INVESTMENT_FACTOR_MAX,
     )
-    const privateInvReal = replacement * invFactor
+    const domesticPrivateInvReal = replacement * invFactor
+    const foreignInvReal = flows.foreignDirectInvestmentReal
     const govInvReal =
       (gov.dials.spending.investment * adminEff) /
       ((market.prices.manuf + market.prices.services) / 2)
-    const investmentReal = privateInvReal + govInvReal
+    const investmentReal = domesticPrivateInvReal + foreignInvReal + govInvReal
     // National-accounts ownership split. Transfers and subsidies are not
     // government final demand: they finance household consumption and firm
     // receipts respectively. Net exports are external, so they sit outside
     // this deliberately complementary domestic-demand split.
     const privateDomesticDemandReal =
-      SECTOR_IDS.reduce((sum, sid) => sum + householdDemand[sid], 0) + privateInvReal
+      SECTOR_IDS.reduce((sum, sid) => sum + householdDemand[sid], 0) + domesticPrivateInvReal
     const governmentDomesticDemandReal =
       SECTOR_IDS.reduce((sum, sid) => sum + procurementReal[sid] + researchReal[sid], 0) +
       govInvReal
@@ -149,7 +153,18 @@ export const production: PipelineStep = {
     const importsReal = sectorRecord((sid, i) => {
       const worldP = external.worldPrices[sid] * fx * (1 + tariff)
       const ratio = market.prices[sid] / worldP
-      return IMPORT_BASE_SHARE[sid] * qPot[i] * state.params.openness * Math.pow(ratio, TRADE_ELASTICITY)
+      const ordinaryImports =
+        IMPORT_BASE_SHARE[sid] *
+        qPot[i] *
+        state.params.openness *
+        Math.pow(ratio, TRADE_ELASTICITY)
+      // A foreign-financed factory often arrives partly as imported plant.
+      // It remains capital formation and joins the stock in labor, but the
+      // imported machinery is not a domestic order and must hit the external
+      // account. Services/construction stay local.
+      const importedCapital =
+        sid === 'manuf' ? FDI_IMPORTED_CAPITAL_SHARE * foreignInvReal : 0
+      return ordinaryImports + importedCapital
     })
 
     // --- final demand and the Leontief solve ---
@@ -187,6 +202,19 @@ export const production: PipelineStep = {
       const wageBill = market.wages[sid] * sectors[j].employment
       return market.prices[sid] * output[sid] - interCost - wageBill + subsidyDelivered[sid]
     })
+    const capitalTotal = sectors.reduce((sum, sector) => sum + sector.capital, 0)
+    const foreignOwnership = clamp(
+      external.foreignOwnedCapital / Math.max(capitalTotal, 1e-9),
+      0,
+      1,
+    )
+    const foreignProfitRemittances =
+      FDI_PROFIT_REMIT_SHARE *
+      foreignOwnership *
+      SECTOR_IDS.reduce(
+        (sum, sid) => sum + Math.max(0, profits[sid]) * (1 - corporateTaxEff),
+        0,
+      )
 
     // GDP: value added, real at base prices / nominal at current
     let realGdp = 0
@@ -225,6 +253,7 @@ export const production: PipelineStep = {
         householdDemand,
         cohortSpend,
         investmentReal,
+        foreignProfitRemittances,
         publicInvestmentReal: govInvReal,
         privateDomesticDemandReal,
         governmentDomesticDemandReal,

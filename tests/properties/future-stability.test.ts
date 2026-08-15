@@ -83,11 +83,12 @@ describe('the playable economy through 2050', () => {
     // silently lowering century trend growth or ending more governments.
     const passiveSurvivors = policyRuns.passive.filter((run) => run.deposedAt === null)
     const developmentalSurvivors = policyRuns.developmental.filter((run) => run.deposedAt === null)
-    // Sovereign funding pressure on current master changes one fixed passive
-    // outcome from deposition to survival; keep the exact cohort pinned to the
-    // engine this branch is actually proposed against.
-    expect(passiveSurvivors).toHaveLength(23)
-    expect(developmentalSurvivors).toHaveLength(17)
+    // Productive foreign capital improves survival in this fixed cohort,
+    // especially under the developmental policy whose administrative build
+    // makes more projects usable. Pin the intended political consequence as
+    // firmly as the prior baseline rather than treating it as test noise.
+    expect(passiveSurvivors).toHaveLength(25)
+    expect(developmentalSurvivors).toHaveLength(21)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeGreaterThan(2.3)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeLessThan(2.8)
     expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeGreaterThan(1.9)
