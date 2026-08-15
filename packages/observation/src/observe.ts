@@ -39,6 +39,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   consumption_share: { label: 'Household consumption', unit: '% final expenditure' },
   investment_share: { label: 'Capital formation', unit: '% final expenditure' },
   export_share: { label: 'Exports', unit: '% final expenditure' },
+  fdi_inflows: { label: 'Foreign direct investment', unit: '% of GDP' },
   inflation: { label: 'Inflation', unit: '% / yr' },
   price_food: { label: 'Food price board', unit: '1946=100' },
   price_fuel: { label: 'Fuel price board', unit: '1946=100' },

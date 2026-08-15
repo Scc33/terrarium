@@ -224,6 +224,11 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   how `government_demand_share` shipped a 0–20 face for a series that lived at 1–3 %. Read the
   `pnpm ranges` percentiles when you add a face; a passing test is not evidence the dial is
   legible.
+- **A dial-fit survey must cover the whole funded century.** `gdp_per_capita` and
+  `consumption_per_capita` stayed inside their faces through 2006, then spent roughly 4% of a
+  capacity-building century pegged while the old 240-quarter test stayed green. The coverage
+  test now runs 400 quarters with a policy that funds every survey; shortening it or using
+  passive play makes late, high-capacity instruments disappear from the evidence.
 - **A ratio to a moving target saturates, and a saturated dial is a silent one.**
   `technology_attainment` is attainment ÷ frontier, and research pushes the frontier — so the
   better the programme, the harder its own dial is to move. Measured: a maximum research

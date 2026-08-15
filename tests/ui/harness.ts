@@ -68,8 +68,9 @@ export function eachQuarter(
   }
 }
 
-/** the seeds and length the presentation invariants are measured over —
- * enough countries to average out one unlucky economy, long enough to reach
- * the aging endgame where the wildest readings live */
+/** The seeds and length the presentation invariants are measured over. A
+ * capacity-building country does not push the per-capita accounts past their
+ * old faces until after 2006, so this must cover the whole playable century;
+ * a shorter survey makes the dial-fit test pass while the late game pegs. */
 export const SURVEY_SEEDS = ['ui-a', 'ui-b', 'ui-c', 'ui-d']
-export const SURVEY_TICKS = 240
+export const SURVEY_TICKS = 400

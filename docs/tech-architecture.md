@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 23. Companion to the design doc
+*How the code is actually arranged, as of schema 24. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -40,7 +40,8 @@ terrarium/
 │   │   │   ├── pipeline/         # one file per step, in TICK_ORDER (§4)
 │   │   │   │   ├── pipeline.ts   # the ordered fold; TICK_ORDER lives here
 │   │   │   │   ├── shocks.ts demography.ts technology.ts world.ts finance.ts
-│   │   │   │   ├── production.ts trade.ts fiscal.ts monetary.ts prices.ts
+│   │   │   │   ├── foreignInvestment.ts production.ts trade.ts fiscal.ts
+│   │   │   │   ├── monetary.ts prices.ts
 │   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
 │   │   │   │   └── derive.ts     # pure read-models over state (no step owns them)
 │   │   │   ├── actions/          # Action union + apply/legality
@@ -160,7 +161,7 @@ interface TrueState {
   io: IOTable                  // Leontief coefficients
   market: MarketState
   gov: GovernmentState         // dials, spending rules, capacities, itemised budget, debt
-  external: ExternalState      // partners, world prices, reserves, exchange rate
+  external: ExternalState      // partners, prices, reserves, FX, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice           // prints, revision history — the fog's own state
@@ -230,16 +231,17 @@ introduced it:
 | 3 | `technology` | the frontier advances; attainment chases it; research splits by position |
 | 4 | `world` | partner cycles set export demand and world prices |
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
-| 6 | `production` | output given prices, capital, labor, I/O table |
-| 7 | `trade` | books external flows, reserves, exchange rate |
-| 8 | `fiscal` | capacity-gated collection; spending with leakage |
-| 9 | `monetary` | expectations adapt; printing feeds them |
-| 10 | `prices` | tâtonnement with cost anchor |
-| 11 | `labor` | employment, wages, capital accumulation |
-| 12 | `cohorts` | incomes, savings, approval drifts toward experienced truth |
-| 13 | `institutions` | societal power, veto players, and revolutionary pressure |
-| 14 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
-| 15 | `politics` | PC accrual from PUBLISHED numbers, elections, revolt, and coup |
+| 6 | `foreignInvestment` | attracts inward productive capital; prices foreign ownership |
+| 7 | `production` | output given prices, capital, labor, I/O table |
+| 8 | `trade` | books trade, FDI, remittances, reserves, and exchange rate |
+| 9 | `fiscal` | capacity-gated collection; spending with leakage |
+| 10 | `monetary` | expectations adapt; printing feeds them |
+| 11 | `prices` | tâtonnement with cost anchor |
+| 12 | `labor` | employment, wages, capital and foreign-owned stock accumulation |
+| 13 | `cohorts` | domestic incomes, savings, approval drifts toward experienced truth |
+| 14 | `institutions` | societal power, veto players, and revolutionary pressure |
+| 15 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
+| 16 | `politics` | PC accrual from PUBLISHED numbers, elections, revolt, and coup |
 
 **Rules:**
 
@@ -269,6 +271,16 @@ The player sees two fogged instruments and never the frontier, sector attainment
 `technology_attainment` (the ratio — are we catching up?) and `productivity` (the level — output
 per worker against our own 1946). Two are needed because the ratio saturates: research pushes the
 frontier it is measured against, so the better the programme the quieter its own dial goes.
+
+Foreign direct investment is an owned capital stock, not another name for openness (ADR-0018).
+Small-country scale and external access set the structural FDI/GDP draw; the mean of sector
+frontier gaps supplies composition-invariant catch-up room. Current administration, after-tax
+returns, export intensity, confidence, price stability, tariffs,
+foreign activity and crises move it. Inflows join the ordinary investment order book and bring reserves in; imported
+plant is gross capital formation but lands on the import bill instead of domestic demand. The
+foreign-owned share of after-tax profits is remitted later, leaving reserves and never entering
+domestic household income. Only the fogged `fdi_inflows` flow reaches the wall; ownership and
+remittances remain engine truth.
 
 Finance has three player inputs that meet in its existing balance sheets (ADR-0017). The policy
 rate prices overnight money; the QE purchase pace lowers the common private funding rate without

@@ -61,27 +61,30 @@ A passing golden diff is necessary, not sufficient — 40 quarters hides century
 ```bash
 pnpm batch -- --runs 1000 --ticks 120 --policy random
 pnpm batch -- --runs 1000 --ticks 400 --policy passive
+NODE_OPTIONS=--max-old-space-size=8192 pnpm batch -- --runs 1000 --ticks 400 --policy developmental
 pnpm stability -- --runs 120 --policy all --country all
 ```
 
-Medians from 1000 runs on `country=baseline`, measured at `78063a5`. Re-measure rather than
-trusting these — they drift, and a stale baseline is worse than none because it invites you to
-"fix" an engine that was fine.
+Medians from 1000 runs on `country=baseline`, re-measured for schema 24 on 2026-08-15. The
+developmental command needs the larger heap because the batch CLI retains every trajectory and
+capacity action until it prints the report. Re-measure rather than trusting these — they drift,
+and a stale baseline is worse than none because it invites you to "fix" an engine that was fine.
 
-**Healthy passive century:** growth ≈ 2.5%/yr · inflation ≈ 0.1 · unemployment ≈ 12.8% ·
-**9% deposed** by 400q (median quarter 336).
+**Healthy passive century:** growth ≈ 2.70%/yr · inflation ≈ 0.11% · unemployment ≈ 11.90% ·
+**7% deposed** by 400q (median quarter 352).
 
 That elevated unemployment is **designed**, not a bug: it is the §8 youth-bulge bomb an
 unschooled do-nothing government earns. Do not "fix" it.
 
-Building the four state capacities (`--policy developmental`) does absorb it — **12.8% → 10.0%**
+Building the four state capacities (`--policy developmental`) does absorb it — **11.90% → 9.30%**
 — and that is the mechanism working. But note what the same run does to the headline:
 
 | 1000 × 400q | passive | developmental |
 |---|---|---|
-| real growth %/yr | 2.52 | **2.32** |
-| unemployment % | 12.80 | **10.03** |
-| deposed | 9% | 16% |
+| real growth %/yr | 2.70 | **2.53** |
+| mean inflation %/yr | 0.11 | **−0.16** |
+| unemployment % | 11.90 | **9.30** |
+| deposed | 7% (median q352) | 12% (median q336) |
 
 **Real growth is LOWER on the developmental path, not higher.** That is a live surprise, not a
 documented design claim, and it is recorded here only so the next reader does not mistake it
@@ -89,7 +92,8 @@ for a regression they caused. Nobody has ruled on whether it is correct (capacit
 schooling→fertility→labour-force channel both plausibly explain it, and per-head growth is not
 what this table measures) — so measure it, do not reason from it.
 
-**Healthy random policy, 120q:** **36% deposed** · no NaN · no price explosions.
+**Healthy random policy, 120q:** growth ≈ 4.04%/yr · inflation ≈ 0.46% ·
+unemployment ≈ 11.92% · **26% deposed** (median quarter 77) · no NaN · no price explosions.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
