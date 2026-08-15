@@ -192,7 +192,10 @@ const spend = (key: 'transfers' | 'procurement' | 'investment' | 'research'): Di
       dials: { ...s.gov.dials, spending: { ...s.gov.dials.spending, [key]: v } },
       // Legacy `setDial` spending actions remain valid save inputs. Their
       // semantics are exactly the old semantics: vote a fixed cash amount.
-      spendingRules: { ...s.gov.spendingRules, [key]: { kind: 'fixed', amount: v } },
+      spendingRules: {
+        ...s.gov.spendingRules,
+        [key]: { kind: 'fixed', amount: v, votedAt: s.meta.tick },
+      },
     },
   }),
   min: 0,
@@ -478,7 +481,7 @@ export function applyAction(state: TrueState, action: Action): TrueState {
               dials: { ...s.gov.dials, spending: { ...s.gov.dials.spending, transfers: after } },
               spendingRules: {
                 ...s.gov.spendingRules,
-                transfers: scaleSpendingRule(s.gov.spendingRules.transfers, factor),
+                transfers: scaleSpendingRule(s.gov.spendingRules.transfers, factor, s.meta.tick),
               },
             },
           }

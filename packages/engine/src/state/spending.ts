@@ -12,6 +12,7 @@
 import { clamp } from '../math'
 import {
   SPENDING_PROGRAM_IDS,
+  type Qtr,
   type SpendingProgramId,
   type SpendingRule,
   type SpendingRuleMode,
@@ -71,29 +72,37 @@ export function createSpendingRule(
   mode: SpendingRuleMode,
   value: number,
 ): SpendingRule {
+  const votedAt = state.meta.tick
   switch (mode) {
     case 'fixed':
-      return { kind: 'fixed', amount: value }
+      return { kind: 'fixed', amount: value, votedAt }
     case 'indexed':
       return {
         kind: 'indexed',
         amount: value,
         lastIndexedForQtr: latestInitialInflationQuarter(state),
+        votedAt,
       }
     case 'gdpShare':
-      return { kind: 'gdpShare', share: value }
+      return { kind: 'gdpShare', share: value, votedAt }
   }
 }
 
-/** Preserve a campaign's permanent transfer rise in whichever rule owns it. */
-export function scaleSpendingRule(rule: SpendingRule, factor: number): SpendingRule {
+/** Preserve a campaign's permanent transfer rise in whichever rule owns it.
+ * A platform promise is a decision like any other, so it re-stamps the rule:
+ * the minute book should show the quarter the giveaway was voted. */
+export function scaleSpendingRule(
+  rule: SpendingRule,
+  factor: number,
+  votedAt: Qtr,
+): SpendingRule {
   switch (rule.kind) {
     case 'fixed':
-      return { ...rule, amount: rule.amount * factor }
+      return { ...rule, amount: rule.amount * factor, votedAt }
     case 'indexed':
-      return { ...rule, amount: rule.amount * factor }
+      return { ...rule, amount: rule.amount * factor, votedAt }
     case 'gdpShare':
-      return { ...rule, share: clamp(rule.share * factor, 0, 1) }
+      return { ...rule, share: clamp(rule.share * factor, 0, 1), votedAt }
   }
 }
 

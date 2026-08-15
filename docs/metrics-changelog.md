@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 21)
+## Current contract (schema 22)
 
 ### Inputs
 
@@ -146,6 +146,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | `lastElection` | v12 | the count: platform, support, swing, threshold, won, suppressed |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
+| `policy[]` | v22 | per-quarter exact dials — tax rates, policy rate, resolved appropriations, every sector subsidy, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
 | `reportCard` | v4 | present **only** once the run ends — see below |
 
@@ -169,6 +170,25 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 22 — The policy record
+
+- **Inputs**: unchanged. No lever, parameter, or pipeline step moved, and the economy is
+  bit-identical to v21 (`pnpm diff-state --moved-only` reports `meta.schemaVersion` and nothing
+  else). This is additive recording only.
+- **Outputs +**: `policy[]` — the dials filed once per quarter by the `statistics` step, beside
+  that quarter's treasury books and for the same reason: there is no fog on yourself. Carries
+  `taxRates`, `policyRate`, resolved `spending`, `subsidies` (total over `SECTOR_IDS`, an unpaid
+  subsidy recorded as 0 rather than absent), and `rules` — the standing appropriation behind
+  each programme as `{ mode, value, votedAt }`.
+- **State +**: `SpendingRule.votedAt` — the quarter the cabinet last WROTE the rule. Stamped by
+  `createSpendingRule`, by the legacy `setDial` spending path, and by a `largesse` platform's
+  permanent transfer rise; carried through resolution untouched. It is the only thing that
+  separates a decision from a consequence: an indexed appropriation's `amount` moves on every
+  CPI print and a GDP-share rule re-resolves every quarter, so a change log that diffed the
+  resolved money would file a decision every quarter for eighty years.
+- **Fog**: none. Deliberately carries no denominator — the nominal GDP you would divide an
+  appropriation by is fogged and stays in the indicators.
 
 ### schema 21 — God mode
 

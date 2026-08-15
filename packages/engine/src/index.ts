@@ -129,6 +129,7 @@ export type {
   NewsItem,
   PlatformId,
   PoliticalState,
+  PolicyRecord,
   OutlayId,
   OutlaySplit,
   SpendingProgramId,

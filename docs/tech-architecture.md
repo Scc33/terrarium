@@ -193,6 +193,7 @@ interface PublishedState {
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
+  policy: PolicyPoint[]            // …and what they were every quarter before now
   revenue: RevenueSplit            // the treasury keeps exact books on itself
   outlays: OutlaySplit
   news: NewsItem[]                 // qualitative signals; how the fog stays playable

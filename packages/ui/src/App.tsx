@@ -12,6 +12,7 @@ import { Instruments } from './panels/Instruments'
 import { ControlRail } from './panels/ControlRail'
 import { NewsWire } from './panels/NewsWire'
 import { LedgerOverlay } from './panels/LedgerOverlay'
+import { PolicyOverlay } from './panels/PolicyOverlay'
 import { AccountsOverlay } from './panels/AccountsOverlay'
 import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
@@ -28,6 +29,7 @@ import type { CabinetGroup } from './cabinetNavigation'
 
 type OverlayKind =
   | 'ledger'
+  | 'policy'
   | 'accounts'
   | 'wire'
   | 'study'
@@ -200,6 +202,7 @@ export default function App() {
             openGroup={cabinetGroup}
             onOpenGroupChange={setCabinetGroup}
             focusRequest={cabinetFocusRequest}
+            onOpenRecord={() => setOverlay('policy')}
             onClose={cabinetOpen ? closeCabinet : undefined}
           />
         </div>
@@ -216,6 +219,7 @@ export default function App() {
       <NewsWire pub={published} onOpen={() => setOverlay('wire')} />
 
       {overlay === 'ledger' && <LedgerOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'policy' && <PolicyOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'accounts' && <AccountsOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'wire' && <WireOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}

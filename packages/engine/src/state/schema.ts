@@ -70,10 +70,15 @@ export type SpendingProgramId = (typeof SPENDING_PROGRAM_IDS)[number]
  * claim a share of the latest officially published nominal GDP. Indexed
  * amounts advance only on first releases: revisions do not rewrite cheques
  * that have already gone out. */
+/** `votedAt` is the quarter the cabinet last WROTE this rule, and it is the
+ * only thing that distinguishes a decision from a consequence: an indexed
+ * appropriation's `amount` moves on every CPI print, so a record that diffed
+ * amounts would report a policy change every quarter forever. Stamped where
+ * the rule is written and carried through resolution untouched. */
 export type SpendingRule =
-  | { kind: 'fixed'; amount: Money }
-  | { kind: 'indexed'; amount: Money; lastIndexedForQtr: Qtr | null }
-  | { kind: 'gdpShare'; share: Ratio }
+  | { kind: 'fixed'; amount: Money; votedAt: Qtr }
+  | { kind: 'indexed'; amount: Money; lastIndexedForQtr: Qtr | null; votedAt: Qtr }
+  | { kind: 'gdpShare'; share: Ratio; votedAt: Qtr }
 export type SpendingRuleMode = SpendingRule['kind']
 export type SpendingRules = Record<SpendingProgramId, SpendingRule>
 
@@ -278,6 +283,29 @@ export interface DialState {
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   policyRate: number // annualized
   subsidies: Partial<Record<SectorId, Money>>
+}
+
+/** The dials as they stood in one quarter — filed beside that quarter's
+ * treasury books, and exact for the same reason: there is no fog on yourself.
+ * A government that cannot remember what it set cannot be asked to answer for
+ * it, and until this existed the only record of a rate was the rate now.
+ *
+ * `spending` is the money the economy actually got; `rules` is what was
+ * VOTED — the two differ the moment an appropriation is indexed or written as
+ * a share of GDP, and the difference is precisely the thing a player wants
+ * back when they ask what their expenditure policy was. */
+export interface PolicyRecord {
+  taxRates: DialState['taxRates']
+  spending: DialState['spending']
+  policyRate: number
+  /** total over `SECTOR_IDS`: an unset subsidy is 0, not absent, so a century
+   * of them stacks without holes */
+  subsidies: Record<SectorId, Money>
+  /** the standing appropriation behind each `spending` figure. `value` is
+   * money/quarter for fixed and indexed rules, a 0..1 share for GDP rules —
+   * the same convention `setSpendingRule` takes. `votedAt` is what makes a
+   * change log possible; see the note on `SpendingRule`. */
+  rules: Record<SpendingProgramId, { mode: SpendingRuleMode; value: number; votedAt: Qtr }>
 }
 
 export interface CapacityBuild {
@@ -569,6 +597,9 @@ export interface StatRecord {
    * the record: which taxes carried the state, what the money went to */
   revenueBySource: RevenueSplit
   outlaysByProgramme: OutlaySplit
+  /** and the dials that were in force while all of the above happened —
+   * exact, unrevised, and the only record of them that survives the quarter */
+  policy: PolicyRecord
 }
 
 export interface StatsOffice {
@@ -671,7 +702,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 21 // v21: replay-safe God mode
+export const SCHEMA_VERSION = 22 // v22: the policy record — dials filed per quarter
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

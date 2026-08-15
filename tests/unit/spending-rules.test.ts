@@ -46,6 +46,8 @@ describe('recurring expenditure rules', () => {
       expect(state.gov.spendingRules[programme]).toEqual({
         kind: 'fixed',
         amount: state.gov.dials.spending[programme],
+        // the 1946 settlement, inherited rather than voted
+        votedAt: 0,
       })
     }
   })
@@ -57,7 +59,7 @@ describe('recurring expenditure rules', () => {
       value: 4,
     })
     expect(state.gov.dials.spending.transfers).toBe(4)
-    expect(state.gov.spendingRules.transfers).toEqual({ kind: 'fixed', amount: 4 })
+    expect(state.gov.spendingRules.transfers).toEqual({ kind: 'fixed', amount: 4, votedAt: 0 })
   })
 
   it('uses published nominal GDP, including its latest revision, never true GDP', () => {
@@ -78,7 +80,11 @@ describe('recurring expenditure rules', () => {
     const cost = politicalCostOfAction(state, action)
     const ruled = applyAction(state, action)
     expect(state.politics.politicalCapital - ruled.politics.politicalCapital).toBeCloseTo(cost)
-    expect(ruled.gov.spendingRules.investment).toEqual({ kind: 'gdpShare', share: 0.1 })
+    expect(ruled.gov.spendingRules.investment).toEqual({
+      kind: 'gdpShare',
+      share: 0.1,
+      votedAt: 0,
+    })
     expect(ruled.gov.dials.spending.investment).toBeCloseTo(6.4)
 
     const newRelease = withSeries(ruled, {

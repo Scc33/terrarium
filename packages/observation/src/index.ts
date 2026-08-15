@@ -13,7 +13,12 @@ export {
   type NewsItem,
   type OutlayId,
   type OutlaySplit,
+  // the government's own minute book — exact, like the treasury books
+  type PolicyPoint,
+  type PolicyRecord,
   type PublishedState,
+  type SpendingProgramId,
+  type SpendingRuleMode,
   type ReportCard,
   type RevenueSourceId,
   type RevenueSplit,
