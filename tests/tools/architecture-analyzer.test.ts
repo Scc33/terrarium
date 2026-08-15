@@ -14,6 +14,7 @@ describe('architecture analyzer', () => {
       'technology',
       'world',
       'finance',
+      'foreignInvestment',
       'production',
       'trade',
       'fiscal',
@@ -26,7 +27,7 @@ describe('architecture analyzer', () => {
       'politics',
     ])
     expect(snapshot.pipeline.find((step) => step.name === 'statistics')).toMatchObject({
-      order: 14,
+      order: 15,
       moduleId: 'packages/engine/src/pipeline/statistics.ts',
     })
   })

@@ -50,8 +50,10 @@ import {
   BASE_WORKER_SHARE,
   EDUCATION_1946,
   FERT_MAX,
+  FDI_OPENING_OWNERSHIP_BASE,
   TECH_ATTAINED_BASE,
   TECH_ATTAINED_DEV_GAIN,
+  fdiStructuralAttraction,
 } from '../constants'
 import { vitalRates } from '../pipeline/demography'
 import { initialInstitutions } from '../pipeline/institutions'
@@ -253,6 +255,9 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
       number
     >,
     investmentReal: 0,
+    foreignDirectInvestmentReal: 0,
+    foreignDirectInvestmentValue: 0,
+    foreignProfitRemittances: 0,
     publicInvestmentReal: 0,
     privateDomesticDemandReal: 0,
     governmentDomesticDemandReal: 0,
@@ -277,13 +282,23 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
     printedThisQtr: 0,
   }
 
+  const demography = initialDemography(params)
+  const openingPopulation = demography.pyramid.reduce((sum, people) => sum + people, 0)
+  const foreignOwnedCapital0 =
+    capitalTotal0 *
+    Math.min(
+      0.3,
+      FDI_OPENING_OWNERSHIP_BASE *
+        fdiStructuralAttraction(openingPopulation, params.development, params.openness),
+    )
+
   // the constitution is opened last, against the economy this function just
   // built — bloc power is read off agriculture's share, the credit stock and
   // the debt, so it must not be guessed before those exist
   const provisional: TrueState = {
     meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed, mode },
     params,
-    demography: initialDemography(params),
+    demography,
     tech: {
       frontier: 1,
       // development buys position: the gap to the 1946 frontier is open from
@@ -351,6 +366,7 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
       worldPrices: sectorRecord(() => 1),
       reserves: importsValue * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
       exchangeRate: 1,
+      foreignOwnedCapital: foreignOwnedCapital0,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
         exportDemand: sectorRecord(() => 1),

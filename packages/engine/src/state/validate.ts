@@ -34,8 +34,12 @@ export function validate(state: TrueState): void {
   finite(state.finance.assetPrice, 'finance.assetPrice')
   finite(state.finance.creditToGdp, 'finance.creditToGdp')
   finite(state.finance.bankCapital, 'finance.bankCapital')
+  finite(state.external.foreignOwnedCapital, 'external.foreignOwnedCapital')
   if (state.finance.assetPrice <= 0) throw new InvariantError('finance.assetPrice ≤ 0')
   if (state.finance.bankCapital < 0) throw new InvariantError('finance.bankCapital < 0')
+  if (state.external.foreignOwnedCapital < 0) {
+    throw new InvariantError('external.foreignOwnedCapital < 0')
+  }
   for (const c of state.cohorts) {
     finite(c.savings, `savings[${c.id}]`)
     finite(c.approval, `approval[${c.id}]`)
@@ -69,6 +73,9 @@ export function validate(state: TrueState): void {
   finite(state.flows.privateDomesticDemandReal, 'privateDomesticDemandReal')
   finite(state.flows.governmentDomesticDemandReal, 'governmentDomesticDemandReal')
   finite(state.flows.publicInvestmentReal, 'publicInvestmentReal')
+  finite(state.flows.foreignDirectInvestmentReal, 'foreignDirectInvestmentReal')
+  finite(state.flows.foreignDirectInvestmentValue, 'foreignDirectInvestmentValue')
+  finite(state.flows.foreignProfitRemittances, 'foreignProfitRemittances')
   if (state.gov.debt < 0) throw new InvariantError('debt < 0')
   if (state.flows.realGdp < 0) throw new InvariantError('realGdp < 0')
   if (state.flows.privateDomesticDemandReal < 0) {
@@ -76,6 +83,15 @@ export function validate(state: TrueState): void {
   }
   if (state.flows.governmentDomesticDemandReal < 0) {
     throw new InvariantError('governmentDomesticDemandReal < 0')
+  }
+  if (state.flows.foreignDirectInvestmentReal < 0) {
+    throw new InvariantError('foreignDirectInvestmentReal < 0')
+  }
+  if (state.flows.foreignDirectInvestmentValue < 0) {
+    throw new InvariantError('foreignDirectInvestmentValue < 0')
+  }
+  if (state.flows.foreignProfitRemittances < 0) {
+    throw new InvariantError('foreignProfitRemittances < 0')
   }
   // the state's demand is procurement plus public works, so the works can
   // never exceed it — and the expenditure accounts get government final

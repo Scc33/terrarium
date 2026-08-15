@@ -21,7 +21,14 @@ export const trade: PipelineStep = {
       importsValue += external.worldPrices[sid] * external.exchangeRate * flows.importsReal[sid]
     }
 
-    let reserves = external.reserves + exportsValue - importsValue
+    // Direct investment finances the capital-goods order when it enters;
+    // earnings remitted to foreign owners are the matching ongoing outflow.
+    let reserves =
+      external.reserves +
+      exportsValue -
+      importsValue +
+      flows.foreignDirectInvestmentValue -
+      flows.foreignProfitRemittances
     let exchangeRate = external.exchangeRate
     if (reserves < 0) {
       reserves = 0

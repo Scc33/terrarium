@@ -54,7 +54,10 @@ export interface Reading {
  * indicator to the engine and this file stops compiling until it has a face.
  */
 export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
-  gdp_growth: { lo: -15, hi: 15 },
+  // Re-measured with schema 23's foreign-investment demand: p01–p99
+  // -7.7–17.0 across 12 seeds × 6 countries × 400 quarters. Keep the old
+  // recession rail and give export-led investment booms an honest upper face.
+  gdp_growth: { lo: -15, hi: 20 },
   gdp_per_capita: { lo: 0, hi: 120 },
   // Across 12 seeds × 6 countries × 400 quarters: p01–p99 0.0–74.5,
   // maximum 95.3. Let borrowing beyond a measured century peg visibly.
@@ -69,6 +72,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   consumption_share: { lo: 70, hi: 85 },
   investment_share: { lo: 0, hi: 10 },
   export_share: { lo: 5, hi: 30 },
+  // Schema 23 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
+  // Exceptional small-country surges should peg; ordinary dependence should
+  // use the face rather than disappear into a generic 0–5 scale.
+  fdi_inflows: { lo: 0, hi: 2 },
   inflation: { lo: -15, hi: 15 },
   price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },

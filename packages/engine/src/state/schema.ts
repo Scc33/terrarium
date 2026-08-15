@@ -120,6 +120,10 @@ export const INDICATOR_IDS = [
   'consumption_share',
   'investment_share',
   'export_share',
+  /** inward foreign direct investment as a share of GDP. This is a FLOW,
+   * distinct from the foreign-owned capital stock that accumulates behind it
+   * and whose profits are remitted through the external account. */
+  'fdi_inflows',
   'inflation',
   'price_food',
   'price_fuel',
@@ -321,6 +325,10 @@ export interface ExternalState {
   worldPrices: Record<SectorId, number>
   reserves: Money
   exchangeRate: number // domestic per foreign; up = depreciation
+  /** productive capital owned abroad, in the same real units as Sector.capital.
+   * It depreciates with the rest of the capital stock; new FDI adds to it and
+   * the foreign share of after-tax profits leaves through the external account. */
+  foreignOwnedCapital: Money
   /** the rest of world: partner cycles that drive prices and export demand */
   world: WorldState
   /** the crisis clock's live wires (Pillar 4) */
@@ -499,6 +507,9 @@ export interface StatRecord {
   investmentShare: Ratio
   governmentShare: Ratio
   exportShare: Ratio
+  /** inward direct-investment flow divided by quarterly nominal GDP. The
+   * conventional annualized numerator and denominator have the same ratio. */
+  foreignDirectInvestmentShare: Ratio
   inflationQ: number
   unemployment: Ratio
   /** labor force as a share of the whole census population. This is the
@@ -601,12 +612,18 @@ export interface TickFlows {
   cohortSpend: Record<CohortId, number>
   /** private + public investment demand, real */
   investmentReal: number
+  /** the foreign-financed part of investment, in real capital-goods units */
+  foreignDirectInvestmentReal: number
+  /** the same inward flow at current capital-goods prices, for the balance of payments */
+  foreignDirectInvestmentValue: Money
+  /** after-tax profits paid to foreign owners this quarter */
+  foreignProfitRemittances: Money
   /** the public half of `investmentReal`, at base prices. Split out because
    * the expenditure accounts book capital formation as investment whoever
    * pays for it, so government FINAL CONSUMPTION is the rest of the state's
    * demand — `governmentDomesticDemandReal` minus this. */
   publicInvestmentReal: number
-  /** household consumption + private investment, at base prices */
+  /** household consumption + domestically financed private investment, at base prices */
   privateDomesticDemandReal: number
   /** delivered procurement + public investment + research, at base prices */
   governmentDomesticDemandReal: number
@@ -676,7 +693,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 22 // v22: published labour-force participation
+export const SCHEMA_VERSION = 23 // v23: foreign direct investment stock, flows, and instrument
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

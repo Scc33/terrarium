@@ -164,6 +164,10 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   consumption_share: 0.35,
   investment_share: 0.35,
   export_share: 0.35,
+  // Company returns and the capital account have to be reconciled against the
+  // national accounts; this arrives with the trade statistics, not the basic
+  // expenditure release.
+  fdi_inflows: 0.4,
   inflation: 0.08,
   price_food: 0.2,
   price_fuel: 0.2,
@@ -221,6 +225,67 @@ export const NATURAL_REAL_RATE = 0.02
  * outruns the capital stock and unemployment ratchets — the M4 lesson. */
 export const INVESTMENT_SLACK_GAIN = 3.0
 export const INVESTMENT_FACTOR_MAX = 1.7 // was 1.3 when the labor force was static
+
+// ---------- foreign direct investment ----------
+/** A Meridia-sized, open, mid-poor country attracts roughly this share of
+ * annual GDP as inward FDI before current conditions and stock saturation.
+ * The quarterly flow uses annual GDP / 4, so the resulting ratio is still
+ * directly comparable with the conventional annual FDI/GDP statistic. */
+export const FDI_BASE_ANNUAL_GDP_SHARE = 0.01
+/** Inward FDI is not proportional to country scale: a plant is transformative
+ * in a small economy and marginal in a continental one. This elasticity makes
+ * the FLOW/GDP share fall with population without making absolute inflows fall. */
+export const FDI_REFERENCE_POPULATION = 27.5
+export const FDI_SIZE_ELASTICITY = 0.35
+/** Trade access and a technology gap attract export-platform/catch-up capital. */
+export const FDI_OPENNESS_FLOOR = 0.2
+export const FDI_OPENNESS_GAIN = 0.8
+export const FDI_CATCHUP_FLOOR = 0.6
+export const FDI_CATCHUP_GAIN = 0.8
+/** Company returns, business sentiment and public administration move the
+ * marginal project around the structural country draw. */
+export const FDI_NORMAL_AFTER_TAX_PROFIT_SHARE = 0.28
+export const FDI_RETURN_GAIN = 3
+export const FDI_CONFIDENCE_GAIN = 0.8
+export const FDI_EXPORT_GAIN = 1.5
+/** Imported machinery is part of gross capital formation but not domestic
+ * demand. The rest of an FDI project is local construction and services. */
+export const FDI_IMPORTED_CAPITAL_SHARE = 0.35
+/** Investors tolerate an ordinary post-war price cycle. Beyond this annualized
+ * absolute inflation/deflation rate, contract and currency risk shelves new
+ * projects before FDI can amplify an already unstable random-policy path. */
+export const FDI_PRICE_INSTABILITY_AT = 0.08
+export const FDI_PRICE_INSTABILITY_DRAG = 2.5
+/** Foreign ownership is sticky but not limitless. A mature foreign-owned
+ * stock crowds out new acquisitions before it can become the whole economy. */
+export const FDI_OWNERSHIP_SATURATION = 0.45
+export const FDI_OPENING_OWNERSHIP_BASE = 0.04
+/** Direct investors do not flee as quickly as portfolio money, but a domestic
+ * banking crisis still shelves most new projects. */
+export const FDI_CRISIS_MULTIPLIER = 0.3
+/** Foreign parents repatriate part of after-tax earnings; the retained share
+ * stays available to the domestic firm rather than vanishing from income. */
+export const FDI_PROFIT_REMIT_SHARE = 0.4
+
+/** Immutable terrain shared by opening-stock calibration and the live flow.
+ * It captures issue #40's core scale claim: FDI/GDP is larger in smaller,
+ * more open, less-developed countries, while absolute inflows still scale
+ * with the size of the economy. */
+export function fdiStructuralAttraction(
+  population: number,
+  development: number,
+  openness: number,
+): number {
+  const clampLocal = (value: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, value))
+  const size = clampLocal(
+    Math.pow(FDI_REFERENCE_POPULATION / Math.max(population, 1), FDI_SIZE_ELASTICITY),
+    0.5,
+    2.25,
+  )
+  const access = clampLocal(FDI_OPENNESS_FLOOR + FDI_OPENNESS_GAIN * openness, 0.1, 1.8)
+  const catchUp = clampLocal(1.25 - 0.75 * development, 0.5, 1.2)
+  return size * access * catchUp
+}
 
 // ---------- the crisis clock (Pillar 4: it always ticks) ----------
 /** per-quarter odds of a world energy rupture (~3 per century) */

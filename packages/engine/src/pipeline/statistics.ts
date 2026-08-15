@@ -120,6 +120,15 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'fdi_inflows',
+    // Company returns and cross-border transactions are reconciled against
+    // nominal GDP. Both numerator and denominator are quarterly here; their
+    // ratio is the conventional annual FDI/GDP ratio without another ×4.
+    trueValue: (h, q) => h[q].foreignDirectInvestmentShare * 100,
+    baseSd: 0.12,
+    relativeSd: true,
+  },
+  {
     id: 'inflation',
     trueValue: (h, q) => h[q].inflationQ * 4 * 100,
     baseSd: 3.0,
@@ -287,6 +296,8 @@ function recordOf(state: TrueState): StatRecord {
     investmentShare: shareOf(flows.investmentReal),
     governmentShare: shareOf(governmentConsumption),
     exportShare: shareOf(exports),
+    foreignDirectInvestmentShare:
+      flows.foreignDirectInvestmentValue / Math.max(flows.nominalGdp, 1e-9),
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
     laborForceParticipation: population > 1e-9 ? totalLaborForce(state) / population : 0,

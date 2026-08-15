@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 22)
+## Current contract (schema 23)
 
 ### Inputs
 
@@ -29,7 +29,7 @@ contract, so it's called out below.
 | Field | Meaning |
 |---|---|
 | `development` | 0..1 scalar; scales starting capital, TFP, tech position |
-| `openness` | trade exposure; scales export/import bases and tech absorption |
+| `openness` | external access; scales trade, tech absorption, FDI attraction, and foreign bond-market absorption |
 | `capacities` | starting stocks of `tax`, `statistical`, `administrative`, `education` |
 | `cohortSizes` | persons (millions) per social cohort |
 | `enfranchisement` | ballot weight per cohort |
@@ -72,11 +72,11 @@ Every `setDial`, `setSpendingRule`, and `reform` is priced by the **veto players
 a bloc you owe a pledge to, and discounted while a reform window is open. It is never infinite —
 the game does not say no, it lets you find out.
 
-### Pipeline (15 ordered steps)
+### Pipeline (16 ordered steps)
 
-`shocks` → `demography` → `technology` → `world` → `finance` → `production` → `trade` →
-`fiscal` → `monetary` → `prices` → `labor` → `cohorts` → `institutions` → `statistics` →
-`politics`
+`shocks` → `demography` → `technology` → `world` → `finance` → `foreignInvestment` →
+`production` → `trade` → `fiscal` → `monetary` → `prices` → `labor` → `cohorts` →
+`institutions` → `statistics` → `politics`
 
 The **rest of world** is exogenous input, not a lever: four abstract partners run their own
 business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
@@ -86,6 +86,13 @@ The **financial sector** (`finance` step) is not a lever either — you steer it
 policy rate leans against the credit cycle (cheap money inflates a bubble; tight money cools
 it), and the crisis is the one your own leverage earned. Its only direct dial is the one you
 already have (`policyRate`); a dedicated macroprudential lever is the natural next M5 chunk.
+
+The **foreign-investment sector** (`foreignInvestment` step) turns small-country scale, external
+access and catch-up room into inward productive investment, then moves around that structural
+draw with administration, after-tax returns, export intensity, confidence, price stability,
+tariffs and the foreign cycle. The flow enters capital formation and reserves; the accumulated foreign-owned
+stock earns profit remittances that leave reserves and domestic household income. Imported plant
+joins capital formation but the import bill, not domestic final demand (ADR-0017).
 
 ### Outputs — the indicator ladder (all fogged)
 
@@ -110,6 +117,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
+| `fdi_inflows` | % of GDP | 0.40 | v23 | inward foreign direct investment ÷ nominal GDP |
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
@@ -170,6 +178,27 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 23 — Foreign direct investment
+
+- **Internal state +**: `external.foreignOwnedCapital`, a sticky real stock that depreciates
+  with the national capital stock; `TickFlows.foreignDirectInvestmentReal`,
+  `foreignDirectInvestmentValue`, and `foreignProfitRemittances` carry the current investment
+  order and its external-account settlement.
+- **Pipeline +**: `foreignInvestment` runs after `finance` and before `production`. Inflow/GDP
+  is structurally larger for smaller, more open, less-developed countries, then responds to
+  current catch-up room, exports, administration, after-tax returns, confidence, price stability,
+  tariffs, foreign activity, crises and foreign-ownership saturation. The inflow joins ordinary capital
+  formation; imported machinery is booked to imports rather than domestic demand, and remitted
+  profits are removed from domestic household income and reserves.
+- **Outputs +**: `fdi_inflows` (fogged, unlock 0.40, unit `% of GDP`) — company and
+  balance-of-payments returns reconciled against nominal GDP. The foreign-owned stock and exact
+  remittance are not published across the fog boundary.
+- **Inputs**: no new lever or authored country flag. Existing country terrain and policy levers
+  move the flow systemically. See ADR-0017.
+- **Calibration**: across 12 seeds × 6 scenarios × 400 quarters, published FDI inflows measure
+  p01–p99 0.3–1.6% of GDP (extrema 0.1–2.6). The fixed face is 0–2%; exceptional small-country
+  surges peg. The same sweep moved real-growth p99 to 17.0%, so that face is now −15–20%/yr.
 
 ### schema 22 — Labour force participation
 
