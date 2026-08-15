@@ -20,6 +20,8 @@ export type DialPath =
   | 'spending.investment'
   | 'spending.research'
   | 'policyRate'
+  | 'assetPurchaseRate'
+  | 'capitalRequirement'
   | `subsidies.${SectorId}`
 
 export type Action =

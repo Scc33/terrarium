@@ -163,7 +163,9 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   separation is carried by the real-rate channel (`ASSET_FUND_RATE_GAIN` / `CREDIT_RATE_GAIN`)
   — only a policy rate cut or a genuine profit surge inflates a bubble. The crisis a player
   gets is the one their own cheap money earned. The bank-capital cap is deliberately SLACK in
-  booms and bites only after a crisis writes capital down — that IS the forced deleveraging.
+  booms at the inherited 6% floor and bites after a crisis writes capital down — that IS the
+  forced deleveraging. The player can now raise the floor until it binds before the crash; do
+  not retune bank capital so every requirement is slack, or the macroprudential lever is dead.
 - **Crowding out is a funding price, not a forced outcome sign.** The private rate reads last
   quarter's bond issuance (deficit minus printing), softened by openness, plus part of the
   sovereign premium. Charging the gross deficit double-counts printed money; charging only the

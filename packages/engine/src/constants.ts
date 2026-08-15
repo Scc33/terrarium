@@ -509,15 +509,24 @@ export const CREDIT_COLLATERAL_GAIN = 0.25 // high asset prices → more collate
 export const CREDIT_SPIRITS_GAIN = 0.25
 export const CREDIT_ADJUST = 0.1 // credit stocks move toward target
 /** banks lend against capital: a capital-ratio requirement caps credit at
- * bankCapital / CAPITAL_REQUIREMENT. Slack during a boom (borrower demand is
- * the binding limit there), it bites AFTER a crisis writes capital down —
- * that's the forced deleveraging. */
-export const CAPITAL_REQUIREMENT = 0.06
+ * bankCapital / the requirement. The inherited 6% floor is slack during a
+ * calm boom, but the player's upper range can lean directly against one. */
+export const CAPITAL_REQUIREMENT_DEFAULT = 0.06
+export const CAPITAL_REQUIREMENT_MIN = 0.03
+export const CAPITAL_REQUIREMENT_MAX = 0.25
 export const BANK_TARGET_RATIO = 0.12 // banks hold roughly twice the floor
 export const BANK_MARGIN = 0.6 // share of interest retained as capital
 export const BANK_SPREAD = 0.02 // lending spread over the policy rate
 export const LOAN_LOSS_BASE_Q = 0.002 // calm-time write-offs, share of credit per quarter
 export const BANK_DIVIDEND_Q = 0.06 // capital paid out above target per quarter
+
+/** Quantitative easing is an annualized purchase pace, expressed as a share
+ * of GDP. It lowers the common private funding rate without changing the
+ * policy rate or pretending that an asset swap financed the fiscal deficit.
+ * At 10% of GDP/year the term-premium channel is worth two percentage points. */
+export const ASSET_PURCHASE_RATE_DEFAULT = 0
+export const ASSET_PURCHASE_RATE_MAX = 0.25
+export const ASSET_PURCHASE_PRIVATE_RATE_GAIN = 0.2
 
 /** the Minsky clock: a domestic banking crisis. Hazard rises with leverage
  * above prudence TIMES asset overvaluation — you need both cheap credit and a

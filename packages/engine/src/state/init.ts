@@ -9,7 +9,9 @@ import type { Seed } from '../rng/rng'
 import {
   adminEffectiveness,
   taxEfficiency,
+  ASSET_PURCHASE_RATE_DEFAULT,
   BANK_TARGET_RATIO,
+  CAPITAL_REQUIREMENT_DEFAULT,
   CONF_NEUTRAL,
   CREDIT_BASE,
   CAPITAL_ELASTICITY,
@@ -329,6 +331,8 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
         taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
         spending: spendingDials,
         policyRate: 0.04,
+        assetPurchaseRate: ASSET_PURCHASE_RATE_DEFAULT,
+        capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,
         subsidies: {},
       },
       spendingRules: {

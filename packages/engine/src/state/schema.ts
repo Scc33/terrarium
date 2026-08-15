@@ -277,6 +277,10 @@ export interface DialState {
   taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   policyRate: number // annualized
+  /** annualized central-bank asset purchases, as a share of annual GDP */
+  assetPurchaseRate: Ratio
+  /** bank equity required per unit of credit outstanding */
+  capitalRequirement: Ratio
   subsidies: Partial<Record<SectorId, Money>>
 }
 
@@ -671,7 +675,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 21 // v21: replay-safe God mode
+export const SCHEMA_VERSION = 22 // v22: QE and bank-capital policy levers
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
