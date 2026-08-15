@@ -278,4 +278,23 @@ describe('long-horizon stability analysis', () => {
       contraction.realGdpPerCapitaContribution.p50 + contraction.populationContribution.p50,
     )
   })
+
+  it('separates survivor trend into population and per-capita growth', () => {
+    const report = analyzeStability([
+      run([
+        point(1, { realGdp: 100, drivers: { population: 100 } }),
+        point(5, { realGdp: 110, drivers: { population: 90 } }),
+      ]),
+      run([point(1), point(5)], { deposedAt: 5 }),
+    ])
+
+    expect(report.survivorTrend.survivors).toBe(1)
+    expect(report.survivorTrend.aggregateCagr.p50).toBeCloseTo(10)
+    expect(report.survivorTrend.realGdpPerCapitaCagr.p50).toBeCloseTo(100 * (110 / 90 - 1))
+    expect(report.survivorTrend.populationCagr.p50).toBeCloseTo(-10)
+    expect(report.survivorTrend.aggregateLogGrowth.p50).toBeCloseTo(
+      report.survivorTrend.realGdpPerCapitaLogGrowth.p50 +
+      report.survivorTrend.populationLogGrowth.p50,
+    )
+  })
 })

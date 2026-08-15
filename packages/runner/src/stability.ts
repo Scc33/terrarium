@@ -152,11 +152,22 @@ export interface ShockStability {
 
 export interface StabilityReport {
   runs: number
+  survivorTrend: SurvivorTrendSummary
   rawPriceExplosionRuns: string[]
   reachablePriceExplosionRuns: string[]
   reachableNonFiniteRuns: string[]
   eras: EraStability[]
   shocks: ShockStability[]
+}
+
+export interface SurvivorTrendSummary {
+  survivors: number
+  aggregateCagr: TailSummary
+  realGdpPerCapitaCagr: TailSummary
+  populationCagr: TailSummary
+  aggregateLogGrowth: TailSummary
+  realGdpPerCapitaLogGrowth: TailSummary
+  populationLogGrowth: TailSummary
 }
 
 interface MacroReading {
@@ -500,12 +511,72 @@ function shockReport(
   }
 }
 
+interface RunTrend {
+  aggregateCagr: number
+  realGdpPerCapitaCagr: number
+  populationCagr: number
+  aggregateLogGrowth: number
+  realGdpPerCapitaLogGrowth: number
+  populationLogGrowth: number
+}
+
+function annualizedTrend(previous: number, current: number, years: number): number {
+  if (years <= 0 || previous <= 0 || current <= 0) return Number.NaN
+  return (Math.pow(current / previous, 1 / years) - 1) * 100
+}
+
+function annualizedLogTrend(previous: number, current: number, years: number): number {
+  if (years <= 0 || previous <= 0 || current <= 0) return Number.NaN
+  return (Math.log(current / previous) / years) * 100
+}
+
+function runTrend(run: StabilityRun): RunTrend | null {
+  if (run.deposedAt !== null) return null
+  const first = run.trajectory[0]
+  const last = run.trajectory.at(-1)
+  if (!first || !last) return null
+  const years = (last.tick - first.tick) / 4
+  const firstPerCapita = first.realGdp / Math.max(first.drivers.population, 1e-9)
+  const lastPerCapita = last.realGdp / Math.max(last.drivers.population, 1e-9)
+  return {
+    aggregateCagr: annualizedTrend(first.realGdp, last.realGdp, years),
+    realGdpPerCapitaCagr: annualizedTrend(firstPerCapita, lastPerCapita, years),
+    populationCagr: annualizedTrend(
+      first.drivers.population,
+      last.drivers.population,
+      years,
+    ),
+    aggregateLogGrowth: annualizedLogTrend(first.realGdp, last.realGdp, years),
+    realGdpPerCapitaLogGrowth: annualizedLogTrend(firstPerCapita, lastPerCapita, years),
+    populationLogGrowth: annualizedLogTrend(
+      first.drivers.population,
+      last.drivers.population,
+      years,
+    ),
+  }
+}
+
+function survivorTrend(runs: readonly StabilityRun[]): SurvivorTrendSummary {
+  const trends = runs.map(runTrend).filter((trend): trend is RunTrend => trend !== null)
+  const tails = (key: keyof RunTrend) => summarizeTails(trends.map((trend) => trend[key]))
+  return {
+    survivors: trends.length,
+    aggregateCagr: tails('aggregateCagr'),
+    realGdpPerCapitaCagr: tails('realGdpPerCapitaCagr'),
+    populationCagr: tails('populationCagr'),
+    aggregateLogGrowth: tails('aggregateLogGrowth'),
+    realGdpPerCapitaLogGrowth: tails('realGdpPerCapitaLogGrowth'),
+    populationLogGrowth: tails('populationLogGrowth'),
+  }
+}
+
 export function analyzeStability(runs: readonly StabilityRun[]): StabilityReport {
   const playableByRun = runs.map(playableTrajectory)
   const readingsByRun = runs.map(macroReadings)
   const quietByRun = readingsByRun.map(quietReadings)
   return {
     runs: runs.length,
+    survivorTrend: survivorTrend(runs),
     rawPriceExplosionRuns: runs.filter((run) => run.priceExplosions > 0).map((run) => run.seed),
     reachablePriceExplosionRuns: runs
       .filter((_run, index) => playableByRun[index].some(hasPriceExplosion))

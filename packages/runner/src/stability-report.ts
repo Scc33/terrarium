@@ -19,6 +19,12 @@ export function printStabilityReport(
   console.log(
     `  failures: reachable non-finite=${report.reachableNonFiniteRuns.length}  price explosion reachable/raw=${report.reachablePriceExplosionRuns.length}/${report.rawPriceExplosionRuns.length}`,
   )
+  console.log(
+    `  survivor trend (${report.survivorTrend.survivors}/${report.runs}; median CAGR): ` +
+    `GDP=${fmt(report.survivorTrend.aggregateCagr.p50)}%  ` +
+    `per capita=${fmt(report.survivorTrend.realGdpPerCapitaCagr.p50)}%  ` +
+    `population=${fmt(report.survivorTrend.populationCagr.p50)}%`,
+  )
   console.log('  player-reachable quarterly tails (p01 / p50 / p99):')
   console.log('    era          runs  quarters       inflation %        real growth %       unemployment %')
   for (const row of report.eras) {
