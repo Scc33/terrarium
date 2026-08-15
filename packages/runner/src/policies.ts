@@ -6,9 +6,11 @@ export const POLICY_IDS = ['passive', 'developmental', 'random'] as const
 export type PolicyId = (typeof POLICY_IDS)[number]
 export type RunnerPolicy = (state: TrueState, rng: Rng, tick: number) => Action[]
 
-/** A legible, plausible century: keep building the four state capacities.
- * Illegal or temporarily unaffordable attempts are skipped by runOne's
- * ordinary lenient-policy behavior. */
+/** Capacity-isolation baseline: keep building the four state capacities while
+ * leaving the inherited fixed-cash programme rules unchanged. This is useful
+ * for attributing capacity effects, but it is not a balanced fiscal policy or
+ * a historical debt baseline. Illegal or temporarily unaffordable attempts
+ * are skipped by runOne's ordinary lenient-policy behavior. */
 export const developmentalPolicy: RunnerPolicy = (_state, _rng, tick) =>
   tick % 8 === 0
     ? CAPACITY_IDS.map((target) => ({ kind: 'investCapacity', target, amount: 2 }))

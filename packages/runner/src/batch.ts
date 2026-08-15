@@ -15,9 +15,13 @@ import { POLICY_IDS, policyFor, randomPolicy, type PolicyId } from './policies'
 import { printReport } from './report'
 
 export interface BatchResult {
-  runs: RunResult[]
+  /** Batch diagnostics need the compact trajectory and outcome, not another
+   * copy of every run's full century state and statistical-office archive. */
+  runs: BatchRunResult[]
   wallMs: number
 }
+
+export type BatchRunResult = Omit<RunResult, 'finalState'>
 
 export function runBatch(opts: {
   runs: number
@@ -28,7 +32,7 @@ export function runBatch(opts: {
   country?: CountryScenarioId | 'baseline' | 'all'
 }): BatchResult {
   const start = performance.now()
-  const runs: RunResult[] = []
+  const runs: BatchRunResult[] = []
   const requested = opts.country ?? 'baseline'
   const countries: Array<CountryScenarioId | 'baseline'> = requested === 'all'
     ? COUNTRY_CATALOG.map((profile) => profile.id)
@@ -39,14 +43,16 @@ export function runBatch(opts: {
     const seed = requested === 'all'
       ? `${opts.seedPrefix ?? 'batch'}-${country}-${sequence}`
       : `${opts.seedPrefix ?? 'batch'}-${i}`
-    runs.push(
-      runOne({
-        seed,
-        ticks: opts.ticks,
-        country: country === 'baseline' ? undefined : country,
-        policy: policyFor(opts.policy ?? 'passive'),
-      }),
-    )
+    const { finalState, ...run } = runOne({
+      seed,
+      ticks: opts.ticks,
+      country: country === 'baseline' ? undefined : country,
+      policy: policyFor(opts.policy ?? 'passive'),
+    })
+    // Drop the statistical-office archive before starting the next run. It is
+    // the dominant memory cost in a 1,000-century balance sweep.
+    void finalState
+    runs.push(run)
   }
   return { runs, wallMs: performance.now() - start }
 }
