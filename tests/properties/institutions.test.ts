@@ -388,6 +388,12 @@ describe('the election is a scene (§3.1)', () => {
     expect(largesse.gov.dials.spending.transfers).toBeGreaterThan(
       base.gov.dials.spending.transfers,
     )
+    // …and the giveaway re-stamps the rule that owns it, so the policy record
+    // files a promise the same way it files an order (schema v22)
+    expect(largesse.gov.spendingRules.transfers.votedAt).toBe(largesse.meta.tick)
+    expect(largesse.gov.spendingRules.transfers.votedAt).not.toBe(
+      base.gov.spendingRules.transfers.votedAt,
+    )
 
     // coalition: a claim on you for a full term
     const coalition = applyAction(base, {

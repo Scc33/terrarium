@@ -194,6 +194,10 @@ export function observe(state: TrueState): PublishedState {
       population: r.population,
       pyramid: r.pyramid,
     })),
+    // the minute book: what the dials were set to, quarter by quarter. Exact
+    // for the same reason the books are — a government is allowed to remember
+    // its own decisions, whatever its statistical office can or cannot see.
+    policy: state.stats.record.map((r) => ({ tick: r.tick, ...structuredClone(r.policy) })),
     reserves: state.external.reserves,
     exchangeRate: state.external.exchangeRate,
     politicalCapital: state.politics.politicalCapital,

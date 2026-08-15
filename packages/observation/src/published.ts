@@ -18,6 +18,7 @@ import type {
   NewsItem,
   OutlaySplit,
   PlatformId,
+  PolicyRecord,
   Qtr,
   Ratio,
   RevenueSplit,
@@ -34,7 +35,11 @@ export {
   PLATFORM_IDS,
 } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
-export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult }
+export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
+export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord }
+
+/** One quarter of the government's own record of itself. */
+export type PolicyPoint = PolicyRecord & { tick: Qtr }
 
 /** A published figure, exactly as the office released it. */
 export type IndicatorPoint = StatPrint
@@ -154,6 +159,12 @@ export interface PublishedState {
   /** the census over time — exact head counts and age pyramids, one per
    * quarter, no fog (heads are countable even when surveys aren't funded) */
   census: Array<{ tick: Qtr; population: number; pyramid: number[] }>
+  /** every quarter's dials, exact — the government's minute book. `dials`
+   * above is only the current row of this, and a rate you set twenty quarters
+   * ago is otherwise unrecoverable. Deliberately carries no denominator: the
+   * appropriations are money, because the GDP you would divide them by is
+   * fogged and belongs to the indicators. */
+  policy: PolicyPoint[]
   reserves: number
   exchangeRate: number
   politicalCapital: number

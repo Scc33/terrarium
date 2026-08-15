@@ -74,6 +74,11 @@ can be tested — anything pushed into a component becomes untestable:
   painter**: the wall's terminal ticker, the ledger, the accounts, finance and census all go
   through it, and a new figure over time reuses it rather than hand-rolling `sx`/`sy` again.
   A chart FRAMES the dial face and extends past it — it never clamps (ADR-0016).
+- **`ui/src/policyRecord.ts`** — the minute book's rule: a change log over `pub.policy` files
+  DECISIONS, never consequences. Rates are diffed; appropriations are not, because an indexed
+  or GDP-share rule moves its own money every quarter — so they are filed against the engine's
+  `SpendingRule.votedAt` stamp instead. Diffing the resolved money would report a policy change
+  every quarter for eighty years, and it would look entirely plausible in review.
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
   `DonutChart` / `StackedAreaChart` (in `components/ui`) paint what it returns and know nothing
   about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a

@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 24)
+## Current contract (schema 25)
 
 ### Inputs
 
@@ -158,6 +158,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | `lastElection` | v12 | the count: platform, support, swing, threshold, won, suppressed |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
+| `policy[]` | v25 | per-quarter exact dials — every `DialState` lever (tax rates, policy rate, asset purchases, capital requirement) plus resolved appropriations, every sector subsidy as a total, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
 | `reportCard` | v4 | present **only** once the run ends — see below |
 
@@ -181,6 +182,28 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 25 — The policy record
+
+- **Inputs**: unchanged. No lever, parameter, or pipeline step moved, and the economy is
+  bit-identical to v24 (`pnpm diff-state --moved-only` reports `meta.schemaVersion` and nothing
+  else). This is additive recording only.
+- **Outputs +**: `policy[]` — the dials filed once per quarter by the `statistics` step, beside
+  that quarter's treasury books and for the same reason: there is no fog on yourself. It
+  **extends `DialState`**, so every Layer-1 lever is recorded from the day it exists — naming
+  the fields instead would compile clean while leaving a new dial out of the record, and the
+  omission would only surface decades of game-time later as a lever with no history. On top of
+  the dials it carries `subsidies` widened to a total over `SECTOR_IDS` (an unpaid subsidy
+  recorded as 0 rather than absent, because a `Partial` with holes cannot be stacked) and
+  `rules` — the standing appropriation behind each programme as `{ mode, value, votedAt }`.
+- **State +**: `SpendingRule.votedAt` — the quarter the cabinet last WROTE the rule. Stamped by
+  `createSpendingRule`, by the legacy `setDial` spending path, and by a `largesse` platform's
+  permanent transfer rise; carried through resolution untouched. It is the only thing that
+  separates a decision from a consequence: an indexed appropriation's `amount` moves on every
+  CPI print and a GDP-share rule re-resolves every quarter, so a change log that diffed the
+  resolved money would file a decision every quarter for eighty years.
+- **Fog**: none. Deliberately carries no denominator — the nominal GDP you would divide an
+  appropriation by is fogged and stays in the indicators.
 
 ### schema 24 — Foreign direct investment
 

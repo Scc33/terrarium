@@ -350,11 +350,12 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
         capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,
         subsidies: {},
       },
+      // the 1946 settlement: voted at quarter zero, by someone else
       spendingRules: {
-        transfers: { kind: 'fixed', amount: spendingDials.transfers },
-        procurement: { kind: 'fixed', amount: spendingDials.procurement },
-        investment: { kind: 'fixed', amount: spendingDials.investment },
-        research: { kind: 'fixed', amount: spendingDials.research },
+        transfers: { kind: 'fixed', amount: spendingDials.transfers, votedAt: 0 },
+        procurement: { kind: 'fixed', amount: spendingDials.procurement, votedAt: 0 },
+        investment: { kind: 'fixed', amount: spendingDials.investment, votedAt: 0 },
+        research: { kind: 'fixed', amount: spendingDials.research, votedAt: 0 },
       },
       // pre-M4 saves carry no education capacity — backfill the 1946 default
       capacity: {

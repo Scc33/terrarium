@@ -503,12 +503,18 @@ export function ControlRail({
   openGroup,
   onOpenGroupChange,
   focusRequest,
+  onOpenRecord,
   onClose,
 }: {
   pub: PublishedState
   openGroup: CabinetGroup
   onOpenGroupChange: (group: CabinetGroup) => void
   focusRequest: number
+  /** open the minute book — what this desk has already decided. It lives here
+   * rather than with the ministry offices in the letterhead because it is the
+   * same subject as the dials below it, and because the letterhead's metrics
+   * strip is already wider than 1280 can show. */
+  onOpenRecord: () => void
   onClose?: () => void
 }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
@@ -534,7 +540,17 @@ export function ControlRail({
     <aside id="cabinet-controls" className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-dossier-paper/15 px-4 py-2.5">
         <div>
-          <div className="font-dossier text-lg font-semibold leading-none text-dossier-paper">Cabinet desk</div>
+          <div className="flex items-center gap-2">
+            <span className="font-dossier text-lg font-semibold leading-none text-dossier-paper">Cabinet desk</span>
+            <button
+              type="button"
+              onClick={onOpenRecord}
+              className="shrink-0 border border-dossier-paper/30 px-1.5 py-px font-mono text-[8px] font-medium tracking-[0.14em] text-dossier-paper/75 hover:border-dossier-brass hover:text-dossier-brass focus-visible:outline-2 focus-visible:outline-dossier-brass"
+              title="The policy record: every dial this desk has set, quarter by quarter, and the minute book of the orders that set them."
+            >
+              MINUTES
+            </button>
+          </div>
           <div className="mt-1 font-mono text-[9px] tracking-[0.16em] text-dossier-brass">ORDERS FOR THE NEXT QUARTER</div>
         </div>
         <div className="flex items-center gap-2">

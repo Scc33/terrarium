@@ -52,6 +52,7 @@ describe('the published-state contract (§1.1)', () => {
       'books',
       'population',
       'census',
+      'policy',
       'reserves',
       'exchangeRate',
       'politicalCapital',

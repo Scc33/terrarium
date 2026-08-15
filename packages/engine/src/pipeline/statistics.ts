@@ -12,8 +12,11 @@ import { rngFor, type Seed } from '../rng/rng'
 import { INDICATOR_FUNDED_AT } from '../constants'
 import {
   SECTOR_IDS,
+  SPENDING_PROGRAM_IDS,
   type IndicatorId,
   type NewsItem,
+  type PolicyRecord,
+  type SectorId,
   type StatPrint,
   type StatRecord,
   type TrueState,
@@ -337,6 +340,32 @@ function recordOf(state: TrueState): StatRecord {
     reserves: external.reserves,
     revenueBySource: { ...flows.revenueBySource },
     outlaysByProgramme: { ...flows.outlaysByProgramme },
+    policy: policyRecordOf(gov),
+  }
+}
+
+/** The dials, frozen as this quarter found them. `statistics` runs after the
+ * economy has spent them and before `resolveSpendingRules` redraws the
+ * cheques for the next quarter, so what is filed here is what was actually in
+ * force — including a `setDial` the player made this turn. */
+function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
+  const subsidies = {} as Record<SectorId, number>
+  for (const sid of SECTOR_IDS) subsidies[sid] = gov.dials.subsidies[sid] ?? 0
+  const rules = {} as PolicyRecord['rules']
+  for (const programme of SPENDING_PROGRAM_IDS) {
+    const rule = gov.spendingRules[programme]
+    rules[programme] = {
+      mode: rule.kind,
+      value: rule.kind === 'gdpShare' ? rule.share : rule.amount,
+      votedAt: rule.votedAt,
+    }
+  }
+  // spread the dials rather than name them: a lever added to the cabinet is
+  // recorded from the day it exists, with no second list to keep in step
+  return {
+    ...structuredClone(gov.dials),
+    subsidies,
+    rules,
   }
 }
 
