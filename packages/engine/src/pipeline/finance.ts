@@ -32,7 +32,6 @@ import {
   BANK_MARGIN,
   BANK_SPREAD,
   BANK_TARGET_RATIO,
-  CAPITAL_REQUIREMENT,
   CONF_NEUTRAL,
   CREDIT_ADJUST,
   CREDIT_BASE,
@@ -89,7 +88,7 @@ export const finance: PipelineStep = {
     const inCrisis = fin.crisisQtrsLeft > 0
     if (inCrisis) targetRatio *= CRISIS_CREDIT_CRUNCH
     // banks can only lend so far on their capital
-    const maxRatio = fin.bankCapital / (CAPITAL_REQUIREMENT * annualGdp)
+    const maxRatio = fin.bankCapital / (gov.dials.capitalRequirement * annualGdp)
     targetRatio = clamp(Math.min(targetRatio, maxRatio), 0.02, 2.5)
     const creditToGdp = clamp(prevRatio + CREDIT_ADJUST * (targetRatio - prevRatio), 0.02, 2.5)
     const dRatio = creditToGdp - prevRatio

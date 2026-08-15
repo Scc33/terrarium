@@ -184,6 +184,9 @@ export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
   adminEffectiveness,
+  ASSET_PURCHASE_RATE_MAX,
+  CAPITAL_REQUIREMENT_MAX,
+  CAPITAL_REQUIREMENT_MIN,
   CORRIDOR_HALF_WIDTH,
   DEBT_RISK_PREMIUM_AT,
   ELECTION_WIN_THRESHOLD,

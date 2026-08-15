@@ -283,6 +283,10 @@ export interface DialState {
   taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   policyRate: number // annualized
+  /** annualized central-bank asset purchases, as a share of annual GDP */
+  assetPurchaseRate: Ratio
+  /** bank equity required per unit of credit outstanding */
+  capitalRequirement: Ratio
   subsidies: Partial<Record<SectorId, Money>>
 }
 
@@ -294,11 +298,15 @@ export interface DialState {
  * `spending` is the money the economy actually got; `rules` is what was
  * VOTED — the two differ the moment an appropriation is indexed or written as
  * a share of GDP, and the difference is precisely the thing a player wants
- * back when they ask what their expenditure policy was. */
-export interface PolicyRecord {
-  taxRates: DialState['taxRates']
-  spending: DialState['spending']
-  policyRate: number
+ * back when they ask what their expenditure policy was.
+ *
+ * It extends `DialState` rather than restating it so a lever added to the
+ * cabinet is recorded from the day it exists. Listing the fields here would
+ * compile perfectly while quietly leaving a new dial out of the record — and
+ * the omission would only surface years of game-time later, as a lever with
+ * no history. `subsidies` is the one field that is widened: a `Partial` with
+ * holes in it cannot be stacked or diffed. */
+export interface PolicyRecord extends Omit<DialState, 'subsidies'> {
   /** total over `SECTOR_IDS`: an unset subsidy is 0, not absent, so a century
    * of them stacks without holes */
   subsidies: Record<SectorId, Money>
@@ -707,7 +715,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 23 // v23: the policy record — dials filed per quarter
+export const SCHEMA_VERSION = 24 // v24: the policy record — dials filed per quarter
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

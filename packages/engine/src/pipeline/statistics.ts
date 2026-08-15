@@ -349,10 +349,10 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
       votedAt: rule.votedAt,
     }
   }
+  // spread the dials rather than name them: a lever added to the cabinet is
+  // recorded from the day it exists, with no second list to keep in step
   return {
-    taxRates: { ...gov.dials.taxRates },
-    spending: { ...gov.dials.spending },
-    policyRate: gov.dials.policyRate,
+    ...structuredClone(gov.dials),
     subsidies,
     rules,
   }

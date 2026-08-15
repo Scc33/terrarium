@@ -99,7 +99,7 @@ function Readout({
               </div>
             )}
             <div
-              className="flex items-baseline justify-between gap-2 py-[2px] font-mono text-[10px] tabular-nums"
+              className="flex items-baseline justify-between gap-2 py-px font-mono text-[10px] tabular-nums"
               title={line.note}
             >
               <span className="flex min-w-0 items-baseline gap-1 truncate text-dossier-ink/70">

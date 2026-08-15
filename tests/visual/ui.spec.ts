@@ -152,6 +152,15 @@ test('cabinet draft review', async ({ page }) => {
   await expect(page).toHaveScreenshot('cabinet-draft.png')
 })
 
+test('central bank exposes conventional, QE, and macroprudential controls', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'CENTRAL BANK 3 CONTROLS' }).click()
+  await expect(page.getByRole('slider', { name: 'Policy rate' })).toHaveValue('0.04')
+  await expect(page.getByRole('slider', { name: 'Asset purchases' })).toHaveValue('0')
+  await expect(page.getByRole('slider', { name: 'Bank capital floor' })).toHaveValue('0.06')
+  await expect(page).toHaveScreenshot('central-bank-controls.png')
+})
+
 test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
   await openGame(page)
   await page.getByRole('tab', { name: 'SPENDING 4 CONTROLS' }).click()

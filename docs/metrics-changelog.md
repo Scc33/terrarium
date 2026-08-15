@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 23)
+## Current contract (schema 24)
 
 ### Inputs
 
@@ -47,6 +47,8 @@ revolt, or coup. Saves from before v21 omit it and load as `standard`.
 | `spending.transfers / procurement / investment / research` | resolved money/quarter; delivery leaks |
 | `spendingRules.<programme>` | `fixed` cash, `indexed` cash following official CPI first releases, or `gdpShare` of latest official nominal GDP |
 | `policyRate` | annualized nominal rate |
+| `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
+| `capitalRequirement` | bank equity required per unit of credit, 3..25% |
 | `subsidies.<sector>` | money/quarter per sector |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
@@ -82,10 +84,11 @@ The **rest of world** is exogenous input, not a lever: four abstract partners ru
 business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
 booms/slumps/crises reach the wire but you cannot set them.
 
-The **financial sector** (`finance` step) is not a lever either — you steer it indirectly. The
-policy rate leans against the credit cycle (cheap money inflates a bubble; tight money cools
-it), and the crisis is the one your own leverage earned. Its only direct dial is the one you
-already have (`policyRate`); a dedicated macroprudential lever is the natural next M5 chunk.
+The **financial sector** (`finance` step) has three distinct levers. The policy rate sets the
+price of overnight money. `assetPurchaseRate` is QE: it lowers the common private funding rate
+without lowering the policy rate or counting as fiscal deficit printing, so it remains available
+at the rate floor but still feeds credit and asset-price risk. `capitalRequirement` sets the bank
+equity floor that caps credit directly. The crisis remains the one the player's leverage earned.
 
 ### Outputs — the indicator ladder (all fogged)
 
@@ -147,7 +150,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | `lastElection` | v12 | the count: platform, support, swing, threshold, won, suppressed |
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
-| `policy[]` | v23 | per-quarter exact dials — tax rates, policy rate, resolved appropriations, every sector subsidy, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
+| `policy[]` | v24 | per-quarter exact dials — every `DialState` lever (tax rates, policy rate, asset purchases, capital requirement) plus resolved appropriations, every sector subsidy as a total, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
 | `reportCard` | v4 | present **only** once the run ends — see below |
 
@@ -172,16 +175,19 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 
 ## Version history — what each release added to the contract
 
-### schema 23 — The policy record
+### schema 24 — The policy record
 
 - **Inputs**: unchanged. No lever, parameter, or pipeline step moved, and the economy is
-  bit-identical to v22 (`pnpm diff-state --moved-only` reports `meta.schemaVersion` and nothing
+  bit-identical to v23 (`pnpm diff-state --moved-only` reports `meta.schemaVersion` and nothing
   else). This is additive recording only.
 - **Outputs +**: `policy[]` — the dials filed once per quarter by the `statistics` step, beside
-  that quarter's treasury books and for the same reason: there is no fog on yourself. Carries
-  `taxRates`, `policyRate`, resolved `spending`, `subsidies` (total over `SECTOR_IDS`, an unpaid
-  subsidy recorded as 0 rather than absent), and `rules` — the standing appropriation behind
-  each programme as `{ mode, value, votedAt }`.
+  that quarter's treasury books and for the same reason: there is no fog on yourself. It
+  **extends `DialState`**, so every Layer-1 lever is recorded from the day it exists — naming
+  the fields instead would compile clean while leaving a new dial out of the record, and the
+  omission would only surface decades of game-time later as a lever with no history. On top of
+  the dials it carries `subsidies` widened to a total over `SECTOR_IDS` (an unpaid subsidy
+  recorded as 0 rather than absent, because a `Partial` with holes cannot be stacked) and
+  `rules` — the standing appropriation behind each programme as `{ mode, value, votedAt }`.
 - **State +**: `SpendingRule.votedAt` — the quarter the cabinet last WROTE the rule. Stamped by
   `createSpendingRule`, by the legacy `setDial` spending path, and by a `largesse` platform's
   permanent transfer rise; carried through resolution untouched. It is the only thing that
@@ -190,6 +196,28 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
   resolved money would file a decision every quarter for eighty years.
 - **Fog**: none. Deliberately carries no denominator — the nominal GDP you would divide an
   appropriation by is fogged and stays in the indicators.
+
+### schema 23 — Unconventional monetary and macroprudential policy
+
+- **Inputs +**: exact `assetPurchaseRate` (0..25% of GDP/year) and `capitalRequirement`
+  (3..25% of credit) dials. New games inherit zero asset purchases and the old fixed 6% capital
+  floor, so passive behavior is unchanged. Both dials use the ordinary `setDial` action and the
+  same veto-player quote/charge path as every other Layer-1 order.
+- **Mechanism (QE)**: asset purchases subtract a calibrated term-premium effect from the common
+  `privateRealRate` read by bank credit, asset valuation, and private investment. They do not
+  lower the posted policy rate, lower treasury coupons, or increment fiscal `printed`; the asset
+  swap is therefore neither a second deficit-financing identity nor free of consequence. It is
+  useful at the zero-rate floor and can still inflate the leverage-and-asset-price pair that
+  raises crisis risk.
+- **Mechanism (capital floor)**: the finance step's former fixed 6% constant is now the dial in
+  `max credit = bank capital / requirement`. Credit still approaches its target gradually, so a
+  supervisory tightening leans against the cycle instead of deleting loans in one quarter.
+- **Outputs**: no new indicator. The government knows its own two settings exactly through the
+  existing published `dials`; outcomes remain visible through the fogged asset-price and
+  credit-growth instruments.
+- **Pipeline**: unchanged order and RNG substreams. ADR-0017 records why these controls reuse the
+  existing rate and bank-capital balance-sheet channels rather than adding a second monetary or
+  fiscal machine.
 
 ### schema 22 — Labour force participation
 

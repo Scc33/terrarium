@@ -19,9 +19,12 @@
  */
 
 import {
+  ASSET_PURCHASE_RATE_MAX,
   BLOC_DEFIANCE,
   CAPACITY_BUILD_QTRS,
   CAPACITY_COST_PER_POINT,
+  CAPITAL_REQUIREMENT_MAX,
+  CAPITAL_REQUIREMENT_MIN,
   COALITION_FAVOR_GAIN,
   COALITION_FAVOR_SNUB,
   COALITION_SWING_GAIN,
@@ -88,6 +91,8 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
   'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
   policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
+  assetPurchaseRate: { financiers: 0.4, industrialists: -0.5, unions: -0.2 },
+  capitalRequirement: { financiers: 0.9, industrialists: 0.3, unions: -0.2 },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
   ) as Record<`subsidies.${SectorId}`, Stance>),
@@ -229,6 +234,26 @@ const DIALS: Record<DialPath, DialSpec> = {
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, policyRate: v } } }),
     min: 0,
     max: () => 0.5,
+    scale: () => 0.1,
+  },
+  assetPurchaseRate: {
+    get: (s) => s.gov.dials.assetPurchaseRate,
+    set: (s, v) => ({
+      ...s,
+      gov: { ...s.gov, dials: { ...s.gov.dials, assetPurchaseRate: v } },
+    }),
+    min: 0,
+    max: () => ASSET_PURCHASE_RATE_MAX,
+    scale: () => 0.1,
+  },
+  capitalRequirement: {
+    get: (s) => s.gov.dials.capitalRequirement,
+    set: (s, v) => ({
+      ...s,
+      gov: { ...s.gov, dials: { ...s.gov.dials, capitalRequirement: v } },
+    }),
+    min: CAPITAL_REQUIREMENT_MIN,
+    max: () => CAPITAL_REQUIREMENT_MAX,
     scale: () => 0.1,
   },
   ...(Object.fromEntries(SECTOR_IDS.map((sid) => [`subsidies.${sid}`, subsidy(sid)])) as Record<

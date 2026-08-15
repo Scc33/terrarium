@@ -76,6 +76,26 @@ describe('the policy record', () => {
     expect(later.slice(0, 10)).toEqual(early)
   })
 
+  it('records every Layer-1 dial, not a hand-listed subset', () => {
+    // `PolicyRecord` extends `DialState`, so this stays true of levers that do
+    // not exist yet — the QE and bank-capital dials were added to the cabinet
+    // after this record shipped and needed no change here to be captured
+    const state = play(8, {
+      3: [{ kind: 'setDial', path: 'assetPurchaseRate', value: 0.05 }],
+      5: [{ kind: 'setDial', path: 'capitalRequirement', value: 0.12 }],
+    })
+    const pub = observe(state)
+    const dialKeys = Object.keys(pub.dials).filter((k) => k !== 'subsidies')
+    for (const row of pub.policy) {
+      for (const key of dialKeys) expect(row, `tick ${row.tick}`).toHaveProperty(key)
+    }
+    const at = (tick: number) => pub.policy.find((p) => p.tick === tick)!
+    expect(at(2).assetPurchaseRate).toBe(0)
+    expect(at(3).assetPurchaseRate).toBeCloseTo(0.05)
+    expect(at(4).capitalRequirement).not.toBeCloseTo(0.12)
+    expect(at(5).capitalRequirement).toBeCloseTo(0.12)
+  })
+
   it('fills every sector subsidy, including the ones never paid', () => {
     const pub = observe(play(6, { 1: [{ kind: 'setDial', path: 'subsidies.agri', value: 0.4 }] }))
     for (const row of pub.policy) {

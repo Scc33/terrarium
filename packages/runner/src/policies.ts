@@ -35,7 +35,12 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
     return [{ kind: 'setDial', path, value: rng.range(0, 0.12) * gdp }]
   }
   if (roll < 0.6) {
-    return [{ kind: 'setDial', path: 'policyRate', value: rng.range(0, 0.2) }]
+    const monetary = pick([
+      { path: 'policyRate', min: 0, max: 0.2 },
+      { path: 'assetPurchaseRate', min: 0, max: 0.2 },
+      { path: 'capitalRequirement', min: 0.03, max: 0.25 },
+    ] as const)
+    return [{ kind: 'setDial', path: monetary.path, value: rng.range(monetary.min, monetary.max) }]
   }
   if (roll < 0.8) {
     return [{ kind: 'setDial', path: `subsidies.${pick(SECTOR_IDS)}`, value: rng.range(0, 0.05) * gdp }]

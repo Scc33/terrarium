@@ -6,7 +6,10 @@
 
 import { useEffect, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import {
+  ASSET_PURCHASE_RATE_MAX,
   CAPACITY_IDS,
+  CAPITAL_REQUIREMENT_MAX,
+  CAPITAL_REQUIREMENT_MIN,
   SECTOR_IDS,
   type CapacityId,
   type DialPath,
@@ -86,10 +89,28 @@ const DIALS: DialGroup[] = [
   {
     group: 'MONEY',
     tab: 'CENTRAL BANK',
-    brief: 'Set the price of money. Investment, the bond market, exchange reserves, and financial risk all listen.',
-    question: 'How tight should money be?',
+    brief: 'Set the price and quantity of money, then decide how much bank equity must stand behind the credit cycle.',
+    question: 'How much financial risk should the state carry?',
     dials: [
       { path: 'policyRate', label: 'Policy rate', get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
+      {
+        path: 'assetPurchaseRate',
+        label: 'Asset purchases',
+        get: (p) => p.dials.assetPurchaseRate,
+        min: 0,
+        max: () => ASSET_PURCHASE_RATE_MAX,
+        step: 0.005,
+        fmt: pct1,
+      },
+      {
+        path: 'capitalRequirement',
+        label: 'Bank capital floor',
+        get: (p) => p.dials.capitalRequirement,
+        min: CAPITAL_REQUIREMENT_MIN,
+        max: () => CAPITAL_REQUIREMENT_MAX,
+        step: 0.005,
+        fmt: pct1,
+      },
     ],
   },
   {
@@ -119,6 +140,8 @@ const DIAL_TIPS: Partial<Record<DialPath, string>> = {
   'spending.investment': 'Public works: buys construction and adds to the capital stock.',
   'spending.research': 'Public R&D. Behind the frontier it adapts known techniques; near the frontier it funds slower original work. Weak administration leaks grants, and schools limit how much useful research the country can staff.',
   policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
+  assetPurchaseRate: 'Quantitative easing: the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate hits zero, but also feeds credit and asset-price risk. It is an asset swap, not fiscal deficit printing.',
+  capitalRequirement: 'Bank equity required per unit of credit. Raising the floor leans against a boom and gives banks a larger shock absorber; cutting it frees credit now and leaves less room for losses.',
 }
 
 /**
@@ -171,8 +194,13 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   }
 
   const delta = value - current
-  const deltaDigits = def.path === 'policyRate' ? 1 : 0
-  const deltaLabel = def.path.startsWith('taxRates.') || def.path === 'policyRate'
+  const percentagePoints =
+    def.path.startsWith('taxRates.') ||
+    def.path === 'policyRate' ||
+    def.path === 'assetPurchaseRate' ||
+    def.path === 'capitalRequirement'
+  const deltaDigits = def.step < 0.01 ? 1 : 0
+  const deltaLabel = percentagePoints
     ? `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(deltaDigits)} PT`
     : `${delta >= 0 ? '+' : ''}${delta.toFixed(1)}`
   const incidence = dialIncidence(def.path, delta, pub)

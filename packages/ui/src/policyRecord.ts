@@ -33,7 +33,7 @@ import {
 /** Which desk in the cabinet an entry belongs to — the same four groups the
  * control rail sets them on, so the record reads back in the order it was
  * written. */
-export type PolicyGroup = 'TAXATION' | 'MONEY' | 'SPENDING' | 'SUBSIDIES'
+export type PolicyGroup = 'TAXATION' | 'CENTRAL BANK' | 'SPENDING' | 'SUBSIDIES'
 
 /** A rate is a percentage and comparable across a century; an appropriation
  * is money, and 4.0 in 1946 is not 4.0 in 2040. The distinction decides how a
@@ -72,6 +72,35 @@ const SECTOR_FACE: Record<SectorId, string> = {
   transport: 'TRANSPORT',
 }
 
+/** The dials that are a bare number on the record rather than a table — every
+ * `PolicyRecord` field that is not one of the four groups below. Derived from
+ * the type, so a lever added to the cabinet lands here on its own and the
+ * total face record beneath refuses to compile until it has been named.
+ * `assetPurchaseRate` and `capitalRequirement` arrived exactly that way. */
+type CentralBankDialId = Exclude<
+  keyof PolicyPoint,
+  'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules'
+>
+
+const CENTRAL_BANK_FACE: Record<CentralBankDialId, { label: string; note: string }> = {
+  policyRate: {
+    label: 'POLICY RATE',
+    note: 'The annualized rate the central bank lends at. It prices credit, and through the real rate it decides whether cheap money inflates a bubble.',
+  },
+  assetPurchaseRate: {
+    label: 'ASSET PURCHASES',
+    note: 'Quantitative easing — the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate has no room left, and feeds credit and asset prices while it does.',
+  },
+  capitalRequirement: {
+    label: 'CAPITAL REQUIREMENT',
+    note: 'Bank equity required per unit of credit outstanding. Raising the floor leans against a boom; cutting it frees credit now and leaves less room for losses.',
+  },
+}
+
+/** Insertion order of the face record — which is the order the cabinet's
+ * central-bank desk reads in. */
+const CENTRAL_BANK_DIAL_IDS = Object.keys(CENTRAL_BANK_FACE) as CentralBankDialId[]
+
 export const RULE_MODE_LABEL: Record<SpendingRuleMode, string> = {
   fixed: 'FIXED',
   indexed: 'CPI',
@@ -91,14 +120,14 @@ export const POLICY_LINES: readonly PolicyLine[] = [
     note: TAX_FACE[id].note,
     read: (p) => 100 * p.taxRates[id],
   })),
-  {
-    key: 'policyRate',
-    label: 'POLICY RATE',
-    group: 'MONEY',
+  ...CENTRAL_BANK_DIAL_IDS.map((id): PolicyLine => ({
+    key: id,
+    label: CENTRAL_BANK_FACE[id].label,
+    group: 'CENTRAL BANK',
     unit: 'rate',
-    note: 'The annualized rate the central bank lends at. It prices credit, and through the real rate it decides whether cheap money inflates a bubble.',
-    read: (p) => 100 * p.policyRate,
-  },
+    note: CENTRAL_BANK_FACE[id].note,
+    read: (p) => 100 * p[id],
+  })),
   ...SPENDING_PROGRAM_IDS.map((id): PolicyLine => ({
     key: `spending.${id}`,
     label: PROGRAMME_FACE[id].label,
@@ -119,7 +148,7 @@ export const POLICY_LINES: readonly PolicyLine[] = [
 
 export const POLICY_LINES_BY_GROUP: Record<PolicyGroup, readonly PolicyLine[]> = {
   TAXATION: POLICY_LINES.filter((l) => l.group === 'TAXATION'),
-  MONEY: POLICY_LINES.filter((l) => l.group === 'MONEY'),
+  'CENTRAL BANK': POLICY_LINES.filter((l) => l.group === 'CENTRAL BANK'),
   SPENDING: POLICY_LINES.filter((l) => l.group === 'SPENDING'),
   SUBSIDIES: POLICY_LINES.filter((l) => l.group === 'SUBSIDIES'),
 }

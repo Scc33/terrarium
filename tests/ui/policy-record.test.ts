@@ -25,6 +25,8 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
     taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
     spending: { transfers: 4, procurement: 3, investment: 2, research: 1 },
     policyRate: 0.04,
+    assetPurchaseRate: 0,
+    capitalRequirement: 0.06,
     subsidies: { agri: 0, manuf: 0, energy: 0, services: 0, transport: 0 },
     rules: {
       transfers: { mode: 'fixed', value: 4, votedAt: 0 },
@@ -48,6 +50,7 @@ describe('the minute book files decisions, not consequences', () => {
   it('files the 1946 settlement once, and only for dials that were set', () => {
     const opening = policyChanges(passive).filter((c) => c.tick === 0)
     expect(opening.map((c) => c.key).sort()).toEqual([
+      'capitalRequirement',
       'policyRate',
       'spending.investment',
       'spending.procurement',
@@ -57,8 +60,10 @@ describe('the minute book files decisions, not consequences', () => {
       'tax.income',
       'tax.tariff',
     ])
-    // the fuel excise and every subsidy opened at zero: not a decision
+    // the fuel excise, asset purchases and every subsidy opened at zero: an
+    // instrument nobody reached for is not a decision anybody took
     expect(opening.some((c) => c.key === 'tax.fuel')).toBe(false)
+    expect(opening.some((c) => c.key === 'assetPurchaseRate')).toBe(false)
     expect(opening.some((c) => c.key.startsWith('subsidy.'))).toBe(false)
     expect(opening.every((c) => c.from === null)).toBe(true)
   })
@@ -202,8 +207,26 @@ describe('reading the dials back', () => {
   })
 
   it('covers every dial the cabinet can set', () => {
-    expect(POLICY_LINES).toHaveLength(4 + 1 + 4 + 5)
+    // 4 taxes · 3 central-bank dials · 4 appropriations · 5 sector subsidies.
+    // The central-bank count is derived from `PolicyRecord`, so a lever added
+    // to the cabinet fails the build here until it has been named and faced —
+    // which is how `assetPurchaseRate` and `capitalRequirement` arrived.
+    expect(POLICY_LINES).toHaveLength(4 + 3 + 4 + 5)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
+  })
+
+  it('gives every central-bank dial a label, a note and a reading', () => {
+    const bank = POLICY_LINES.filter((l) => l.group === 'CENTRAL BANK')
+    expect(bank.map((l) => l.key)).toEqual([
+      'policyRate',
+      'assetPurchaseRate',
+      'capitalRequirement',
+    ])
+    for (const line of bank) {
+      expect(line.label.length, line.key).toBeGreaterThan(0)
+      expect(line.note.length, line.key).toBeGreaterThan(0)
+      expect(line.unit).toBe('rate')
+    }
   })
 
   it('reads every line off a record without emitting NaN', () => {
