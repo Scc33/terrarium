@@ -191,7 +191,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 - **Outputs**: no new indicator. The government knows its own two settings exactly through the
   existing published `dials`; outcomes remain visible through the fogged asset-price and
   credit-growth instruments.
-- **Pipeline**: unchanged order and RNG substreams. ADR-0016 records why these controls reuse the
+- **Pipeline**: unchanged order and RNG substreams. ADR-0017 records why these controls reuse the
   existing rate and bank-capital balance-sheet channels rather than adding a second monetary or
   fiscal machine.
 

@@ -1,4 +1,4 @@
-# ADR-0016 — Finance levers reuse the existing rate and bank-capital channels
+# ADR-0017 — Finance levers reuse the existing rate and bank-capital channels
 
 **Status:** Accepted · **Date:** 2026-08-15
 
