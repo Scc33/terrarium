@@ -29,3 +29,4 @@ the old one and update the Status line of both.
 | [0014](0014-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Accepted |
 | [0015](0015-game-modes-are-replay-inputs.md) | Game modes are replay inputs, not UI preferences | Accepted |
 | [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Accepted |
+| [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Accepted |

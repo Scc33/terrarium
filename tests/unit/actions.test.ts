@@ -20,6 +20,21 @@ describe('applyActions', () => {
     expect(s1.politics.politicalCapital).toBeLessThan(s0.politics.politicalCapital)
   })
 
+  it('sets quantitative easing and bank-capital policy as ordinary priced dials', () => {
+    const s0 = fresh()
+    const authorized = {
+      ...s0,
+      politics: { ...s0.politics, politicalCapital: 100 },
+    }
+    const s1 = applyActions(authorized, [
+      { kind: 'setDial', path: 'assetPurchaseRate', value: 0.1 },
+      { kind: 'setDial', path: 'capitalRequirement', value: 0.15 },
+    ])
+    expect(s1.gov.dials.assetPurchaseRate).toBe(0.1)
+    expect(s1.gov.dials.capitalRequirement).toBe(0.15)
+    expect(s1.politics.politicalCapital).toBeLessThan(authorized.politics.politicalCapital)
+  })
+
   it('quotes the same political cost that application charges', () => {
     const s0 = fresh()
     const action = { kind: 'setDial', path: 'taxRates.fuel', value: 0.3 } as const
@@ -34,6 +49,12 @@ describe('applyActions', () => {
     ).toThrow(IllegalActionError)
     expect(() =>
       applyActions(fresh(), [{ kind: 'setDial', path: 'policyRate', value: -0.01 }]),
+    ).toThrow(IllegalActionError)
+    expect(() =>
+      applyActions(fresh(), [{ kind: 'setDial', path: 'assetPurchaseRate', value: 0.26 }]),
+    ).toThrow(IllegalActionError)
+    expect(() =>
+      applyActions(fresh(), [{ kind: 'setDial', path: 'capitalRequirement', value: 0.02 }]),
     ).toThrow(IllegalActionError)
   })
 

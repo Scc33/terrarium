@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 21. Companion to the design doc
+*How the code is actually arranged, as of schema 23. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -268,6 +268,13 @@ The player sees two fogged instruments and never the frontier, sector attainment
 `technology_attainment` (the ratio — are we catching up?) and `productivity` (the level — output
 per worker against our own 1946). Two are needed because the ratio saturates: research pushes the
 frontier it is measured against, so the better the programme the quieter its own dial goes.
+
+Finance has three player inputs that meet in its existing balance sheets (ADR-0017). The policy
+rate prices overnight money; the QE purchase pace lowers the common private funding rate without
+being booked as fiscal printing; and the capital requirement changes the bank-equity ceiling on
+credit. Their inherited settings (4%, zero, and 6%) preserve the passive economy. QE remains
+available at the zero-rate floor but can inflate the same credit/asset pair that raises crisis
+risk, while a tighter capital floor leans directly against that leverage.
 
 ---
 
