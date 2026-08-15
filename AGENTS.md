@@ -182,6 +182,11 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   debt stock misses moderate auctions. A spending boom can still lift investment through demand
   and inflation, so calibrate this channel with a demand-neutral tax deficit and an isolated debt
   shock as well as the headline spending cases.
+- **A stability policy is not automatically a fiscal baseline.** The runner's `developmental`
+  policy isolates capacity building while leaving 1946 programmes and ministry bids fixed in
+  cash. Tax collection rises and programme shares erode, so it retires the opening debt around
+  quarter 62 and then sticks at zero. Use `pnpm debt-baselines` and its no-tax/GDP-share
+  counterfactuals before treating final debt/GDP as a calibration target.
 - **Political responses are reference-dependent, and it is load-bearing.** Cohort approval
   judges income against an EMA of itself; bloc favour judges policy against the 1946 settlement
   (`BLOC_FAVOR_BASE`); unrest judges hardship against experienced conditions. Each was a *bug

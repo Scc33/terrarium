@@ -1,5 +1,7 @@
 import type { RunResult } from './run'
 
+type TrajectoryRun = Pick<RunResult, 'trajectory'>
+
 export function quantile(sorted: number[], q: number): number {
   if (sorted.length === 0) return NaN
   const pos = (sorted.length - 1) * q
@@ -21,7 +23,7 @@ export function summarize(values: number[]) {
 }
 
 /** annualized real growth over the whole run, %/yr */
-export function cagr(run: RunResult): number {
+export function cagr(run: TrajectoryRun): number {
   const first = run.trajectory[0]
   const last = run.trajectory[run.trajectory.length - 1]
   const years = (last.tick - first.tick) / 4
@@ -29,12 +31,12 @@ export function cagr(run: RunResult): number {
   return (Math.pow(last.realGdp / first.realGdp, 1 / years) - 1) * 100
 }
 
-export function meanAnnualInflation(run: RunResult): number {
+export function meanAnnualInflation(run: TrajectoryRun): number {
   const t = run.trajectory
   return (t.reduce((s, p) => s + p.inflationQ, 0) / Math.max(t.length, 1)) * 4 * 100
 }
 
-export function meanUnemployment(run: RunResult): number {
+export function meanUnemployment(run: TrajectoryRun): number {
   const t = run.trajectory
   return (t.reduce((s, p) => s + p.unemployment, 0) / Math.max(t.length, 1)) * 100
 }

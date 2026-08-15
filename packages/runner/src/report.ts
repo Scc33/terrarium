@@ -1,4 +1,5 @@
 import type { BatchResult } from './batch'
+import { firstDebtFreeQuarter } from './debt'
 import { cagr, meanAnnualInflation, meanUnemployment, summarize } from './metrics'
 
 function fmt(x: number): string {
@@ -35,8 +36,16 @@ export function printReport(
   line('mean inflation %/yr', summarize(runs.map(meanAnnualInflation)))
   line('mean unemployment %', summarize(runs.map(meanUnemployment)))
   line(
-    'final debt/GDP',
-    summarize(runs.map((r) => r.trajectory[r.trajectory.length - 1].debtToGdp)),
+    'final debt/GDP %',
+    summarize(runs.map((r) => 100 * r.trajectory[r.trajectory.length - 1].debtToGdp)),
+  )
+  const debtFreeQuarters = runs
+    .map((run) => firstDebtFreeQuarter(run.trajectory))
+    .filter((tick): tick is number => tick !== null)
+  console.log(
+    `  ever debt-free: ${debtFreeQuarters.length} (${((100 * debtFreeQuarters.length) / runs.length).toFixed(0)}%), median first quarter ${
+      debtFreeQuarters.length ? summarize(debtFreeQuarters).p50.toFixed(0) : '—'
+    }`,
   )
   const countryIds = [...new Set(runs.map((run) => run.countryId))]
   if (countryIds.length > 1) {

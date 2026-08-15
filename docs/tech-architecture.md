@@ -364,6 +364,14 @@ Use `--policy passive|developmental|random|all` and `--country baseline|all|<rec
 a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
 initialization convergence.
 
+The named `developmental` policy isolates the effect of repeatedly building all four state
+capacities; it deliberately leaves the inherited fixed-cash programme rules alone and is not a
+historical fiscal baseline. `pnpm debt-baselines -- --runs 200 --ticks 400` pairs it with
+no-tax-capacity and GDP-share counterfactuals, reports when debt first reaches zero, and splits
+revenue, standing programmes, capacity construction, interest, and the balance as shares of GDP.
+It reduces each run to those fiscal readings immediately, so century sweeps do not retain a
+thousand copies of the treasury's full statistical archive.
+
 ### 7.3 Contract (`tests/contract/`)
 
 `published-state.test.ts` guards the data boundary described in §1.1.

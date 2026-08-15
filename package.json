@@ -26,6 +26,7 @@
     "export-feedback": "pnpm --filter @terrarium/runner export-feedback",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
+    "debt-baselines": "tsx tools/measure-debt-baselines.ts",
     "ranges": "tsx tools/indicator-ranges.ts"
   },
   "devDependencies": {

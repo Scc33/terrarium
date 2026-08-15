@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "41b8263",
+  "revision": "689ac2b",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 30,
-      "lines": 7135
+      "lines": 7213
     },
     {
       "id": "fixtures",
@@ -25,21 +25,21 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 3,
-      "lines": 461
+      "lines": 481
     },
     {
       "id": "runner",
       "name": "@terrarium/runner",
       "description": "Headless execution and balance sweeps over the same public engine API.",
-      "moduleCount": 10,
-      "lines": 1852
+      "moduleCount": 11,
+      "lines": 1924
     },
     {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 66,
-      "lines": 8553
+      "moduleCount": 68,
+      "lines": 9234
     }
   ],
   "modules": [
@@ -49,7 +49,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Actions",
       "summary": "Action application. Validates legality (dial bounds, PC affordability) and rejects loudly — an illegal action in a replay means a bug or a version mismatch, never a silent skip (§5).",
-      "lines": 569,
+      "lines": 572,
       "exports": [
         {
           "name": "IllegalActionError",
@@ -73,13 +73,13 @@ export const architecture = {
           "name": "politicalCostOfAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 337
+          "line": 340
         },
         {
           "name": "applyAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 417
+          "line": 420
         }
       ],
       "imports": [
@@ -1816,7 +1816,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The whole engine is three functions (§2):",
-      "lines": 225,
+      "lines": 226,
       "exports": [
         {
           "name": "init",
@@ -1882,6 +1882,7 @@ export const architecture = {
         "packages/observation/src/published.ts",
         "packages/observation/src/published.ts",
         "packages/runner/src/batch.ts",
+        "packages/runner/src/debt.ts",
         "packages/runner/src/export-feedback-cli.ts",
         "packages/runner/src/export-feedback.ts",
         "packages/runner/src/policies.ts",
@@ -1898,6 +1899,7 @@ export const architecture = {
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/DevConsole.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/policyRecord.ts",
         "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/worker/protocol.ts",
@@ -2629,19 +2631,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 493,
+      "lines": 522,
       "exports": [
         {
           "name": "INDICATOR_SPECS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 48
+          "line": 51
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 476
+          "line": 505
         }
       ],
       "imports": [
@@ -2822,7 +2824,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (§10 of the design doc); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 422,
+      "lines": 423,
       "exports": [
         {
           "name": "synthPyramid",
@@ -2858,7 +2860,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 712,
+      "lines": 747,
       "exports": [
         {
           "name": "Qtr",
@@ -2984,295 +2986,301 @@ export const architecture = {
           "name": "SpendingRule",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 73
+          "line": 78
         },
         {
           "name": "SpendingRuleMode",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 77
+          "line": 82
         },
         {
           "name": "SpendingRules",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 78
+          "line": 83
         },
         {
           "name": "INSTITUTION_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 84
+          "line": 89
         },
         {
           "name": "InstitutionId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 85
+          "line": 90
         },
         {
           "name": "BLOC_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 90
+          "line": 95
         },
         {
           "name": "BlocId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 91
+          "line": 96
         },
         {
           "name": "PLATFORM_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 97
+          "line": 102
         },
         {
           "name": "PlatformId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 98
+          "line": 103
         },
         {
           "name": "INDICATOR_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 100
+          "line": 105
         },
         {
           "name": "IndicatorId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 154
+          "line": 159
         },
         {
           "name": "PARTNER_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 157
+          "line": 162
         },
         {
           "name": "PartnerId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 158
+          "line": 163
         },
         {
           "name": "CountryParams",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 161
+          "line": 166
         },
         {
           "name": "CountryStructure",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 187
+          "line": 192
         },
         {
           "name": "AGE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 200
+          "line": 205
         },
         {
           "name": "RETIREMENT_BAND",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 203
+          "line": 208
         },
         {
           "name": "WORKING_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 205
+          "line": 210
         },
         {
           "name": "FERTILE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 207
+          "line": 212
         },
         {
           "name": "DemographyState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 209
+          "line": 214
         },
         {
           "name": "Cohort",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 231
+          "line": 236
         },
         {
           "name": "Sector",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 249
+          "line": 254
         },
         {
           "name": "IOTable",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 262
+          "line": 267
         },
         {
           "name": "MarketState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 268
+          "line": 273
         },
         {
           "name": "DialState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 281
+          "line": 286
+        },
+        {
+          "name": "PolicyRecord",
+          "kind": "interface",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 313
         },
         {
           "name": "CapacityBuild",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 292
+          "line": 324
         },
         {
           "name": "GovernmentState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 299
+          "line": 331
         },
         {
           "name": "WorldPartner",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 316
+          "line": 348
         },
         {
           "name": "WorldState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 321
+          "line": 353
         },
         {
           "name": "ExternalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 328
+          "line": 360
         },
         {
           "name": "TechState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 348
+          "line": 380
         },
         {
           "name": "FinanceState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 367
+          "line": 399
         },
         {
           "name": "Bloc",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 393
+          "line": 425
         },
         {
           "name": "InstitutionState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 400
+          "line": 432
         },
         {
           "name": "ElectionResult",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 422
+          "line": 454
         },
         {
           "name": "PoliticalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 438
+          "line": 470
         },
         {
           "name": "FragilityLedger",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 458
+          "line": 490
         },
         {
           "name": "StatPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 466
+          "line": 498
         },
         {
           "name": "NewsItem",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 476
+          "line": 508
         },
         {
           "name": "StatRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 485
+          "line": 517
         },
         {
           "name": "StatsOffice",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 594
+          "line": 629
         },
         {
           "name": "TickFlows",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 603
+          "line": 638
         },
         {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 658
+          "line": 693
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 700
+          "line": 735
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 701
+          "line": 736
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 702
+          "line": 737
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 705
+          "line": 740
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 707
+          "line": 742
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 709
+          "line": 744
         }
       ],
       "imports": [
@@ -3315,43 +3323,43 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Recurring expenditure rules. The economy still consumes one resolved money-per-quarter number per programme; this module is the single place standing rules turn into those numbers.",
-      "lines": 153,
+      "lines": 162,
       "exports": [
         {
           "name": "officialNominalGdp",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 37
+          "line": 38
         },
         {
           "name": "latestInitialInflationQuarter",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 50
+          "line": 51
         },
         {
           "name": "spendingRuleTarget",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 56
+          "line": 57
         },
         {
           "name": "createSpendingRule",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 69
+          "line": 70
         },
         {
           "name": "scaleSpendingRule",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 89
+          "line": 94
         },
         {
           "name": "resolveSpendingRules",
           "kind": "function",
           "path": "packages/engine/src/state/spending.ts",
-          "line": 136
+          "line": 145
         }
       ],
       "imports": [
@@ -3495,7 +3503,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "",
-      "lines": 29,
+      "lines": 34,
       "exports": [],
       "imports": [
         "packages/observation/src/observe.ts",
@@ -3529,10 +3537,12 @@ export const architecture = {
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/LedgerPanel.tsx",
         "packages/ui/src/panels/NewsWire.tsx",
+        "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/policyRecord.ts",
         "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
@@ -3549,7 +3559,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (§6.1). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: publish…",
-      "lines": 246,
+      "lines": 250,
       "exports": [
         {
           "name": "observe",
@@ -3574,55 +3584,61 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 186,
+      "lines": 197,
       "exports": [
+        {
+          "name": "PolicyPoint",
+          "kind": "type",
+          "path": "packages/observation/src/published.ts",
+          "line": 42
+        },
         {
           "name": "IndicatorPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 40
+          "line": 45
         },
         {
           "name": "IndicatorSeries",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 42
+          "line": 47
         },
         {
           "name": "Grade",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 49
+          "line": 54
         },
         {
           "name": "ReportCard",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 53
+          "line": 58
         },
         {
           "name": "PublishedBloc",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 81
+          "line": 86
         },
         {
           "name": "PublishedCorridor",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 93
+          "line": 98
         },
         {
           "name": "PublishedCampaign",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 105
+          "line": 110
         },
         {
           "name": "PublishedState",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 115
+          "line": 120
         }
       ],
       "imports": [
@@ -3642,7 +3658,7 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Batch runner — the balance dashboard's data source and the M0 DoD probe: N random-policy runs, wall time, NaN count, explosion count.",
-      "lines": 76,
+      "lines": 82,
       "exports": [
         {
           "name": "BatchResult",
@@ -3651,10 +3667,16 @@ export const architecture = {
           "line": 17
         },
         {
+          "name": "BatchRunResult",
+          "kind": "type",
+          "path": "packages/runner/src/batch.ts",
+          "line": 24
+        },
+        {
           "name": "runBatch",
           "kind": "function",
           "path": "packages/runner/src/batch.ts",
-          "line": 22
+          "line": 26
         }
       ],
       "imports": [
@@ -3669,6 +3691,61 @@ export const architecture = {
         "packages/runner/src/stability-cli.ts"
       ],
       "path": "packages/runner/src/batch.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/debt.ts",
+      "label": "debt",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "Pure fiscal diagnostics shared by the batch report and investigation tools.",
+      "lines": 49,
+      "exports": [
+        {
+          "name": "DEBT_FREE_RATIO",
+          "kind": "constant",
+          "path": "packages/runner/src/debt.ts",
+          "line": 5
+        },
+        {
+          "name": "debtToGdp",
+          "kind": "function",
+          "path": "packages/runner/src/debt.ts",
+          "line": 8
+        },
+        {
+          "name": "firstDebtFreeQuarter",
+          "kind": "function",
+          "path": "packages/runner/src/debt.ts",
+          "line": 12
+        },
+        {
+          "name": "FiscalRatios",
+          "kind": "interface",
+          "path": "packages/runner/src/debt.ts",
+          "line": 18
+        },
+        {
+          "name": "standingProgrammeOutlays",
+          "kind": "function",
+          "path": "packages/runner/src/debt.ts",
+          "line": 26
+        },
+        {
+          "name": "fiscalRatios",
+          "kind": "function",
+          "path": "packages/runner/src/debt.ts",
+          "line": 38
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/runner/src/report.ts",
+        "packages/runner/src/run.ts"
+      ],
+      "path": "packages/runner/src/debt.ts",
       "line": 1
     },
     {
@@ -3755,43 +3832,43 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "",
-      "lines": 48,
+      "lines": 50,
       "exports": [
         {
           "name": "quantile",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 3
+          "line": 5
         },
         {
           "name": "summarize",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 11
+          "line": 13
         },
         {
           "name": "cagr",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 24
+          "line": 26
         },
         {
           "name": "meanAnnualInflation",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 32
+          "line": 34
         },
         {
           "name": "meanUnemployment",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 37
+          "line": 39
         },
         {
           "name": "priceAt",
           "kind": "function",
           "path": "packages/runner/src/metrics.ts",
-          "line": 43
+          "line": 45
         }
       ],
       "imports": [
@@ -3811,7 +3888,7 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Named runner policies. These are sampling strategies, not engine rules.",
-      "lines": 55,
+      "lines": 57,
       "exports": [
         {
           "name": "POLICY_IDS",
@@ -3835,19 +3912,19 @@ export const architecture = {
           "name": "developmentalPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 12
+          "line": 14
         },
         {
           "name": "randomPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 19
+          "line": 21
         },
         {
           "name": "policyFor",
           "kind": "function",
           "path": "packages/runner/src/policies.ts",
-          "line": 51
+          "line": 53
         }
       ],
       "imports": [
@@ -3866,17 +3943,18 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "",
-      "lines": 62,
+      "lines": 71,
       "exports": [
         {
           "name": "printReport",
           "kind": "function",
           "path": "packages/runner/src/report.ts",
-          "line": 14
+          "line": 15
         }
       ],
       "imports": [
         "packages/runner/src/batch.ts",
+        "packages/runner/src/debt.ts",
         "packages/runner/src/metrics.ts"
       ],
       "importedBy": [
@@ -3891,59 +3969,60 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Single headless run: seed + script → trajectory. The trajectory is the unit every metric, property test, and balance report is computed from.",
-      "lines": 246,
+      "lines": 250,
       "exports": [
         {
           "name": "TrajectoryPoint",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 27
+          "line": 28
         },
         {
           "name": "MacroDrivers",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 52
+          "line": 53
         },
         {
           "name": "MacroEvent",
           "kind": "type",
           "path": "packages/runner/src/run.ts",
-          "line": 71
+          "line": 72
         },
         {
           "name": "RunResult",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 80
+          "line": 81
         },
         {
           "name": "RunOptions",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 95
+          "line": 96
         },
         {
           "name": "eventsBetween",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 109
+          "line": 110
         },
         {
           "name": "trajectoryPoint",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 131
+          "line": 132
         },
         {
           "name": "runOne",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 196
+          "line": 200
         }
       ],
       "imports": [
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/runner/src/debt.ts"
       ],
       "importedBy": [
         "packages/runner/src/batch.ts",
@@ -4189,13 +4268,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 249,
+      "lines": 253,
       "exports": [
         {
           "name": "App",
           "kind": "function",
           "path": "packages/ui/src/App.tsx",
-          "line": 43
+          "line": 45
         }
       ],
       "imports": [
@@ -4213,6 +4292,7 @@ export const architecture = {
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/NewsWire.tsx",
+        "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
@@ -4852,6 +4932,7 @@ export const architecture = {
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
@@ -5690,7 +5771,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 743,
+      "lines": 759,
       "exports": [
         {
           "name": "ControlRail",
@@ -5983,6 +6064,33 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "label": "PolicyOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "THE POLICY RECORD — what you set, over the whole century.",
+      "lines": 408,
+      "exports": [
+        {
+          "name": "PolicyOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/PolicyOverlay.tsx",
+          "line": 189
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/policyRecord.ts",
+        "packages/ui/src/shares.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/panels/ReportCardOverlay.tsx",
       "label": "ReportCardOverlay",
       "packageId": "ui",
@@ -6177,6 +6285,91 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/policyRecord.ts",
+      "label": "policyRecord",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The minute book: what the cabinet SET, quarter by quarter.",
+      "lines": 253,
+      "exports": [
+        {
+          "name": "PolicyGroup",
+          "kind": "type",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 36
+        },
+        {
+          "name": "PolicyUnit",
+          "kind": "type",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 41
+        },
+        {
+          "name": "PolicyLine",
+          "kind": "interface",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 43
+        },
+        {
+          "name": "RULE_MODE_LABEL",
+          "kind": "constant",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 104
+        },
+        {
+          "name": "POLICY_LINES",
+          "kind": "constant",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 114
+        },
+        {
+          "name": "POLICY_LINES_BY_GROUP",
+          "kind": "constant",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 149
+        },
+        {
+          "name": "PolicyChange",
+          "kind": "interface",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 158
+        },
+        {
+          "name": "policyAt",
+          "kind": "function",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 186
+        },
+        {
+          "name": "policyChanges",
+          "kind": "function",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 202
+        },
+        {
+          "name": "formatPolicyValue",
+          "kind": "function",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 244
+        },
+        {
+          "name": "formatRuleValue",
+          "kind": "function",
+          "path": "packages/ui/src/policyRecord.ts",
+          "line": 250
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/PolicyOverlay.tsx"
+      ],
+      "path": "packages/ui/src/policyRecord.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/shares.ts",
       "label": "shares",
       "packageId": "ui",
@@ -6258,6 +6451,7 @@ export const architecture = {
         "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
         "packages/ui/src/dev/ComponentGallery.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/plot.ts"
       ],
       "path": "packages/ui/src/shares.ts",
@@ -7322,6 +7516,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/runner/src/debt.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/runner/src/export-feedback-cli.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -7363,12 +7562,22 @@ export const architecture = {
     },
     {
       "source": "packages/runner/src/report.ts",
+      "target": "packages/runner/src/debt.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/report.ts",
       "target": "packages/runner/src/metrics.ts",
       "typeOnly": false
     },
     {
       "source": "packages/runner/src/run.ts",
       "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/run.ts",
+      "target": "packages/runner/src/debt.ts",
       "typeOnly": false
     },
     {
@@ -7499,6 +7708,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/NewsWire.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/PolicyOverlay.tsx",
       "typeOnly": false
     },
     {
@@ -8167,6 +8381,26 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "target": "packages/ui/src/policyRecord.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -8229,6 +8463,16 @@ export const architecture = {
     {
       "source": "packages/ui/src/plot.ts",
       "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/policyRecord.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/policyRecord.ts",
+      "target": "packages/observation/src/index.ts",
       "typeOnly": false
     },
     {
@@ -8333,20 +8577,20 @@ export const architecture = {
     {
       "source": "runner",
       "target": "engine",
-      "count": 7,
-      "typeOnlyCount": 0
+      "count": 8,
+      "typeOnlyCount": 1
     },
     {
       "source": "ui",
       "target": "engine",
-      "count": 14,
+      "count": 15,
       "typeOnlyCount": 6
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 37,
-      "typeOnlyCount": 31
+      "count": 39,
+      "typeOnlyCount": 32
     }
   ],
   "pipeline": [
@@ -8858,17 +9102,17 @@ export const architecture = {
           "name": "INDICATOR_SPECS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 48
+          "line": 51
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 476
+          "line": 505
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 476
+      "line": 505
     },
     {
       "order": 16,
@@ -8925,7 +9169,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 477
+          "line": 506
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",
@@ -8959,7 +9203,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 337
+          "line": 340
         },
         {
           "path": "packages/observation/src/observe.ts",

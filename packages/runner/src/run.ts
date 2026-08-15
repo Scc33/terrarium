@@ -23,6 +23,7 @@ import {
   type SectorId,
   type TrueState,
 } from '@terrarium/engine'
+import { debtToGdp } from './debt'
 
 export interface TrajectoryPoint {
   tick: number
@@ -165,7 +166,10 @@ export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryP
     inflationQ: s.flows.inflationQ,
     unemployment: s.flows.unemployment,
     prices,
-    debtToGdp: s.ledger.debtToGdp,
+    // The ledger carries the ratio fiscal policy saw before this quarter's
+    // borrowing or redemption. Diagnostics report the debt that is actually
+    // on the books after the fiscal step, matching the treasury worksheet.
+    debtToGdp: debtToGdp(s.gov.debt, s.flows.nominalGdp),
     printedThisQtr: s.flows.printedThisQtr,
     approval: s.cohorts.map((c) => c.approval),
     politicalCapital: s.politics.politicalCapital,
