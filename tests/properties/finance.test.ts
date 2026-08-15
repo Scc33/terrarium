@@ -227,6 +227,44 @@ describe('the Minsky clock (§12)', () => {
 describe('the transmission and the instruments (§12)', () => {
   const base = century('fin-t', null)[40]
 
+  it('quantitative easing works past the rate floor through the common private rate', () => {
+    const withoutPurchases = {
+      ...base,
+      gov: {
+        ...base.gov,
+        dials: { ...base.gov.dials, policyRate: 0, assetPurchaseRate: 0 },
+      },
+    }
+    const withPurchases = {
+      ...withoutPurchases,
+      gov: {
+        ...withoutPurchases.gov,
+        dials: { ...withoutPurchases.gov.dials, assetPurchaseRate: 0.1 },
+      },
+    }
+    expect(privateRealRate(withPurchases)).toBeCloseTo(privateRealRate(withoutPurchases) - 0.02)
+
+    const ordinary = runStep('finance', withoutPurchases)
+    const qe = runStep('finance', withPurchases)
+    expect(qe.finance.creditToGdp).toBeGreaterThan(ordinary.finance.creditToGdp)
+    expect(qe.finance.assetPrice).toBeGreaterThan(ordinary.finance.assetPrice)
+  })
+
+  it('a higher capital requirement directly leans against bank credit', () => {
+    const atRequirement = (capitalRequirement: number) =>
+      runStep('finance', {
+        ...base,
+        gov: {
+          ...base.gov,
+          dials: { ...base.gov.dials, policyRate: 0.005, capitalRequirement },
+        },
+      })
+    const permissive = atRequirement(0.03)
+    const guarded = atRequirement(0.2)
+    expect(guarded.finance.creditToGdp).toBeLessThan(permissive.finance.creditToGdp)
+    expect(guarded.finance.assetPrice).toBeLessThan(permissive.finance.assetPrice)
+  })
+
   it("Tobin's q channel: dear assets pull more investment than cheap ones", () => {
     const invAt = (assetPrice: number) =>
       runStep('production', { ...base, finance: { ...base.finance, assetPrice } }).flows

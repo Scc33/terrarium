@@ -1,4 +1,4 @@
-# ADR-0017 — Foreign direct investment is owned capital, not an openness bonus
+# ADR-0018 — Foreign direct investment is owned capital, not an openness bonus
 
 **Status:** Accepted · **Date:** 2026-08-15
 

@@ -1,6 +1,7 @@
 /** Shared derived quantities used by several steps. Pure reads, no mutation. */
 
 import {
+  ASSET_PURCHASE_PRIVATE_RATE_GAIN,
   BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
   CORRIDOR_HALF_WIDTH,
@@ -82,7 +83,8 @@ export function privateRealRate(state: TrueState): number {
   return (
     state.gov.dials.policyRate -
     state.ledger.inflationExpectations +
-    privateFundingSpread(state)
+    privateFundingSpread(state) -
+    ASSET_PURCHASE_PRIVATE_RATE_GAIN * state.gov.dials.assetPurchaseRate
   )
 }
 

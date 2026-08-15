@@ -65,7 +65,7 @@ NODE_OPTIONS=--max-old-space-size=8192 pnpm batch -- --runs 1000 --ticks 400 --p
 pnpm stability -- --runs 120 --policy all --country all
 ```
 
-Medians from 1000 runs on `country=baseline`, re-measured for schema 23 on 2026-08-15. The
+Medians from 1000 runs on `country=baseline`, re-measured for schema 24 on 2026-08-15. The
 developmental command needs the larger heap because the batch CLI retains every trajectory and
 capacity action until it prints the report. Re-measure rather than trusting these — they drift,
 and a stale baseline is worse than none because it invites you to "fix" an engine that was fine.
@@ -92,8 +92,8 @@ for a regression they caused. Nobody has ruled on whether it is correct (capacit
 schooling→fertility→labour-force channel both plausibly explain it, and per-head growth is not
 what this table measures) — so measure it, do not reason from it.
 
-**Healthy random policy, 120q:** growth ≈ 3.95%/yr · unemployment ≈ 11.89% ·
-**32% deposed** (median quarter 80) · no NaN · no price explosions.
+**Healthy random policy, 120q:** growth ≈ 4.04%/yr · inflation ≈ 0.46% ·
+unemployment ≈ 11.92% · **26% deposed** (median quarter 77) · no NaN · no price explosions.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
