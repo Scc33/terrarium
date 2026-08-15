@@ -14,4 +14,11 @@ export { SectionHeading } from './SectionHeading/SectionHeading'
 export { SegmentedControl, type SegmentOption } from './SegmentedControl/SegmentedControl'
 export { SliderField, type SliderFieldProps } from './SliderField/SliderField'
 export { StackedAreaChart, type StackedAreaChartProps } from './StackedAreaChart/StackedAreaChart'
+export {
+  TimeSeriesChart,
+  type ChartRegister,
+  type ChartRule,
+  type ChartTrace,
+  type TimeSeriesChartProps,
+} from './TimeSeriesChart/TimeSeriesChart'
 export { useFocusTrap } from './useFocusTrap'

@@ -69,6 +69,11 @@ can be tested — anything pushed into a component becomes untestable:
   fills its slot and clips; it never sizes to its content. It owns `overflow-hidden`,
   `minmax(0,1fr)` rows and `min-h-0` on the body. Its module comment lists the four ways this
   breaks, all of which shipped at least once.
+- **`ui/src/plot.ts`** — time-series geometry (scales, gridline steps, line/area/ribbon/wedge
+  paths), pinned by `tests/ui/plot.test.ts`. **`TimeSeriesChart` in `components/ui` is the one
+  painter**: the wall's terminal ticker, the ledger, the accounts, finance and census all go
+  through it, and a new figure over time reuses it rather than hand-rolling `sx`/`sy` again.
+  A chart FRAMES the dial face and extends past it — it never clamps (ADR-0016).
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
   `DonutChart` / `StackedAreaChart` (in `components/ui`) paint what it returns and know nothing
   about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a
@@ -230,6 +235,19 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   `tech.researchStock` and decays; gains read the stock, not the cheque. A steady programme is
   arithmetically identical to the old flow model — only the transients moved — which is how a
   behavioural change ships without a recalibration.
+- **A dial pegs; a chart must not.** Pegging costs a needle one number for one quarter and says
+  so with a chevron. The same rule applied to a TRACE erases a whole episode silently — the
+  terminal chart clamped into the dial face, so a hyperinflation and a calm plateau drew as the
+  same flat line along the rail, and most indicators leave their face in the tails (`price_fuel`
+  reaches 152 against a 130 face). A chart has printed axis numbers, so it can describe its own
+  scale: frame against the face, extend outward where the data leaves it, rule the face's bound
+  (ADR-0016). Before reusing an instrument's constraint on a different instrument, ask what that
+  constraint COSTS in the new register.
+- **Precision belongs to the scale, not the value.** `v => v.toFixed(v < 10 ? 1 : 0)` prints an
+  axis reading `0.0, 20, 40`, which looks like three different quantities. Decide decimals once
+  per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range
+  to a readable step can leave ONE label on the axis, and a chart with a single number up its
+  side gives no scale at all — `niceTicks` refines the step until at least two fit.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a

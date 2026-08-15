@@ -9,18 +9,19 @@
  */
 
 import type { IndicatorPoint, NewsItem, PublishedState } from '@terrarium/observation'
-import { ChartFrame, EmptyState, Modal, OverlayLayout } from '../components/ui'
+import { ChartFrame, EmptyState, Modal, OverlayLayout, TimeSeriesChart } from '../components/ui'
+import type { ChartRule } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
 /** latest revision per measured quarter, oldest first */
-function settled(points: IndicatorPoint[]): Array<{ q: number; value: number }> {
+function settled(points: IndicatorPoint[]): Array<{ tick: number; value: number }> {
   const best = new Map<number, { value: number; revision: number }>()
   for (const p of points) {
     const cur = best.get(p.forQtr)
     if (!cur || p.revision > cur.revision) best.set(p.forQtr, { value: p.value, revision: p.revision })
   }
-  return [...best.entries()].map(([q, v]) => ({ q, value: v.value })).sort((a, b) => a.q - b.q)
+  return [...best.entries()].map(([tick, v]) => ({ tick, value: v.value })).sort((a, b) => a.tick - b.tick)
 }
 
 /** banking-crisis onsets pulled off the wire — always visible, fog or none */
@@ -32,10 +33,6 @@ function crisisTicks(news: NewsItem[]): number[] {
 
 const CW = 470
 const CH = 128
-const PL = 30
-const PR = 8
-const PT = 10
-const PB = 16
 
 function FogLineChart({
   title,
@@ -43,7 +40,6 @@ function FogLineChart({
   color,
   baseline,
   yFloor,
-  yPad,
   crises,
   xMin,
   xMax,
@@ -51,11 +47,10 @@ function FogLineChart({
   blurb,
 }: {
   title: string
-  series: Array<{ q: number; value: number }>
+  series: Array<{ tick: number; value: number }>
   color: string // a --color-dossier-* var name
   baseline: number // the reference line (100 for an index, 0 for a rate)
   yFloor?: number // force the axis to include this
-  yPad: number
   crises: number[]
   xMin: number
   xMax: number
@@ -64,59 +59,55 @@ function FogLineChart({
 }) {
   const funded = series.length >= 2
   const vals = series.map((p) => p.value)
-  const lo = Math.min(baseline, yFloor ?? Infinity, ...vals) - yPad
-  const hi = Math.max(baseline, ...vals) + yPad
-  const sx = (q: number) => PL + ((q - xMin) / Math.max(xMax - xMin, 1)) * (CW - PL - PR)
-  const sy = (v: number) => PT + ((hi - v) / Math.max(hi - lo, 1e-9)) * (CH - PT - PB)
-  const path = series
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${sx(p.q).toFixed(1)},${sy(p.value).toFixed(1)}`)
-    .join(' ')
-  // a few round gridline values across the domain
-  const ticks = [lo, baseline, hi].filter((v, i, a) => a.indexOf(v) === i)
   const latest = series[series.length - 1]
+  const ink = `var(--color-${color})`
   const summary = funded
     ? `${title}. Latest value ${latest.value.toFixed(1)}. Recorded range ${Math.min(...vals).toFixed(1)} to ${Math.max(...vals).toFixed(1)}. ${crises.length} crisis markers in the full record.`
     : `${title}. No series is available because the government has not funded ${needs.toLowerCase()}. ${crises.length} publicly known crisis markers remain visible.`
+
+  // crises: always drawn, even over an empty plot — the crash is never fog
+  const crisisRules: ChartRule[] = crises
+    .filter((t) => t >= xMin && t <= xMax)
+    .map((t) => ({ axis: 'x', at: t, color: 'var(--color-dossier-warn)', opacity: 0.75 }))
 
   return (
     <ChartFrame
       title={title}
       detail={funded ? 'PUBLISHED RETURNS' : `REQUIRES ${needs}`}
-      value={funded && latest ? <span style={{ color: `var(--color-${color})` }}>{latest.value.toFixed(1)}</span> : '—'}
+      value={funded && latest ? <span style={{ color: ink }}>{latest.value.toFixed(1)}</span> : '—'}
       legend={crises.length ? [{ label: 'CRISIS', color: 'var(--color-dossier-warn)', dashed: true }] : []}
       summary={summary}
     >
       {funded ? (
-        <svg viewBox={`0 0 ${CW} ${CH}`} className="block w-full">
-          {ticks.map((v) => (
-            <g key={v}>
-              <line x1={PL} x2={CW - PR} y1={sy(v)} y2={sy(v)} stroke="var(--color-dossier-ink)" strokeWidth="0.4" opacity={v === baseline ? 0.3 : 0.12} />
-              <text x={PL - 3} y={sy(v) + 3} textAnchor="end" fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-                {v.toFixed(0)}
-              </text>
-            </g>
-          ))}
-          {/* crises: always drawn, even here — the crash is never fog */}
-          {crises.map((t, i) =>
-            t >= xMin && t <= xMax ? (
-              <line key={i} x1={sx(t)} x2={sx(t)} y1={PT} y2={CH - PB} stroke="var(--color-dossier-warn)" strokeWidth="1" strokeDasharray="2 2" opacity="0.75" />
-            ) : null,
-          )}
-          <path d={path} fill="none" stroke={`var(--color-${color})`} strokeWidth="1.4" />
-          <text x={PL} y={CH - 4} fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-            {yearOf(xMin)}
-          </text>
-          <text x={CW - PR} y={CH - 4} textAnchor="end" fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-            {yearOf(xMax)}
-          </text>
-        </svg>
+        <TimeSeriesChart
+          width={CW}
+          height={CH}
+          traces={[{ key: 'series', points: series, color: ink, lead: true }]}
+          include={yFloor === undefined ? [baseline] : [baseline, yFloor]}
+          pad={0.08}
+          rules={[{ axis: 'y', at: baseline, opacity: 0.3, dashed: false }, ...crisisRules]}
+          formatTick={(t) => String(yearOf(t))}
+          formatReading={(v) => v.toFixed(1)}
+          summary={summary}
+          hover
+        />
       ) : (
         <div className="relative h-[128px] overflow-hidden">
           {/* the crashes still show through the brass — you knew they happened */}
           <svg viewBox={`0 0 ${CW} ${CH}`} className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
             {crises.map((t, i) =>
               t >= xMin && t <= xMax ? (
-                <line key={i} x1={sx(t)} x2={sx(t)} y1={0} y2={CH} stroke="var(--color-dossier-warn)" strokeWidth="1" strokeDasharray="2 2" opacity="0.55" />
+                <line
+                  key={i}
+                  x1={((t - xMin) / Math.max(xMax - xMin, 1)) * CW}
+                  x2={((t - xMin) / Math.max(xMax - xMin, 1)) * CW}
+                  y1={0}
+                  y2={CH}
+                  stroke="var(--color-dossier-warn)"
+                  strokeWidth="1"
+                  strokeDasharray="2 2"
+                  opacity="0.55"
+                />
               ) : null,
             )}
           </svg>
@@ -166,7 +157,6 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
             series={asset}
             color="dossier-felt"
             baseline={100}
-            yPad={12}
             crises={crises}
             xMin={xMin}
             xMax={xMax}
@@ -179,7 +169,6 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
             color="dossier-brass"
             baseline={0}
             yFloor={-6}
-            yPad={4}
             crises={crises}
             xMin={xMin}
             xMax={xMax}

@@ -1,5 +1,16 @@
-/** Compact line chart for exact data. Callers supply semantics; the chart
- * supplies stable geometry, comparison support, and a readable empty state. */
+/**
+ * The compact labelled line — a `TimeSeriesChart` preset for dense bays.
+ *
+ * It is a caption row (a caller-coloured label, the latest figure) over a
+ * plot, which is what the treasury ledger, the full books and the expenditure
+ * accounts all want and what a full `ChartFrame` is too heavy for. It owns no
+ * geometry: that was the point of consolidating it. Anything needing a face,
+ * a ribbon, reference rules or an overlay should reach for `TimeSeriesChart`
+ * directly rather than growing props here.
+ */
+
+import { qtrLabel } from '../../series'
+import { TimeSeriesChart } from '../TimeSeriesChart/TimeSeriesChart'
 
 export interface LineChartProps {
   data: Array<{ tick: number; value: number }>
@@ -19,77 +30,56 @@ export interface LineChartProps {
   fill?: boolean
 }
 
-const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
-
-export function LineChart({ data, height = 84, label, compare, primaryColor = 'var(--color-dossier-ink)', comparisonColor = 'var(--color-dossier-warn)', emptyLabel = 'INSUFFICIENT HISTORY', summary, fill = false }: LineChartProps) {
-  if (data.length < 2) return <div className="flex min-h-14 items-center justify-center border border-dashed border-dossier-ink/20 font-mono text-[9px] tracking-[0.12em] opacity-55">{emptyLabel}</div>
-  const W = 260
-  const H = height
-  const PAD_L = 34
-  const PAD_R = 6
-  const PAD_T = 6
-  const PAD_B = 13
-  const all = [...data, ...(compare ?? [])]
-  let lo = Math.min(...all.map((d) => d.value))
-  let hi = Math.max(...all.map((d) => d.value))
-  if (hi - lo < 1e-9) {
-    hi += 1
-    lo -= 1
-  }
-  const x0 = data[0].tick
-  const x1 = data[data.length - 1].tick
-  const sx = (t: number) => PAD_L + ((t - x0) / Math.max(x1 - x0, 1)) * (W - PAD_L - PAD_R)
-  const sy = (v: number) => PAD_T + ((hi - v) / (hi - lo)) * (H - PAD_T - PAD_B)
-  const path = (xs: Array<{ tick: number; value: number }>) =>
-    xs.map((d, i) => `${i === 0 ? 'M' : 'L'}${sx(d.tick).toFixed(1)},${sy(d.value).toFixed(1)}`).join(' ')
-  const zeroVisible = lo < 0 && hi > 0
+export function LineChart({
+  data,
+  height = 84,
+  label,
+  compare,
+  primaryColor = 'var(--color-dossier-ink)',
+  comparisonColor = 'var(--color-dossier-warn)',
+  emptyLabel = 'INSUFFICIENT HISTORY',
+  summary,
+  fill = false,
+}: LineChartProps) {
   const latest = data[data.length - 1]
-  const reading = summary ?? `Series from ${qtrLabel(x0)} to ${qtrLabel(x1)}. Latest value ${latest.value.toFixed(1)}; observed range ${lo.toFixed(1)} to ${hi.toFixed(1)}.`
+  const all = [...data, ...(compare ?? [])].map((d) => d.value)
+  const reading =
+    summary ??
+    (data.length >= 2
+      ? `Series from ${qtrLabel(data[0].tick)} to ${qtrLabel(latest.tick)}. Latest value ${latest.value.toFixed(1)}; observed range ${Math.min(...all).toFixed(1)} to ${Math.max(...all).toFixed(1)}.`
+      : emptyLabel)
 
   return (
     <div className={fill ? 'flex h-full min-h-0 flex-col' : undefined}>
       {label && (
         <div className="mb-0.5 flex items-baseline justify-between">
           <span className="font-mono text-[9px] tracking-[0.2em] text-dossier-ink/70">{label}</span>
-          <span className="font-mono text-[10px] tabular-nums text-dossier-ink">
-            {data[data.length - 1].value.toFixed(1)}
-          </span>
+          {latest && (
+            <span className="font-mono text-[10px] tabular-nums text-dossier-ink">
+              {latest.value.toFixed(1)}
+            </span>
+          )}
         </div>
       )}
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="xMidYMid meet"
-        className={fill ? 'block min-h-0 w-full flex-1' : 'block w-full'}
-        role="img"
-        aria-label={reading}
-      >
-        <title>{reading}</title>
-        <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />
-        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="var(--color-dossier-ink)" strokeWidth="0.7" opacity="0.35" />
-        {zeroVisible && (
-          <line x1={PAD_L} x2={W - PAD_R} y1={sy(0)} y2={sy(0)} stroke="var(--color-dossier-ink)" strokeWidth="0.7" strokeDasharray="2 3" opacity="0.4" />
-        )}
-        <text x={PAD_L - 3} y={sy(hi) + 4} textAnchor="end" fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-          {hi.toFixed(0)}
-        </text>
-        <text x={PAD_L - 3} y={sy(lo)} textAnchor="end" fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
-          {lo.toFixed(0)}
-        </text>
-        <text x={PAD_L} y={H - 3} fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.55">
-          {qtrLabel(x0)}
-        </text>
-        <text x={W - PAD_R} y={H - 3} textAnchor="end" fontSize="7.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.55">
-          {qtrLabel(x1)}
-        </text>
-        {compare && <path d={path(compare)} fill="none" stroke={comparisonColor} strokeWidth="1.1" opacity="0.8" />}
-        <path d={path(data)} fill="none" stroke={primaryColor} strokeWidth="1.2" />
-        {data.map((point) => (
-          <circle key={point.tick} cx={sx(point.tick)} cy={sy(point.value)} r="1.8" fill={primaryColor} opacity="0.01">
-            <title>{`${qtrLabel(point.tick)}: ${point.value.toFixed(1)}`}</title>
-          </circle>
-        ))}
-      </svg>
-      <p className="sr-only">{reading}</p>
+      <TimeSeriesChart
+        width={260}
+        height={height}
+        fill={fill}
+        traces={[
+          ...(compare ? [{ key: 'compare', points: compare, color: comparisonColor, width: 1.1 }] : []),
+          { key: 'primary', points: data, color: primaryColor, width: 1.2, lead: true },
+        ]}
+        // zero is the reading on a balance or a rate, so keep it on the face
+        // even in a century that never crossed it
+        include={all.some((v) => v < 0) ? [0] : undefined}
+        pad={0.06}
+        formatTick={qtrLabel}
+        formatReading={(v) => v.toFixed(1)}
+        summary={reading}
+        emptyLabel={emptyLabel}
+        hover
+        className={fill ? 'min-h-0 flex-1' : undefined}
+      />
     </div>
   )
 }
