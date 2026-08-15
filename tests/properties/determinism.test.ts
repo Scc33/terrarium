@@ -23,6 +23,16 @@ describe('replay determinism', () => {
     expect(replayed.gov.dials.taxRates.fuel).toBe(0.5)
     expect(hashState(replayed)).toBe(hashState(fresh))
   })
+
+  it('persists God mode in new saves and defaults old saves to standard', () => {
+    const protectedSave = createSave(standardCountry, 'replay-god', [], 0, 'god')
+    expect(protectedSave.mode).toBe('god')
+    expect(replay(protectedSave).meta.mode).toBe('god')
+
+    const legacySave = createSave(standardCountry, 'replay-legacy', [], 0)
+    delete legacySave.mode
+    expect(replay(legacySave).meta.mode).toBe('standard')
+  })
 })
 
 describe('standing invariants (across seeds and random policy)', () => {

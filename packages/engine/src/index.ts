@@ -1,10 +1,10 @@
 /**
  * The whole engine is three functions (§2):
  *
- *   let s = init(params, seed)
+ *   let s = init(params, seed, mode)
  *   for (const turn of actionLog) s = step(applyActions(s, turn.actions))
  *
- * All pure. The save file is literally {version, params, seed, actionLog}.
+ * All pure. The save file is literally {version, params, seed, mode, actionLog}.
  */
 
 import { applyAction } from './actions/apply'
@@ -15,12 +15,13 @@ import {
   ENGINE_VERSION,
   SCHEMA_VERSION,
   type CountryParams,
+  type GameMode,
   type TrueState,
 } from './state/schema'
 import type { Seed } from './rng/rng'
 
-export function init(params: CountryParams, seed: Seed): TrueState {
-  return initState(params, seed)
+export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standard'): TrueState {
+  return initState(params, seed, mode)
 }
 
 export function applyActions(s: TrueState, actions: Action[]): TrueState {
@@ -39,6 +40,8 @@ export interface SaveFile {
   actionLog: ActionLog
   /** the quarter the game had reached — action-free quarters count too */
   tick: number
+  /** Optional only so pre-v21 saves remain loadable; new saves always write it. */
+  mode?: GameMode
 }
 
 export function createSave(
@@ -46,13 +49,14 @@ export function createSave(
   seed: Seed,
   actionLog: ActionLog,
   tick: number,
+  mode: GameMode = 'standard',
 ): SaveFile {
-  return { version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION }, params, seed, actionLog, tick }
+  return { version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION }, params, seed, actionLog, tick, mode }
 }
 
 /** Replay a save to its current state. Deterministic by construction. */
 export function replay(save: SaveFile, untilTick?: number): TrueState {
-  let s = init(save.params, save.seed)
+  let s = init(save.params, save.seed, save.mode ?? 'standard')
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
   const end = untilTick ?? save.tick
   while (s.meta.tick < end) {
@@ -116,6 +120,7 @@ export type {
   CountryStructure,
   DialState,
   ElectionResult,
+  GameMode,
   GovernmentState,
   IndicatorId,
   InstitutionId,

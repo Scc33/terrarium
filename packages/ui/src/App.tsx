@@ -138,9 +138,9 @@ export default function App() {
     if (startup === 'selecting') {
       return (
         <CountrySelect
-          onStart={(country, seed) => {
+          onStart={(country, seed, mode) => {
             setStartup('loading')
-            newGame(country, seed)
+            newGame(country, seed, mode)
           }}
         />
       )
@@ -236,8 +236,8 @@ export default function App() {
       {overlay === 'country' && (
         <CountrySelect
           onCancel={() => setOverlay(null)}
-          onStart={(country, seed) => {
-            newGame(country, seed)
+          onStart={(country, seed, mode) => {
+            newGame(country, seed, mode)
             setOverlay(null)
           }}
         />

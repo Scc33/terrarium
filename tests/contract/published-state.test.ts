@@ -42,6 +42,7 @@ describe('the published-state contract (§1.1)', () => {
     const required: Array<keyof PublishedState> = [
       'tick',
       'country',
+      'mode',
       'indicators',
       'dials',
       'spendingRules',
@@ -63,6 +64,10 @@ describe('the published-state contract (§1.1)', () => {
     expect(typeof pub.country).toBe('string')
     expect(pub.population.pyramid.length).toBeGreaterThan(0)
     expect(Array.isArray(pub.news)).toBe(true)
+  })
+
+  it('publishes the immutable game mode exactly', () => {
+    expect(observe(init(standardCountry, 'contract-god-mode', 'god')).mode).toBe('god')
   })
 
   it('survives the worker boundary: it is structured-cloneable and unchanged by it', () => {

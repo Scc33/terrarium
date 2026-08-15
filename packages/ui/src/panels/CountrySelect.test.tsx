@@ -8,6 +8,8 @@ describe('country selection', () => {
     const html = renderToStaticMarkup(<CountrySelect onStart={() => {}} />)
     for (const country of COUNTRY_CATALOG) expect(html).toContain(country.name)
     expect(html).toContain('role="radiogroup"')
+    expect(html).toContain('TENURE RULE')
+    expect(html).toContain('GOD MODE')
     expect(html).toContain('ACCEPT POSTING')
   })
 

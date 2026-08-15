@@ -8,8 +8,9 @@ import {
   type CountryDifficulty,
   type CountryProfile,
   type CountryScenarioId,
+  type GameMode,
 } from '@terrarium/engine'
-import { Button } from '../components/ui'
+import { Button, SegmentedControl } from '../components/ui'
 
 const DIFFICULTY: Record<CountryDifficulty, { label: string; className: string }> = {
   introductory: { label: 'INTRODUCTORY', className: 'text-[#2f5947]' },
@@ -64,11 +65,12 @@ export function CountrySelect({
   onStart,
   onCancel,
 }: {
-  onStart: (country: CountryScenarioId, seed?: string) => void
+  onStart: (country: CountryScenarioId, seed: string | undefined, mode: GameMode) => void
   onCancel?: () => void
 }) {
   const [selectedId, setSelectedId] = useState<CountryScenarioId>('meridia')
   const [seed, setSeed] = useState('')
+  const [mode, setMode] = useState<GameMode>('standard')
   const selected = COUNTRY_CATALOG.find((profile) => profile.id === selectedId) ?? COUNTRY_CATALOG[0]
 
   useEffect(() => {
@@ -143,7 +145,28 @@ export function CountrySelect({
                   </ul>
                 </div>
               </div>
-              <label className="mt-5 block border-t border-dossier-ink/15 pt-3">
+              <div className="mt-5 border-t border-dossier-ink/15 pt-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">
+                    TENURE RULE
+                  </span>
+                  <SegmentedControl
+                    label="Tenure rule"
+                    value={mode}
+                    onChange={setMode}
+                    options={[
+                      { value: 'standard', label: 'STANDARD' },
+                      { value: 'god', label: 'GOD MODE' },
+                    ]}
+                  />
+                </div>
+                <p className="mt-1.5 font-dossier text-[10px] italic leading-snug text-dossier-ink/48">
+                  {mode === 'god'
+                    ? 'Testing safeguard: lost elections, revolts, and coups are recorded, but never end your run.'
+                    : 'The electorate, the street, or the palace can remove your government.'}
+                </p>
+              </div>
+              <label className="mt-4 block border-t border-dossier-ink/15 pt-3">
                 <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">POSTING CODE · OPTIONAL</span>
                 <input
                   value={seed}
@@ -160,7 +183,7 @@ export function CountrySelect({
                 variant="primary"
                 fullWidth
                 className="justify-between"
-                onClick={() => onStart(selected.id, seed.trim() || undefined)}
+                onClick={() => onStart(selected.id, seed.trim() || undefined, mode)}
               >
                 ACCEPT POSTING <span aria-hidden="true">→</span>
               </Button>

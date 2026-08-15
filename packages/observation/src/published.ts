@@ -12,6 +12,7 @@ import type {
   CapacityId,
   DialState,
   ElectionResult,
+  GameMode,
   IndicatorId,
   InstitutionId,
   NewsItem,
@@ -114,6 +115,8 @@ export interface PublishedCampaign {
 export interface PublishedState {
   tick: Qtr
   country: string
+  /** exact opening rule: the government knows whether the safety is on */
+  mode: GameMode
   /** only funded indicators appear at all */
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
   /** you always know your own settings */

@@ -1,6 +1,6 @@
 # Metrics changelog — the engine's data contract, version by version
 
-The engine is a pure function: `replay(params, seed, actionLog) → TrueState`, and
+The engine is a pure function: `replay(params, seed, mode, actionLog) → TrueState`, and
 `observe(TrueState) → PublishedState`. This document tracks, per **schema version**, the two
 ends of that function:
 
@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 20)
+## Current contract (schema 21)
 
 ### Inputs
 
@@ -35,6 +35,10 @@ contract, so it's called out below.
 | `enfranchisement` | ballot weight per cohort |
 | `pyramid` | 1946 age structure, 17 five-year bands *(added v6)* |
 | `structure` | optional normalized sector composition, opening debt/credit/reserves, and inherited institutions *(added v13; omitted means the historical Meridia defaults)* |
+
+**Game mode** (`GameMode`, immutable after init): `standard` uses every normal deposition path;
+`god` records election defeats but keeps the run playable and disables deposition by polls,
+revolt, or coup. Saves from before v21 omit it and load as `standard`.
 
 **Policy levers** (`DialState` plus `SpendingRules`)
 | Lever | Range |
@@ -125,6 +129,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 
 | Output | Since | Contents |
 |---|---|---|
+| `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
@@ -164,6 +169,18 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 21 — God mode
+
+- **Inputs +**: immutable `GameMode`, selected at game start and stored in the save. `standard`
+  preserves ordinary play; `god` makes a run immune to deposition by elections, revolt, or coup.
+  Pre-v21 saves default to `standard`.
+- **Outputs +**: exact published `mode`, so the UI can identify a protected run and explain a
+  recorded election defeat without claiming that the simulation ended.
+- **Politics**: God mode leaves the ordinary approval, campaign, election-count, and hazard
+  calculations intact. A lost election is still recorded as lost and does not increment
+  `electionsWon`; it resets the clock for another term instead of ending the run. Revolt and
+  coup deposition are bypassed. Economic pipeline order and mechanics are unchanged.
 
 ### schema 20 — Debt in the scale of the economy
 

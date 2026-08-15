@@ -41,6 +41,7 @@ import {
   type Cohort,
   type CountryParams,
   type DemographyState,
+  type GameMode,
   type SectorId,
   type TickFlows,
   type TrueState,
@@ -132,7 +133,7 @@ function reweight(
   return sectorRecord((id) => (weighted[id] * before) / Math.max(after, 1e-9))
 }
 
-export function init(params: CountryParams, seed: Seed): TrueState {
+export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standard'): TrueState {
   validateCountryParams(params)
   const totalPop = Object.values(params.cohortSizes).reduce((a, b) => a + b, 0)
   const popScale = totalPop / BASE_POP
@@ -280,7 +281,7 @@ export function init(params: CountryParams, seed: Seed): TrueState {
   // built — bloc power is read off agriculture's share, the credit stock and
   // the debt, so it must not be guessed before those exist
   const provisional: TrueState = {
-    meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed },
+    meta: { schemaVersion: SCHEMA_VERSION, engineVersion: ENGINE_VERSION, tick: 0, seed, mode },
     params,
     demography: initialDemography(params),
     tech: {
