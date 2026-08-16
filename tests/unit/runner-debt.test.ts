@@ -1,12 +1,13 @@
 import { MERIDIA_PARAMS, init, step } from '@terrarium/engine'
 import { describe, expect, it } from 'vitest'
-import { runBatch } from '../../packages/runner/src/batch'
+import { runBatch, runSummaryBatch } from '../../packages/runner/src/batch'
 import {
   debtToGdp,
   firstDebtFreeQuarter,
   fiscalRatios,
 } from '../../packages/runner/src/debt'
-import { trajectoryPoint } from '../../packages/runner/src/run'
+import { runOne, runSummary, trajectoryPoint } from '../../packages/runner/src/run'
+import { cagr, meanAnnualInflation, meanUnemployment } from '../../packages/runner/src/metrics'
 
 describe('runner debt diagnostics', () => {
   it('annualizes quarterly GDP and finds the first debt-free quarter', () => {
@@ -59,5 +60,26 @@ describe('runner debt diagnostics', () => {
     const [run] = runBatch({ runs: 1, ticks: 2, policy: 'passive' }).runs
     expect(run).not.toHaveProperty('finalState')
     expect(run.trajectory).toHaveLength(2)
+  })
+
+  it('streams the aggregate batch report without retaining trajectories or hashes', () => {
+    const options = { seed: 'runner-summary', ticks: 24 }
+    const detailed = runOne(options)
+    const summary = runSummary(options)
+    expect(summary.realGrowth).toBe(cagr(detailed))
+    expect(summary.meanAnnualInflation).toBe(meanAnnualInflation(detailed))
+    expect(summary.meanUnemployment).toBe(meanUnemployment(detailed))
+    expect(summary.finalDebtToGdp).toBe(detailed.trajectory.at(-1)!.debtToGdp)
+    expect(summary.firstDebtFreeQuarter).toBe(firstDebtFreeQuarter(detailed.trajectory))
+
+    const [batched] = runSummaryBatch({ runs: 1, ticks: 24, policy: 'passive' }).runs
+    expect(batched).not.toHaveProperty('trajectory')
+    expect(batched).not.toHaveProperty('finalState')
+    expect(batched).not.toHaveProperty('stateHash')
+  })
+
+  it('can skip an exact final-state hash when a diagnostic never reads it', () => {
+    expect(runOne({ seed: 'runner-no-hash', ticks: 2, includeStateHash: false }))
+      .not.toHaveProperty('stateHash')
   })
 })

@@ -32,3 +32,4 @@ drift. Re-measure before acting on one.
 | [0006](0006-quiet-late-growth-drivers.md) | Quiet late growth is demand-led and openness-amplified | Open |
 | [0007](0007-aggregate-versus-per-capita-growth.md) | Population decline lowers late aggregate growth but does not explain the downside | Open |
 | [0008](0008-developmental-baseline-retires-public-debt.md) | Why does the developmental baseline retire all public debt? | Resolved (baseline methodology) |
+| [0009](0009-engine-performance.md) | Why are goldens, research, shocks, and long simulations expensive? | Resolved (runner/tooling overhead) |

@@ -17,7 +17,7 @@ import { runOne, type RunResult } from '../../packages/runner/src/run'
 const SEEDS = Array.from({ length: 60 }, (_, i) => `fuel-${i}`)
 const TICKS = 24 // tax lands at q8; measure the following four years
 
-const relPrice = (r: RunResult, sector: 'agri' | 'transport') => {
+const relPrice = (r: Pick<RunResult, 'trajectory'>, sector: 'agri' | 'transport') => {
   const p = r.trajectory[TICKS - 1].prices
   return p[sector] / p.services
 }
@@ -27,8 +27,8 @@ describe('fuel tax → bread prices (emergent, not scripted)', () => {
     let higher = 0
     const gaps: number[] = []
     for (const seed of SEEDS) {
-      const base = runOne({ seed, ticks: TICKS })
-      const taxed = runOne({ seed, ticks: TICKS, script: fuelTaxAtQ8, lenient: false })
+      const base = runOne({ seed, ticks: TICKS, includeStateHash: false })
+      const taxed = runOne({ seed, ticks: TICKS, script: fuelTaxAtQ8, lenient: false, includeStateHash: false })
       const gap = relPrice(taxed, 'agri') / relPrice(base, 'agri') - 1
       gaps.push(gap)
       if (gap > 0) higher++
@@ -42,8 +42,8 @@ describe('fuel tax → bread prices (emergent, not scripted)', () => {
   it('transport — the middle link — moves hardest', () => {
     let ok = 0
     for (const seed of SEEDS.slice(0, 30)) {
-      const base = runOne({ seed, ticks: TICKS })
-      const taxed = runOne({ seed, ticks: TICKS, script: fuelTaxAtQ8, lenient: false })
+      const base = runOne({ seed, ticks: TICKS, includeStateHash: false })
+      const taxed = runOne({ seed, ticks: TICKS, script: fuelTaxAtQ8, lenient: false, includeStateHash: false })
       const transportGap = relPrice(taxed, 'transport') / relPrice(base, 'transport') - 1
       const agriGap = relPrice(taxed, 'agri') / relPrice(base, 'agri') - 1
       if (transportGap > agriGap && transportGap > 0.03) ok++

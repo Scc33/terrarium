@@ -132,7 +132,7 @@ const scenarios: readonly Scenario[] = [
 ]
 
 function sample(seed: string, scenario: Scenario): Sample {
-  const run = runOne({ seed, ticks: TICKS, policy: scenario.policy })
+  const run = runOne({ seed, ticks: TICKS, policy: scenario.policy, includeStateHash: false })
   const records = run.finalState.stats.record
   const opening = records[0]
   const readings = new Map<number, Reading>()

@@ -76,8 +76,8 @@ describe('the price bureau (§6.1 disaggregation)', () => {
 
   it('your own fuel excise prints on your own fuel board — and only there', () => {
     const opts = { ticks: 16, params: withStats(0.3), lenient: false as const }
-    const base = runOne({ seed: 'px-3', ...opts }).finalState
-    const taxed = runOne({ seed: 'px-3', ...opts, script: fuelTaxAtQ8 }).finalState
+    const base = runOne({ seed: 'px-3', ...opts, includeStateHash: false }).finalState
+    const taxed = runOne({ seed: 'px-3', ...opts, script: fuelTaxAtQ8, includeStateHash: false }).finalState
     // the quarter the excise lands (q8), the fuel board jumps with it
     const fuelJump = printAt(taxed, 'price_fuel', 8) / printAt(base, 'price_fuel', 8)
     const foodJump = printAt(taxed, 'price_food', 8) / printAt(base, 'price_food', 8)
