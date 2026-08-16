@@ -12,4 +12,10 @@ describe('Button', () => {
     expect(html).toContain('disabled=""')
     expect(html).toContain('border-dossier-warn')
   })
+
+  it('routes help copy through the shared tooltip instead of a native title', () => {
+    const html = renderToStaticMarkup(<Button title="Keep this file in the browser.">FILE</Button>)
+    expect(html).toContain('data-tooltip-trigger=""')
+    expect(html).not.toContain('title=')
+  })
 })

@@ -38,6 +38,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { Tooltip } from '../ui'
 
 interface WallTileProps {
   /** border/background — the tile's era, per the design language */
@@ -81,19 +82,21 @@ export function WallTile({ className = '', header, footer, children, bodyClassNa
   const body = <div className={`relative min-h-0 min-w-0 ${bodyClassName}`}>{children}</div>
 
   if (onClick) {
-    return (
-      <button type="button" onClick={onClick} title={title} className={`${root} text-left`}>
+    const tile = (
+      <button type="button" onClick={onClick} className={`${root} text-left`}>
         {header}
         {body}
         {footer}
       </button>
     )
+    return title ? <Tooltip content={title}>{tile}</Tooltip> : tile
   }
-  return (
-    <div className={root} title={title}>
+  const tile = (
+    <div className={root} tabIndex={title ? 0 : undefined}>
       {header}
       {body}
       {footer}
     </div>
   )
+  return title ? <Tooltip content={title}>{tile}</Tooltip> : tile
 }

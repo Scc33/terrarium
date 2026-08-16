@@ -61,9 +61,9 @@ export function ComponentGallery() {
       <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel tone="felt" title="DECISION CONTROLS" bodyClassName="space-y-3 p-3">
           <div className="flex flex-wrap gap-5">
-            <Metric inverted label="POLITICAL CAPITAL" value="18.9" detail="AFTER DRAFT" tone="accent" />
-            <Metric inverted label="BALANCE" value="−4.2" tone="danger" />
-            <Metric inverted label="ELECTION" value="6Q" />
+            <Metric inverted label="POLITICAL CAPITAL" value="18.9" detail="AFTER DRAFT" tone="accent" title="Points available for policy changes." />
+            <Metric inverted label="BALANCE" value="−4.2" tone="danger" title="Revenue minus spending this quarter." />
+            <Metric inverted label="ELECTION" value="6Q" title="Quarters until the next election." />
           </div>
           <SliderField
             label="Income tax"
@@ -76,14 +76,15 @@ export function ComponentGallery() {
             changeDisplayValue={`+${(rate * 100 - 15).toFixed(0)} PT`}
             dirty
             politicalCost={1.1}
+            hint="A tax on workers’ pay. A weak tax office collects less than the posted rate."
             onChange={(event) => setRate(Number(event.target.value))}
             onStep={(direction) => setRate((current) => Math.max(0, Math.min(0.8, current + direction * 0.01)))}
             onReset={() => setRate(0.15)}
           />
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary">ENACT &amp; ADVANCE</Button>
-            <Button variant="secondary">CLEAR DRAFT</Button>
-            <Button variant="danger">DEPOSED</Button>
+            <Button variant="primary" title="Apply the drafted changes and move to the next quarter.">ENACT &amp; ADVANCE</Button>
+            <Button variant="secondary" title="Remove every drafted change.">CLEAR DRAFT</Button>
+            <Button variant="danger" title="You are no longer in government." disabled>DEPOSED</Button>
           </div>
           <ProgressBar value={0.62} label="Political capital remaining" />
         </Panel>
@@ -93,7 +94,10 @@ export function ComponentGallery() {
             label="Chart mode"
             value={mode}
             onChange={setMode}
-            options={[{ value: 'levels', label: 'LEVELS' }, { value: 'shares', label: 'SHARES' }]}
+            options={[
+              { value: 'levels', label: 'LEVELS', title: 'Show the amount in each category.' },
+              { value: 'shares', label: 'SHARES', title: 'Show each category as part of the total.' },
+            ]}
           />
           <ChartFrame
             title="NATIONAL OUTPUT"

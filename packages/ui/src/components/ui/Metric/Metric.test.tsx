@@ -12,4 +12,10 @@ describe('Metric', () => {
   it('applies warning semantics visually', () => {
     expect(renderToStaticMarkup(<Metric label="PRINTED" value="949.5" tone="danger" />)).toContain('text-dossier-warn')
   })
+
+  it('makes an explained label a keyboard tooltip trigger', () => {
+    const html = renderToStaticMarkup(<Metric label="BALANCE" value="−4.2" title="Revenue minus spending." />)
+    expect(html).toContain('aria-label="Explain BALANCE"')
+    expect(html).not.toContain('title=')
+  })
 })

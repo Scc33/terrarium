@@ -31,6 +31,8 @@ import {
   SegmentedControl,
   StackedAreaChart,
   TimeSeriesChart,
+  Tooltip,
+  TooltipLabel,
 } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 import {
@@ -98,24 +100,26 @@ function Readout({
                 {heading}
               </div>
             )}
-            <div
-              className="flex items-baseline justify-between gap-2 py-px font-mono text-[10px] tabular-nums"
-              title={line.note}
-            >
+            <div className="flex items-baseline justify-between gap-2 py-px font-mono text-[10px] tabular-nums">
               <span className="flex min-w-0 items-baseline gap-1 truncate text-dossier-ink/70">
                 {changedHere.has(line.key) && (
-                  <span className="text-dossier-brass" aria-label="set this quarter" title="The cabinet moved this dial in this very quarter.">▸</span>
+                  <span className="text-dossier-brass" aria-label="The cabinet changed this policy in the selected quarter.">▸</span>
                 )}
-                <span className="truncate text-[9px] tracking-[0.08em]">{line.label}</span>
+                <TooltipLabel label={line.label} content={line.note} className="truncate text-[9px] tracking-[0.08em]">
+                  {line.label}
+                </TooltipLabel>
               </span>
               <span className="flex shrink-0 items-baseline gap-1.5">
                 {rule && rule.mode !== 'fixed' && (
-                  <span
+                  <TooltipLabel
+                    label={`${line.label} spending rule`}
+                    content={rule.mode === 'indexed'
+                      ? 'This amount rises with each new official inflation report.'
+                      : `This amount is recalculated as ${formatRuleValue(rule.mode, rule.value)} of the latest official output figure.`}
                     className="text-[8px] tracking-[0.1em] text-dossier-ink/45"
-                    title={`This appropriation is not a fixed cheque: it is ${formatRuleValue(rule.mode, rule.value)}, re-resolved every quarter.`}
                   >
                     {RULE_MODE_LABEL[rule.mode]}
-                  </span>
+                  </TooltipLabel>
                 )}
                 <span className="font-semibold text-dossier-ink">
                   {formatPolicyValue(line.unit, line.read(at))}
@@ -154,32 +158,32 @@ function MinuteBook({
     <ul className="flex max-h-[352px] flex-col overflow-y-auto border border-dossier-ink/20">
       {changes.map((change, i) => (
         <li key={`${change.tick}-${change.key}-${i}`}>
-          <button
-            type="button"
-            onClick={() => onSelect(change.tick)}
-            aria-current={change.tick === selectedTick}
-            className={`flex w-full items-baseline justify-between gap-2 border-b border-dossier-ink/10 px-2 py-1 text-left font-mono text-[9px] tabular-nums hover:bg-dossier-brass/15 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
-              change.tick === selectedTick ? 'bg-dossier-brass/20' : ''
-            }`}
-            title={
-              change.from === null
-                ? `${change.label} opened at ${formatPolicyValue(change.unit, change.to)} in the 1946 settlement.`
-                : `${change.label} moved from ${formatPolicyValue(change.unit, change.from)} to ${formatPolicyValue(change.unit, change.to)}. Click to scrub the record to this quarter.`
-            }
+          <Tooltip content={change.from === null
+            ? `${change.label} started at ${formatPolicyValue(change.unit, change.to)} in 1946.`
+            : `${change.label} moved from ${formatPolicyValue(change.unit, change.from)} to ${formatPolicyValue(change.unit, change.to)}. Select to view that quarter.`}
           >
-            <span className="w-[52px] shrink-0 text-dossier-ink/55">{qtrLabel(change.tick)}</span>
-            <span className="min-w-0 flex-1 truncate text-[8px] tracking-[0.08em] text-dossier-ink/75">
-              {change.label}
-              {change.rule && change.rule.mode !== 'fixed' && (
-                <span className="ml-1 text-dossier-ink/45">{RULE_MODE_LABEL[change.rule.mode]}</span>
-              )}
-            </span>
-            <span className="shrink-0 font-semibold text-dossier-ink">
-              {change.from === null
-                ? formatPolicyValue(change.unit, change.to)
-                : `${formatPolicyValue(change.unit, change.from)} → ${formatPolicyValue(change.unit, change.to)}`}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => onSelect(change.tick)}
+              aria-current={change.tick === selectedTick}
+              className={`flex w-full items-baseline justify-between gap-2 border-b border-dossier-ink/10 px-2 py-1 text-left font-mono text-[9px] tabular-nums hover:bg-dossier-brass/15 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+                change.tick === selectedTick ? 'bg-dossier-brass/20' : ''
+              }`}
+            >
+              <span className="w-[52px] shrink-0 text-dossier-ink/55">{qtrLabel(change.tick)}</span>
+              <span className="min-w-0 flex-1 truncate text-[8px] tracking-[0.08em] text-dossier-ink/75">
+                {change.label}
+                {change.rule && change.rule.mode !== 'fixed' && (
+                  <span className="ml-1 text-dossier-ink/45">{RULE_MODE_LABEL[change.rule.mode]}</span>
+                )}
+              </span>
+              <span className="shrink-0 font-semibold text-dossier-ink">
+                {change.from === null
+                  ? formatPolicyValue(change.unit, change.to)
+                  : `${formatPolicyValue(change.unit, change.from)} → ${formatPolicyValue(change.unit, change.to)}`}
+              </span>
+            </button>
+          </Tooltip>
         </li>
       ))}
     </ul>
@@ -364,16 +368,17 @@ export function PolicyOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
                   {qtrLabel(at.tick)}
                 </span>
               </div>
-              <input
-                type="range"
-                min={0}
-                max={record.length - 1}
-                value={idx}
-                onChange={(e) => setSel(Number(e.target.value))}
-                className="w-full accent-dossier-brass"
-                aria-label="Scrub the policy record"
-                title="Scrub the century — the charts mark the quarter you land on."
-              />
+              <Tooltip content="Move through time. The charts and policy list update to the quarter you choose.">
+                <input
+                  type="range"
+                  min={0}
+                  max={record.length - 1}
+                  value={idx}
+                  onChange={(e) => setSel(Number(e.target.value))}
+                  className="w-full accent-dossier-brass"
+                  aria-label="Scrub the policy record"
+                />
+              </Tooltip>
               <Readout at={at} changedHere={changedHere} />
             </div>
 

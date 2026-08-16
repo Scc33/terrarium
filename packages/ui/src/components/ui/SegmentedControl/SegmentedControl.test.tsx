@@ -29,4 +29,17 @@ describe('SegmentedControl', () => {
     expect(html).toContain('disabled=""')
     expect(html).toContain('border-dossier-brass')
   })
+
+  it('uses the shared tooltip for option explanations', () => {
+    const html = renderToStaticMarkup(
+      <SegmentedControl
+        label="Chart mode"
+        value="level"
+        options={[{ ...options[0], title: 'Show amounts.' }, options[1]]}
+        onChange={() => {}}
+      />,
+    )
+    expect(html).toContain('data-tooltip-trigger=""')
+    expect(html).not.toContain('title=')
+  })
 })

@@ -6,6 +6,14 @@ This folder is the shared, role-based interface layer for the game. Import from
 - `Button`, `SegmentedControl`, `SliderField`, and `DisclosureSection` cover game input and progressive disclosure.
 - `Metric`, `ProgressBar`, `SectionBar`, and `SectionHeading` cover dense information display.
 - `Panel`, `Modal`, `OverlayLayout`, and `EmptyState` establish layout and accessibility contracts.
+- `Tooltip` replaces native `title` bubbles. It opens on hover, focus, or tap,
+  portals past clipped tiles, flips at viewport edges, closes on Escape, and
+  gives its trigger an accessible description. `TooltipLabel` is the dotted
+  text cue for a term that is not already a control and also opens on click.
+  Ordinary controls do not leave a tooltip open after a mouse click; keyboard
+  focus still opens one immediately. Keep its copy to one or
+  two plain-language sentences answering “what is this?”; put strategy and
+  edge cases in the surrounding panel instead.
 - `useFocusTrap` keeps temporary drawers and modal paperwork keyboard-contained and restores the invoking control when they close.
 - `ChartFrame` gives every analytical figure the same title, unit, current-value,
   legend, plot-region, and accessible-summary anatomy.

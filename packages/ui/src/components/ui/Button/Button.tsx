@@ -1,4 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { Tooltip } from '../Tooltip/Tooltip'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'quiet' | 'danger'
 export type ButtonSize = 'compact' | 'standard'
@@ -32,17 +33,30 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   fullWidth = false,
   className = '',
   type = 'button',
+  title,
+  disabled,
   children,
   ...props
 }: ButtonProps, ref) {
-  return (
+  const button = (
     <button
       type={type}
       ref={ref}
+      disabled={disabled}
       className={`inline-flex items-center justify-center border font-mono font-medium tracking-[0.16em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dossier-brass disabled:cursor-not-allowed disabled:opacity-40 ${variants[variant]} ${sizes[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
       {...props}
     >
       {children}
     </button>
   )
+  if (title && disabled) {
+    return (
+      <Tooltip content={title} openOnClick>
+        <span tabIndex={0} aria-label={title} className={`inline-flex ${fullWidth ? 'w-full' : ''}`}>
+          {button}
+        </span>
+      </Tooltip>
+    )
+  }
+  return title ? <Tooltip content={title}>{button}</Tooltip> : button
 })

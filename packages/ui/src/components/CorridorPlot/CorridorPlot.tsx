@@ -17,6 +17,7 @@
 
 import type { PublishedCorridor } from '@terrarium/observation'
 import { WallTile } from '../WallTile/WallTile'
+import { Tooltip, TooltipLabel } from '../ui'
 
 // landscape: the corridor is docked in a wide, short bay, and a square
 // viewBox letterboxed itself into a third of the space it was given
@@ -61,9 +62,13 @@ export function CorridorPlot({ corridor }: { corridor: PublishedCorridor }) {
       bodyClassName="p-1"
       header={
         <div className="flex items-baseline justify-between gap-2 border-b border-map-line/30 px-3 py-1.5">
-          <span className="font-dossier text-[11px] italic tracking-wide text-map-line">
+          <TooltipLabel
+            label="The Narrow Corridor"
+            content="A healthy state is strong enough to act and checked by a strong society. Keep the dot inside the band."
+            className="font-dossier text-[11px] italic tracking-wide text-map-line"
+          >
             The Narrow Corridor
-          </span>
+          </TooltipLabel>
           <span
             className={`shrink-0 font-mono text-[9px] tabular-nums tracking-wide ${
               where.alarm ? 'text-dossier-warn' : 'text-map-line/70'
@@ -75,14 +80,16 @@ export function CorridorPlot({ corridor }: { corridor: PublishedCorridor }) {
         </div>
       }
       footer={
-        <div
-          className={`truncate border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic ${
-            where.alarm ? 'text-dossier-warn' : 'text-map-line/80'
-          }`}
-          title="State power minus societal power. Inside the band, the two check each other; outside it, one has outrun the other."
-        >
-          {where.text}
-        </div>
+        <Tooltip content="The gap between state power and society’s power to check it. Near zero means the two are balanced.">
+          <div
+            tabIndex={0}
+            className={`truncate border-t border-map-line/30 px-3 py-1 font-dossier text-[10px] italic focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+              where.alarm ? 'text-dossier-warn' : 'text-map-line/80'
+            }`}
+          >
+            {where.text}
+          </div>
+        </Tooltip>
       }
     >
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className="block h-full w-full">

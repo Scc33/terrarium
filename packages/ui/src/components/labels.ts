@@ -28,42 +28,42 @@ export interface IndicatorNames {
   short: string
   /** the capacity that has to exist before this instrument does */
   needs: string
-  /** what the number means when its accounting boundary is not obvious */
-  note?: string
+  /** a short, plain-language answer to “what does this number mean?” */
+  note: string
   /** an accounting complement displayed beside the measured share */
   complement?: string
 }
 
 export const NAMES: Record<IndicatorId, IndicatorNames> = {
-  gdp_growth: { dossier: 'REAL GDP GROWTH · %/YR', terminal: 'REAL.GDP.GRW %/YR', plate: 'REAL GDP GROWTH', short: 'REAL GDP', needs: 'NATIONAL ACCOUNTS', note: 'Annualized quarter-over-quarter growth in output at base-year prices. Inflation cannot raise this reading.' },
-  gdp_per_capita: { dossier: 'REAL GDP PER HEAD · /YR', terminal: 'REAL.GDP.PC /YR', plate: 'REAL GDP PER HEAD', short: 'GDP / HEAD', needs: 'NATIONAL ACCOUNTS', note: 'Annualized real GDP divided by the census head count: output growth after population growth is removed.' },
-  debt_to_gdp: { dossier: 'PUBLIC DEBT · % GDP', terminal: 'PUB.DEBT %GDP', plate: 'PUBLIC DEBT', short: 'DEBT/GDP', needs: 'NATIONAL ACCOUNTS', note: 'Outstanding public debt divided by the statistical office’s annualized nominal-output estimate. Above 50%, debt adds a sovereign-risk premium; at 120%, bond markets close. Inflation can lower the ratio, but does not erase the debt.' },
-  consumption_per_capita: { dossier: 'REAL CONSUMPTION PER HEAD · /YR', terminal: 'REAL.CONS.PC /YR', plate: 'REAL CONSUMPTION PER HEAD', short: 'CONS/HEAD', needs: 'HOUSEHOLD ACCOUNTS', note: 'Annualized household spending per person, deflated using each class’s own consumption basket.' },
-  household_saving_rate: { dossier: 'HOUSEHOLD SAVING · % DISPOSABLE', terminal: 'HH.SAVE %DISP', plate: 'HOUSEHOLD SAVING RATE', short: 'HH SAVING', needs: 'HOUSEHOLD ACCOUNTS', note: 'Disposable household income not consumed this quarter. Negative means households drew down savings; bond principal is excluded from income.', complement: 'SPEND' },
-  consumption_share: { dossier: 'CONSUMPTION · % FINAL EXPENDITURE', terminal: 'CONS.SHARE %', plate: 'HOUSEHOLD CONSUMPTION', short: 'CONS SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'What households bought, as a share of everything the economy’s output was for. The four expenditure shares are surveyed separately, so they need not sum to exactly 100.' },
-  investment_share: { dossier: 'CAPITAL FORMATION · % FINAL EXPENDITURE', terminal: 'INVEST.SHARE %', plate: 'CAPITAL FORMATION', short: 'INVEST SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'Private and public capital formation together — the concrete counts whoever poured it. This is the share that decides whether a century of growth compounds or is eaten.' },
-  export_share: { dossier: 'EXPORTS · % FINAL EXPENDITURE', terminal: 'EXPORT.SHARE %', plate: 'EXPORTS', short: 'EXPORT SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'Gross exports as a share of final expenditure: how much of what you make is for somebody else’s country. Imports are netted inside production, not booked against this.' },
-  fdi_inflows: { dossier: 'INWARD DIRECT INVESTMENT · % GDP', terminal: 'FDI.INFLOW %GDP', plate: 'FOREIGN DIRECT INVESTMENT', short: 'FDI IN', needs: 'BALANCE OF PAYMENTS', note: 'New foreign-owned productive capital as a share of GDP. It expands the investment order book and brings foreign currency in now; part of the profits it earns will be remitted abroad later. Small, open, catch-up economies can depend on this flow far more than large domestic markets.' },
-  inflation: { dossier: 'INFLATION · %/YR', terminal: 'CPI.INFL %/YR', plate: 'INFLATION', short: 'INFLATION', needs: 'PRICE COLLECTION' },
-  price_food: { dossier: 'FOOD PRICES · 1946=100', terminal: 'PX.FOOD IDX', plate: 'FOOD PRICES', short: 'FOOD PRICE', needs: 'PRICE BUREAU' },
-  price_fuel: { dossier: 'FUEL PRICES · 1946=100', terminal: 'PX.FUEL IDX', plate: 'FUEL PRICES', short: 'FUEL PRICE', needs: 'PRICE BUREAU' },
-  unemployment: { dossier: 'UNEMPLOYMENT · %', terminal: 'UNEMP %', plate: 'UNEMPLOYMENT', short: 'UNEMPLOY.', needs: 'LABOUR FORCE SURVEY' },
-  labor_force_participation: { dossier: 'LABOUR FORCE · % POP', terminal: 'LAB.FORCE %POP', plate: 'LABOUR FORCE PARTICIPATION', short: 'LF / POP', needs: 'LABOUR FORCE SURVEY', note: 'People in the labour force as a share of the entire census population, including children and retirees. This is the labour-force-to-population term in GDP per head, so it reveals the demographic dividend and the later ageing squeeze.' },
-  payrolls: { dossier: 'PAYROLLS EX-AGRI · M', terminal: 'PAYROLL.XA M', plate: 'PAYROLLS', short: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY' },
-  capital_stock: { dossier: 'CAPITAL STOCK · IDX', terminal: 'CAP.STOCK IDX', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY' },
-  productivity: { dossier: 'OUTPUT PER WORKER · IDX', terminal: 'PROD.LAB IDX', plate: 'OUTPUT PER WORKER', short: 'OUTPUT/WKR', needs: 'LABOUR PRODUCTIVITY ACCOUNTS', note: 'Real output divided by everyone in work, against this country’s own 1946. Counts the fields, so moving people out of subsistence raises it. Rises with better technique, with capital per worker, and with structural change — the level the technology plate beside it cannot carry, since that one is a ratio to a frontier you may be pushing yourself.' },
-  technology_attainment: { dossier: 'TECHNOLOGY ATTAINED · % FRONTIER', terminal: 'TECH.ATTAIN %FRT', plate: 'TECHNOLOGY ATTAINED', short: 'TECH LEVEL', needs: 'PRODUCTIVITY ACCOUNTS', note: 'Output-weighted productive technique already operating at home, relative to current world practice. Rising means the country is catching up; falling means the frontier is pulling away. Research accelerates adaptation when behind and original work when near the frontier.' },
-  conf_consumer: { dossier: 'CONSUMER CONFIDENCE', terminal: 'CONF.CONS IDX', plate: 'CONSUMER CONFIDENCE', short: 'CONS. CONF', needs: 'SENTIMENT SURVEYS' },
-  conf_business: { dossier: 'BUSINESS CONFIDENCE', terminal: 'CONF.BIZ IDX', plate: 'BUSINESS CONFIDENCE', short: 'BIZ. CONF', needs: 'SENTIMENT SURVEYS' },
-  approval: { dossier: 'APPROVAL POLL · %', terminal: 'APPROVAL %', plate: 'APPROVAL POLL', short: 'APPROVAL', needs: 'FIELD POLLING' },
-  gini: { dossier: 'INEQUALITY · GINI PTS', terminal: 'GINI PTS', plate: 'INCOME INEQUALITY', short: 'INEQUALITY', needs: 'HOUSEHOLD SURVEY' },
-  income_real: { dossier: 'HOUSEHOLD INCOME · IDX', terminal: 'INC.REAL IDX', plate: 'HOUSEHOLD INCOME', short: 'INCOME', needs: 'NATIONAL ACCOUNTS' },
-  birth_rate: { dossier: 'BIRTH RATE · /1000', terminal: 'BIRTH.RATE /1K', plate: 'BIRTH RATE', short: 'BIRTH RATE', needs: 'CIVIL REGISTRATION' },
-  death_rate: { dossier: 'DEATH RATE · /1000', terminal: 'DEATH.RATE /1K', plate: 'DEATH RATE', short: 'DEATH RATE', needs: 'CIVIL REGISTRATION' },
-  terms_of_trade: { dossier: 'TERMS OF TRADE · IDX', terminal: 'TERMS.TRADE IDX', plate: 'TERMS OF TRADE', short: 'TERMS TRD.', needs: 'TRADE STATISTICS' },
-  asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD' },
-  credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION' },
-  unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS' },
+  gdp_growth: { dossier: 'REAL GDP GROWTH · %/YR', terminal: 'REAL.GDP.GRW %/YR', plate: 'REAL GDP GROWTH', short: 'REAL GDP', needs: 'NATIONAL ACCOUNTS', note: 'How fast the economy’s output is growing after price rises are removed.' },
+  gdp_per_capita: { dossier: 'REAL GDP PER HEAD · /YR', terminal: 'REAL.GDP.PC /YR', plate: 'REAL GDP PER HEAD', short: 'GDP / HEAD', needs: 'NATIONAL ACCOUNTS', note: 'Inflation-adjusted output per person. It rises when output grows faster than the population.' },
+  debt_to_gdp: { dossier: 'PUBLIC DEBT · % GDP', terminal: 'PUB.DEBT %GDP', plate: 'PUBLIC DEBT', short: 'DEBT/GDP', needs: 'NATIONAL ACCOUNTS', note: 'Government debt compared with one year of output. High debt makes borrowing costlier; at 120%, markets stop lending.' },
+  consumption_per_capita: { dossier: 'REAL CONSUMPTION PER HEAD · /YR', terminal: 'REAL.CONS.PC /YR', plate: 'REAL CONSUMPTION PER HEAD', short: 'CONS/HEAD', needs: 'HOUSEHOLD ACCOUNTS', note: 'How much each person buys in a year after price rises are removed.' },
+  household_saving_rate: { dossier: 'HOUSEHOLD SAVING · % DISPOSABLE', terminal: 'HH.SAVE %DISP', plate: 'HOUSEHOLD SAVING RATE', short: 'HH SAVING', needs: 'HOUSEHOLD ACCOUNTS', note: 'The share of household income left after spending. Below zero means households are using their savings.', complement: 'SPEND' },
+  consumption_share: { dossier: 'CONSUMPTION · % FINAL EXPENDITURE', terminal: 'CONS.SHARE %', plate: 'HOUSEHOLD CONSUMPTION', short: 'CONS SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'The share of the economy’s final spending made by households.' },
+  investment_share: { dossier: 'CAPITAL FORMATION · % FINAL EXPENDITURE', terminal: 'INVEST.SHARE %', plate: 'CAPITAL FORMATION', short: 'INVEST SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'The share spent on new buildings, machines and public works. It supports future growth.' },
+  export_share: { dossier: 'EXPORTS · % FINAL EXPENDITURE', terminal: 'EXPORT.SHARE %', plate: 'EXPORTS', short: 'EXPORT SHR', needs: 'EXPENDITURE ACCOUNTS', note: 'The share of final spending bought by other countries.' },
+  fdi_inflows: { dossier: 'INWARD DIRECT INVESTMENT · % GDP', terminal: 'FDI.INFLOW %GDP', plate: 'FOREIGN DIRECT INVESTMENT', short: 'FDI IN', needs: 'BALANCE OF PAYMENTS', note: 'New foreign-owned factories and equipment compared with output. Money arrives now; some profits leave later.' },
+  inflation: { dossier: 'INFLATION · %/YR', terminal: 'CPI.INFL %/YR', plate: 'INFLATION', short: 'INFLATION', needs: 'PRICE COLLECTION', note: 'How quickly everyday prices are rising. High inflation cuts what money can buy.' },
+  price_food: { dossier: 'FOOD PRICES · 1946=100', terminal: 'PX.FOOD IDX', plate: 'FOOD PRICES', short: 'FOOD PRICE', needs: 'PRICE BUREAU', note: 'Food prices compared with 1946. A reading of 120 means food costs 20% more.' },
+  price_fuel: { dossier: 'FUEL PRICES · 1946=100', terminal: 'PX.FUEL IDX', plate: 'FUEL PRICES', short: 'FUEL PRICE', needs: 'PRICE BUREAU', note: 'Fuel prices compared with 1946. A reading of 120 means fuel costs 20% more.' },
+  unemployment: { dossier: 'UNEMPLOYMENT · %', terminal: 'UNEMP %', plate: 'UNEMPLOYMENT', short: 'UNEMPLOY.', needs: 'LABOUR FORCE SURVEY', note: 'The share of people who want a job but do not have one.' },
+  labor_force_participation: { dossier: 'LABOUR FORCE · % POP', terminal: 'LAB.FORCE %POP', plate: 'LABOUR FORCE PARTICIPATION', short: 'LF / POP', needs: 'LABOUR FORCE SURVEY', note: 'The share of the whole population who are working or looking for work.' },
+  payrolls: { dossier: 'PAYROLLS EX-AGRI · M', terminal: 'PAYROLL.XA M', plate: 'PAYROLLS', short: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY', note: 'People in paid work outside farming, in millions. It tracks the move into wage-paying jobs.' },
+  capital_stock: { dossier: 'CAPITAL STOCK · IDX', terminal: 'CAP.STOCK IDX', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY', note: 'The country’s productive buildings, machines and infrastructure compared with 1946.' },
+  productivity: { dossier: 'OUTPUT PER WORKER · IDX', terminal: 'PROD.LAB IDX', plate: 'OUTPUT PER WORKER', short: 'OUTPUT/WKR', needs: 'LABOUR PRODUCTIVITY ACCOUNTS', note: 'Output per worker compared with 1946. Better tools, skills and jobs raise it.' },
+  technology_attainment: { dossier: 'TECHNOLOGY ATTAINED · % FRONTIER', terminal: 'TECH.ATTAIN %FRT', plate: 'TECHNOLOGY ATTAINED', short: 'TECH LEVEL', needs: 'PRODUCTIVITY ACCOUNTS', note: 'How close local production methods are to today’s world best. Research helps the country catch up.' },
+  conf_consumer: { dossier: 'CONSUMER CONFIDENCE', terminal: 'CONF.CONS IDX', plate: 'CONSUMER CONFIDENCE', short: 'CONS. CONF', needs: 'SENTIMENT SURVEYS', note: 'How hopeful households feel about their finances and the economy. Low confidence can reduce spending.' },
+  conf_business: { dossier: 'BUSINESS CONFIDENCE', terminal: 'CONF.BIZ IDX', plate: 'BUSINESS CONFIDENCE', short: 'BIZ. CONF', needs: 'SENTIMENT SURVEYS', note: 'How hopeful businesses feel about the economy. Low confidence can reduce hiring and investment.' },
+  approval: { dossier: 'APPROVAL POLL · %', terminal: 'APPROVAL %', plate: 'APPROVAL POLL', short: 'APPROVAL', needs: 'FIELD POLLING', note: 'The share of voters who approve of the government.' },
+  gini: { dossier: 'INEQUALITY · GINI PTS', terminal: 'GINI PTS', plate: 'INCOME INEQUALITY', short: 'INEQUALITY', needs: 'HOUSEHOLD SURVEY', note: 'How unevenly income is shared. Higher numbers mean more inequality.' },
+  income_real: { dossier: 'HOUSEHOLD INCOME · IDX', terminal: 'INC.REAL IDX', plate: 'HOUSEHOLD INCOME', short: 'INCOME', needs: 'NATIONAL ACCOUNTS', note: 'Household income compared with 1946 after price rises are removed.' },
+  birth_rate: { dossier: 'BIRTH RATE · /1000', terminal: 'BIRTH.RATE /1K', plate: 'BIRTH RATE', short: 'BIRTH RATE', needs: 'CIVIL REGISTRATION', note: 'Births per 1,000 people each year.' },
+  death_rate: { dossier: 'DEATH RATE · /1000', terminal: 'DEATH.RATE /1K', plate: 'DEATH RATE', short: 'DEATH RATE', needs: 'CIVIL REGISTRATION', note: 'Deaths per 1,000 people each year.' },
+  terms_of_trade: { dossier: 'TERMS OF TRADE · IDX', terminal: 'TERMS.TRADE IDX', plate: 'TERMS OF TRADE', short: 'TERMS TRD.', needs: 'TRADE STATISTICS', note: 'Export prices compared with import prices. Higher means the same exports can buy more imports.' },
+  asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD', note: 'Share and property values compared with 1946. Fast gains can signal a bubble.' },
+  credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION', note: 'How quickly total lending is growing. Very fast growth can make a banking crisis more likely.' },
+  unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS', note: 'Pressure from public anger and hardship. Higher numbers mean greater risk of disorder or revolt.' },
 }
 
 /**

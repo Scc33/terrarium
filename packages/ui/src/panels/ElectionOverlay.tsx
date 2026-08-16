@@ -23,7 +23,7 @@
  */
 
 import type { BlocId, PlatformId, PublishedState } from '@terrarium/observation'
-import { Modal } from '../components/ui'
+import { Modal, Tooltip } from '../components/ui'
 import { useGame } from '../store/gameStore'
 import { BLOC_NAMES } from '../components/labels'
 
@@ -227,20 +227,20 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
                   {p.needsBloc && isChosen && !committed && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {pub.blocs.map((b) => (
-                        <button
-                          key={b.id}
-                          onClick={() =>
-                            stage('campaign', { kind: 'campaign', platform: 'coalition', bloc: b.id })
-                          }
-                          title={`Power ${(b.power * 100).toFixed(0)} of 100 · goodwill ${b.favor.toFixed(2)}`}
-                          className={`border px-1.5 py-0.5 font-mono text-[10px] ${
-                            chosenBloc === b.id
-                              ? 'border-dossier-brass bg-dossier-brass text-dossier-ink'
-                              : 'border-dossier-ink/30 text-dossier-ink/70 hover:border-dossier-brass'
-                          }`}
-                        >
-                          {BLOC_NAMES[b.id]} · {(b.power * 100).toFixed(0)}
-                        </button>
+                        <Tooltip key={b.id} content={`Influence: ${(b.power * 100).toFixed(0)} of 100. Support for you: ${b.favor >= 0 ? '+' : ''}${b.favor.toFixed(2)}.`}>
+                          <button
+                            onClick={() =>
+                              stage('campaign', { kind: 'campaign', platform: 'coalition', bloc: b.id })
+                            }
+                            className={`border px-1.5 py-0.5 font-mono text-[10px] ${
+                              chosenBloc === b.id
+                                ? 'border-dossier-brass bg-dossier-brass text-dossier-ink'
+                                : 'border-dossier-ink/30 text-dossier-ink/70 hover:border-dossier-brass'
+                            }`}
+                          >
+                            {BLOC_NAMES[b.id]} · {(b.power * 100).toFixed(0)}
+                          </button>
+                        </Tooltip>
                       ))}
                     </div>
                   )}

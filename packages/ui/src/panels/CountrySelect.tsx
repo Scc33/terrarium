@@ -20,7 +20,7 @@ import {
   type CuratedCountryId,
   type GameMode,
 } from '@terrarium/engine'
-import { Button, SegmentedControl } from '../components/ui'
+import { Button, SegmentedControl, TooltipLabel } from '../components/ui'
 import { draftKey, draftPopulation, parseCountryDocument, type CountryDocument } from '../countryDraft'
 
 const DIFFICULTY: Record<CountryDifficulty, { label: string; className: string }> = {
@@ -393,12 +393,13 @@ export function CountrySelect({
                   CABINET APPOINTMENT · FILE 46/{selected.name.toUpperCase()}
                 </div>
                 {selected.difficulty === null && (
-                  <span
+                  <TooltipLabel
+                    label="Unrated country"
+                    content="This country has not been tested enough to receive a difficulty rating. Run a study to see how it behaves."
                     className="shrink-0 border border-dossier-brass/50 px-1.5 py-0.5 font-mono text-[7px] tracking-[0.13em] text-dossier-brass"
-                    title="Difficulty stamps on the catalogue are backed by a thousand-run matrix. A country nobody has run does not get one — commission a study instead."
                   >
                     UNRATED
-                  </span>
+                  </TooltipLabel>
                 )}
               </div>
               <div className="mt-2 font-dossier text-3xl font-semibold leading-none">{selected.name}</div>

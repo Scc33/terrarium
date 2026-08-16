@@ -21,4 +21,11 @@ export {
   type ChartTrace,
   type TimeSeriesChartProps,
 } from './TimeSeriesChart/TimeSeriesChart'
+export {
+  Tooltip,
+  TooltipLabel,
+  type TooltipProps,
+  type TooltipSide,
+} from './Tooltip/Tooltip'
+export { placeTooltip } from './Tooltip/placement'
 export { useFocusTrap } from './useFocusTrap'

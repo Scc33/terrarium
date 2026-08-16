@@ -1,3 +1,5 @@
+import { Tooltip } from '../Tooltip/Tooltip'
+
 export interface SegmentOption<T extends string> {
   value: T
   label: string
@@ -22,11 +24,10 @@ export function SegmentedControl<T extends string>({
     <div className="inline-flex" role="group" aria-label={label}>
       {options.map((option) => {
         const selected = option.value === value
-        return (
+        const button = (
           <button
             key={option.value}
             type="button"
-            title={option.title}
             aria-pressed={selected}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
@@ -42,6 +43,14 @@ export function SegmentedControl<T extends string>({
           >
             {option.label}
           </button>
+        )
+        if (!option.title) return button
+        return (
+          <Tooltip key={option.value} content={option.title} openOnClick={option.disabled}>
+            {option.disabled
+              ? <span tabIndex={0} aria-label={option.title} className="inline-flex">{button}</span>
+              : button}
+          </Tooltip>
         )
       })}
     </div>
