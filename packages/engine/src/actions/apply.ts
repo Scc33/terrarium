@@ -262,7 +262,14 @@ const DIALS: Record<DialPath, DialSpec> = {
   >),
 }
 
+/** Charge the cabinet for an order. `politicalCostOfAction` remains the only
+ * place a price is computed — the `unlimitedCapital` rule does not make orders
+ * free, it stops the bill being presented. The quote is still published, the
+ * room still objects, and favour is still spent, so the whip count keeps
+ * telling the player what the move cost politically; only the budget
+ * constraint is lifted. */
 function spendPc(s: TrueState, cost: number, what: string): TrueState {
+  if (s.meta.rules.unlimitedCapital) return s
   if (s.politics.politicalCapital < cost) {
     throw new IllegalActionError(
       `not enough political capital for ${what}: need ${cost.toFixed(1)}, have ${s.politics.politicalCapital.toFixed(1)}`,

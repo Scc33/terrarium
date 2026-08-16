@@ -147,6 +147,28 @@ exported save already worked; this only gave it a format. Three things not to un
   `tests/ui/trial.test.ts` pins the two against each other, and without it the study stops being
   comparable with the published matrix.
 
+### The rules of a run (ADR-0020)
+
+`meta.rules` is a total record of independent booleans (`GAME_RULE_IDS`), chosen in the posting
+room's STANDING ORDERS and sealed into the save — never a UI preference, because each changes
+what the same country, seed, and action log produce. Today: `protectedTenure` (the old god
+mode), `fullInstrumentation` (#59), `unlimitedCapital` (#91). A fourth is one id, one branch,
+one row — but three things are load-bearing:
+
+- **A rule must be inert when it is off**, and `pnpm diff-state --moved-only` is the proof.
+  All three together moved nothing but `meta.schemaVersion`. A safety whose absence moves the
+  economy is a balance change hiding behind a switch.
+- **A rule lifts exactly one constraint.** `fullInstrumentation` lifts the funding gate in
+  `printsDue` and leaves lag, noise, and revisions to capacity — hand over the instrument, not
+  the truth, or the sandbox becomes the truth inspector and politics starts reading it.
+  `unlimitedCapital` returns early from `spendPc` only; `politicalCostOfAction` still quotes
+  every order and the blocs still spend favour.
+- **The UI has to read the rule wherever it derives access, not just where data arrives.**
+  `maturity.ts` was the miss: for the first two quarters of a fitted run nothing has returned
+  yet, so the wall called 29 instruments UNFITTED and told the player to fund surveys they
+  already had. `RULE_COPY` in `ui/src/gameRules.ts` is a total `Record`, so a new rule fails the
+  build until the posting room can explain it.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler

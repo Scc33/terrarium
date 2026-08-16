@@ -376,12 +376,20 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
 
 /** Every print of this indicator whose release date is exactly `publishedAt`.
  * Candidates are enumerated backward: for each (revision, lag) the measured
- * quarter is fixed, and the lag frozen at measurement time must match. */
+ * quarter is fixed, and the lag frozen at measurement time must match.
+ *
+ * `fullInstrumentation` fits every survey whatever the office can afford. It
+ * lifts the FUNDING gate and nothing else: the print is still lagged, still
+ * noised by `noiseScale(cap)`, and still revised, because the rule is about
+ * which instruments exist, not about how well a poor office measures. A
+ * sandbox that also handed over exact figures would be the truth inspector
+ * with extra steps, and the fog is what politics reads (§3.4). */
 function printsDue(
   spec: IndicatorSpec,
   record: StatRecord[],
   publishedAt: number,
   seed: Seed,
+  fullInstrumentation: boolean,
 ): StatPrint[] {
   const out: StatPrint[] = []
   for (let r = 0; r < REVISION_DELAYS.length; r++) {
@@ -389,7 +397,8 @@ function printsDue(
       const q = publishedAt - lag - REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
-      if (cap < INDICATOR_FUNDED_AT[spec.id]) continue // the survey didn't exist that quarter
+      // the survey didn't exist that quarter
+      if (!fullInstrumentation && cap < INDICATOR_FUNDED_AT[spec.id]) continue
       if ((spec.fastLag ? 1 : lagFor(cap)) !== lag) continue
       const truth = spec.trueValue(record, q)
       const sd =
@@ -516,7 +525,7 @@ export const statistics: PipelineStep = {
     const releaseDate = state.meta.tick + 1
     const series = { ...state.stats.series }
     for (const spec of INDICATOR_SPECS) {
-      const due = printsDue(spec, record, releaseDate, seed)
+      const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]
     }
     const rumor = rumorFor(record[record.length - 1], seed)

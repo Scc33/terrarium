@@ -27,8 +27,9 @@ the old one and update the Status line of both.
 | [0012](0012-technology-is-a-gap-not-a-tree.md) | Technology is a moving gap, not an unlock tree | Accepted |
 | [0013](0013-invention-is-a-hazard-research-is-a-stock.md) | Invention is a hazard, research is a stock | Accepted |
 | [0014](0014-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Accepted |
-| [0015](0015-game-modes-are-replay-inputs.md) | Game modes are replay inputs, not UI preferences | Accepted |
+| [0015](0015-game-modes-are-replay-inputs.md) | Game modes are replay inputs, not UI preferences | Superseded by 0020 |
 | [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Accepted |
 | [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Accepted |
 | [0018](0018-fdi-is-owned-capital.md) | Foreign direct investment is owned capital, not an openness bonus | Accepted |
 | [0019](0019-a-country-is-a-document.md) | A country is a document, and a study is what makes it a claim | Accepted |
+| [0020](0020-the-rules-of-a-run-are-a-set.md) | The rules of a run are a set of independent safeties, not a ladder of modes | Accepted |

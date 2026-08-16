@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { Action, CountryDocument, CountryScenarioId, GameMode, SaveFile } from '@terrarium/engine'
-import { parseCountryDocument } from '@terrarium/engine'
+import type { Action, CountryDocument, CountryScenarioId, GameRules, SaveFile } from '@terrarium/engine'
+import { parseCountryDocument, STANDARD_RULES } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, DevNode, WorkerMessage } from '../worker/protocol'
@@ -77,9 +77,9 @@ interface GameState {
     forDraft: string | null
   }
 
-  newGame(country: CountryScenarioId, seed?: string, mode?: GameMode): void
+  newGame(country: CountryScenarioId, seed?: string, rules?: GameRules): void
   /** start a country a player wrote */
-  newDraftedGame(document: CountryDocument, seed?: string, mode?: GameMode): void
+  newDraftedGame(document: CountryDocument, seed?: string, rules?: GameRules): void
   loadSave(save: SaveFile): void
   loadAutosave(): Promise<boolean>
   loadDrafts(): Promise<void>
@@ -213,18 +213,18 @@ export const useGame = create<GameState>((set, get) => {
       set({ pinned: next })
     },
 
-    newGame(country, seed, mode = 'standard') {
+    newGame(country, seed, rules = STANDARD_RULES) {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'new', seed: s, country, mode })
+      send({ type: 'new', seed: s, country, rules })
     },
 
-    newDraftedGame(document, seed, mode = 'standard') {
+    newDraftedGame(document, seed, rules = STANDARD_RULES) {
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'newDrafted', seed: s, document, mode })
+      send({ type: 'newDrafted', seed: s, document, rules })
     },
 
     /** A file from the records office, or the autosave. Anything that isn't

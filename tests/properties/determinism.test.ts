@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createSave, hashState, init, replay, step, validate } from '@terrarium/engine'
+import { createSave, hashState, init, replay, step, validate, STANDARD_RULES } from '@terrarium/engine'
 import { fuelTaxAtQ8, standardCountry } from '@terrarium/fixtures'
 import { runOne } from '../../packages/runner/src/run'
 import { randomPolicy } from '../../packages/runner/src/batch'
@@ -24,14 +24,24 @@ describe('replay determinism', () => {
     expect(hashState(replayed)).toBe(hashState(fresh))
   })
 
-  it('persists God mode in new saves and defaults old saves to standard', () => {
-    const protectedSave = createSave(standardCountry, 'replay-god', [], 0, 'god')
-    expect(protectedSave.mode).toBe('god')
-    expect(replay(protectedSave).meta.mode).toBe('god')
+  it('persists the run rules in new saves and reads the legacy mode on old ones', () => {
+    const sandboxSave = createSave(standardCountry, 'replay-sandbox', [], 0, {
+      fullInstrumentation: true,
+      unlimitedCapital: true,
+    })
+    expect(replay(sandboxSave).meta.rules).toEqual({
+      protectedTenure: false,
+      fullInstrumentation: true,
+      unlimitedCapital: true,
+    })
 
-    const legacySave = createSave(standardCountry, 'replay-legacy', [], 0)
-    delete legacySave.mode
-    expect(replay(legacySave).meta.mode).toBe('standard')
+    // a save written before the rule set names only the tenure rule
+    const legacyGod = { ...createSave(standardCountry, 'replay-god', [], 0), rules: undefined, mode: 'god' as const }
+    expect(replay(legacyGod).meta.rules.protectedTenure).toBe(true)
+    expect(replay(legacyGod).meta.rules.unlimitedCapital).toBe(false)
+
+    const legacySave = { ...createSave(standardCountry, 'replay-legacy', [], 0), rules: undefined }
+    expect(replay(legacySave).meta.rules).toEqual(STANDARD_RULES)
   })
 })
 

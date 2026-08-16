@@ -12,7 +12,7 @@ import type {
   CapacityId,
   DialState,
   ElectionResult,
-  GameMode,
+  GameRules,
   IndicatorId,
   InstitutionId,
   NewsItem,
@@ -33,7 +33,10 @@ export {
   BLOC_IDS,
   INSTITUTION_IDS,
   PLATFORM_IDS,
+  GAME_RULE_IDS,
+  STANDARD_RULES,
 } from '@terrarium/engine'
+export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord }
@@ -125,9 +128,9 @@ export interface PublishedState {
    * report card do, so a grade earned on a country nobody has balanced is not
    * quietly filed beside grades earned on ones that were. */
   countryAuthored: boolean
-  /** exact opening rule: the government knows whether the safety is on */
-  mode: GameMode
-  /** only funded indicators appear at all */
+  /** exact opening rules: the government knows which safeties are on */
+  rules: GameRules
+  /** only funded indicators appear at all — unless `rules.fullInstrumentation` */
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
   /** you always know your own settings */
   dials: DialState

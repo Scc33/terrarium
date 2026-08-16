@@ -35,6 +35,21 @@ describe('instrument access', () => {
     })
   })
 
+  it('a fitted survey is awaiting returns, never unfitted', () => {
+    // the `fullInstrumentation` rule. For the first two quarters of such a run
+    // nothing has returned yet, and the wall must not spend them telling the
+    // player to fund instruments the ministry has already given them
+    expect(accessForInstrument('gini', 0.05, false, true)).toMatchObject({
+      availability: 'awaiting',
+      maturity: 'unmeasured',
+      fundedAt: 0.55,
+    })
+    // capacity still decides how the instrument is DRAWN — the rule hands over
+    // the survey, not the electronics
+    expect(accessForInstrument('gini', 0.05, true, true).maturity).toBe('dossier')
+    expect(accessForInstrument('gini', 0.6, true, true).maturity).toBe('terminal')
+  })
+
   it('groups the next survey threshold into one cabinet milestone', () => {
     expect(nextInstrumentUnlock(0.18)).toEqual({
       fundedAt: 0.2,

@@ -8,10 +8,43 @@ import type { Seed } from '../rng/rng'
 export type Qtr = number // quarters since 1946Q1
 export type Money = number // base-year units
 export type Ratio = number // 0..1 unless noted
-/** Immutable rule selected before the opening state is created. `god` keeps
- * the simulation playable after a lost election, revolt, or coup while still
- * recording the underlying political result. */
+
+/**
+ * The rules of the run: safeties chosen before the opening state exists and
+ * immutable afterwards (ADR-0015, ADR-0020). Each changes what the same
+ * country, seed, and action log produce, so each is an engine input recorded
+ * in the save — never a UI preference.
+ *
+ * They are deliberately a SET of independent flags rather than a ladder of
+ * named modes. Three safeties spell eight named modes, and nobody would keep
+ * eight of them honest; a player who wants every survey without immortality
+ * is asking for one rule, not for a difficulty setting.
+ */
+export const GAME_RULE_IDS = ['protectedTenure', 'fullInstrumentation', 'unlimitedCapital'] as const
+export type GameRuleId = (typeof GAME_RULE_IDS)[number]
+export type GameRules = Record<GameRuleId, boolean>
+
+/** Ordinary play: every safety off. */
+export const STANDARD_RULES: GameRules = {
+  /** lost elections, revolts, and coups are recorded but never end the run */
+  protectedTenure: false,
+  /** the statistical office reports every survey whatever it can afford —
+   * prints stay lagged and noisy, so capacity still buys accuracy */
+  fullInstrumentation: false,
+  /** orders are still priced and the room still objects; the bill is never charged */
+  unlimitedCapital: false,
+}
+
+/** The pre-v27 spelling: one scalar for the tenure rule. Saves written before
+ * the rule set carry it, and `gameRules` maps it forward. */
 export type GameMode = 'standard' | 'god'
+
+/** Normalize whatever a caller supplied — the legacy mode string, a partial
+ * set, or nothing — into the full rule record state holds. */
+export function gameRules(input: GameMode | Partial<GameRules> = 'standard'): GameRules {
+  if (typeof input === 'string') return { ...STANDARD_RULES, protectedTenure: input === 'god' }
+  return { ...STANDARD_RULES, ...input }
+}
 
 export const SECTOR_IDS = ['agri', 'manuf', 'energy', 'services', 'transport'] as const
 export type SectorId = (typeof SECTOR_IDS)[number]
@@ -705,7 +738,7 @@ export interface TrueState {
     tick: Qtr
     seed: Seed
     /** part of the replay contract: a protected run must reload protected */
-    mode: GameMode
+    rules: GameRules
   }
   params: CountryParams
   demography: DemographyState
@@ -740,7 +773,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 26 // v26: authored countries — the params contract carries provenance
+export const SCHEMA_VERSION = 27 // v27: the game mode became a set of independent rules
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
