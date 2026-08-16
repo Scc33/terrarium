@@ -1,6 +1,5 @@
-import type { BatchResult } from './batch'
-import { firstDebtFreeQuarter } from './debt'
-import { cagr, meanAnnualInflation, meanUnemployment, summarize } from './metrics'
+import type { SummaryBatchResult } from './batch'
+import { summarize } from './metrics'
 
 function fmt(x: number): string {
   return Number.isFinite(x) ? x.toFixed(2) : String(x)
@@ -13,7 +12,7 @@ function line(label: string, s: ReturnType<typeof summarize>): void {
 }
 
 export function printReport(
-  batch: BatchResult,
+  batch: SummaryBatchResult,
   meta: { runs: number; ticks: number; policy: string; country?: string },
 ): void {
   const { runs, wallMs } = batch
@@ -32,15 +31,15 @@ export function printReport(
       deposed.length ? summarize(deposed.map((r) => r.deposedAt!)).p50.toFixed(0) : '—'
     }`,
   )
-  line('real growth %/yr', summarize(runs.map(cagr)))
-  line('mean inflation %/yr', summarize(runs.map(meanAnnualInflation)))
-  line('mean unemployment %', summarize(runs.map(meanUnemployment)))
+  line('real growth %/yr', summarize(runs.map((run) => run.realGrowth)))
+  line('mean inflation %/yr', summarize(runs.map((run) => run.meanAnnualInflation)))
+  line('mean unemployment %', summarize(runs.map((run) => run.meanUnemployment)))
   line(
     'final debt/GDP %',
-    summarize(runs.map((r) => 100 * r.trajectory[r.trajectory.length - 1].debtToGdp)),
+    summarize(runs.map((run) => 100 * run.finalDebtToGdp)),
   )
   const debtFreeQuarters = runs
-    .map((run) => firstDebtFreeQuarter(run.trajectory))
+    .map((run) => run.firstDebtFreeQuarter)
     .filter((tick): tick is number => tick !== null)
   console.log(
     `  ever debt-free: ${debtFreeQuarters.length} (${((100 * debtFreeQuarters.length) / runs.length).toFixed(0)}%), median first quarter ${
@@ -55,7 +54,7 @@ export function printReport(
       const unstable = group.filter((run) => run.nanCount > 0 || run.priceExplosions > 0).length
       const fell = group.filter((run) => run.deposedAt !== null).length
       console.log(
-        `    ${id.padEnd(12)} n=${String(group.length).padStart(4)}  unstable=${String(unstable).padStart(3)}  deposed=${((100 * fell) / group.length).toFixed(0).padStart(3)}%  growth=${fmt(summarize(group.map(cagr)).p50).padStart(6)}  inflation=${fmt(summarize(group.map(meanAnnualInflation)).p50).padStart(7)}  u=${fmt(summarize(group.map(meanUnemployment)).p50).padStart(6)}`,
+        `    ${id.padEnd(12)} n=${String(group.length).padStart(4)}  unstable=${String(unstable).padStart(3)}  deposed=${((100 * fell) / group.length).toFixed(0).padStart(3)}%  growth=${fmt(summarize(group.map((run) => run.realGrowth)).p50).padStart(6)}  inflation=${fmt(summarize(group.map((run) => run.meanAnnualInflation)).p50).padStart(7)}  u=${fmt(summarize(group.map((run) => run.meanUnemployment)).p50).padStart(6)}`,
       )
     }
   }

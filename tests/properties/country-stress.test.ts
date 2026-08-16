@@ -24,6 +24,7 @@ describe('the full country matrix', () => {
             seed: `country-matrix-${country.id}-${i}`,
             ticks: 120,
             policy,
+            includeStateHash: false,
           })
           expect(run.nanCount, `${country.id} seed ${i} produced NaN`).toBe(0)
           expect(run.priceExplosions, `${country.id} seed ${i} exploded`).toBe(0)

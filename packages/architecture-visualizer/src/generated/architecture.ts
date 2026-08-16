@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "d42aeec",
+  "revision": "7c1aa07",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 31,
-      "lines": 7664
+      "lines": 7686
     },
     {
       "id": "fixtures",
@@ -32,14 +32,14 @@ export const architecture = {
       "name": "@terrarium/runner",
       "description": "Headless execution and balance sweeps over the same public engine API.",
       "moduleCount": 11,
-      "lines": 1924
+      "lines": 2052
     },
     {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 73,
-      "lines": 11153
+      "moduleCount": 74,
+      "lines": 11313
     }
   ],
   "modules": [
@@ -1988,6 +1988,7 @@ export const architecture = {
         "packages/ui/src/panels/DevConsole.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/policyRecord.ts",
+        "packages/ui/src/saveFile.ts",
         "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
@@ -2721,7 +2722,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 531,
+      "lines": 536,
       "exports": [
         {
           "name": "INDICATOR_SPECS",
@@ -2733,7 +2734,7 @@ export const architecture = {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 514
+          "line": 519
         }
       ],
       "imports": [
@@ -2874,7 +2875,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Randomness",
       "summary": "RNG discipline (§6 of the architecture doc): one root seed; every consumer derives a named substream keyed by (seed, label, tick). A step's draws are isolated — adding a draw in one step never shifts another step's sequence.",
-      "lines": 67,
+      "lines": 84,
       "exports": [
         {
           "name": "Seed",
@@ -2892,7 +2893,7 @@ export const architecture = {
           "name": "rngFor",
           "kind": "function",
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 51
+          "line": 77
         }
       ],
       "imports": [],
@@ -3780,25 +3781,55 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Batch runner — the balance dashboard's data source and the M0 DoD probe: N random-policy runs, wall time, NaN count, explosion count.",
-      "lines": 82,
+      "lines": 115,
       "exports": [
         {
           "name": "BatchResult",
           "kind": "interface",
           "path": "packages/runner/src/batch.ts",
-          "line": 17
+          "line": 24
         },
         {
           "name": "BatchRunResult",
           "kind": "type",
           "path": "packages/runner/src/batch.ts",
-          "line": 24
+          "line": 31
+        },
+        {
+          "name": "UnhashedBatchRunResult",
+          "kind": "type",
+          "path": "packages/runner/src/batch.ts",
+          "line": 32
+        },
+        {
+          "name": "SummaryBatchResult",
+          "kind": "type",
+          "path": "packages/runner/src/batch.ts",
+          "line": 33
+        },
+        {
+          "name": "BatchOptions",
+          "kind": "interface",
+          "path": "packages/runner/src/batch.ts",
+          "line": 35
         },
         {
           "name": "runBatch",
           "kind": "function",
           "path": "packages/runner/src/batch.ts",
-          "line": 26
+          "line": 68
+        },
+        {
+          "name": "runBatchWithoutHashes",
+          "kind": "function",
+          "path": "packages/runner/src/batch.ts",
+          "line": 80
+        },
+        {
+          "name": "runSummaryBatch",
+          "kind": "function",
+          "path": "packages/runner/src/batch.ts",
+          "line": 89
         }
       ],
       "imports": [
@@ -3864,7 +3895,6 @@ export const architecture = {
         "packages/engine/src/index.ts"
       ],
       "importedBy": [
-        "packages/runner/src/report.ts",
         "packages/runner/src/run.ts"
       ],
       "path": "packages/runner/src/debt.ts",
@@ -4065,18 +4095,17 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "",
-      "lines": 71,
+      "lines": 70,
       "exports": [
         {
           "name": "printReport",
           "kind": "function",
           "path": "packages/runner/src/report.ts",
-          "line": 15
+          "line": 14
         }
       ],
       "imports": [
         "packages/runner/src/batch.ts",
-        "packages/runner/src/debt.ts",
         "packages/runner/src/metrics.ts"
       ],
       "importedBy": [
@@ -4090,56 +4119,86 @@ export const architecture = {
       "label": "run",
       "packageId": "runner",
       "category": "Headless runner",
-      "summary": "Single headless run: seed + script → trajectory. The trajectory is the unit every metric, property test, and balance report is computed from.",
-      "lines": 250,
+      "summary": "Single headless run: seed + script → trajectory or streamed summary. The detailed trajectory remains the unit for property and stability analysis; the ordinary batch report reduces it as the simulation runs.",
+      "lines": 346,
       "exports": [
         {
           "name": "TrajectoryPoint",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 28
+          "line": 29
         },
         {
           "name": "MacroDrivers",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 53
+          "line": 54
         },
         {
           "name": "MacroEvent",
           "kind": "type",
           "path": "packages/runner/src/run.ts",
-          "line": 72
+          "line": 73
         },
         {
           "name": "RunResult",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 81
+          "line": 82
+        },
+        {
+          "name": "RunResultWithoutHash",
+          "kind": "type",
+          "path": "packages/runner/src/run.ts",
+          "line": 97
+        },
+        {
+          "name": "RunSummary",
+          "kind": "interface",
+          "path": "packages/runner/src/run.ts",
+          "line": 102
         },
         {
           "name": "RunOptions",
           "kind": "interface",
           "path": "packages/runner/src/run.ts",
-          "line": 96
+          "line": 118
         },
         {
           "name": "eventsBetween",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 110
+          "line": 135
         },
         {
           "name": "trajectoryPoint",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 132
+          "line": 161
         },
         {
           "name": "runOne",
           "kind": "function",
           "path": "packages/runner/src/run.ts",
-          "line": 200
+          "line": 299
+        },
+        {
+          "name": "runOne",
+          "kind": "function",
+          "path": "packages/runner/src/run.ts",
+          "line": 300
+        },
+        {
+          "name": "runOne",
+          "kind": "function",
+          "path": "packages/runner/src/run.ts",
+          "line": 301
+        },
+        {
+          "name": "runSummary",
+          "kind": "function",
+          "path": "packages/runner/src/run.ts",
+          "line": 309
         }
       ],
       "imports": [
@@ -4390,7 +4449,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 321,
+      "lines": 326,
       "exports": [
         {
           "name": "App",
@@ -6138,7 +6197,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The posting room: choose which country's 1946 settlement to inherit before the worker creates any true state. This is game furniture, not a settings form — six dossiers, one sealed appointment.",
-      "lines": 519,
+      "lines": 538,
       "exports": [
         {
           "name": "CountrySelect",
@@ -6486,7 +6545,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Records office: saves in, saves out, and the drastic drawer.",
-      "lines": 73,
+      "lines": 77,
       "exports": [
         {
           "name": "SettingsOverlay",
@@ -6769,6 +6828,43 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/saveFile.ts",
+      "label": "saveFile",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Whether a save this browser is still holding can be opened, and what to say when it can't.",
+      "lines": 74,
+      "exports": [
+        {
+          "name": "looksLikeSave",
+          "kind": "function",
+          "path": "packages/ui/src/saveFile.ts",
+          "line": 33
+        },
+        {
+          "name": "saveSchema",
+          "kind": "function",
+          "path": "packages/ui/src/saveFile.ts",
+          "line": 48
+        },
+        {
+          "name": "unreadableSaveMessage",
+          "kind": "function",
+          "path": "packages/ui/src/saveFile.ts",
+          "line": 71
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/worker/sim.worker.ts"
+      ],
+      "path": "packages/ui/src/saveFile.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/shares.ts",
       "label": "shares",
       "packageId": "ui",
@@ -6939,13 +7035,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "",
-      "lines": 332,
+      "lines": 361,
       "exports": [
         {
           "name": "useGame",
           "kind": "constant",
           "path": "packages/ui/src/store/gameStore.ts",
-          "line": 113
+          "line": 117
         }
       ],
       "imports": [
@@ -6955,6 +7051,7 @@ export const architecture = {
         "packages/observation/src/index.ts",
         "packages/ui/src/countryDraft.ts",
         "packages/ui/src/devScenario.ts",
+        "packages/ui/src/saveFile.ts",
         "packages/ui/src/store/db.ts",
         "packages/ui/src/wallPlan.ts",
         "packages/ui/src/worker/protocol.ts",
@@ -7106,7 +7203,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The single shared contract between UI and sim worker (§1.1). Payloads are typed exclusively with PublishedState, action types, and save files — the true state never crosses this boundary.",
-      "lines": 64,
+      "lines": 69,
       "exports": [
         {
           "name": "ClientMessage",
@@ -7124,7 +7221,7 @@ export const architecture = {
           "name": "DevNode",
           "kind": "interface",
           "path": "packages/ui/src/worker/protocol.ts",
-          "line": 58
+          "line": 63
         }
       ],
       "imports": [
@@ -7147,12 +7244,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (§6.1 of the design doc).",
-      "lines": 284,
+      "lines": 308,
       "exports": [],
       "imports": [
         "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/devScenario.ts",
+        "packages/ui/src/saveFile.ts",
         "packages/ui/src/worker/protocol.ts",
         "packages/ui/src/worker/trial.ts"
       ],
@@ -8070,11 +8168,6 @@ export const architecture = {
       "source": "packages/runner/src/report.ts",
       "target": "packages/runner/src/batch.ts",
       "typeOnly": true
-    },
-    {
-      "source": "packages/runner/src/report.ts",
-      "target": "packages/runner/src/debt.ts",
-      "typeOnly": false
     },
     {
       "source": "packages/runner/src/report.ts",
@@ -9082,6 +9175,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/saveFile.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/spendingRules.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": true
@@ -9120,6 +9218,11 @@ export const architecture = {
       "source": "packages/ui/src/store/gameStore.ts",
       "target": "packages/ui/src/devScenario.ts",
       "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/store/gameStore.ts",
+      "target": "packages/ui/src/saveFile.ts",
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/store/gameStore.ts",
@@ -9183,6 +9286,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/worker/sim.worker.ts",
+      "target": "packages/ui/src/saveFile.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/worker/sim.worker.ts",
       "target": "packages/ui/src/worker/protocol.ts",
       "typeOnly": true
     },
@@ -9219,7 +9327,7 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 20,
+      "count": 21,
       "typeOnlyCount": 7
     },
     {
@@ -9744,11 +9852,11 @@ export const architecture = {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 514
+          "line": 519
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 514
+      "line": 519
     },
     {
       "order": 16,
@@ -9805,7 +9913,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 515
+          "line": 520
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",
@@ -9824,7 +9932,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/ui/src/worker/sim.worker.ts",
-          "line": 32
+          "line": 33
         },
         {
           "path": "packages/ui/src/worker/protocol.ts",
@@ -9858,7 +9966,7 @@ export const architecture = {
         },
         {
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 51
+          "line": 77
         }
       ]
     }

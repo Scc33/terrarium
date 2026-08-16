@@ -4,7 +4,7 @@
  */
 
 import { COUNTRY_CATALOG, END_OF_HISTORY_TICK, type CountryScenarioId } from '@terrarium/engine'
-import { runBatch } from './batch'
+import { runBatchWithoutHashes } from './batch'
 import { POLICY_IDS, type PolicyId } from './policies'
 import { analyzeStability } from './stability'
 import { printStabilityReport } from './stability-report'
@@ -44,7 +44,7 @@ const policies: readonly PolicyId[] = requestedPolicy === 'all'
 
 for (const policy of policies) {
   const started = performance.now()
-  const batch = runBatch({
+  const batch = runBatchWithoutHashes({
     runs,
     ticks,
     policy,

@@ -61,14 +61,16 @@ A passing golden diff is necessary, not sufficient — 40 quarters hides century
 ```bash
 pnpm batch -- --runs 1000 --ticks 120 --policy random
 pnpm batch -- --runs 1000 --ticks 400 --policy passive
-NODE_OPTIONS=--max-old-space-size=8192 pnpm batch -- --runs 1000 --ticks 400 --policy developmental
+pnpm batch -- --runs 1000 --ticks 400 --policy developmental
 pnpm stability -- --runs 120 --policy all --country all
 ```
 
 Medians from 1000 runs on `country=baseline`, re-measured for schema 24 on 2026-08-15. The
-developmental command needs the larger heap because the batch CLI retains every trajectory and
-capacity action until it prints the report. Re-measure rather than trusting these — they drift,
-and a stale baseline is worse than none because it invites you to "fix" an engine that was fine.
+ordinary batch CLI streams each trajectory into one aggregate row, so even the developmental
+century no longer needs a larger heap. The stability CLI still retains detailed trajectories
+because its event windows and driver decompositions consume them. Re-measure rather than trusting
+these — they drift, and a stale baseline is worse than none because it invites you to "fix" an
+engine that was fine.
 
 **Healthy passive century:** growth ≈ 2.70%/yr · inflation ≈ 0.11% · unemployment ≈ 11.90% ·
 **7% deposed** by 400q (median quarter 352).

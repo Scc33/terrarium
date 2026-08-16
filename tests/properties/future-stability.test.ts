@@ -16,6 +16,7 @@ describe('the playable economy through 2050', () => {
             seed: `future-stability-${country.id}-${index}-${name}`,
             ticks: 416,
             policy,
+            includeStateHash: false,
           }),
         ),
       )

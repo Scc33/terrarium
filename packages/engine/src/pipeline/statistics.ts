@@ -363,7 +363,12 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
   // spread the dials rather than name them: a lever added to the cabinet is
   // recorded from the day it exists, with no second list to keep in step
   return {
-    ...structuredClone(gov.dials),
+    ...gov.dials,
+    // These are the only nested dial records. Clone them explicitly rather
+    // than asking structuredClone to discover that shape every quarter; the
+    // spread above still makes a future top-level lever part of the record.
+    taxRates: { ...gov.dials.taxRates },
+    spending: { ...gov.dials.spending },
     subsidies,
     rules,
   }

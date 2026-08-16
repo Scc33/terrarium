@@ -19,13 +19,14 @@ describe('farm subsidy in a low-capacity state', () => {
     let harmed = 0
     for (const seed of SEEDS) {
       const gdp0 = init(standardCountry, seed).flows.nominalGdp
-      const base = runOne({ seed, ticks: TICKS, params: standardCountry })
+      const base = runOne({ seed, ticks: TICKS, params: standardCountry, includeStateHash: false })
       const sub = runOne({
         seed,
         ticks: TICKS,
         params: standardCountry,
         script: agriSubsidyAtQ8(gdp0),
         lenient: false,
+        includeStateHash: false,
       })
       const last = TICKS - 1
       const debtWorse = sub.trajectory[last].debtToGdp > base.trajectory[last].debtToGdp + 0.02
