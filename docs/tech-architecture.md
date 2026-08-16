@@ -364,6 +364,12 @@ Use `--policy passive|developmental|random|all` and `--country baseline|all|<rec
 a sweep. The opening comparison starts in 1956 because exact goldens own the first decade's
 initialization convergence.
 
+Bulk runners retain only what their report consumes. `runOne` still returns a detailed
+trajectory and exact final-state hash by default; `pnpm batch` streams each trajectory into a
+single aggregate row, while `pnpm stability` retains the detailed trajectories but skips the
+unused final-state hashes. These are runner storage choices only — every path executes the same
+engine ticks and policy actions.
+
 The named `developmental` policy isolates the effect of repeatedly building all four state
 capacities; it deliberately leaves the inherited fixed-cash programme rules alone and is not a
 historical fiscal baseline. `pnpm debt-baselines -- --runs 200 --ticks 400` pairs it with

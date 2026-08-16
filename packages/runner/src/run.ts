@@ -1,6 +1,7 @@
 /**
- * Single headless run: seed + script → trajectory. The trajectory is the
- * unit every metric, property test, and balance report is computed from.
+ * Single headless run: seed + script → trajectory or streamed summary. The
+ * detailed trajectory remains the unit for property and stability analysis;
+ * the ordinary batch report reduces it as the simulation runs.
  */
 
 import {
@@ -23,7 +24,7 @@ import {
   type SectorId,
   type TrueState,
 } from '@terrarium/engine'
-import { debtToGdp } from './debt'
+import { DEBT_FREE_RATIO, debtToGdp } from './debt'
 
 export interface TrajectoryPoint {
   tick: number
@@ -93,6 +94,27 @@ export interface RunResult {
   deposedAt: number | null
 }
 
+export type RunResultWithoutHash = Omit<RunResult, 'stateHash'>
+
+/** The ordinary batch report only needs one aggregate row per simulation.
+ * Keeping these values instead of the full diagnostic trajectory makes its
+ * memory proportional to runs, rather than runs × quarters. */
+export interface RunSummary {
+  seed: string
+  countryId: RunResult['countryId']
+  country: string
+  ticks: number
+  realGrowth: number
+  meanAnnualInflation: number
+  meanUnemployment: number
+  finalDebtToGdp: number
+  firstDebtFreeQuarter: number | null
+  nanCount: number
+  priceExplosions: number
+  illegalActionsSkipped: number
+  deposedAt: number | null
+}
+
 export interface RunOptions {
   seed: string
   ticks: number
@@ -105,6 +127,9 @@ export interface RunOptions {
   /** tolerate illegal scripted/policy actions by skipping them (default true;
    * golden replays set false) */
   lenient?: boolean
+  /** Exact state hashing serializes the full statistical archive. Keep it on
+   * by default for callers that compare runs; bulk diagnostics can opt out. */
+  includeStateHash?: boolean
 }
 
 export function eventsBetween(before: TrueState, after: TrueState): MacroEvent[] {
@@ -121,21 +146,35 @@ export function eventsBetween(before: TrueState, after: TrueState): MacroEvent[]
   // Energy ruptures do not leave a dedicated state flag: the world step
   // immediately begins reverting the jumped price. The onset wire item is
   // therefore the durable runner-visible event marker.
-  const newWire = after.stats.news.slice(before.stats.news.length)
-  if (newWire.some((item) => item.text === 'Crisis abroad: world fuel markets are in tumult.')) {
-    events.push('fuel')
+  let fuel = false
+  let worldCrisis = false
+  for (let i = before.stats.news.length; i < after.stats.news.length; i++) {
+    const text = after.stats.news[i].text
+    if (text === 'Crisis abroad: world fuel markets are in tumult.') fuel = true
+    if (WORLD_CRISIS_NEWS.has(text)) worldCrisis = true
   }
-  if (newWire.some((item) => WORLD_CRISIS_NEWS.has(item.text))) events.push('world_crisis')
+  if (fuel) events.push('fuel')
+  if (worldCrisis) events.push('world_crisis')
   return events
 }
 
 export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
   const prices = {} as Record<SectorId, number>
   for (const sid of SECTOR_IDS) prices[sid] = s.market.prices[sid]
-  const firstPrint = (id: 'inflation' | 'gdp_growth'): number | null =>
-    s.stats.series[id]
-      ?.find((print) => print.publishedAt === s.meta.tick && print.revision === 0)
-      ?.value ?? null
+  const firstPrint = (id: 'inflation' | 'gdp_growth'): number | null => {
+    const series = s.stats.series[id]
+    if (!series || series.length === 0) return null
+    // Prints are appended in release-date order. Search the newest handful,
+    // not the office's entire century-long archive, for today's first print.
+    let firstToday = series.length - 1
+    if (series[firstToday].publishedAt !== s.meta.tick) return null
+    while (firstToday > 0 && series[firstToday - 1].publishedAt === s.meta.tick) firstToday--
+    for (let i = firstToday; i < series.length; i++) {
+      const print = series[i]
+      if (print.revision === 0) return print.value
+    }
+    return null
+  }
   const employment = s.sectors.reduce((sum, sector) => sum + sector.employment, 0)
   const population = s.demography.pyramid.reduce((sum, size) => sum + size, 0)
   const potential = s.sectors.reduce((sum, sector) => sum + potentialOutput(sector), 0)
@@ -197,7 +236,19 @@ export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryP
   }
 }
 
-export function runOne(opts: RunOptions): RunResult {
+interface SimulationResult {
+  seed: string
+  countryId: RunResult['countryId']
+  country: string
+  ticks: number
+  finalState: TrueState
+  nanCount: number
+  priceExplosions: number
+  illegalActionsSkipped: number
+  deposedAt: number | null
+}
+
+function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): SimulationResult {
   const countryId = opts.params ? 'custom' : (opts.country ?? 'baseline')
   const params = opts.params ?? (opts.country ? createCountryParams(opts.country, opts.seed) : generateParams(opts.seed))
   const byTick = new Map<number, Action[]>()
@@ -205,7 +256,6 @@ export function runOne(opts: RunOptions): RunResult {
   const lenient = opts.lenient !== false
 
   let s = init(params, opts.seed)
-  const trajectory: TrajectoryPoint[] = []
   let nanCount = 0
   let priceExplosions = 0
   let illegalActionsSkipped = 0
@@ -225,7 +275,7 @@ export function runOne(opts: RunOptions): RunResult {
     const before = s
     s = step(s)
     const p = trajectoryPoint(s, eventsBetween(before, s))
-    trajectory.push(p)
+    onPoint(p)
     for (const v of [p.realGdp, p.nominalGdp, p.inflationQ, p.unemployment, ...Object.values(p.prices)]) {
       if (!Number.isFinite(v)) nanCount++
     }
@@ -238,12 +288,58 @@ export function runOne(opts: RunOptions): RunResult {
     countryId,
     country: params.name,
     ticks: opts.ticks,
-    trajectory,
     finalState: s,
-    stateHash: hashState(s),
     nanCount,
     priceExplosions,
     illegalActionsSkipped,
     deposedAt,
+  }
+}
+
+export function runOne(opts: RunOptions & { includeStateHash: false }): RunResultWithoutHash
+export function runOne(opts: RunOptions): RunResult
+export function runOne(opts: RunOptions): RunResult | RunResultWithoutHash {
+  const trajectory: TrajectoryPoint[] = []
+  const result = simulate(opts, (point) => trajectory.push(point))
+  const unhashed: RunResultWithoutHash = { ...result, trajectory }
+  if (opts.includeStateHash === false) return unhashed
+  return { ...unhashed, stateHash: hashState(result.finalState) }
+}
+
+export function runSummary(opts: RunOptions): RunSummary {
+  let first: TrajectoryPoint | undefined
+  let last: TrajectoryPoint | undefined
+  let inflationSum = 0
+  let unemploymentSum = 0
+  let points = 0
+  let firstDebtFreeQuarter: number | null = null
+  const result = simulate(opts, (point) => {
+    first ??= point
+    last = point
+    inflationSum += point.inflationQ
+    unemploymentSum += point.unemployment
+    points++
+    if (firstDebtFreeQuarter === null && point.debtToGdp <= DEBT_FREE_RATIO) {
+      firstDebtFreeQuarter = point.tick
+    }
+  })
+  const years = first && last ? (last.tick - first.tick) / 4 : 0
+  const realGrowth = years > 0 && first!.realGdp > 0
+    ? (Math.pow(last!.realGdp / first!.realGdp, 1 / years) - 1) * 100
+    : 0
+  return {
+    seed: result.seed,
+    countryId: result.countryId,
+    country: result.country,
+    ticks: result.ticks,
+    realGrowth,
+    meanAnnualInflation: (inflationSum / Math.max(points, 1)) * 4 * 100,
+    meanUnemployment: (unemploymentSum / Math.max(points, 1)) * 100,
+    finalDebtToGdp: last?.debtToGdp ?? Number.NaN,
+    firstDebtFreeQuarter,
+    nanCount: result.nanCount,
+    priceExplosions: result.priceExplosions,
+    illegalActionsSkipped: result.illegalActionsSkipped,
+    deposedAt: result.deposedAt,
   }
 }
