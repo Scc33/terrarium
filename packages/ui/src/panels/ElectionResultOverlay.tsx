@@ -42,7 +42,7 @@ export function ElectionResultOverlay({
               ? 'RETURNED — UNOPPOSED'
               : r.won
                 ? 'RETURNED'
-                : pub.mode === 'god'
+                : pub.rules.protectedTenure
                   ? 'DEFEATED — GOD MODE'
                   : 'DEFEATED'}
           </div>
@@ -95,7 +95,7 @@ export function ElectionResultOverlay({
             ? 'The result was never in doubt; that is precisely what the historians will record. A mandate taken is not a mandate given, and the Legitimacy grade counts them separately.'
             : r.won
               ? 'A mandate, for sixteen more quarters. What you spent to get it comes due over the same period.'
-              : pub.mode === 'god'
+              : pub.rules.protectedTenure
                 ? 'The electorate has withdrawn its consent. God mode records the defeat, resets the electoral clock, and keeps the simulation under your control.'
                 : 'The electorate has withdrawn its consent. The country, of course, carries on without you.'}
         </p>

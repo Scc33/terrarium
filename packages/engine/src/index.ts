@@ -1,10 +1,10 @@
 /**
  * The whole engine is three functions (§2):
  *
- *   let s = init(params, seed, mode)
+ *   let s = init(params, seed, rules)
  *   for (const turn of actionLog) s = step(applyActions(s, turn.actions))
  *
- * All pure. The save file is literally {version, params, seed, mode, actionLog}.
+ * All pure. The save file is literally {version, params, seed, rules, actionLog}.
  */
 
 import { applyAction } from './actions/apply'
@@ -14,14 +14,20 @@ import { init as initState } from './state/init'
 import {
   ENGINE_VERSION,
   SCHEMA_VERSION,
+  gameRules,
   type CountryParams,
   type GameMode,
+  type GameRules,
   type TrueState,
 } from './state/schema'
 import type { Seed } from './rng/rng'
 
-export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standard'): TrueState {
-  return initState(params, seed, mode)
+export function init(
+  params: CountryParams,
+  seed: Seed,
+  rules: GameMode | Partial<GameRules> = 'standard',
+): TrueState {
+  return initState(params, seed, rules)
 }
 
 export function applyActions(s: TrueState, actions: Action[]): TrueState {
@@ -40,7 +46,11 @@ export interface SaveFile {
   actionLog: ActionLog
   /** the quarter the game had reached — action-free quarters count too */
   tick: number
-  /** Optional only so pre-v21 saves remain loadable; new saves always write it. */
+  /** The run's safeties. Optional only so older saves remain loadable; new
+   * saves always write it. */
+  rules?: GameRules
+  /** The pre-v27 tenure scalar. Read when `rules` is absent, never written —
+   * a save from before the rule set still has to reload protected. */
   mode?: GameMode
 }
 
@@ -49,14 +59,21 @@ export function createSave(
   seed: Seed,
   actionLog: ActionLog,
   tick: number,
-  mode: GameMode = 'standard',
+  rules: GameMode | Partial<GameRules> = 'standard',
 ): SaveFile {
-  return { version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION }, params, seed, actionLog, tick, mode }
+  return {
+    version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION },
+    params,
+    seed,
+    actionLog,
+    tick,
+    rules: gameRules(rules),
+  }
 }
 
 /** Replay a save to its current state. Deterministic by construction. */
 export function replay(save: SaveFile, untilTick?: number): TrueState {
-  let s = init(save.params, save.seed, save.mode ?? 'standard')
+  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard')
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
   const end = untilTick ?? save.tick
   while (s.meta.tick < end) {
@@ -107,6 +124,9 @@ export {
   SECTOR_IDS,
   COHORT_IDS,
   CAPACITY_IDS,
+  GAME_RULE_IDS,
+  STANDARD_RULES,
+  gameRules,
   INDICATOR_IDS,
   INSTITUTION_IDS,
   BLOC_IDS,
@@ -131,6 +151,8 @@ export type {
   DialState,
   ElectionResult,
   GameMode,
+  GameRuleId,
+  GameRules,
   GovernmentState,
   IndicatorId,
   InstitutionId,

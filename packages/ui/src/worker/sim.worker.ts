@@ -8,7 +8,9 @@ import {
   countryFromDocument,
   createSave,
   createCountryParams,
+  gameRules,
   init,
+  STANDARD_RULES,
   step,
   END_OF_HISTORY_TICK,
   IllegalActionError,
@@ -19,6 +21,7 @@ import {
   type CountryParams,
   type CountryScenarioId,
   type GameMode,
+  type GameRules,
   type TrueState,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
@@ -30,7 +33,7 @@ let state: TrueState | null = null
 let params: CountryParams | null = null
 let seed = ''
 let actionLog: ActionLog = []
-let mode: GameMode = 'standard'
+let rules: GameRules = STANDARD_RULES
 
 const post = (m: WorkerMessage) => postMessage(m)
 
@@ -39,15 +42,15 @@ function publish(): void {
   post({
     type: 'published',
     published: observe(state),
-    save: createSave(params, seed, actionLog, state.meta.tick, mode),
+    save: createSave(params, seed, actionLog, state.meta.tick, rules),
   })
 }
 
-function startNew(newSeed: string, country: CountryScenarioId, newMode: GameMode): void {
+function startNew(newSeed: string, country: CountryScenarioId, newRules: GameRules): void {
   seed = newSeed
-  mode = newMode
+  rules = newRules
   params = createCountryParams(country, seed)
-  state = init(params, seed, mode)
+  state = init(params, seed, rules)
   actionLog = []
   publish()
 }
@@ -55,11 +58,11 @@ function startNew(newSeed: string, country: CountryScenarioId, newMode: GameMode
 /** Start a country a player wrote. Identical to `startNew` in every respect
  * except where the vector came from — same init, same pipeline, same RNG — so
  * the save it produces is an ordinary save and replays anywhere. */
-function startDrafted(newSeed: string, document: CountryDocument, newMode: GameMode): void {
+function startDrafted(newSeed: string, document: CountryDocument, newRules: GameRules): void {
   seed = newSeed
-  mode = newMode
+  rules = newRules
   params = countryFromDocument(document)
-  state = init(params, seed, mode)
+  state = init(params, seed, rules)
   actionLog = []
   publish()
 }
@@ -89,13 +92,14 @@ function load(save: {
   seed: string
   actionLog: ActionLog
   tick: number
+  rules?: GameRules
   mode?: GameMode
 }): void {
   seed = save.seed
-  mode = save.mode ?? 'standard'
+  rules = gameRules(save.rules ?? save.mode ?? 'standard')
   params = save.params
   actionLog = save.actionLog
-  state = init(params, seed, mode)
+  state = init(params, seed, rules)
   const byTick = new Map(actionLog.map((t) => [t.tick, t.actions]))
   while (state.meta.tick < save.tick) {
     const acts = byTick.get(state.meta.tick)
@@ -155,7 +159,9 @@ function previewCost(actions: Parameters<typeof applyActions>[1]): void {
     // Legality and affordability are separate. Validate against an unlimited
     // cabinet so an unaffordable proposal still gets an honest finite quote.
     applyActions({ ...state, politics: { ...state.politics, politicalCapital: Number.POSITIVE_INFINITY } }, actions)
-    const affordable = cost <= available
+    // …which is also what a sandbox cabinet is. The quote is still real — the
+    // room's objection is the information — but nothing is ever unaffordable.
+    const affordable = rules.unlimitedCapital || cost <= available
     post({
       type: 'preview',
       cost,
@@ -229,9 +235,9 @@ function handleDev(msg: ClientMessage): void {
  */
 function devScenario(sc: DevScenario): void {
   seed = sc.seed
-  mode = 'standard'
+  rules = STANDARD_RULES
   params = applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc)
-  state = init(params, seed, mode)
+  state = init(params, seed, rules)
   actionLog = []
   const target = tickForYear(sc.year, END_OF_HISTORY_TICK)
   while (state.meta.tick < target) state = step(state)
@@ -250,10 +256,10 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     }
     switch (msg.type) {
       case 'new':
-        startNew(msg.seed, msg.country, msg.mode)
+        startNew(msg.seed, msg.country, msg.rules)
         break
       case 'newDrafted':
-        startDrafted(msg.seed, msg.document, msg.mode)
+        startDrafted(msg.seed, msg.document, msg.rules)
         break
       case 'trial':
         trial(msg.document, msg.baseSeed)

@@ -22,6 +22,7 @@ import { Button, Metric, ProgressBar, SegmentedControl, SliderField } from '../c
 import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, INSTITUTION_NAMES } from '../components/labels'
 import { dialIncidence, type Incidence } from '../incidence'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
+import { capitalReading } from '../gameRules'
 import {
   currentRuleValue,
   equivalentRuleValue,
@@ -374,6 +375,23 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
     ? INDICATOR_IDS.filter((indicator) => instrumentAccess[indicator].availability === 'awaiting').length
     : 0
   const nextUnlock = id === 'statistical' ? nextInstrumentUnlock(pub.capacity.statistical) : null
+  // With every survey already fitted there is no rung left to advertise, and a
+  // "NEXT @ 55" for an instrument that has been printing since 1946 is a lie.
+  // Capacity is still worth buying — it is what shortens the lag and narrows
+  // the band — so the rail says that instead of falling silent.
+  const statisticalNote =
+    id !== 'statistical'
+      ? null
+      : pub.rules.fullInstrumentation
+        ? 'ALL INSTRUMENTS FITTED · CAPACITY NOW BUYS ACCURACY'
+        : [
+            awaitingCount > 0 ? `${awaitingCount} COMMISSIONED · RETURNS PENDING` : null,
+            nextUnlock
+              ? `NEXT @ ${Math.round(nextUnlock.fundedAt * 100)} · ${nextUnlock.indicators.map((indicator) => NAMES[indicator].short).join(' + ')}`
+              : null,
+          ]
+            .filter((part) => part !== null)
+            .join(' · ') || null
   return (
     <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
@@ -394,11 +412,9 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
         </Button>
       </div>
       <p className="mt-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/70">{CAP_EFFECTS[id]}</p>
-      {id === 'statistical' && (nextUnlock || awaitingCount > 0) && (
+      {statisticalNote && (
         <div className="mt-1.5 border-l border-dossier-brass/60 pl-2 font-mono text-[8px] leading-relaxed tracking-[0.08em] text-dossier-brass">
-          {awaitingCount > 0 && `${awaitingCount} COMMISSIONED · RETURNS PENDING`}
-          {awaitingCount > 0 && nextUnlock && <span aria-hidden="true"> · </span>}
-          {nextUnlock && `NEXT @ ${Math.round(nextUnlock.fundedAt * 100)} · ${nextUnlock.indicators.map((indicator) => NAMES[indicator].short).join(' + ')}`}
+          {statisticalNote}
         </div>
       )}
       <div className={`mt-1 font-mono text-[8px] tracking-[0.08em] ${stagedAction ? 'text-dossier-brass' : 'text-dossier-paper/40'}`}>
@@ -519,7 +535,7 @@ export function ControlRail({
 }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
   const finiteCost = stagedCost !== null && Number.isFinite(stagedCost) ? stagedCost : null
-  const capitalAfter = finiteCost === null ? null : pub.politicalCapital - finiteCost
+  const capital = capitalReading(pub, finiteCost)
   const activeDials = DIALS.find((group) => group.group === openGroup)
   const draftedIn = (group: CabinetGroup) => group === 'STATE CAPACITY'
     ? CAPACITY_IDS.filter((id) => staged.has(`cap:${id}`)).length
@@ -554,7 +570,7 @@ export function ControlRail({
           <div className="mt-1 font-mono text-[9px] tracking-[0.16em] text-dossier-brass">ORDERS FOR THE NEXT QUARTER</div>
         </div>
         <div className="flex items-center gap-2">
-          <Metric inverted label="POLITICAL CAPITAL" value={pub.politicalCapital.toFixed(1)} detail="AVAILABLE" tone="accent" className="items-end text-right" />
+          <Metric inverted label="POLITICAL CAPITAL" value={capital.available} detail={capital.detail} tone="accent" className="items-end text-right" />
           {onClose && (
             <Button onClick={onClose} variant="secondary" size="compact" className="xl:hidden" aria-label="Close cabinet drawer" title="Close cabinet (Esc)">
               CLOSE <span aria-hidden="true">×</span>
@@ -720,10 +736,10 @@ export function ControlRail({
               <span className="text-dossier-paper/65">{staged.size} ORDER{staged.size === 1 ? '' : 'S'} DRAFTED</span>
               <span className={stagedAffordable ? 'text-dossier-brass' : 'text-terminal-alert'}>{finiteCost === null ? 'CALCULATING…' : `${finiteCost.toFixed(1)} PC`}</span>
             </div>
-            <ProgressBar value={capitalAfter === null ? 1 : Math.max(0, capitalAfter) / Math.max(pub.politicalCapital, 1)} label="Political capital remaining after drafted orders" tone={stagedAffordable ? 'brass' : 'danger'} />
+            <ProgressBar value={capital.remaining} label="Political capital remaining after drafted orders" tone={stagedAffordable ? 'brass' : 'danger'} />
             <div className="mt-1 flex justify-between font-mono text-[8px] tabular-nums text-dossier-paper/45">
-              <span>NOW {pub.politicalCapital.toFixed(1)}</span>
-              <span>AFTER {capitalAfter === null ? '…' : Math.max(0, capitalAfter).toFixed(1)} PC</span>
+              <span>NOW {capital.available}</span>
+              <span>AFTER {capital.after ?? '…'} PC</span>
             </div>
           </div>
         )}

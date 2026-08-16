@@ -123,7 +123,7 @@ somehow obtains one anyway, the contract test fails.
 The live engine is three functions; country recipes materialize their immutable input:
 
 ```ts
-export function init(params: CountryParams, seed: Seed, mode?: GameMode): TrueState
+export function init(params: CountryParams, seed: Seed, rules?: GameMode | Partial<GameRules>): TrueState
 export function applyActions(s: TrueState, actions: Action[]): TrueState
 export function step(s: TrueState): TrueState          // one quarter
 export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams
@@ -151,7 +151,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 
 ```ts
 interface TrueState {
-  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; mode: GameMode }
+  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules }
   params: CountryParams        // immutable after init
   demography: DemographyState  // the age pyramid; cohort sizes derive from it
   tech: TechState              // global frontier + domestic attainment; research moves both
@@ -190,8 +190,9 @@ downstream tables typed as total `Record<Id, …>` **fail the build** until a ne
 interface PublishedState {
   tick: Qtr
   country: string
-  mode: GameMode              // exact immutable opening rule
-  indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear
+  rules: GameRules            // exact immutable safeties chosen at the posting
+  indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear,
+                                   // unless rules.fullInstrumentation fits them all
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
   policy: PolicyPoint[]            // …and what they were every quarter before now

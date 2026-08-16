@@ -13,14 +13,18 @@ import { useEffect, useRef, useState } from 'react'
 import {
   COUNTRY_CATALOG,
   CURATED_COUNTRY_IDS,
+  GAME_RULE_IDS,
   InvalidCountryError,
+  STANDARD_RULES,
   type CountryDifficulty,
   type CountryProfile,
   type CountryScenarioId,
   type CuratedCountryId,
-  type GameMode,
+  type GameRuleId,
+  type GameRules,
 } from '@terrarium/engine'
 import { Button, SegmentedControl } from '../components/ui'
+import { activeRuleMarks, RULE_COPY } from '../gameRules'
 import { draftKey, draftPopulation, parseCountryDocument, type CountryDocument } from '../countryDraft'
 
 const DIFFICULTY: Record<CountryDifficulty, { label: string; className: string }> = {
@@ -195,6 +199,45 @@ function ForkPicker({
   )
 }
 
+/** One safety, with what it does spelled out under it. The rules are chosen
+ * once and then sealed into the save, so this is the only place they are ever
+ * explained — a row that only said ON/OFF would be a setting nobody could
+ * evaluate without reading the engine. */
+function RuleRow({
+  id,
+  on,
+  onChange,
+}: {
+  id: GameRuleId
+  on: boolean
+  onChange: (on: boolean) => void
+}) {
+  const copy = RULE_COPY[id]
+  return (
+    <div>
+      {/* the aside is 330px and the segments never shrink, so the row wraps as
+          a whole rather than shearing a control that has to stay readable */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">
+          {copy.label}
+        </span>
+        <SegmentedControl
+          label={copy.label}
+          value={on ? 'on' : 'off'}
+          onChange={(value) => onChange(value === 'on')}
+          options={[
+            { value: 'off', label: copy.off },
+            { value: 'on', label: copy.on },
+          ]}
+        />
+      </div>
+      <p className="mt-1 font-dossier text-[10px] italic leading-snug text-dossier-ink/48">
+        {on ? copy.caption.on : copy.caption.off}
+      </p>
+    </div>
+  )
+}
+
 export function CountrySelect({
   onStart,
   onStartDraft,
@@ -205,8 +248,8 @@ export function CountrySelect({
   onImportDraft,
   onDeleteDraft,
 }: {
-  onStart: (country: CountryScenarioId, seed: string | undefined, mode: GameMode) => void
-  onStartDraft: (doc: CountryDocument, seed: string | undefined, mode: GameMode) => void
+  onStart: (country: CountryScenarioId, seed: string | undefined, rules: GameRules) => void
+  onStartDraft: (doc: CountryDocument, seed: string | undefined, rules: GameRules) => void
   onCancel?: () => void
   drafts: CountryDocument[]
   onNewDraft: (from: CuratedCountryId) => void
@@ -216,7 +259,7 @@ export function CountrySelect({
 }) {
   const [selectedKey, setSelectedKey] = useState('catalogue:meridia')
   const [seed, setSeed] = useState('')
-  const [mode, setMode] = useState<GameMode>('standard')
+  const [rules, setRules] = useState<GameRules>(STANDARD_RULES)
   const [forking, setForking] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -259,8 +302,8 @@ export function CountrySelect({
   }
 
   const accept = () => {
-    if (selectedDraft) onStartDraft(selectedDraft, seed.trim() || undefined, mode)
-    else if (catalogueId) onStart(catalogueId, seed.trim() || undefined, mode)
+    if (selectedDraft) onStartDraft(selectedDraft, seed.trim() || undefined, rules)
+    else if (catalogueId) onStart(catalogueId, seed.trim() || undefined, rules)
   }
 
   return (
@@ -422,27 +465,36 @@ export function CountrySelect({
                   </p>
                 </div>
               )}
-              <div className="mt-5 border-t border-dossier-ink/15 pt-3">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">
-                    TENURE RULE
+              {/* Folded away by default. Three safeties spelled out in full is
+                  more of this aside than an ordinary posting should spend on
+                  rules almost nobody amends — but the summary states which are
+                  in force whether it is open or shut, so none of it is hidden
+                  state. */}
+              <details className="group mt-5 border-t border-dossier-ink/15 pt-3">
+                {/* three marks are wider than the aside, so the summary wraps
+                    them onto their own line rather than breaking its heading */}
+                <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-2 gap-y-0.5 marker:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dossier-brass">
+                  <span className="font-mono text-[9px] text-dossier-brass group-open:hidden" aria-hidden="true">▸</span>
+                  <span className="hidden font-mono text-[9px] text-dossier-brass group-open:inline" aria-hidden="true">▾</span>
+                  <span className="whitespace-nowrap font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">
+                    STANDING ORDERS
                   </span>
-                  <SegmentedControl
-                    label="Tenure rule"
-                    value={mode}
-                    onChange={setMode}
-                    options={[
-                      { value: 'standard', label: 'STANDARD' },
-                      { value: 'god', label: 'GOD MODE' },
-                    ]}
-                  />
+                  <span className="h-px flex-1 bg-dossier-ink/15" aria-hidden="true" />
+                  <span className="font-mono text-[8px] tracking-[0.12em] text-dossier-brass">
+                    {activeRuleMarks(rules).join(' · ') || 'ORDINARY PLAY'}
+                  </span>
+                </summary>
+                <div className="mt-2 flex flex-col gap-2.5">
+                  {GAME_RULE_IDS.map((id) => (
+                    <RuleRow
+                      key={id}
+                      id={id}
+                      on={rules[id]}
+                      onChange={(next) => setRules((current) => ({ ...current, [id]: next }))}
+                    />
+                  ))}
                 </div>
-                <p className="mt-1.5 font-dossier text-[10px] italic leading-snug text-dossier-ink/48">
-                  {mode === 'god'
-                    ? 'Testing safeguard: lost elections, revolts, and coups are recorded, but never end your run.'
-                    : 'The electorate, the street, or the palace can remove your government.'}
-                </p>
-              </div>
+              </details>
               <label className="mt-4 block border-t border-dossier-ink/15 pt-3">
                 <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">POSTING CODE · OPTIONAL</span>
                 <input

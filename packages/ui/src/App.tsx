@@ -196,13 +196,13 @@ export default function App() {
         <>
           <CountrySelect
             {...postingRoom}
-            onStart={(country, seed, mode) => {
+            onStart={(country, seed, rules) => {
               setStartup('loading')
-              newGame(country, seed, mode)
+              newGame(country, seed, rules)
             }}
-            onStartDraft={(doc, seed, mode) => {
+            onStartDraft={(doc, seed, rules) => {
               setStartup('loading')
-              newDraftedGame(doc, seed, mode)
+              newDraftedGame(doc, seed, rules)
             }}
           />
           {draftingRoom}
@@ -275,7 +275,7 @@ export default function App() {
           aria-expanded={cabinetOpen}
           aria-controls="cabinet-controls"
         >
-          OPEN CABINET <span className="border-l border-dossier-ink/25 pl-2">{published.politicalCapital.toFixed(0)} PC</span>
+          OPEN CABINET <span className="border-l border-dossier-ink/25 pl-2">{published.rules.unlimitedCapital ? '∞' : published.politicalCapital.toFixed(0)} PC</span>
         </Button>
       </div>
       <NewsWire pub={published} onOpen={() => setOverlay('wire')} />
@@ -303,12 +303,12 @@ export default function App() {
         <CountrySelect
           {...postingRoom}
           onCancel={() => setOverlay(null)}
-          onStart={(country, seed, mode) => {
-            newGame(country, seed, mode)
+          onStart={(country, seed, rules) => {
+            newGame(country, seed, rules)
             setOverlay(null)
           }}
-          onStartDraft={(doc, seed, mode) => {
-            newDraftedGame(doc, seed, mode)
+          onStartDraft={(doc, seed, rules) => {
+            newDraftedGame(doc, seed, rules)
             setOverlay(null)
           }}
         />

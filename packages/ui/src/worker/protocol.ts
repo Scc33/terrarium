@@ -7,17 +7,17 @@
  * cannot become a hole in it — see `DevNode`.
  */
 
-import type { Action, CountryDocument, CountryScenarioId, GameMode, SaveFile } from '@terrarium/engine'
+import type { Action, CountryDocument, CountryScenarioId, GameRules, SaveFile } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import type { DevScenario } from '../devScenario'
 import type { TrialProgress, TrialReport } from './trial'
 
 export type ClientMessage =
-  | { type: 'new'; seed: string; country: CountryScenarioId; mode: GameMode }
+  | { type: 'new'; seed: string; country: CountryScenarioId; rules: GameRules }
   /** start a country a player wrote. The document is materialized into params
    * here rather than in a component, so the UI never holds a playable vector
    * it could be tempted to run. */
-  | { type: 'newDrafted'; seed: string; document: CountryDocument; mode: GameMode }
+  | { type: 'newDrafted'; seed: string; document: CountryDocument; rules: GameRules }
   | { type: 'load'; save: SaveFile }
   | { type: 'advance'; actions: Action[] }
   | { type: 'previewCost'; actions: Action[] }
