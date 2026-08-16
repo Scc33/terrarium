@@ -23,6 +23,7 @@ import {
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
+import { unreadableSaveMessage } from '../saveFile'
 import { runTrial } from './trial'
 import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
 
@@ -84,6 +85,14 @@ function trial(document: CountryDocument, baseSeed: string): void {
   post({ type: 'trialReport', report })
 }
 
+/**
+ * Replay a save to the quarter it had reached.
+ *
+ * Nothing is committed to the worker's own state until the whole replay
+ * succeeds. A half-applied load used to leave `params` and `seed` pointing at
+ * the new save while `state` still held the old run (or null, at boot) — and
+ * `publish()` would then file that mismatch straight back to the autosave.
+ */
 function load(save: {
   params: CountryParams
   seed: string
@@ -91,25 +100,39 @@ function load(save: {
   tick: number
   mode?: GameMode
 }): void {
+  const saveMode = save.mode ?? 'standard'
+  let next: TrueState
+  try {
+    next = init(save.params, save.seed, saveMode)
+    const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
+    // a tick past the end of history can only be corruption or a hand edit, and
+    // an unbounded `while` on it is a hung tab. History ends at 416 either way.
+    const until = Math.min(save.tick, END_OF_HISTORY_TICK)
+    while (next.meta.tick < until) {
+      const acts = byTick.get(next.meta.tick)
+      if (acts) {
+        // lenient: a save from an older engine may stage actions the new
+        // balance can no longer afford — skip them rather than brick the load
+        try {
+          next = applyActions(next, acts)
+        } catch (e) {
+          if (!(e instanceof IllegalActionError)) throw e
+        }
+      }
+      next = step(next)
+    }
+  } catch (e) {
+    // A file this build cannot read is not a broken game. Refuse it by name and
+    // leave whatever was running alone — see `saveFile.ts` for why no repair is
+    // attempted here.
+    post({ type: 'loadFailed', message: unreadableSaveMessage(save, e instanceof Error ? e.message : String(e)) })
+    return
+  }
   seed = save.seed
-  mode = save.mode ?? 'standard'
+  mode = saveMode
   params = save.params
   actionLog = save.actionLog
-  state = init(params, seed, mode)
-  const byTick = new Map(actionLog.map((t) => [t.tick, t.actions]))
-  while (state.meta.tick < save.tick) {
-    const acts = byTick.get(state.meta.tick)
-    if (acts) {
-      // lenient: a save from an older engine may stage actions the new
-      // balance can no longer afford — skip them rather than brick the load
-      try {
-        state = applyActions(state, acts)
-      } catch (e) {
-        if (!(e instanceof IllegalActionError)) throw e
-      }
-    }
-    state = step(state)
-  }
+  state = next
   publish()
 }
 

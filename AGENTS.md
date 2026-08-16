@@ -84,6 +84,14 @@ can be tested — anything pushed into a component becomes untestable:
   mirrors `validateCountryParams` exactly. A slider whose own maximum produces a document the
   engine refuses is invisible in review AND in jsdom — `tests/ui/country-draft.test.ts` drives
   every field to both ends and re-inits. A new sector or institution joins the editor for free.
+- **`ui/src/saveFile.ts`** — whether a save this browser is holding can still be opened. The
+  gate is the ENGINE'S verdict, not the schema stamp: a save carries no TrueState, so most
+  bumps leave old saves loadable and refusing everything below `SCHEMA_VERSION` would bin runs
+  that would have opened. So the worker attempts the load, commits nothing until the whole
+  replay succeeds, and turns a refusal into a sentence (`loadFailed` → `loadError` → the
+  posting room's notice). Never repair a vector to make it load: filling a field it predates
+  opens *a* country, not *the* one that was saved. This exists because an autosave written
+  before the `education` capacity held the splash screen forever with the reason in the console.
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
   `DonutChart` / `StackedAreaChart` (in `components/ui`) paint what it returns and know nothing
   about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a
