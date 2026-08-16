@@ -14,6 +14,7 @@ import {
   CAPITAL_REQUIREMENT_DEFAULT,
   CONF_NEUTRAL,
   CREDIT_BASE,
+  DEBT_TO_GDP_1946,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
   IO_COEFF,
@@ -131,6 +132,14 @@ function reweight(
   mix: Record<SectorId, number> | undefined,
 ): Record<SectorId, number> {
   if (!mix) return base
+  // A uniform mix means "no reweighting", and it has to be an EXACT identity,
+  // not an arithmetic one: `base * before / after` with `before === after` is
+  // mathematically x but numerically x ± 1 ulp, and a country editor that
+  // writes an implicit opening down explicitly (`materializeStructure`) sends
+  // exactly this vector. One ulp of employment compounds into a visibly
+  // different century, so a country would stop being itself the moment someone
+  // opened it as a draft. Non-uniform mixes are untouched.
+  if (SECTOR_IDS.every((id) => mix[id] === 1)) return base
   const before = SECTOR_IDS.reduce((sum, id) => sum + base[id], 0)
   const weighted = sectorRecord((id) => base[id] * mix[id])
   const after = SECTOR_IDS.reduce((sum, id) => sum + weighted[id], 0)
@@ -195,7 +204,7 @@ export function init(params: CountryParams, seed: Seed, mode: GameMode = 'standa
     wageBill0 * 0.15 * taxEff +
     profits0 * 0.2 * taxEff +
     importsValue * 0.1 * (0.5 + 0.5 * params.capacities.tax)
-  const debtToGdp0 = params.structure?.debtToGdp ?? 0.3
+  const debtToGdp0 = params.structure?.debtToGdp ?? DEBT_TO_GDP_1946
   const debt0 = debtToGdp0 * gdp0 * 4
   const interest0 = (debt0 * 0.04) / 4
   // a small structural deficit is period-realistic and sustainable

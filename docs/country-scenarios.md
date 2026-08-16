@@ -53,6 +53,58 @@ above the reform-window line. The position and legitimacy grades price that appa
 inequality, and unrest faces were widened to the measured cross-country envelope; the browser
 still pegs genuine extremes at the rails.
 
+## Countries players write
+
+A country the player authored is the same thing as a curated one — an immutable `CountryParams`
+vector materialized before `init` — so it needs no engine mode, no pipeline fork, and no schema
+migration beyond the provenance flag (ADR-0019). A save has always embedded the whole vector, so
+hand-editing an exported save's `params` block was already a legal game; the drafting room only
+gives that a format, a validator, and a door.
+
+The shareable form is a **country document** (`packages/engine/src/countryDocument.ts`):
+
+```jsonc
+{
+  "format": "terrarium-country",
+  "version": 1,
+  "ageShape": "industrial",     // the pyramid is rebuilt from this, never stored
+  "params": { /* the vector, minus `pyramid`, rounded to 6 significant digits */ },
+  "dossier": { "byline": "...", "summary": "...", "opportunities": [], "pressures": [] }
+}
+```
+
+About a kilobyte, so it travels as a file *or* in a URL fragment (`#country=<base64url>`), which
+is never sent to a server. `parseCountryDocument` rebuilds the object field by field rather than
+casting parsed JSON — a document arrives from a stranger — and the dossier carries **no
+difficulty field**: the stamps in the table above are backed by the matrices on this page, and a
+self-declared one would be a claim nobody measured.
+
+`CountryParams.authored` rides in the save so a report card earned on an unbalanced country says
+so after export and reload. No pipeline step reads it.
+
+## The feasibility study
+
+The drafting room runs the balance matrix in the browser. `packages/ui/src/worker/trial.ts` runs
+nine passive centuries of the candidate **and of Meridia on identical seeds**, in about a second
+on the worker thread — a full 416-quarter century costs roughly 70 ms, and nine browser seeds
+reproduce the 100-run passive column above to within a few tenths.
+
+It reports this page's own columns plus the batch runner's two failure definitions verbatim
+(NaN; any price past 50× or under 1/50×). It issues **no verdict and no difficulty grade**, for
+two measured reasons:
+
+- Sampling 400 vectors uniformly inside `validateCountryParams`' legal box and running each 400
+  quarters gave **zero NaN** and nine slow relative-price drifts past the tripwire, clustered
+  around quarter 95 and later. A gate would reject ~2% of legal countries, and those are late
+  drifts rather than broken economies.
+- Passive deposition does not track the curated difficulty labels at all — Veltravia is
+  `standard` and falls in 44% of passive centuries, Costona is `hard` and falls in none. A live
+  reference country says more and claims less than a derived stamp.
+
+The study's metric definitions are copied from `packages/runner` because `packages/ui` must not
+depend on a node CLI package. `tests/ui/trial.test.ts` pins the two implementations against each
+other on identical inputs; if it goes, the study stops being comparable with the tables above.
+
 ## Adding another country
 
 1. Add a `CuratedCountryId`, presentation profile, and immutable recipe in `countries.ts`.

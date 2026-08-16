@@ -45,6 +45,14 @@ export function HeaderBar({
           <div className="mt-1 font-mono text-[9px] tabular-nums tracking-[0.14em] text-dossier-brass">
             {qtrLabel(pub.tick)}
             {pub.mode === 'god' && <span className="ml-1.5 text-dossier-paper/70">· GOD MODE</span>}
+            {pub.countryAuthored && (
+              <span
+                className="ml-1.5 text-dossier-paper/70"
+                title="A posting somebody wrote. It runs through the same engine as every other country, but nobody has balanced it — the catalogue's difficulty stamps do not apply."
+              >
+                · DRAFTED
+              </span>
+            )}
           </div>
         </div>
       </div>

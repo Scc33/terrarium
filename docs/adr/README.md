@@ -31,3 +31,4 @@ the old one and update the Status line of both.
 | [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Accepted |
 | [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Accepted |
 | [0018](0018-fdi-is-owned-capital.md) | Foreign direct investment is owned capital, not an openness bonus | Accepted |
+| [0019](0019-a-country-is-a-document.md) | A country is a document, and a study is what makes it a claim | Accepted |

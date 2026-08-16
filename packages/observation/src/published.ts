@@ -120,6 +120,11 @@ export interface PublishedCampaign {
 export interface PublishedState {
   tick: Qtr
   country: string
+  /** True when the posting was written by a player rather than drawn from the
+   * recipe catalogue. Nothing in the simulation reads it; the wall and the
+   * report card do, so a grade earned on a country nobody has balanced is not
+   * quietly filed beside grades earned on ones that were. */
+  countryAuthored: boolean
   /** exact opening rule: the government knows whether the safety is on */
   mode: GameMode
   /** only funded indicators appear at all */

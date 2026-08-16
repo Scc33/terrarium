@@ -5,9 +5,12 @@ import {
   CURATED_COUNTRY_IDS,
   InvalidCountryError,
   createCountryParams,
+  createSave,
   generateCountryParams,
   hashState,
   init,
+  materializeStructure,
+  replay,
   validateCountryParams,
   type CountryParams,
 } from '@terrarium/engine'
@@ -91,5 +94,33 @@ describe('procedural country recipes', () => {
     broken.pyramid[0] += 1
     expect(() => validateCountryParams(broken)).toThrow(InvalidCountryError)
     expect(() => init(broken, 'x')).toThrow(/pyramid total/)
+  })
+})
+
+describe('spelling out an implicit opening', () => {
+  it('leaves a structure-less country economically untouched', () => {
+    // Meridia carries no `structure`, so `init` reaches for a constant per
+    // field. The editor has to show those numbers, which means writing them
+    // down — and writing them down must not move a single quarter of the
+    // historical baseline. A century, not a field comparison, is the claim.
+    const implicit = createCountryParams('meridia', 'seed')
+    const explicit = materializeStructure(implicit)
+
+    expect(implicit.structure).toBeUndefined()
+    expect(explicit.structure).toBeDefined()
+
+    // the params vector is part of hashed state and is *supposed* to differ,
+    // so the economy is what gets compared: everything the pipeline produced
+    const economy = (params: CountryParams) =>
+      hashState({ ...replay(createSave(params, 'materialize', [], 120)), params: null })
+    expect(economy(explicit)).toBe(economy(implicit))
+  })
+
+  it('returns a country that already has one unchanged, and defensively copied', () => {
+    const veltravia = createCountryParams('veltravia', 'seed')
+    const copy = materializeStructure(veltravia)
+    expect(copy.structure).toEqual(veltravia.structure)
+    copy.structure!.debtToGdp = 9
+    expect(veltravia.structure!.debtToGdp).not.toBe(9)
   })
 })

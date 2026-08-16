@@ -5,14 +5,17 @@
 
 import {
   applyActions,
+  countryFromDocument,
   createSave,
   createCountryParams,
   init,
   step,
   END_OF_HISTORY_TICK,
   IllegalActionError,
+  InvalidCountryError,
   politicalCostOfAction,
   type ActionLog,
+  type CountryDocument,
   type CountryParams,
   type CountryScenarioId,
   type GameMode,
@@ -20,6 +23,7 @@ import {
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
+import { runTrial } from './trial'
 import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
 
 let state: TrueState | null = null
@@ -46,6 +50,38 @@ function startNew(newSeed: string, country: CountryScenarioId, newMode: GameMode
   state = init(params, seed, mode)
   actionLog = []
   publish()
+}
+
+/** Start a country a player wrote. Identical to `startNew` in every respect
+ * except where the vector came from — same init, same pipeline, same RNG — so
+ * the save it produces is an ordinary save and replays anywhere. */
+function startDrafted(newSeed: string, document: CountryDocument, newMode: GameMode): void {
+  seed = newSeed
+  mode = newMode
+  params = countryFromDocument(document)
+  state = init(params, seed, mode)
+  actionLog = []
+  publish()
+}
+
+/** Study a candidate country. Errors here are the document's, not the game's,
+ * so they come back on their own channel and leave any run in progress alone. */
+function trial(document: CountryDocument, baseSeed: string): void {
+  let candidate: CountryParams
+  try {
+    candidate = countryFromDocument(document)
+  } catch (e) {
+    if (e instanceof InvalidCountryError) {
+      post({ type: 'trialFailed', message: e.message })
+      return
+    }
+    throw e
+  }
+  const report = runTrial(candidate, {
+    baseSeed,
+    onProgress: (progress) => post({ type: 'trialProgress', progress }),
+  })
+  post({ type: 'trialReport', report })
 }
 
 function load(save: {
@@ -215,6 +251,12 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     switch (msg.type) {
       case 'new':
         startNew(msg.seed, msg.country, msg.mode)
+        break
+      case 'newDrafted':
+        startDrafted(msg.seed, msg.document, msg.mode)
+        break
+      case 'trial':
+        trial(msg.document, msg.baseSeed)
         break
       case 'load':
         load(msg.save)
