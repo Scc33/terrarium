@@ -102,6 +102,28 @@ export const COHORT_NAMES: Record<CohortId, string> = {
   business_owners: 'Business owners',
 }
 
+/** …and who each one actually is, for the incidence tooltips.
+ *
+ * A cohort is not a demographic label: each earns from a different place,
+ * spends a different share of it, and buys a different basket. That is the
+ * whole reason a budget line is costed per cohort rather than per head — the
+ * same money is a different policy depending on who catches it. Keep these
+ * anchored to what the engine actually does with the group (where the income
+ * comes from, how much of it is spent), because that is what makes a player's
+ * guess about incidence a good one. */
+export const COHORT_NOTES: Record<CohortId, string> = {
+  retirees:
+    'Past working age, living on savings and whatever the state provides. They spend essentially all of it and have no wage to defend, so inflation reaches them faster than anyone still earning.',
+  rural_workers:
+    'Farm and village labour — all of agriculture, and part of the mills and haulage. They spend almost everything they earn, and nearly half of it on food, so a food or fuel price is felt here first.',
+  urban_workers:
+    'Wage labour in the towns: most of manufacturing, all of energy, and much of transport and services. Their fortunes follow industrial jobs, so a downturn reaches them before it reaches the salaried.',
+  professionals:
+    'Salaried and skilled work, concentrated in services. They hold back more of their income than the wage-earners do, take a small cut of profits, and gain most as the economy moves from fields to offices.',
+  business_owners:
+    'Owners rather than earners: their income is profit, not wages, and they hold most of the government’s debt. They spend the smallest share of what they receive, so money routed here does the least to lift demand — and a bond coupon lands in this row.',
+}
+
 /** The veto players, by the name a minister would use. Total over BlocId, so
  * adding a bloc to the engine stops the UI building until it has been named. */
 export const BLOC_NAMES: Record<BlocId, string> = {
@@ -152,4 +174,25 @@ export const PLATFORM_NAMES: Record<PlatformId, string> = {
   coalition: 'courted a bloc',
   suppression: 'cleared the ballot',
   franchise: 'extended the franchise',
+}
+
+/** …and what each one cost, read back after the count.
+ *
+ * Every platform but the first is a swing bought on credit, and the engine
+ * names the creditor: largesse mortgages the budget, coalition mortgages the
+ * levers, suppression mortgages the corridor, franchise mortgages the scoring
+ * rubric itself. The bill is the interesting half and it falls due after the
+ * result is on screen, so say it here rather than let the player rediscover it
+ * a term later. */
+export const PLATFORM_NOTES: Record<PlatformId, string> = {
+  record:
+    'You ran on what you had done. Nothing was promised and nothing is owed — the swing is whatever the record earned on its own.',
+  largesse:
+    'A pre-election giveaway: transfers jumped by half and stayed jumped. The votes were bought with real money, and the bill is that walking it back is itself a cut, which costs approval of its own.',
+  coalition:
+    'You promised one bloc and snubbed the rest. Their machine turned out for you, and the pledge binds you for a full term on every lever they mind.',
+  suppression:
+    'The ballot was cleared before it was counted. It reliably wins and it walks the corridor dot toward despotism — and the historians record a mandate taken separately from one won, and never net the two.',
+  franchise:
+    'You widened who holds a ballot. The first vote carries some enthusiasm, but the real effect is that different people’s approval now counts — you have rewritten the rubric you will be graded against.',
 }

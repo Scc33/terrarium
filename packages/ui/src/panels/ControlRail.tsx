@@ -19,7 +19,7 @@ import {
 import { INDICATOR_IDS, INSTITUTION_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, SegmentedControl, SliderField, Tooltip, TooltipLabel } from '../components/ui'
-import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, INSTITUTION_NAMES } from '../components/labels'
+import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, COHORT_NOTES, INSTITUTION_NAMES } from '../components/labels'
 import { dialIncidence, type Incidence } from '../incidence'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
 import {
@@ -170,7 +170,11 @@ function IncidenceNote({ incidence }: { incidence: Incidence }) {
       <ul className="mt-1 flex flex-col gap-0.5">
         {rows.map((row) => (
           <li key={row.cohort} className="flex items-baseline justify-between gap-2 font-mono text-[9px] text-dossier-paper/70">
-            <span className="truncate">{COHORT_NAMES[row.cohort]}</span>
+            <TooltipLabel
+              label={COHORT_NAMES[row.cohort]}
+              content={COHORT_NOTES[row.cohort]}
+              className="truncate text-dossier-paper/70"
+            />
             <span className="shrink-0 tabular-nums text-dossier-paper/85">{signed(row.delivered)}</span>
           </li>
         ))}
