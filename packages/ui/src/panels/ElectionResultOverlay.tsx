@@ -9,7 +9,7 @@
 
 import type { PublishedState } from '@terrarium/observation'
 import { Modal, TooltipLabel } from '../components/ui'
-import { BLOC_NAMES, PLATFORM_NAMES, PLATFORM_NOTES } from '../components/labels'
+import { BLOC_NAMES, COUNT_NOTES, PLATFORM_NAMES, PLATFORM_NOTES } from '../components/labels'
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
 const yearOf = (q: number) => `${1946 + Math.floor(q / 4)}Q${(q % 4) + 1}`
@@ -59,7 +59,7 @@ export function ElectionResultOverlay({
             <div className="flex justify-between">
               <TooltipLabel
                 label="Support among voters"
-                content="Approval among the people who actually hold a ballot — not the whole country. A cohort with no franchise can be as angry as it likes and never appear in this line."
+                content={COUNT_NOTES.support}
                 className="font-dossier text-dossier-ink/75"
               />
               <span>{pct(r.support)}</span>
@@ -83,7 +83,7 @@ export function ElectionResultOverlay({
             <div className="flex justify-between">
               <TooltipLabel
                 label="The bar to clear"
-                content="The share you needed. It is not fixed at half: repression lowers the bar, which is how a government can be returned on a minority of a shrinking electorate."
+                content={COUNT_NOTES.threshold}
                 className="font-dossier text-dossier-ink/75"
               />
               <span>{pct(r.threshold)}</span>
@@ -95,7 +95,7 @@ export function ElectionResultOverlay({
             >
               <TooltipLabel
                 label="Margin"
-                content="Support plus the campaign swing, less the bar. Above zero you are returned; below it the electorate has withdrawn its consent."
+                content={COUNT_NOTES.margin}
                 className="font-dossier"
               />
               <span>

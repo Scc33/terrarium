@@ -16,7 +16,8 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type HTMLAttributes,
+  type AriaAttributes,
+  type DOMAttributes,
   type ReactElement,
   type ReactNode,
 } from 'react'
@@ -25,12 +26,20 @@ import { placeTooltip, type TooltipSide } from './placement'
 
 export type { TooltipSide } from './placement'
 
-interface TooltipTriggerProps extends HTMLAttributes<HTMLElement> {
+/**
+ * Typed against `Element`, not `HTMLElement`, so a chart mark can be a trigger.
+ *
+ * `HTMLAttributes` and `SVGAttributes` share exactly this base, and half the
+ * things in this game that need explaining are SVG — donut wedges, stacked
+ * bands, a needle. Narrowing to HTML would leave those on the native `<title>`
+ * bubble, which is the thing this component exists to replace.
+ */
+interface TooltipTriggerProps extends AriaAttributes, DOMAttributes<Element> {
   'aria-describedby'?: string
   'data-tooltip-trigger'?: string
 }
 
-type TriggerHandler<K extends keyof HTMLAttributes<HTMLElement>> = NonNullable<HTMLAttributes<HTMLElement>[K]>
+type TriggerHandler<K extends keyof DOMAttributes<Element>> = NonNullable<DOMAttributes<Element>[K]>
 
 function TooltipTrigger({
   children,
@@ -95,7 +104,7 @@ const OPEN_EVENT = 'terrarium:tooltip-open'
 
 export function Tooltip({ content, children, side = 'auto', delay = 260, openOnClick = false }: TooltipProps) {
   const tooltipId = useId()
-  const triggerRef = useRef<HTMLElement>(null)
+  const triggerRef = useRef<Element | null>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reasonsRef = useRef(new Set<'pointer' | 'focus' | 'tap'>())

@@ -196,3 +196,21 @@ export const PLATFORM_NOTES: Record<PlatformId, string> = {
   franchise:
     'You widened who holds a ballot. The first vote carries some enthusiasm, but the real effect is that different people’s approval now counts — you have rewritten the rubric you will be graded against.',
 }
+
+/**
+ * The three figures the ballot box is described with.
+ *
+ * The campaign and the count print the same arithmetic — support, the bar, the
+ * margin — two quarters apart, one as a forecast and one as a result. Wording
+ * them twice is how the two screens quietly come to disagree about what the
+ * bar is, so they are worded once here and both read from it. The tense stays
+ * neutral for that reason.
+ */
+export const COUNT_NOTES = {
+  support:
+    'Approval among the people who actually hold a ballot — not the whole country. A cohort with no franchise can be as angry as it likes and never appear in this line.',
+  threshold:
+    'The share needed to be returned. It is not fixed at half: repression lowers the bar, which is how a government can be returned on a minority of a shrinking electorate.',
+  margin:
+    'Support plus the campaign swing, less the bar. Above zero the government is returned; below it the electorate has withdrawn its consent. The count carries a few points of noise either way, so this is a likelihood, not a promise.',
+} as const

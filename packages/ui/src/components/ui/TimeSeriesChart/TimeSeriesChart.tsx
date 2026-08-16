@@ -249,7 +249,10 @@ export function TimeSeriesChart({
         role="img"
         aria-label={summary}
       >
-        <title>{summary}</title>
+        {/* No `<title>`: it renders as the browser's own bubble, which drifts in
+            after a second and sits on top of the crosshair readout this chart
+            already paints under the cursor. `aria-label` carries the same
+            sentence to assistive tech without competing for the pointer. */}
 
         {/* gridlines first — everything measured paints over them */}
         {y.ticks.map((v) => (

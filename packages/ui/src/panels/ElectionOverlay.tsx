@@ -23,9 +23,9 @@
  */
 
 import type { BlocId, PlatformId, PublishedState } from '@terrarium/observation'
-import { Modal, Tooltip } from '../components/ui'
+import { Modal, Tooltip, TooltipLabel } from '../components/ui'
 import { useGame } from '../store/gameStore'
-import { BLOC_NAMES } from '../components/labels'
+import { BLOC_NAMES, BLOC_NOTES, COUNT_NOTES } from '../components/labels'
 
 const yearOf = (q: number) => `${1946 + Math.floor(q / 4)}Q${(q % 4) + 1}`
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
@@ -142,16 +142,28 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
             </div>
             <div className="flex flex-col gap-1 font-mono text-[12px] tabular-nums text-dossier-ink">
               <div className="flex justify-between">
-                <span className="font-dossier text-dossier-ink/75">Support among voters</span>
+                <TooltipLabel
+                  label="Support among voters"
+                  content={COUNT_NOTES.support}
+                  className="font-dossier text-dossier-ink/75"
+                />
                 <span>{pct(campaign.support)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-dossier text-dossier-ink/75">The bar to clear</span>
+                <TooltipLabel
+                  label="The bar to clear"
+                  content={COUNT_NOTES.threshold}
+                  className="font-dossier text-dossier-ink/75"
+                />
                 <span>{pct(campaign.threshold)}</span>
               </div>
               {committed && committed.swing !== 0 && (
                 <div className="flex justify-between text-dossier-brass">
-                  <span className="font-dossier">The campaign is worth</span>
+                  <TooltipLabel
+                    label="The campaign is worth"
+                    content="The swing the announced platform is expected to add. It is already counted in the margin below."
+                    className="font-dossier"
+                  />
                   <span>
                     {committed.swing >= 0 ? '+' : ''}
                     {pct(committed.swing)}
@@ -163,7 +175,7 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
                   margin + (committed?.swing ?? 0) >= 0 ? 'text-dossier-felt' : 'text-dossier-warn'
                 }`}
               >
-                <span className="font-dossier">Margin</span>
+                <TooltipLabel label="Margin" content={COUNT_NOTES.margin} className="font-dossier" />
                 <span>
                   {margin + (committed?.swing ?? 0) >= 0 ? '+' : ''}
                   {pct(margin + (committed?.swing ?? 0))}
@@ -227,7 +239,10 @@ export function ElectionOverlay({ pub, onClose }: { pub: PublishedState; onClose
                   {p.needsBloc && isChosen && !committed && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {pub.blocs.map((b) => (
-                        <Tooltip key={b.id} content={`Influence: ${(b.power * 100).toFixed(0)} of 100. Support for you: ${b.favor >= 0 ? '+' : ''}${b.favor.toFixed(2)}.`}>
+                        <Tooltip
+                          key={b.id}
+                          content={`${BLOC_NOTES[b.id]} Influence: ${(b.power * 100).toFixed(0)} of 100. Support for you: ${b.favor >= 0 ? '+' : ''}${b.favor.toFixed(2)}. Courting the strongest bloc buys the most turnout, and owes them the most.`}
+                        >
                           <button
                             onClick={() =>
                               stage('campaign', { kind: 'campaign', platform: 'coalition', bloc: b.id })

@@ -8,7 +8,14 @@ describe('DonutChart', () => {
   it('renders keyed values, totals, and slice descriptions', () => {
     const html = renderToStaticMarkup(<DonutChart shares={shares} format={(v) => v.toFixed(0)} />)
     expect(html).toContain('Tax')
-    expect(html).toContain('Tax: 40 (100.0%)')
+    // The wedge's own reading moved from a native `<title>` onto the shared
+    // Tooltip, which renders on interaction rather than into static markup.
+    // Nothing was lost to assistive tech: the svg is `role="img"`, so its
+    // children were never exposed in the first place, and the accessible name
+    // still enumerates every slice.
+    expect(html).toContain('Tax 100.0 percent')
+    expect(html).toContain('data-tooltip-trigger')
+    expect(html).not.toContain('<title>')
   })
 
   it('renders a useful empty state', () => {

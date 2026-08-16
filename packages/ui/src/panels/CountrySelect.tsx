@@ -23,7 +23,7 @@ import {
   type GameRuleId,
   type GameRules,
 } from '@terrarium/engine'
-import { Button, SegmentedControl, TooltipLabel } from '../components/ui'
+import { Button, SegmentedControl, Tooltip, TooltipLabel } from '../components/ui'
 import { activeRuleMarks, RULE_COPY } from '../gameRules'
 import { draftKey, draftPopulation, parseCountryDocument, type CountryDocument } from '../countryDraft'
 
@@ -110,10 +110,26 @@ function Dossier({ profile, selected, onSelect }: { profile: CountryProfile; sel
         </span>
       </span>
       <span className="mt-3 block pl-1 font-dossier text-[11px] leading-snug text-dossier-ink/67">{profile.summary}</span>
+      {/* Plain spans, not TooltipLabels: this whole card is a button, and a
+          button inside a button is invalid and unclickable in places. Hover
+          explains for the pointer; `aria-label` carries the same thing to a
+          reader, which reaches the figures via the card's own focus. */}
       <span className="mt-3 flex gap-3 border-t border-dossier-ink/10 pl-1 pt-2 font-mono text-[8px] tabular-nums text-dossier-ink/48">
-        <span>POP {profile.population === null ? 'SEALED' : `${profile.population.toFixed(1)}M`}</span>
-        <span>DEV {profile.development === null ? '—' : `${Math.round(profile.development * 100)}`}</span>
-        <span>OPEN {profile.openness === null ? '—' : profile.openness.toFixed(2)}</span>
+        <Tooltip content="How many people live here in 1946. A bigger country is not a harder one — it changes the scale of every figure, not the difficulty.">
+          <span aria-label={`Population in 1946: ${profile.population === null ? 'sealed until the posting is opened' : `${profile.population.toFixed(1)} million`}`} className="cursor-help">
+            POP {profile.population === null ? 'SEALED' : `${profile.population.toFixed(1)}M`}
+          </span>
+        </Tooltip>
+        <Tooltip content="How far industrialisation has already gone, from 0 to 100. It sets the capital, skills and technique you inherit — a low number is more room to grow and less to grow it with.">
+          <span aria-label={`Development: ${profile.development === null ? 'unknown' : Math.round(profile.development * 100)} of 100`} className="cursor-help">
+            DEV {profile.development === null ? '—' : `${Math.round(profile.development * 100)}`}
+          </span>
+        </Tooltip>
+        <Tooltip content="Exposure to the world. Higher means trade, foreign capital and technique reach you more easily — and so does every foreign shock.">
+          <span aria-label={`Openness: ${profile.openness === null ? 'unknown' : profile.openness.toFixed(2)}`} className="cursor-help">
+            OPEN {profile.openness === null ? '—' : profile.openness.toFixed(2)}
+          </span>
+        </Tooltip>
       </span>
     </button>
   )

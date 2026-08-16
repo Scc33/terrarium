@@ -6,7 +6,7 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Modal, OverlayLayout } from '../components/ui'
+import { Modal, OverlayLayout, Tooltip } from '../components/ui'
 import { shapeSeries } from '../components/series'
 
 const W = 460
@@ -51,12 +51,16 @@ export function StudyOverlay({ pub, onClose }: { pub: PublishedState; onClose: (
           <svg viewBox={`0 0 ${W} ${H}`} className="block w-full">
             <line x1={PAD} x2={W - 10} y1={H - PAD} y2={H - PAD} stroke="var(--color-map-line)" strokeWidth="1" />
             <line x1={PAD} x2={PAD} y1={14} y2={H - PAD} stroke="var(--color-map-line)" strokeWidth="1" />
-            <text x={W - 12} y={H - PAD + 16} textAnchor="end" fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-map-line)">
-              UNEMPLOYMENT % →
-            </text>
-            <text x={PAD - 26} y={20} fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-map-line)" transform={`rotate(-90 ${PAD - 26} 20)`} textAnchor="end">
-              INFLATION %/YR →
-            </text>
+            <Tooltip content="The share of people who want work and cannot find it, at the date each dot was printed. Rightward is a slacker labour market.">
+              <text x={W - 12} y={H - PAD + 16} textAnchor="end" fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-map-line)" className="cursor-help">
+                UNEMPLOYMENT % →
+              </text>
+            </Tooltip>
+            <Tooltip content="How fast prices rose over the year to that print. The board asks whether the two move against each other — cheap jobs bought with dearer bread — and whether that bargain holds once you start spending it.">
+              <text x={PAD - 26} y={20} fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-map-line)" transform={`rotate(-90 ${PAD - 26} 20)`} textAnchor="end" className="cursor-help">
+                INFLATION %/YR →
+              </text>
+            </Tooltip>
             {sy(0) < H - PAD && sy(0) > 14 && (
               <line x1={PAD} x2={W - 10} y1={sy(0)} y2={sy(0)} stroke="var(--color-map-line)" strokeWidth="0.7" strokeDasharray="3 3" opacity="0.5" />
             )}

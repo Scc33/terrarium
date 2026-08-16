@@ -45,12 +45,17 @@ export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOT
           role="img"
           aria-label={reading}
         >
-          <title>{reading}</title>
-          {slices.map((s) => (
-            <path key={s.key} d={s.path} fill={s.ink} fillRule="evenodd" stroke="var(--color-dossier-paper)" strokeWidth="0.8">
-              <title>{`${s.label}: ${format(s.value)} (${(100 * s.share).toFixed(1)}%)`}</title>
-            </path>
-          ))}
+          {slices.map((s) => {
+            const note = shares.find((x) => x.key === s.key)?.note
+            return (
+              <Tooltip
+                key={s.key}
+                content={`${s.label}: ${format(s.value)} (${(100 * s.share).toFixed(1)}%)${note ? `. ${note}` : ''}`}
+              >
+                <path d={s.path} fill={s.ink} fillRule="evenodd" stroke="var(--color-dossier-paper)" strokeWidth="0.8" />
+              </Tooltip>
+            )
+          })}
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="0.6" opacity="0.35" />
           <text
             x={size / 2}
