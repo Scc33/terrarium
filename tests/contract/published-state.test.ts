@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { INDICATOR_IDS, init, step, type TrueState } from '@terrarium/engine'
+import { INDICATOR_IDS, STANDARD_RULES, init, step, type TrueState } from '@terrarium/engine'
 import { observe, type PublishedState } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -42,7 +42,7 @@ describe('the published-state contract (§1.1)', () => {
     const required: Array<keyof PublishedState> = [
       'tick',
       'country',
-      'mode',
+      'rules',
       'indicators',
       'dials',
       'spendingRules',
@@ -67,8 +67,16 @@ describe('the published-state contract (§1.1)', () => {
     expect(Array.isArray(pub.news)).toBe(true)
   })
 
-  it('publishes the immutable game mode exactly', () => {
-    expect(observe(init(standardCountry, 'contract-god-mode', 'god')).mode).toBe('god')
+  it('publishes the immutable rules of the run exactly', () => {
+    expect(observe(init(standardCountry, 'contract-standard')).rules).toEqual(STANDARD_RULES)
+    // the legacy mode string still names the tenure rule and only that one
+    expect(observe(init(standardCountry, 'contract-god-mode', 'god')).rules).toEqual({
+      ...STANDARD_RULES,
+      protectedTenure: true,
+    })
+    expect(
+      observe(init(standardCountry, 'contract-sandbox', { unlimitedCapital: true })).rules,
+    ).toEqual({ ...STANDARD_RULES, unlimitedCapital: true })
   })
 
   it('survives the worker boundary: it is structured-cloneable and unchanged by it', () => {

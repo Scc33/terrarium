@@ -30,7 +30,9 @@ export function SegmentedControl<T extends string>({
             aria-pressed={selected}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
-            className={`-ml-px min-h-7 border px-2 py-1 font-mono text-[9px] tracking-[0.14em] first:ml-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-dossier-brass disabled:cursor-not-allowed disabled:opacity-30 ${
+            // a segment that breaks its own label mid-word has stopped being a
+            // button and started being two lines of noise — never wrap here
+            className={`-ml-px min-h-7 whitespace-nowrap border px-2 py-1 font-mono text-[9px] tracking-[0.14em] first:ml-0 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-dossier-brass disabled:cursor-not-allowed disabled:opacity-30 ${
               tone === 'inverted'
                 ? selected
                   ? 'z-[1] border-dossier-brass bg-dossier-paper text-dossier-ink'

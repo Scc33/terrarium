@@ -3,6 +3,7 @@
 
 import type { PublishedState } from '@terrarium/observation'
 import { Button, Metric } from '../components/ui'
+import { activeRuleMarks, capitalReading } from '../gameRules'
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
@@ -34,6 +35,7 @@ export function HeaderBar({
   onVerdict?: () => void
 }) {
   const t = pub.treasury
+  const capital = capitalReading(pub, null)
   return (
     <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 border-b border-dossier-brass/70 bg-[#294235] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.22)] sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
       <div className="flex min-w-[150px] items-center gap-3 border-r border-dossier-paper/15 pr-4">
@@ -44,7 +46,9 @@ export function HeaderBar({
           </div>
           <div className="mt-1 font-mono text-[9px] tabular-nums tracking-[0.14em] text-dossier-brass">
             {qtrLabel(pub.tick)}
-            {pub.mode === 'god' && <span className="ml-1.5 text-dossier-paper/70">· GOD MODE</span>}
+            {activeRuleMarks(pub.rules).map((mark) => (
+              <span key={mark} className="ml-1.5 text-dossier-paper/70">· {mark}</span>
+            ))}
             {pub.countryAuthored && (
               <span
                 className="ml-1.5 text-dossier-paper/70"
@@ -59,7 +63,17 @@ export function HeaderBar({
 
       <div className="order-3 col-span-2 flex min-w-0 items-center gap-3 overflow-x-auto pb-0.5 [scrollbar-width:none] xl:order-none xl:col-span-1 xl:pb-0">
         <HeaderGroup label="POLITICAL">
-          <Metric compact inverted label="CAPITAL" value={pub.politicalCapital.toFixed(0)} title="Political capital available for staged decisions." />
+          <Metric
+            compact
+            inverted
+            label="CAPITAL"
+            value={pub.rules.unlimitedCapital ? capital.available : pub.politicalCapital.toFixed(0)}
+            title={
+              pub.rules.unlimitedCapital
+                ? 'Orders are priced as usual, but this cabinet is never charged.'
+                : 'Political capital available for staged decisions.'
+            }
+          />
           <Metric compact inverted label={pub.inPower ? 'ELECTION' : 'STATUS'} value={pub.inPower ? `${pub.quartersToElection}Q` : 'DEPOSED'} tone={!pub.inPower || pub.quartersToElection <= 2 ? 'danger' : 'default'} title="Quarters until the electorate weighs in." />
         </HeaderGroup>
         <HeaderGroup label="DEMOGRAPHY">

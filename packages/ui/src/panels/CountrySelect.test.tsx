@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { COUNTRY_CATALOG } from '@terrarium/engine'
+import { COUNTRY_CATALOG, GAME_RULE_IDS } from '@terrarium/engine'
 import { CountrySelect } from './CountrySelect'
+import { RULE_COPY } from '../gameRules'
 import { draftFrom } from '../countryDraft'
 
 const noop = () => {}
@@ -20,9 +21,24 @@ describe('country selection', () => {
     const html = renderToStaticMarkup(<CountrySelect {...props} />)
     for (const country of COUNTRY_CATALOG) expect(html).toContain(country.name)
     expect(html).toContain('role="radiogroup"')
-    expect(html).toContain('TENURE RULE')
-    expect(html).toContain('GOD MODE')
     expect(html).toContain('ACCEPT POSTING')
+  })
+
+  it('offers every rule of the run, and explains each one', () => {
+    const html = renderToStaticMarkup(<CountrySelect {...props} />)
+    // folded away by default, but it states what is in force either way — a
+    // sandbox rule the player cannot see they enabled is the whole failure
+    expect(html).toContain('STANDING ORDERS')
+    expect(html).toContain('ORDINARY PLAY')
+    // the rules are sealed into the save, so the posting room is the only
+    // place they can be chosen — every one of them has to be reachable here
+    for (const id of GAME_RULE_IDS) {
+      const copy = RULE_COPY[id]
+      expect(html, `${id} row`).toContain(copy.label)
+      expect(html, `${id} off`).toContain(copy.off)
+      expect(html, `${id} on`).toContain(copy.on)
+      expect(html, `${id} caption`).toContain(copy.caption.off)
+    }
   })
 
   it('only offers a return route when replacing an existing game', () => {

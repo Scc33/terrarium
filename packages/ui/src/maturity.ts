@@ -35,16 +35,23 @@ export const TERMINAL_AT = 0.5
 
 /** Distinguish a survey that does not exist from one whose first worksheet is
  * still travelling to the ministry. Both have no series yet, but only one
- * asks the player to spend political capital. */
+ * asks the player to spend political capital.
+ *
+ * `fitted` is the `fullInstrumentation` rule: every survey exists whatever the
+ * office can afford. It has to be read HERE and not only where the series
+ * arrives, because for the first two quarters of such a run nothing has
+ * returned yet — and a wall that spends them telling the player to fund
+ * instruments they already have is worse than no wall. */
 export function accessForInstrument(
   indicator: IndicatorId,
   statisticalCapacity: number,
   hasReturns: boolean,
+  fitted = false,
 ): InstrumentAccess {
   const fundedAt = INDICATOR_FUNDED_AT[indicator]
   const availability = hasReturns
     ? 'reporting'
-    : statisticalCapacity >= fundedAt
+    : fitted || statisticalCapacity >= fundedAt
       ? 'awaiting'
       : 'unfunded'
   return {
@@ -61,7 +68,12 @@ export function accessForInstrument(
 export function deriveInstrumentAccess(pub: PublishedState): Record<IndicatorId, InstrumentAccess> {
   const out = {} as Record<IndicatorId, InstrumentAccess>
   for (const id of INDICATOR_IDS) {
-    out[id] = accessForInstrument(id, pub.capacity.statistical, Boolean(pub.indicators[id]))
+    out[id] = accessForInstrument(
+      id,
+      pub.capacity.statistical,
+      Boolean(pub.indicators[id]),
+      pub.rules.fullInstrumentation,
+    )
   }
   return out
 }

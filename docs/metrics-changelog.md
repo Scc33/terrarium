@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 26)
+## Current contract (schema 27)
 
 ### Inputs
 
@@ -37,9 +37,16 @@ contract, so it's called out below.
 | `structure` | optional normalized sector composition, opening debt/credit/reserves, and inherited institutions *(added v13; omitted means the historical Meridia defaults)* |
 | `authored` | optional provenance flag: true when a player wrote the vector rather than drawing it from the recipe catalogue *(added v26; read by no pipeline step)* |
 
-**Game mode** (`GameMode`, immutable after init): `standard` uses every normal deposition path;
-`god` records election defeats but keeps the run playable and disables deposition by polls,
-revolt, or coup. Saves from before v21 omit it and load as `standard`.
+**Rules of the run** (`GameRules`, immutable after init — one boolean per `GAME_RULE_IDS`, all
+false in ordinary play, each read in exactly one place)
+| Rule | What it lifts |
+|---|---|
+| `protectedTenure` | election defeats, revolts, and coups are recorded but never end the run (the pre-v27 `god` mode) |
+| `fullInstrumentation` | the funding gate on every survey — the office reports the whole ladder at any capacity, still lagged, noised, and revised |
+| `unlimitedCapital` | the bill, not the price: orders are quoted and objected to as usual, and the cabinet is simply never charged |
+
+Saves from before v27 carry the `mode` scalar instead; `'god'` loads as `protectedTenure`, and a
+save from before v21 with neither loads with every rule off.
 
 **Policy levers** (`DialState` plus `SpendingRules`)
 | Lever | Range |
@@ -183,6 +190,27 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 27 — The rules of a run
+
+- **Inputs ±**: `meta.mode: GameMode` became `meta.rules: GameRules`, a total record of
+  independent booleans over `GAME_RULE_IDS` (ADR-0020). `init(params, seed, rules)` accepts the
+  record or a partial of it — or the legacy mode string, which maps `'god'` to
+  `{ protectedTenure: true }`. Saves write `rules`; a save with only `mode` still loads.
+- **Rules +**: `fullInstrumentation` — the statistical office reports **every** survey whatever
+  its capacity, lifting `INDICATOR_FUNDED_AT` and nothing else: prints keep the lag, the noise,
+  and the revisions capacity earns them. `unlimitedCapital` — orders are quoted at their real
+  veto-loaded price and the blocs still spend favour, but the cabinet is never charged and
+  nothing is ever unaffordable. `protectedTenure` is the old `god`, renamed and unchanged.
+- **Outputs ±**: `PublishedState.mode` became `PublishedState.rules`, published exactly.
+- **Fog**: unchanged in kind. `fullInstrumentation` changes *which* series exist, never how
+  honest one is.
+- Economy bit-identical to v26 with every rule off (`pnpm diff-state --moved-only` reports
+  `meta.schemaVersion` and nothing else; passive century unchanged at 2.70 %/yr growth, 11.90 %
+  unemployment, 7 % deposed). One coupling to know about when a rule is ON: an **indexed**
+  appropriation follows published CPI, so `fullInstrumentation` gives indexation something to
+  read in a country too poor to publish it. The 1946 settlement votes fixed cash, so this
+  reaches nobody who does not draft an indexed rule.
 
 ### schema 26 — Authored countries
 

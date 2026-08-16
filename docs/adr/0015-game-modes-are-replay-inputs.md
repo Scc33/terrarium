@@ -1,6 +1,11 @@
 # ADR-0015 — Game modes are replay inputs, not UI preferences
 
-**Status:** Accepted · **Date:** 2026-Q3
+**Status:** Superseded by [ADR-0020](0020-the-rules-of-a-run-are-a-set.md) · **Date:** 2026-Q3
+
+> ADR-0020 keeps this decision's constraint — a rule that changes simulation behavior is an
+> explicit engine input with a save field, a replay default, and a published identity — and
+> replaces only its representation: the single `mode` scalar became a set of independent rules,
+> because three safeties would otherwise need eight names.
 
 ## Context
 

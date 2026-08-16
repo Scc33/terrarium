@@ -76,7 +76,7 @@ export const politics: PipelineStep = {
   run(state, rng) {
     const { politics: pol, stats, institutions: inst } = state
     const approval = approvalIndex(state)
-    const godMode = state.meta.mode === 'god'
+    const protectedTenure = state.meta.rules.protectedTenure
 
     if (!pol.inPower) return state // deposed: the clock stops, the economy keeps breathing
 
@@ -105,14 +105,14 @@ export const politics: PipelineStep = {
     const hostility = eliteHostility(state)
     const coupP = COUP_P * Math.max(0, hostility - COUP_AT) * (1 - inst.societalPower)
     const roll = rng.next()
-    if (!godMode && roll < revoltP) {
+    if (!protectedTenure && roll < revoltP) {
       news.push({
         tick: state.meta.tick,
         text: 'Revolution: the crowds take the ministries and the government flees.',
         tone: 'bad',
       })
       next = { ...next, inPower: false, quartersToElection: 0, deposedAt: state.meta.tick, deposedBy: 'revolt' }
-    } else if (!godMode && roll < revoltP + coupP) {
+    } else if (!protectedTenure && roll < revoltP + coupP) {
       news.push({
         tick: state.meta.tick,
         text: 'The men who own the country have decided they no longer own the government.',
@@ -126,7 +126,7 @@ export const politics: PipelineStep = {
       const threshold = electionThreshold(inst.stocks.repression)
       const won = approval + swing + rng.normal(0, 0.03) >= threshold
       const suppressed = won && platform === 'suppression'
-      const retainsOffice = won || godMode
+      const retainsOffice = won || protectedTenure
       const result: ElectionResult = {
         tick: state.meta.tick,
         platform,
@@ -154,7 +154,7 @@ export const politics: PipelineStep = {
           ? 'The government is returned. The opposition was not on the ballot.'
           : won
             ? 'The government is returned at the polls.'
-            : godMode
+            : protectedTenure
               ? 'The government is defeated at the polls. GOD MODE keeps the simulation running.'
               : 'The government has fallen at the polls.',
         tone: won ? 'good' : 'bad',
