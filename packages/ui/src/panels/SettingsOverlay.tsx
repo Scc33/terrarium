@@ -55,10 +55,14 @@ export function SettingsOverlay({
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (f)
-              void f.text().then((text) => {
-                loadSave(JSON.parse(text) as SaveFile)
-                onClose()
-              })
+              void f
+                .text()
+                .then((text) => loadSave(JSON.parse(text) as SaveFile))
+                // a file that isn't JSON at all throws before `loadSave` can
+                // refuse it by name, so it says so the same way `loadSave`
+                // does — the rail shows `rejection`, and the run is untouched
+                .catch(() => useGame.setState({ rejection: 'That file is not a Terrarium save.' }))
+                .finally(() => onClose())
             e.target.value = ''
           }}
         />

@@ -9,6 +9,7 @@ import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
 import { BOARD_SLOTS, DEFAULT_PINS, resolveBoard, toggleBoardPin } from '../wallPlan'
 import { draftKey } from '../countryDraft'
+import { looksLikeSave } from '../saveFile'
 import type { DevScenario } from '../devScenario'
 
 const AUTOSAVE_KEY = 'autosave'
@@ -53,6 +54,9 @@ interface GameState {
   stagedAffordable: boolean
   previewError: string | null
   rejection: string | null
+  /** a save that could not be reopened, in words for the player. Set instead of
+   * a published state, so the boot sequence has something to fall through to. */
+  loadError: string | null
   advancing: boolean
   /** instruments the player has put on the board, oldest pin first */
   pinned: IndicatorId[]
@@ -149,6 +153,13 @@ export const useGame = create<GameState>((set, get) => {
         console.error('sim worker error:', msg.message)
         set({ rejection: msg.message, advancing: false })
         break
+      // both surfaces, because a refused save arrives in two situations: at
+      // boot, where `loadError` sends the player to the posting room, and
+      // mid-run from the records office, where the rail already shows
+      // `rejection` and the run in progress is untouched.
+      case 'loadFailed':
+        set({ loadError: msg.message, rejection: msg.message, advancing: false })
+        break
       case 'trialProgress':
         set((s) => ({ study: { ...s.study, progress: msg.progress } }))
         break
@@ -185,6 +196,7 @@ export const useGame = create<GameState>((set, get) => {
     stagedAffordable: true,
     previewError: null,
     rejection: null,
+    loadError: null,
     advancing: false,
     pinned: loadPins(),
     devTruth: null,
@@ -205,24 +217,41 @@ export const useGame = create<GameState>((set, get) => {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
-      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
       send({ type: 'new', seed: s, country, mode })
     },
 
     newDraftedGame(document, seed, mode = 'standard') {
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
-      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
       send({ type: 'newDrafted', seed: s, document, mode })
     },
 
+    /** A file from the records office, or the autosave. Anything that isn't
+     * shaped like a save is refused here rather than sent — the worker would
+     * throw on `save.actionLog.map` before it ever reached the engine, and that
+     * throw carries no sentence a player could act on. */
     loadSave(save) {
-      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
+      if (!looksLikeSave(save)) {
+        const message = 'That file is not a Terrarium save.'
+        set({ loadError: message, rejection: message })
+        return
+      }
       send({ type: 'load', save })
     },
 
+    /** Reopen the run this browser was in the middle of. A save it can no
+     * longer read must not be able to hold the boot screen: `loadError` is what
+     * the game falls through on, and it is set by the worker's refusal. */
     async loadAutosave() {
-      const save = await dbGet<SaveFile>(AUTOSAVE_KEY)
-      if (!save) return false
+      const save = await dbGet<unknown>(AUTOSAVE_KEY)
+      if (save === undefined || save === null) return false
+      if (!looksLikeSave(save)) {
+        // not a save at all — a key collision, or a record half written when a
+        // tab was closed. There is no run here to explain to anybody.
+        return false
+      }
       get().loadSave(save)
       return true
     },

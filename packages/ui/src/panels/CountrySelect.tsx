@@ -199,6 +199,7 @@ export function CountrySelect({
   onStart,
   onStartDraft,
   onCancel,
+  notice,
   drafts,
   onNewDraft,
   onEditDraft,
@@ -208,6 +209,9 @@ export function CountrySelect({
   onStart: (country: CountryScenarioId, seed: string | undefined, mode: GameMode) => void
   onStartDraft: (doc: CountryDocument, seed: string | undefined, mode: GameMode) => void
   onCancel?: () => void
+  /** why the player is standing here rather than in the run they left — set
+   * when a save could not be reopened. Ordinary arrivals pass nothing. */
+  notice?: string | null
   drafts: CountryDocument[]
   onNewDraft: (from: CuratedCountryId) => void
   onEditDraft: (doc: CountryDocument) => void
@@ -277,6 +281,19 @@ export function CountrySelect({
           </div>
           {onCancel && <Button variant="secondary" size="compact" onClick={onCancel}>RETURN TO RECORDS</Button>}
         </header>
+
+        {notice && (
+          <p
+            role="status"
+            className="mt-3 shrink-0 border-l-2 border-dossier-warn bg-dossier-warn/10 px-2.5 py-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/85"
+          >
+            {/* the stripe carries the warning; `dossier-warn` is an ink for the
+                paper register and goes nearly black against the felt, so the
+                label is brass like every other small caption on this screen */}
+            <span className="mr-1.5 font-mono text-[8px] tracking-[0.16em] text-dossier-brass">ARCHIVE</span>
+            {notice}
+          </p>
+        )}
 
         <main className="grid min-h-0 flex-1 gap-4 pt-4 lg:grid-cols-[minmax(0,1fr)_330px] lg:overflow-hidden">
           <section className="min-h-0 lg:overflow-y-auto" aria-labelledby="posting-list-title">

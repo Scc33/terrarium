@@ -46,7 +46,7 @@ type OverlayKind =
   | null
 
 export default function App() {
-  const { published, newGame, newDraftedGame, loadAutosave, drafts, loadDrafts, saveDraft, deleteDraft, clearStudy } =
+  const { published, newGame, newDraftedGame, loadAutosave, loadError, drafts, loadDrafts, saveDraft, deleteDraft, clearStudy } =
     useGame()
   const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
   const [overlay, setOverlay] = useState<OverlayKind>(null)
@@ -191,11 +191,16 @@ export default function App() {
   )
 
   if (!published) {
-    if (startup === 'selecting') {
+    // A refused save is the other way the boot sequence ends, and it is derived
+    // rather than latched: the splash screen has no exit of its own, so without
+    // this the game is over before it starts with the reason in the console.
+    // `newGame` clears `loadError`, which is what puts the splash back.
+    if (startup === 'selecting' || loadError) {
       return (
         <>
           <CountrySelect
             {...postingRoom}
+            notice={loadError}
             onStart={(country, seed, mode) => {
               setStartup('loading')
               newGame(country, seed, mode)

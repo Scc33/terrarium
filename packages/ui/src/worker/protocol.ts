@@ -34,6 +34,11 @@ export type WorkerMessage =
   | { type: 'preview'; cost: number; costs: Record<string, number>; affordable: boolean; error?: string }
   | { type: 'rejected'; message: string; published: PublishedState }
   | { type: 'error'; message: string }
+  /** a save this build can no longer open. Separate from `error` because it is
+   * RECOVERABLE: nothing is wrong with the game, only with that one file, so
+   * the boot sequence falls through to the posting room instead of hanging on
+   * a splash screen with the reason in the console. */
+  | { type: 'loadFailed'; message: string }
   | { type: 'trialProgress'; progress: TrialProgress }
   | { type: 'trialReport'; report: TrialReport }
   /** a study that could not start — a document the engine refuses. Separate
