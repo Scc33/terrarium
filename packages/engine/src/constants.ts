@@ -482,6 +482,10 @@ export const IMPORT_BASE_SHARE: Record<SectorId, number> = {
   transport: 0,
 }
 export const RESERVES_INIT_QTRS = 2 // starting reserves ≈ this many quarters of imports
+/** public debt a country inherits when its recipe names no opening balance
+ * sheet. Was a literal in `init`; it moved here once the country editor needed
+ * to show the same number a structure-less recipe silently receives. */
+export const DEBT_TO_GDP_1946 = 0.3
 export const DEPRECIATION_WHEN_BROKE = 0.05 // FX depreciation per quarter at zero reserves
 export const WORLD_PRICE_VOL: Record<SectorId, number> = {
   agri: 0.015,

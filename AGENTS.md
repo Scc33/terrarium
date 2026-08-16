@@ -79,6 +79,11 @@ can be tested — anything pushed into a component becomes untestable:
   or GDP-share rule moves its own money every quarter — so they are filed against the engine's
   `SpendingRule.votedAt` stamp instead. Diffing the resolved money would report a policy change
   every quarter for eighty years, and it would look entirely plausible in review.
+- **`ui/src/countryDraft.ts`** — the drafting room's arithmetic: the field table is GENERATED
+  from the engine's id lists (a hand-typed path silently addresses nothing), and every rail
+  mirrors `validateCountryParams` exactly. A slider whose own maximum produces a document the
+  engine refuses is invisible in review AND in jsdom — `tests/ui/country-draft.test.ts` drives
+  every field to both ends and re-inits. A new sector or institution joins the editor for free.
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
   `DonutChart` / `StackedAreaChart` (in `components/ui`) paint what it returns and know nothing
   about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a
@@ -113,6 +118,26 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   `@typescript/native` alias, while the dependency literally named `typescript` is the TS 6
   API that `typescript-eslint` needs — it throws on TS 7 rather than degrading. Don't
   "fix" the alias; collapse it when typescript-eslint ships TS 7 support.
+
+### Authored countries and the drafting room (ADR-0019)
+
+The posting room's lower band opens `DraftingRoom`. A player-written country is an ordinary
+`CountryParams` vector — a save has always embedded the materialized vector, so hand-editing an
+exported save already worked; this only gave it a format. Three things not to undo:
+
+- **The document stores `ageShape`, never the pyramid.** `countryFromDocument` rebuilds it with
+  the catalogue's own `pyramidFor`, so the round-trip must be exact — pinned by a state hash
+  after a century, not a field comparison.
+- **`materializeStructure` is an exact economic no-op**, and `reweight` short-circuits a uniform
+  mix for that reason: `base * before / after` with `before === after` is x ± 1 ulp, and one ulp
+  of employment compounds into a visibly different century. Opening Meridia as a draft must give
+  back Meridia.
+- **The study issues no verdict.** 400 vectors sampled across the validator's whole legal box
+  gave zero NaN and nine slow price drifts past the tripwire (median q95), and passive deposition
+  does not track the curated difficulty labels — so it reports against a live reference country
+  instead of grading. Its metrics are COPIED from `packages/runner`;
+  `tests/ui/trial.test.ts` pins the two against each other, and without it the study stops being
+  comparable with the published matrix.
 
 ### Adding an indicator
 

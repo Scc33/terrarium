@@ -79,6 +79,13 @@ export function ReportCardOverlay({
           >
             {card.endedBy === 'deposition' ? 'DEPOSED' : 'THE BOOK CLOSES'}
           </div>
+          {pub.countryAuthored && (
+            <p className="mx-auto mt-3 max-w-md border-l-2 border-dossier-brass bg-dossier-brass/8 px-3 py-1.5 text-left font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
+              Served on a drafted posting. The country was written rather than drawn from the catalogue, so
+              nobody has run the matrix these grades are scaled against — read them against your own runs, not
+              anyone else's.
+            </p>
+          )}
         </div>
 
         <Axis name="PROSPERITY" grade={card.prosperityGrade}>

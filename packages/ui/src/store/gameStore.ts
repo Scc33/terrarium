@@ -1,14 +1,21 @@
 import { create } from 'zustand'
-import type { Action, CountryScenarioId, GameMode, SaveFile } from '@terrarium/engine'
+import type { Action, CountryDocument, CountryScenarioId, GameMode, SaveFile } from '@terrarium/engine'
+import { parseCountryDocument } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
 import type { ClientMessage, DevNode, WorkerMessage } from '../worker/protocol'
+import type { TrialProgress, TrialReport } from '../worker/trial'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
 import { BOARD_SLOTS, DEFAULT_PINS, resolveBoard, toggleBoardPin } from '../wallPlan'
+import { draftKey } from '../countryDraft'
 import type { DevScenario } from '../devScenario'
 
 const AUTOSAVE_KEY = 'autosave'
+/** The drafts shelf. Countries a player has written live beside the game, not
+ * inside a save — a save already embeds the vector it needs, and a shelf is a
+ * property of this browser rather than of any run. */
+const DRAFTS_KEY = 'drafts'
 /** which dials are on the board is a view preference, not part of the run —
  * it belongs to the player and their screen, not to the save file, so it
  * lives beside the game rather than inside it */
@@ -52,9 +59,30 @@ interface GameState {
   /** dev only: the last true-state snapshot the worker was asked for */
   devTruth: { tick: number; tree: DevNode[] } | null
 
+  /** countries this browser has written, newest first */
+  drafts: CountryDocument[]
+  /** the feasibility study: at most one runs at a time, and it belongs to a
+   * draft rather than to a game, so it lives beside the shelf */
+  study: {
+    running: boolean
+    progress: TrialProgress | null
+    report: TrialReport | null
+    error: string | null
+    /** which draft the report describes, so a stale report is never shown
+     * against a country that has been edited since */
+    forDraft: string | null
+  }
+
   newGame(country: CountryScenarioId, seed?: string, mode?: GameMode): void
+  /** start a country a player wrote */
+  newDraftedGame(document: CountryDocument, seed?: string, mode?: GameMode): void
   loadSave(save: SaveFile): void
   loadAutosave(): Promise<boolean>
+  loadDrafts(): Promise<void>
+  saveDraft(document: CountryDocument): Promise<void>
+  deleteDraft(key: string): Promise<void>
+  runStudy(document: CountryDocument): void
+  clearStudy(): void
   stage(key: string, action: Action | null): void
   clearStaged(): void
   advance(): void
@@ -121,6 +149,15 @@ export const useGame = create<GameState>((set, get) => {
         console.error('sim worker error:', msg.message)
         set({ rejection: msg.message, advancing: false })
         break
+      case 'trialProgress':
+        set((s) => ({ study: { ...s.study, progress: msg.progress } }))
+        break
+      case 'trialReport':
+        set((s) => ({ study: { ...s.study, running: false, progress: null, report: msg.report } }))
+        break
+      case 'trialFailed':
+        set((s) => ({ study: { ...s.study, running: false, progress: null, error: msg.message } }))
+        break
       default:
         if (__DEV_TOOLS__ && msg.type === 'dev:truth') {
           set({ devTruth: { tick: msg.tick, tree: msg.tree } })
@@ -151,6 +188,8 @@ export const useGame = create<GameState>((set, get) => {
     advancing: false,
     pinned: loadPins(),
     devTruth: null,
+    drafts: [],
+    study: { running: false, progress: null, report: null, error: null, forDraft: null },
 
     /** Pin an instrument to the board, or take it off. The board holds
      * BOARD_SLOTS, so pinning a fifth evicts the oldest pin — the board is a
@@ -170,6 +209,12 @@ export const useGame = create<GameState>((set, get) => {
       send({ type: 'new', seed: s, country, mode })
     },
 
+    newDraftedGame(document, seed, mode = 'standard') {
+      const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
+      set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
+      send({ type: 'newDrafted', seed: s, document, mode })
+    },
+
     loadSave(save) {
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null })
       send({ type: 'load', save })
@@ -180,6 +225,58 @@ export const useGame = create<GameState>((set, get) => {
       if (!save) return false
       get().loadSave(save)
       return true
+    },
+
+    /** Read the shelf. Every document is re-parsed rather than trusted: it was
+     * written by an older build, or hand-edited in devtools, and a shelf that
+     * bricks the posting room is worse than one that quietly drops a file. */
+    async loadDrafts() {
+      const stored = await dbGet<unknown[]>(DRAFTS_KEY)
+      if (!Array.isArray(stored)) return
+      const drafts: CountryDocument[] = []
+      for (const entry of stored) {
+        try {
+          drafts.push(parseCountryDocument(entry))
+        } catch {
+          /* a draft this build can no longer open is dropped, not fatal */
+        }
+      }
+      set({ drafts })
+    },
+
+    async saveDraft(document) {
+      const key = draftKey(document)
+      // filing under a name that is already on the shelf replaces it, and moves
+      // it to the front — that is what a filing cabinet does
+      const drafts = [document, ...get().drafts.filter((d) => draftKey(d) !== key)]
+      set({ drafts })
+      await dbPut(DRAFTS_KEY, drafts)
+    },
+
+    async deleteDraft(key) {
+      const drafts = get().drafts.filter((d) => draftKey(d) !== key)
+      set({ drafts })
+      await dbPut(DRAFTS_KEY, drafts)
+    },
+
+    runStudy(document) {
+      if (get().study.running) return
+      set({
+        study: {
+          running: true,
+          progress: null,
+          report: null,
+          error: null,
+          forDraft: draftKey(document),
+        },
+      })
+      // the study is reproducible from the draft alone: studying the same
+      // country twice gives the same numbers, so iterating on it means something
+      send({ type: 'trial', document, baseSeed: draftKey(document) })
+    },
+
+    clearStudy() {
+      set({ study: { running: false, progress: null, report: null, error: null, forDraft: null } })
     },
 
     stage(key, action) {

@@ -24,7 +24,10 @@ import { ElectionOverlay } from './panels/ElectionOverlay'
 import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
 import { CountrySelect } from './panels/CountrySelect'
+import { DraftingRoom } from './panels/DraftingRoom'
 import { Button, useFocusTrap } from './components/ui'
+import { draftFrom, sharedCountryFromUrl, type CountryDocument } from './countryDraft'
+import type { CuratedCountryId } from '@terrarium/engine'
 import type { CabinetGroup } from './cabinetNavigation'
 
 type OverlayKind =
@@ -43,9 +46,13 @@ type OverlayKind =
   | null
 
 export default function App() {
-  const { published, newGame, loadAutosave } = useGame()
+  const { published, newGame, newDraftedGame, loadAutosave, drafts, loadDrafts, saveDraft, deleteDraft, clearStudy } =
+    useGame()
   const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
   const [overlay, setOverlay] = useState<OverlayKind>(null)
+  /** the draft currently open in the drafting room, and the country it was
+   * opened from — the origin is what the DRAFTED marks are measured against */
+  const [editing, setEditing] = useState<{ draft: CountryDocument; origin: CountryDocument } | null>(null)
   const [cabinetOpen, setCabinetOpen] = useState(false)
   const [devOpen, setDevOpen] = useState(false)
   const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
@@ -71,6 +78,23 @@ export default function App() {
       newGame('procedural', visualSeed)
       return
     }
+    void loadDrafts()
+
+    // a shared country arrives in the fragment. It opens the posting room with
+    // the country on the shelf rather than starting it — accepting a stranger's
+    // posting is the player's decision, not the link's.
+    let shared: CountryDocument | null = null
+    try {
+      shared = sharedCountryFromUrl(window.location.href)
+    } catch (error) {
+      console.warn('shared country could not be opened:', error)
+    }
+    if (shared) {
+      history.replaceState(null, '', window.location.pathname + window.location.search)
+      void saveDraft(shared).then(() => setStartup('selecting'))
+      return
+    }
+
     void loadAutosave().then((found) => {
       if (!found) setStartup('selecting')
     })
@@ -136,15 +160,53 @@ export default function App() {
     }
   }, [published])
 
+  // the drafting room's wiring, shared by both places the posting room appears
+  const openDraft = (doc: CountryDocument) => {
+    clearStudy()
+    setEditing({ draft: doc, origin: doc })
+  }
+  const postingRoom = {
+    drafts,
+    onNewDraft: (from: CuratedCountryId) => openDraft(draftFrom(from)),
+    onEditDraft: openDraft,
+    onImportDraft: (doc: CountryDocument) => void saveDraft(doc),
+    onDeleteDraft: (key: string) => void deleteDraft(key),
+  }
+  const draftingRoom = editing && (
+    <DraftingRoom
+      draft={editing.draft}
+      origin={editing.origin}
+      onChange={(next) => setEditing((current) => (current ? { ...current, draft: next } : current))}
+      onClose={() => setEditing(null)}
+      onAccept={(doc) => {
+        // accepting files it too: a country you played and cannot find again
+        // is a country you cannot iterate on
+        void saveDraft(doc)
+        setEditing(null)
+        setOverlay(null)
+        setStartup('loading')
+        newDraftedGame(doc)
+      }}
+    />
+  )
+
   if (!published) {
     if (startup === 'selecting') {
       return (
-        <CountrySelect
-          onStart={(country, seed, mode) => {
-            setStartup('loading')
-            newGame(country, seed, mode)
-          }}
-        />
+        <>
+          <CountrySelect
+            {...postingRoom}
+            onStart={(country, seed, mode) => {
+              setStartup('loading')
+              newGame(country, seed, mode)
+            }}
+            onStartDraft={(doc, seed, mode) => {
+              setStartup('loading')
+              newDraftedGame(doc, seed, mode)
+            }}
+          />
+          {draftingRoom}
+        </>
       )
     }
     return (
@@ -239,13 +301,19 @@ export default function App() {
       )}
       {overlay === 'country' && (
         <CountrySelect
+          {...postingRoom}
           onCancel={() => setOverlay(null)}
           onStart={(country, seed, mode) => {
             newGame(country, seed, mode)
             setOverlay(null)
           }}
+          onStartDraft={(doc, seed, mode) => {
+            newDraftedGame(doc, seed, mode)
+            setOverlay(null)
+          }}
         />
       )}
+      {draftingRoom}
       {__DEV_TOOLS__ && devOpen && <DevConsole onClose={() => setDevOpen(false)} />}
     </div>
   )

@@ -78,6 +78,8 @@ export {
   createCountryParams,
   generateParams,
   generateCountryParams,
+  materializeStructure,
+  pyramidFor,
   validateCountryParams,
 } from './countries'
 export type {
@@ -88,6 +90,14 @@ export type {
   CuratedCountryId,
   ProceduralCountryOptions,
 } from './countries'
+export {
+  COUNTRY_DOCUMENT_FORMAT,
+  COUNTRY_DOCUMENT_VERSION,
+  countryFromDocument,
+  createCountryDocument,
+  parseCountryDocument,
+} from './countryDocument'
+export type { CountryDocument, CountryDossier } from './countryDocument'
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'

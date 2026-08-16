@@ -184,6 +184,14 @@ export interface CountryParams {
    * relative to the standard 1946 sector mix and are normalized by init, so
    * they change composition without silently changing the country's scale. */
   structure?: CountryStructure
+  /** True when a player wrote this vector rather than drawing it from the
+   * recipe catalogue. Provenance only — `init` and every pipeline step ignore
+   * it, and a country is not easier or harder for carrying it. It exists so
+   * that a report card earned on a country nobody has balanced says so, and
+   * keeps saying so after export and reload (the ADR-0015 argument, applied to
+   * a fact about the run rather than a rule of it). Absent on every catalogue
+   * recipe and on every save written before schema 26. */
+  authored?: boolean
 }
 
 /** What differs between countries beyond size and development. This remains
@@ -732,7 +740,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 25 // v25: the policy record — dials filed per quarter
+export const SCHEMA_VERSION = 26 // v26: authored countries — the params contract carries provenance
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

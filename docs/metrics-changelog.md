@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 25)
+## Current contract (schema 26)
 
 ### Inputs
 
@@ -35,6 +35,7 @@ contract, so it's called out below.
 | `enfranchisement` | ballot weight per cohort |
 | `pyramid` | 1946 age structure, 17 five-year bands *(added v6)* |
 | `structure` | optional normalized sector composition, opening debt/credit/reserves, and inherited institutions *(added v13; omitted means the historical Meridia defaults)* |
+| `authored` | optional provenance flag: true when a player wrote the vector rather than drawing it from the recipe catalogue *(added v26; read by no pipeline step)* |
 
 **Game mode** (`GameMode`, immutable after init): `standard` uses every normal deposition path;
 `god` records election defeats but keeps the run playable and disables deposition by polls,
@@ -182,6 +183,28 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 26 — Authored countries
+
+- **Inputs +**: `CountryParams.authored` — optional, defaulting to absent, and read by **no
+  pipeline step**. It is provenance, not a rule: an authored country runs through the identical
+  `init → applyActions → step` loop and is neither easier nor harder for carrying the flag.
+  Everything else about the vector is unchanged, and the economy is bit-identical to v25
+  (`pnpm diff-state --moved-only` reports `meta.schemaVersion` and nothing else).
+- **Outputs +**: `PublishedState.countryAuthored` — so the wall and the report card can say that
+  a tenure was served somewhere nobody has balanced. This is the ADR-0015 argument applied to a
+  *fact about* the run rather than a *rule of* it: had it lived in React state or `localStorage`
+  it would evaporate on export and reload, and a grade earned on an authored country would be
+  filed silently beside grades earned on the curated matrix.
+- **File format +**: the **country document** (`CountryDocument`, `packages/engine/src/countryDocument.ts`)
+  — a sibling of `SaveFile`, not a new engine input. It stores the vector without `pyramid` plus
+  an `ageShape` id that rebuilds an identical pyramid on import, rounds every number to six
+  significant digits on write (so the author plays exactly what their readers will), and carries
+  a `dossier` of player-written prose with **no difficulty field** — the catalogue's difficulty
+  stamps are backed by a thousand-run matrix and a self-declared one would be a claim nobody
+  measured. `parseCountryDocument` rebuilds the object field by field rather than casting, so an
+  imported file cannot smuggle an unknown key into the engine.
+- **Fog**: none. Provenance is exact for the same reason your own dials are.
 
 ### schema 25 — The policy record
 

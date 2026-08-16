@@ -8,6 +8,12 @@
  * pipeline like every other game.
  */
 
+import {
+  CREDIT_BASE,
+  DEBT_TO_GDP_1946,
+  INSTITUTIONS_1946,
+  RESERVES_INIT_QTRS,
+} from './constants'
 import { clamp } from './math'
 import { rngFor, type Rng, type Seed } from './rng/rng'
 import {
@@ -154,7 +160,12 @@ function institutions(values: readonly number[]): Record<InstitutionId, number> 
   return record(INSTITUTION_IDS, values)
 }
 
-function pyramidFor(cohorts: CohortSizes, archetype: CountryArchetypeId): number[] {
+/** Derive a 1946 age pyramid from class sizes and an archetype's age shape.
+ * Exported because a shared country document stores the shape id rather than
+ * seventeen float bands, and has to rebuild the identical pyramid on import —
+ * a document that reconstructed a *different* pyramid would be a different
+ * country wearing the same name. */
+export function pyramidFor(cohorts: CohortSizes, archetype: CountryArchetypeId): number[] {
   const weights = AGE_SHAPES[archetype]
   const working = COHORT_IDS.filter((id) => id !== 'retirees').reduce((sum, id) => sum + cohorts[id], 0)
   const retired = cohorts.retirees
@@ -408,6 +419,41 @@ export function generateCountryParams(seed: Seed, options: ProceduralCountryOpti
   return base
 }
 
+/**
+ * Spell out the opening conditions a recipe without a `structure` block
+ * receives implicitly.
+ *
+ * Meridia is the historical baseline and carries no structure, so `init` fills
+ * each field from a constant at the point of use. An editor cannot show a
+ * player a slider for a number that only exists inside `init`, so this returns
+ * the same country with those defaults written down. It must be a *no-op on the
+ * economy*: sector multipliers of exactly 1 survive `reweight` unchanged, and
+ * every other field repeats the constant `init` would have reached for.
+ * `tests/unit/countries.test.ts` asserts the state hash after a century, which
+ * is the only way to be sure this stays true when one of those defaults moves.
+ */
+export function materializeStructure(params: CountryParams): CountryParams {
+  if (params.structure) return cloneParams(params)
+  const unchanged = sectorMix(SECTOR_IDS.map(() => 1))
+  return {
+    ...cloneParams(params),
+    structure: {
+      outputMix: { ...unchanged },
+      employmentMix: { ...unchanged },
+      capitalMix: { ...unchanged },
+      debtToGdp: DEBT_TO_GDP_1946,
+      creditToGdp: CREDIT_BASE,
+      reserveCoverage: RESERVES_INIT_QTRS,
+      institutions: Object.fromEntries(
+        INSTITUTION_IDS.map((id) => [
+          id,
+          clamp(INSTITUTIONS_1946[id].base + INSTITUTIONS_1946[id].devGain * params.development, 0, 1),
+        ]),
+      ) as Record<InstitutionId, number>,
+    },
+  }
+}
+
 export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams {
   const params = id === 'procedural' ? generateCountryParams(seed) : cloneParams(CURATED[id])
   validateCountryParams(params)
@@ -427,7 +473,12 @@ function finite(value: number, label: string): void {
 /** Fail before init can turn a malformed recipe into an opaque NaN 80
  * quarters later. This is also the contract procedural generators must pass. */
 export function validateCountryParams(params: CountryParams): void {
-  if (!params.name.trim()) throw new InvalidCountryError('country name is blank')
+  if (typeof params.name !== 'string' || !params.name.trim()) {
+    throw new InvalidCountryError('country name is blank')
+  }
+  if (params.authored !== undefined && typeof params.authored !== 'boolean') {
+    throw new InvalidCountryError('authored must be a boolean when present')
+  }
   finite(params.development, 'development')
   finite(params.openness, 'openness')
   if (params.development < 0.05 || params.development > 1) {
