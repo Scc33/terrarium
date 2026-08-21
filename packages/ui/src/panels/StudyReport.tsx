@@ -12,7 +12,7 @@
  * It reports; the author decides.
  */
 
-import { Button, ProgressBar } from '../components/ui'
+import { Button, ProgressBar, TooltipLabel } from '../components/ui'
 import type { TrialLeg, TrialProgress, TrialReport as Report } from '../worker/trial'
 import { tickLabel } from '../devScenario'
 import type { CountryDocument } from '../countryDraft'
@@ -43,8 +43,8 @@ function Row({
 }) {
   return (
     <tr className="border-b border-dossier-ink/10 last:border-0">
-      <th scope="row" className="py-1.5 pr-2 text-left font-dossier text-[12px] font-normal text-dossier-ink/75" title={hint}>
-        {label}
+      <th scope="row" className="py-1.5 pr-2 text-left font-dossier text-[12px] font-normal text-dossier-ink/75">
+        <TooltipLabel label={label} content={hint}>{label}</TooltipLabel>
       </th>
       <td className="py-1.5 text-right font-mono text-[12px] font-semibold tabular-nums text-dossier-ink">
         {format(candidate)}

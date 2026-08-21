@@ -59,7 +59,7 @@ import {
   type RollingMonths,
   type ShapedPoint,
 } from '../series'
-import { TimeSeriesChart } from '../ui'
+import { TimeSeriesChart, Tooltip, TooltipLabel } from '../ui'
 import { WallTile } from '../WallTile/WallTile'
 
 // The viewBox aspect is chosen to match a board slot, not to be a tidy
@@ -147,53 +147,53 @@ export function TerminalTicker({
   const BAND = 'grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-1.5 px-2 py-1'
 
   const header = (
-    <div className={`${BAND} border-b border-terminal-grid`} title={NAMES[indicator].note}>
-      <span className="truncate font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
+    <div className={`${BAND} border-b border-terminal-grid`}>
+      <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
         {NAMES[indicator].terminal}
-      </span>
-      <button
-        type="button"
-        onClick={() => setChartView(CHART_VIEWS[(viewIndex + 1) % CHART_VIEWS.length].view)}
-        title={`${view.title}. Click to cycle 40Q, ALL, R3M, R6M and R12M.`}
-        aria-label={`Chart view: ${view.title}. Click to cycle chart views.`}
-        className="border border-terminal-grid px-1 font-mono text-[8px] text-terminal-primary/70 hover:text-terminal-primary"
-      >
-        {view.label}
-      </button>
+      </TooltipLabel>
+      <Tooltip content={`${view.title}. Select to cycle 40Q, ALL, R3M, R6M and R12M.`}>
+        <button
+          type="button"
+          onClick={() => setChartView(CHART_VIEWS[(viewIndex + 1) % CHART_VIEWS.length].view)}
+          aria-label={`Chart view: ${view.title}. Select to cycle 40Q, ALL, R3M, R6M and R12M.`}
+          className="border border-terminal-grid px-1 font-mono text-[8px] text-terminal-primary/70 hover:text-terminal-primary"
+        >
+          {view.label}
+        </button>
+      </Tooltip>
     </div>
   )
 
+  const footerHelp = latest.levels
+    ? 'R is output after price rises are removed; N is output at current prices. The right side is the latest growth reading, its uncertainty and its change.'
+    : 'The left side is the matching share. The right side is the latest reading, its uncertainty and its change.'
   const footer = (
-    <div
-      className={`${BAND} border-t border-terminal-grid font-mono text-[10px] tabular-nums text-terminal-primary`}
-      title="The latest published figure, its confessed error band, and the change since the previous print."
-    >
-      {latest.levels ? (
-        <span
-          className="truncate opacity-70"
-          title="Estimated GDP level behind the growth print: Real (base-year prices) / Nominal (current prices)."
-        >
-          R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
+    <Tooltip content={footerHelp}>
+      <div tabIndex={0} className={`${BAND} border-t border-terminal-grid font-mono text-[10px] tabular-nums text-terminal-primary focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terminal-primary`}>
+        {latest.levels ? (
+          <span className="truncate opacity-70">
+            R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
+          </span>
+        ) : (
+          <span className="truncate opacity-60">{complement}</span>
+        )}
+        <span className="whitespace-nowrap">
+          {latest.value.toFixed(digits)}
+          {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
+          {(() => {
+            const d = quarterDelta(allPoints)
+            if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
+            return (
+              <span className="ml-1.5 opacity-80">
+                {d > 0 ? '▲' : '▼'}
+                {Math.abs(d).toFixed(digits)}
+              </span>
+            )
+          })()}
+          <span className="terminal-cursor">▮</span>
         </span>
-      ) : (
-        <span className="truncate opacity-60">{complement}</span>
-      )}
-      <span className="whitespace-nowrap">
-        {latest.value.toFixed(digits)}
-        {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
-        {(() => {
-          const d = quarterDelta(allPoints)
-          if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
-          return (
-            <span className="ml-1.5 opacity-80">
-              {d > 0 ? '▲' : '▼'}
-              {Math.abs(d).toFixed(digits)}
-            </span>
-          )
-        })()}
-        <span className="terminal-cursor">▮</span>
-      </span>
-    </div>
+      </div>
+    </Tooltip>
   )
 
   return (

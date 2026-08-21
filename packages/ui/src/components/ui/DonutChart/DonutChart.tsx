@@ -12,6 +12,7 @@
 
 import type { ReactNode } from 'react'
 import { donutSlices, type Share } from '../../../shares'
+import { Tooltip } from '../Tooltip/Tooltip'
 
 export interface DonutChartProps {
   shares: readonly Share[]
@@ -44,12 +45,17 @@ export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOT
           role="img"
           aria-label={reading}
         >
-          <title>{reading}</title>
-          {slices.map((s) => (
-            <path key={s.key} d={s.path} fill={s.ink} fillRule="evenodd" stroke="var(--color-dossier-paper)" strokeWidth="0.8">
-              <title>{`${s.label}: ${format(s.value)} (${(100 * s.share).toFixed(1)}%)`}</title>
-            </path>
-          ))}
+          {slices.map((s) => {
+            const note = shares.find((x) => x.key === s.key)?.note
+            return (
+              <Tooltip
+                key={s.key}
+                content={`${s.label}: ${format(s.value)} (${(100 * s.share).toFixed(1)}%)${note ? `. ${note}` : ''}`}
+              >
+                <path d={s.path} fill={s.ink} fillRule="evenodd" stroke="var(--color-dossier-paper)" strokeWidth="0.8" />
+              </Tooltip>
+            )
+          })}
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="0.6" opacity="0.35" />
           <text
             x={size / 2}
@@ -73,17 +79,20 @@ export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOT
       )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
-        {shares.map((s) => (
-          <div key={s.key} className="flex items-baseline gap-1.5 font-mono text-[10px] leading-none" title={s.note}>
-            <span className="h-2 w-2 shrink-0 self-center" style={{ background: s.ink }} />
-            <span className="min-w-0 flex-1 truncate text-dossier-ink/85">{s.label}</span>
-            <span className="shrink-0 tabular-nums text-dossier-ink">{format(s.value)}</span>
-            <span className="w-8 shrink-0 text-right tabular-nums text-dossier-ink/55">
-              {total > 0 ? `${(100 * (shareOf.get(s.key) ?? 0)).toFixed(0)}%` : '—'}
-            </span>
-            {extra && <span className="w-10 shrink-0 text-right tabular-nums text-dossier-ink/55">{extra(s)}</span>}
-          </div>
-        ))}
+        {shares.map((s) => {
+          const row = (
+            <div key={s.key} tabIndex={s.note ? 0 : undefined} className="flex items-baseline gap-1.5 font-mono text-[10px] leading-none focus-visible:outline-2 focus-visible:outline-dossier-brass">
+              <span className="h-2 w-2 shrink-0 self-center" style={{ background: s.ink }} />
+              <span className="min-w-0 flex-1 truncate text-dossier-ink/85">{s.label}</span>
+              <span className="shrink-0 tabular-nums text-dossier-ink">{format(s.value)}</span>
+              <span className="w-8 shrink-0 text-right tabular-nums text-dossier-ink/55">
+                {total > 0 ? `${(100 * (shareOf.get(s.key) ?? 0)).toFixed(0)}%` : '—'}
+              </span>
+              {extra && <span className="w-10 shrink-0 text-right tabular-nums text-dossier-ink/55">{extra(s)}</span>}
+            </div>
+          )
+          return s.note ? <Tooltip key={s.key} content={s.note}>{row}</Tooltip> : row
+        })}
       </div>
       <p className="sr-only">{reading}</p>
     </div>

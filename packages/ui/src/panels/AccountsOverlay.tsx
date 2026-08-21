@@ -15,7 +15,7 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { DonutChart, EmptyState, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart } from '../components/ui'
+import { DonutChart, EmptyState, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
 import { shapeSeries } from '../components/series'
 import { accountRows, publishedSum, readAccounts, toShares, type AccountId } from '../accounts'
 import { useState } from 'react'
@@ -74,7 +74,7 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
                 key={r.key}
                 label={r.label.toUpperCase()}
                 value={pct(r.value)}
-                title={`${r.note} Measured for ${yearOf(r.forQtr)} Q${(r.forQtr % 4) + 1}; the office's own band on that print: ${band(r.errorBand)}.`}
+                title={`${r.note} This report covers ${yearOf(r.forQtr)} Q${(r.forQtr % 4) + 1}. The office says it may be off by ${band(r.errorBand)}.`}
               />
             ))}
             <Metric
@@ -82,7 +82,7 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
               value={readings
                 .map((r) => `${r.sinceFirst >= 0 ? '+' : ''}${r.sinceFirst.toFixed(1)}`)
                 .join(' / ')}
-              title="Percentage points moved since the accounts were first compiled, in the order above. This is the drift that says what kind of economy you are building."
+              title="How many percentage points each share has moved since the first report, in the order shown above."
             />
           </div>
         )}
@@ -120,11 +120,14 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
                 extra={(s) => band(readings.find((x) => x.key === s.key)?.errorBand)}
                 emptyNote="NOTHING COMPILED"
               />
-              <div
-                className="mt-0.5 text-right font-mono text-[8px] tracking-[0.1em] text-dossier-ink/45"
-                title="The half-width the statistical office confessed on this print. A poor office prints a wide band; a rich one narrows it and revises less. Below 0.45 statistical capacity it will not put a number on its own error at all, and says so."
-              >
-                LAST COLUMN: THE OFFICE’S OWN BAND ⓘ
+              <div className="mt-0.5 text-right font-mono text-[8px] tracking-[0.1em] text-dossier-ink/45">
+                <TooltipLabel
+                  label="The office’s uncertainty"
+                  content="How far the office thinks each figure may be from the truth. Better statistics make this range smaller."
+                  className="tracking-[0.1em] text-dossier-ink/45"
+                >
+                  LAST COLUMN: THE OFFICE’S OWN BAND ⓘ
+                </TooltipLabel>
               </div>
             </div>
 

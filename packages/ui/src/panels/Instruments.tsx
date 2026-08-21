@@ -47,6 +47,7 @@ export function Instruments({
         title="WATCH BOARD"
         detail="The four instruments the cabinet is flying by"
         aside={boardStatus}
+        hint="Your four large gauges. Choose which ones appear here from the rack below."
         inverted
       />
 
@@ -76,6 +77,7 @@ export function Instruments({
         title="INSTRUMENT RACK"
         detail="Select any strip to swap it onto the watch board"
         aside={rackStatus}
+        hint="Every measurement the state can build. Select a strip to put it on the watch board."
         inverted
       />
 

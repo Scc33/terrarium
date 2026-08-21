@@ -110,21 +110,21 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
       <OverlayLayout
         summary={(
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-          <Metric label="REVENUE / QTR" value={money(t.revenue)} title="Everything the treasury actually collected this quarter." />
-          <Metric label="OUTLAYS / QTR" value={money(t.outlays)} title="Everything it paid out this quarter, debt service included." />
+          <Metric label="REVENUE / QTR" value={money(t.revenue)} title="Money the government collected this quarter." />
+          <Metric label="OUTLAYS / QTR" value={money(t.outlays)} title="Money the government spent this quarter, including interest on debt." />
           <Metric
             label="BALANCE"
             value={(t.balance >= 0 ? '+' : '') + money(t.balance)}
             tone={t.balance < 0 ? 'danger' : undefined}
-            title="Revenue minus outlays. Deficits are sold to the bond market until it stops buying."
+            title="Revenue minus spending. Below zero is a deficit that must be covered by borrowing or new money."
           />
-          <Metric label="DEBT" value={t.debt.toFixed(0)} title="Outstanding government debt." />
-          <Metric label="R&D / QTR" value={money(t.outlaysByProgramme.research)} title="The exact research appropriation this quarter. In the charts below it shares one state-building band with ministries so the composition remains readable." />
+          <Metric label="DEBT" value={t.debt.toFixed(0)} title="Money the government still owes." />
+          <Metric label="R&D / QTR" value={money(t.outlaysByProgramme.research)} title="Research grants paid this quarter." />
           <Metric
             label="PRINTED"
             value={t.printed.toFixed(1)}
             tone={t.printed > 0.5 ? 'danger' : undefined}
-            title="Cumulative money-financed deficit — what the bond market would not absorb."
+            title="New money created because lenders would not cover the deficit. Too much can raise inflation."
           />
           </div>
         )}
@@ -174,7 +174,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             {side === 'revenue' && (
               <div
                 className="mt-0.5 text-right font-mono text-[8px] tracking-[0.1em] text-dossier-ink/45"
-                title="Receipts divided by the rate you set — this quarter's base, per point of tax. It is a measurement, not a forecast: move the rate and the base moves with it, sometimes further than the rate did."
+                title="How much taxable income, profit, imports or fuel produced this quarter’s receipts. Changing the rate can also change this base."
               >
                 LAST COLUMN: TAKE PER 1 PT OF RATE ⓘ
               </div>

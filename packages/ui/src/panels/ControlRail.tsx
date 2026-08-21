@@ -18,8 +18,8 @@ import {
 } from '@terrarium/engine'
 import { INDICATOR_IDS, INSTITUTION_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
-import { Button, Metric, ProgressBar, SegmentedControl, SliderField } from '../components/ui'
-import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, INSTITUTION_NAMES } from '../components/labels'
+import { Button, Metric, ProgressBar, SegmentedControl, SliderField, Tooltip, TooltipLabel } from '../components/ui'
+import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, COHORT_NOTES, INSTITUTION_NAMES } from '../components/labels'
 import { dialIncidence, type Incidence } from '../incidence'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
 import { capitalReading } from '../gameRules'
@@ -78,7 +78,7 @@ const DIALS: DialGroup[] = [
   {
     group: 'SPENDING',
     tab: 'SPENDING',
-    brief: 'Set each programme as fixed cash, CPI-indexed cash, or a share of the latest official GDP release. The books pay the resolved amount in full.',
+    brief: 'Choose whether each programme stays fixed, rises with prices, or stays a share of the latest official output figure.',
     question: 'What should each programme follow?',
     dials: [
       { path: 'spending.transfers', label: 'Transfers', get: (p) => p.dials.spending.transfers, min: 0, max: spendMax, step: 0.1, fmt: money },
@@ -90,7 +90,7 @@ const DIALS: DialGroup[] = [
   {
     group: 'MONEY',
     tab: 'CENTRAL BANK',
-    brief: 'Set the price and quantity of money, then decide how much bank equity must stand behind the credit cycle.',
+    brief: 'Set interest rates, support lending when rates hit zero, and decide how much of their own money banks must put at risk.',
     question: 'How much financial risk should the state carry?',
     dials: [
       { path: 'policyRate', label: 'Policy rate', get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
@@ -132,17 +132,17 @@ const DIALS: DialGroup[] = [
 ]
 
 const DIAL_TIPS: Partial<Record<DialPath, string>> = {
-  'taxRates.income': 'Taxes wages. Collection is gated by tax administration — the rate you set is not the rate you get.',
-  'taxRates.corporate': 'Taxes positive sector profits, at the same gated collection.',
-  'taxRates.tariff': 'Taxes imports at the border. Customs posts are easy to man, so collection is better.',
-  'taxRates.fuel': 'An excise on every energy purchase. Watch what it does to trucking, and then to bread.',
-  'spending.transfers': 'Cash to households (pensions, relief). Delivery leaks through weak administration.',
-  'spending.procurement': 'The state buys goods and services from the economy.',
-  'spending.investment': 'Public works: buys construction and adds to the capital stock.',
-  'spending.research': 'Public R&D. Behind the frontier it adapts known techniques; near the frontier it funds slower original work. Weak administration leaks grants, and schools limit how much useful research the country can staff.',
-  policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
-  assetPurchaseRate: 'Quantitative easing: the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate hits zero, but also feeds credit and asset-price risk. It is an asset swap, not fiscal deficit printing.',
-  capitalRequirement: 'Bank equity required per unit of credit. Raising the floor leans against a boom and gives banks a larger shock absorber; cutting it frees credit now and leaves less room for losses.',
+  'taxRates.income': 'A tax on workers’ pay. A weak tax office collects less than the posted rate.',
+  'taxRates.corporate': 'A tax on company profits. A weak tax office collects less than the posted rate.',
+  'taxRates.tariff': 'A tax on imported goods, collected at the border. It raises import prices.',
+  'taxRates.fuel': 'A tax on fuel. It raises transport costs, which can raise food and other prices.',
+  'spending.transfers': 'Cash paid to households, including pensions and relief. A weak civil service loses part before it arrives.',
+  'spending.procurement': 'Goods and services bought by the government. It raises demand now and adds to spending.',
+  'spending.investment': 'Roads, power and other useful assets. It raises demand now and productive capacity later.',
+  'spending.research': 'Grants for better production methods. Schools provide researchers; a weak civil service loses part of the money.',
+  policyRate: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
+  assetPurchaseRate: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
+  capitalRequirement: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
 }
 
 /**
@@ -160,14 +160,22 @@ function IncidenceNote({ incidence }: { incidence: Incidence }) {
     <div className="mt-1.5 border-t border-dossier-paper/10 pt-1.5">
       <div className="flex items-baseline justify-between font-mono text-[8px] tracking-[0.12em] text-dossier-paper/45">
         <span>{cutting ? 'WHO LOSES IT' : 'WHO IT REACHES'}</span>
-        <span title="Programme money that survives the civil service. The books pay the full amount either way.">
+        <TooltipLabel
+          label="Delivered spending"
+          content="The share that reaches households after losses in the civil service. The treasury pays the full amount either way."
+          className="text-dossier-paper/45"
+        >
           {(deliveryRate * 100).toFixed(0)}% DELIVERED
-        </span>
+        </TooltipLabel>
       </div>
       <ul className="mt-1 flex flex-col gap-0.5">
         {rows.map((row) => (
           <li key={row.cohort} className="flex items-baseline justify-between gap-2 font-mono text-[9px] text-dossier-paper/70">
-            <span className="truncate">{COHORT_NAMES[row.cohort]}</span>
+            <TooltipLabel
+              label={COHORT_NAMES[row.cohort]}
+              content={COHORT_NOTES[row.cohort]}
+              className="truncate text-dossier-paper/70"
+            />
             <span className="shrink-0 tabular-nums text-dossier-paper/85">{signed(row.delivered)}</span>
           </li>
         ))}
@@ -349,11 +357,11 @@ const CAP_LABELS: Record<CapacityId, string> = {
 }
 
 const CAP_TIPS: Record<CapacityId, string> = {
-  tax: 'Gates what the treasury can actually collect from the tax base.',
-  statistical: 'Lifts the fog: funds surveys, shortens lags, shrinks error bands, unlocks instruments.',
-  administrative: 'How much of every programme survives delivery instead of leaking.',
+  tax: 'How well the government collects the taxes it sets.',
+  statistical: 'Funds measurements, gets reports to you faster and makes them more accurate.',
+  administrative: 'How much programme money reaches its target instead of being lost on the way.',
   education:
-    'Human capital: sets how fast the country can absorb the world technology frontier, and schooling pulls fertility down. Slow to build, slower to matter — and the only way out of the middle.',
+    'Builds skills, helps the country adopt better technology and gradually lowers birth rates.',
 }
 
 const CAP_EFFECTS: Record<CapacityId, string> = {
@@ -395,7 +403,9 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   return (
     <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper" title={CAP_TIPS[id]}>{CAP_LABELS[id]}</span>
+        <TooltipLabel label={CAP_LABELS[id]} content={CAP_TIPS[id]} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper">
+          {CAP_LABELS[id]}
+        </TooltipLabel>
         <span className="font-mono text-[10px] font-semibold tabular-nums text-dossier-brass">{(pub.capacity[id] * 100).toFixed(0)} / 100</span>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_70px] items-center gap-2">
@@ -466,7 +476,9 @@ function ReformRow({ id, pub }: { id: (typeof INSTITUTION_IDS)[number]; pub: Pub
   return (
     <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <span className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper" title={note}>{name}</span>
+        <TooltipLabel label={name} content={note} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper">
+          {name}
+        </TooltipLabel>
         <span className={`font-mono text-[10px] font-semibold tabular-nums ${id === 'repression' ? 'text-terminal-alert' : 'text-dossier-brass'}`}>{(level * 100).toFixed(0)} / 100</span>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_44px_44px] items-center gap-2">
@@ -494,7 +506,11 @@ function BlocRow({ bloc, pledged }: { bloc: PublishedState['blocs'][number]; ple
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <span className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper">
           {BLOC_NAMES[bloc.id]}
-          {pledged && <span className="text-dossier-brass" title="You owe them: everything they dislike costs double until the pledge expires."> ✦</span>}
+          {pledged && (
+            <TooltipLabel label={`${BLOC_NAMES[bloc.id]} pledge`} content="You promised them support. Policies they dislike cost twice as much until the promise expires." className="ml-1 text-dossier-brass">
+              ✦
+            </TooltipLabel>
+          )}
         </span>
         <span className={`font-mono text-[10px] font-semibold tabular-nums ${hostile ? 'text-terminal-alert' : friendly ? 'text-dossier-paper' : 'text-dossier-paper/70'}`}>
           {bloc.favor >= 0 ? '+' : ''}
@@ -558,19 +574,32 @@ export function ControlRail({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-dossier text-lg font-semibold leading-none text-dossier-paper">Cabinet desk</span>
-            <button
-              type="button"
-              onClick={onOpenRecord}
-              className="shrink-0 border border-dossier-paper/30 px-1.5 py-px font-mono text-[8px] font-medium tracking-[0.14em] text-dossier-paper/75 hover:border-dossier-brass hover:text-dossier-brass focus-visible:outline-2 focus-visible:outline-dossier-brass"
-              title="The policy record: every dial this desk has set, quarter by quarter, and the minute book of the orders that set them."
-            >
-              MINUTES
-            </button>
+            <Tooltip content="Every policy this cabinet has set, quarter by quarter.">
+              <button
+                type="button"
+                onClick={onOpenRecord}
+                className="shrink-0 border border-dossier-paper/30 px-1.5 py-px font-mono text-[8px] font-medium tracking-[0.14em] text-dossier-paper/75 hover:border-dossier-brass hover:text-dossier-brass focus-visible:outline-2 focus-visible:outline-dossier-brass"
+              >
+                MINUTES
+              </button>
+            </Tooltip>
           </div>
           <div className="mt-1 font-mono text-[9px] tracking-[0.16em] text-dossier-brass">ORDERS FOR THE NEXT QUARTER</div>
         </div>
         <div className="flex items-center gap-2">
-          <Metric inverted label="POLITICAL CAPITAL" value={capital.available} detail={capital.detail} tone="accent" className="items-end text-right" />
+          <Metric
+            inverted
+            label="POLITICAL CAPITAL"
+            value={capital.available}
+            detail={capital.detail}
+            tone="accent"
+            className="items-end text-right"
+            title={
+              pub.rules.unlimitedCapital
+                ? 'Points you can spend on the drafted changes below. Under this rule they are still priced, but never charged.'
+                : 'Points you can spend on the drafted changes below.'
+            }
+          />
           {onClose && (
             <Button onClick={onClose} variant="secondary" size="compact" className="xl:hidden" aria-label="Close cabinet drawer" title="Close cabinet (Esc)">
               CLOSE <span aria-hidden="true">×</span>
@@ -583,75 +612,84 @@ export function ControlRail({
           const selected = openGroup === group.group
           const count = draftedIn(group.group)
           return (
-            <button
-              key={group.group}
-              type="button"
-              role="tab"
-              id={cabinetTabId(group.group)}
-              aria-controls={CABINET_PANEL_ID}
-              aria-selected={selected}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => onOpenGroupChange(group.group)}
-              onKeyDown={(event) => onTabKeyDown(event, group.group)}
-              className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
-                selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
-              }`}
-            >
-              <span className="block text-[9px] font-semibold tracking-[0.1em]">{group.tab}</span>
-              <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${selected ? 'text-dossier-ink/55' : count ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
-                {count ? `${count} DRAFTED` : `${group.dials.length} CONTROL${group.dials.length === 1 ? '' : 'S'}`}
-              </span>
-            </button>
+            <Tooltip key={group.group} content={group.brief}>
+              <button
+                type="button"
+                role="tab"
+                id={cabinetTabId(group.group)}
+                aria-controls={CABINET_PANEL_ID}
+                aria-selected={selected}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => onOpenGroupChange(group.group)}
+                onKeyDown={(event) => onTabKeyDown(event, group.group)}
+                className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+                  selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
+                }`}
+              >
+                <span className="block text-[9px] font-semibold tracking-[0.1em]">{group.tab}</span>
+                <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${selected ? 'text-dossier-ink/55' : count ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
+                  {count ? `${count} DRAFTED` : `${group.dials.length} CONTROL${group.dials.length === 1 ? '' : 'S'}`}
+                </span>
+              </button>
+            </Tooltip>
           )
         })}
-        <button
-          type="button"
-          role="tab"
-          id={cabinetTabId('STATE CAPACITY')}
-          aria-controls={CABINET_PANEL_ID}
-          aria-selected={openGroup === 'STATE CAPACITY'}
-          tabIndex={openGroup === 'STATE CAPACITY' ? 0 : -1}
-          onClick={() => onOpenGroupChange('STATE CAPACITY')}
-          onKeyDown={(event) => onTabKeyDown(event, 'STATE CAPACITY')}
-          className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
-            openGroup === 'STATE CAPACITY' ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
-          }`}
-        >
-          <span className="block text-[9px] font-semibold tracking-[0.1em]">CAPACITY</span>
-          <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${openGroup === 'STATE CAPACITY' ? 'text-dossier-ink/55' : draftedIn('STATE CAPACITY') ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
-            {draftedIn('STATE CAPACITY') ? `${draftedIn('STATE CAPACITY')} DRAFTED` : 'LAYER 2'}
-          </span>
-        </button>
+        <Tooltip content="Build the tax office, statistics, civil service and schools that make policy work.">
+          <button
+            type="button"
+            role="tab"
+            id={cabinetTabId('STATE CAPACITY')}
+            aria-controls={CABINET_PANEL_ID}
+            aria-selected={openGroup === 'STATE CAPACITY'}
+            tabIndex={openGroup === 'STATE CAPACITY' ? 0 : -1}
+            onClick={() => onOpenGroupChange('STATE CAPACITY')}
+            onKeyDown={(event) => onTabKeyDown(event, 'STATE CAPACITY')}
+            className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+              openGroup === 'STATE CAPACITY' ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
+            }`}
+          >
+            <span className="block text-[9px] font-semibold tracking-[0.1em]">CAPACITY</span>
+            <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${openGroup === 'STATE CAPACITY' ? 'text-dossier-ink/55' : draftedIn('STATE CAPACITY') ? 'text-dossier-brass' : 'text-dossier-paper/38'}`}>
+              {draftedIn('STATE CAPACITY') ? `${draftedIn('STATE CAPACITY')} DRAFTED` : 'LAYER 2'}
+            </span>
+          </button>
+        </Tooltip>
         {/* Layer 3 and the veto players who price it (§4.3) */}
         {(['INSTITUTIONS', 'THE ROOM'] as const).map((group) => {
           const selected = openGroup === group
           const drafted = group === 'INSTITUTIONS' ? draftedIn('INSTITUTIONS') : 0
           return (
-            <button
+            <Tooltip
               key={group}
-              type="button"
-              role="tab"
-              id={cabinetTabId(group)}
-              aria-controls={CABINET_PANEL_ID}
-              aria-selected={selected}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => onOpenGroupChange(group)}
-              onKeyDown={(event) => onTabKeyDown(event, group)}
-              className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
-                selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
-              }`}
+              content={group === 'INSTITUTIONS'
+                ? 'Change voting rights, press freedom, labour rights, courts or repression.'
+                : 'See which economic groups have power and whether they support you.'}
             >
-              <span className="block text-[9px] font-semibold tracking-[0.1em]">{group}</span>
-              <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${selected ? 'text-dossier-ink/55' : drafted ? 'text-dossier-brass' : pub.reformWindowOpen && group === 'INSTITUTIONS' ? 'text-terminal-alert' : 'text-dossier-paper/38'}`}>
-                {drafted
-                  ? `${drafted} DRAFTED`
-                  : group === 'INSTITUTIONS'
-                    ? pub.reformWindowOpen
-                      ? 'WINDOW OPEN'
-                      : 'LAYER 3'
-                    : `${pub.blocs.filter((b) => b.favor < -0.15).length} HOSTILE`}
-              </span>
-            </button>
+              <button
+                type="button"
+                role="tab"
+                id={cabinetTabId(group)}
+                aria-controls={CABINET_PANEL_ID}
+                aria-selected={selected}
+                tabIndex={selected ? 0 : -1}
+                onClick={() => onOpenGroupChange(group)}
+                onKeyDown={(event) => onTabKeyDown(event, group)}
+                className={`relative min-h-11 border-b border-r border-dossier-paper/10 px-2 py-1.5 text-left font-mono transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass ${
+                  selected ? 'bg-dossier-paper text-dossier-ink' : 'text-dossier-paper/68 hover:bg-dossier-paper/5 hover:text-dossier-paper'
+                }`}
+              >
+                <span className="block text-[9px] font-semibold tracking-[0.1em]">{group}</span>
+                <span className={`mt-0.5 block text-[8px] tracking-[0.08em] ${selected ? 'text-dossier-ink/55' : drafted ? 'text-dossier-brass' : pub.reformWindowOpen && group === 'INSTITUTIONS' ? 'text-terminal-alert' : 'text-dossier-paper/38'}`}>
+                  {drafted
+                    ? `${drafted} DRAFTED`
+                    : group === 'INSTITUTIONS'
+                      ? pub.reformWindowOpen
+                        ? 'WINDOW OPEN'
+                        : 'LAYER 3'
+                      : `${pub.blocs.filter((b) => b.favor < -0.15).length} HOSTILE`}
+                </span>
+              </button>
+            </Tooltip>
           )
         })}
       </div>

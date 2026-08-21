@@ -14,7 +14,7 @@ export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () =
   return (
     <WallTile
       onClick={onOpen}
-      title="The treasury's own books — exact, no fog. Click for the full ledger: where the revenue came from, what the outlays went to, and both across the whole century."
+      title="The government’s exact accounts. BAL is revenue minus spending, DEBT is money still owed, and FX is foreign money held in reserve. Select for the full history."
       className="border-2 border-dossier-brass bg-dossier-paper hover:border-dossier-ink"
       bodyClassName="px-3 py-1.5"
       header={
@@ -27,11 +27,11 @@ export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () =
       }
       footer={
         <div className="flex w-full gap-4 border-t border-dossier-ink/20 px-3 py-1 font-mono text-[10px] tabular-nums text-dossier-ink/80">
-          <span title="Quarterly balance: revenue minus outlays">
+          <span aria-label="Quarterly balance: revenue minus spending">
             BAL {(pub.treasury.balance >= 0 ? '+' : '') + pub.treasury.balance.toFixed(1)}
           </span>
-          <span title="Outstanding government debt">DEBT {pub.treasury.debt.toFixed(0)}</span>
-          <span title="Foreign-exchange reserves at the central bank">FX {pub.reserves.toFixed(1)}</span>
+          <span aria-label="Government debt">DEBT {pub.treasury.debt.toFixed(0)}</span>
+          <span aria-label="Foreign money held in reserve">FX {pub.reserves.toFixed(1)}</span>
         </div>
       }
     >

@@ -13,4 +13,10 @@ describe('SectionBar', () => {
   it('supports the inverted wall register', () => {
     expect(renderToStaticMarkup(<SectionBar title="RACK" inverted />)).toContain('bg-[#1d3027]')
   })
+
+  it('can explain a dense wall section without a native title', () => {
+    const html = renderToStaticMarkup(<SectionBar title="RACK" hint="Every measurement the state can build." />)
+    expect(html).toContain('aria-label="Explain RACK"')
+    expect(html).not.toContain('title=')
+  })
 })

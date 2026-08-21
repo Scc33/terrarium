@@ -33,17 +33,17 @@ export const ACCOUNT_FACE: Record<AccountId, { label: string; ink: string; note:
   consumption_share: {
     label: 'Households',
     ink: SHARE_INKS[0],
-    note: 'What people bought. In a poor country this is nearly everything, and it falls only slowly — an economy that consumes four fifths of its own output is not building much of anything.',
+    note: 'Goods and services bought by households. A lower share can mean more output is going to investment or exports.',
   },
   investment_share: {
     label: 'Capital formation',
     ink: SHARE_INKS[1],
-    note: 'Factories, machines and public works — the share that decides whether growth compounds. Private and state building are counted together: the concrete does not care who poured it.',
+    note: 'New factories, machines and public works. A larger share can support future growth.',
   },
   export_share: {
     label: 'Exports',
     ink: SHARE_INKS[2],
-    note: 'What you make for somebody else’s country. A rising share is an economy hitching itself to world demand — which pays well until the world stops buying.',
+    note: 'Goods and services bought by other countries. A larger share brings more exposure to world demand.',
   },
 }
 

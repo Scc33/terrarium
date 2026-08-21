@@ -46,12 +46,17 @@ describe('TimeSeriesChart', () => {
     expect(html).toContain('>120<')
   })
 
-  it('carries the caller’s reading for assistive technology', () => {
+  it('carries the caller’s reading for assistive technology, without a native bubble', () => {
     const html = renderToStaticMarkup(
       <TimeSeriesChart traces={[{ key: 'a', points: calm }]} summary="Fuel prices rose to 88." />,
     )
     expect(html).toContain('aria-label="Fuel prices rose to 88."')
-    expect(html).toContain('<title>Fuel prices rose to 88.</title>')
+    expect(html).toContain('Fuel prices rose to 88.</p>')
+    // An SVG `<title>` renders as the browser's own tooltip: it drifts in after
+    // about a second and covers the crosshair readout this chart paints under
+    // the cursor. The sentence reaches assistive tech through `aria-label` and
+    // the sr-only paragraph, so the element buys nothing and costs the hover.
+    expect(html).not.toContain('<title>')
   })
 
   it('uses the caller’s empty state rather than an empty box', () => {
