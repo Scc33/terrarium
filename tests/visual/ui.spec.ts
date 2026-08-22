@@ -225,6 +225,23 @@ test('financial overlay empty state', async ({ page }) => {
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
 
+test('census files net migration with the other population flows', async ({ page }) => {
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (let i = 0; i < 12; i++) await advance.click()
+  await expect(page.getByText('1949 Q1', { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: /POP \/ LABOUR/ }).click()
+  const census = page.getByRole('dialog', { name: 'THE NATIONAL CENSUS' })
+  await expect(census.getByText('NET MIGRATION', { exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('census-migration.png')
+})
+
 test('modal paperwork contains and restores keyboard focus', async ({ page }) => {
   await openGame(page)
   const trigger = page.getByRole('button', { name: 'FINANCE' })
