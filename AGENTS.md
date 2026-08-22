@@ -101,6 +101,22 @@ can be tested — anything pushed into a component becomes untestable:
   `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
   spending line fails the build until it has been named and given an ink.
 
+- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0022). Every
+  chapter that LISTS something the game has is generated from the engine's id lists — levers
+  from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
+  `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
+  is documented the quarter it ships, and cannot ship unnamed. Only prose about MECHANISM is
+  authored. `levers.ts` is where a dial's WORDS live; `ControlRail` keeps only the slider's
+  arithmetic. `LEVER_GROUPS` is an array, so `tests/ui/levers.test.ts` is what checks it covers
+  every `DialPath` — same hole as `INDICATOR_SPECS`.
+- **`ui/src/walkthrough.ts`** — the opening tour's six cards. A card must never sit on the side
+  of the screen its own subject is on (pinned by `tests/ui/walkthrough.test.ts`, and again in
+  the browser by the `walkthrough-wall` visual test) — a tour card covering the thing it points
+  at is invisible in review AND in jsdom. The highlight is a stylesheet rule keyed off
+  `data-tour-active` on `<body>`; that attribute is deliberately named differently from the
+  regions' `data-tour`, because one name for both makes `[data-tour="wall"]` select the body too
+  and every measurement of the region silently becomes a measurement of the document.
+
 Import shared primitives from `components/ui`, never by reaching into a folder.
 
 Layout bugs here are invisible in review AND in jsdom, and Tailwind scans source *text* — so a

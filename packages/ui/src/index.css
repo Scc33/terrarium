@@ -207,3 +207,38 @@ input[type='range']::-moz-range-thumb {
 .terminal-cursor {
   animation: cursor-blink 1.1s steps(1) infinite;
 }
+
+/**
+ * The opening walkthrough's spotlight.
+ *
+ * The tour card writes the region it is describing to `data-tour-active` on
+ * <body>, and these rules ring the matching region. The body's attribute has
+ * a different NAME from the regions' on purpose — one name for both means
+ * `[data-tour="wall"]` selects the body too, and every measurement of the
+ * region silently becomes a measurement of the whole document. One selector pair per region,
+ * spelled out: CSS cannot match one attribute's value against another's, and
+ * a Tailwind class built from a variable would exist in the DOM and in no
+ * stylesheet. The ring is drawn INSIDE the element (a negative outline
+ * offset) because the war room is a no-scroll grid at desktop sizes and an
+ * outward ring on the rail would push a scrollbar onto the page.
+ */
+body[data-tour-active='wall'] [data-tour='wall'],
+body[data-tour-active='cabinet'] [data-tour='cabinet'],
+body[data-tour-active='enact'] [data-tour='enact'],
+body[data-tour-active='wire'] [data-tour='wire'],
+body[data-tour-active='offices'] [data-tour='offices'] {
+  outline: 2px solid var(--color-dossier-brass);
+  outline-offset: -2px;
+  animation: tour-ring 1.6s ease-in-out infinite;
+}
+
+@keyframes tour-ring {
+  0%, 100% { outline-color: var(--color-dossier-brass); }
+  50% { outline-color: color-mix(in srgb, var(--color-dossier-brass) 35%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-tour-active] [data-tour] {
+    animation: none;
+  }
+}

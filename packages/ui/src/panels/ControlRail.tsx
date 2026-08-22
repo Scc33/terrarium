@@ -14,12 +14,14 @@ import {
   type CapacityId,
   type DialPath,
   type SpendingProgramId,
+  type SectorId,
   type SpendingRuleMode,
 } from '@terrarium/engine'
 import { INDICATOR_IDS, INSTITUTION_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, SegmentedControl, SliderField, Tooltip, TooltipLabel } from '../components/ui'
 import { NAMES, BLOC_NAMES, BLOC_NOTES, COHORT_NAMES, COHORT_NOTES, INSTITUTION_NAMES } from '../components/labels'
+import { CAPACITY_COPY, LEVER_COPY, LEVER_GROUPS } from '../levers'
 import { dialIncidence, type Incidence } from '../incidence'
 import { deriveInstrumentAccess, nextInstrumentUnlock } from '../maturity'
 import { capitalReading } from '../gameRules'
@@ -62,88 +64,58 @@ interface DialGroup {
   dials: DialDef[]
 }
 
-const DIALS: DialGroup[] = [
-  {
-    group: 'TAXATION',
-    tab: 'REVENUE',
-    brief: 'Choose who finances the state. Collection strength decides how much of each posted rate reaches the treasury.',
-    question: 'Who carries the tax burden?',
-    dials: [
-      { path: 'taxRates.income', label: 'Income', get: (p) => p.dials.taxRates.income, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
-      { path: 'taxRates.corporate', label: 'Corporate', get: (p) => p.dials.taxRates.corporate, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
-      { path: 'taxRates.tariff', label: 'Tariff', get: (p) => p.dials.taxRates.tariff, min: 0, max: () => 1, step: 0.01, fmt: pct },
-      { path: 'taxRates.fuel', label: 'Fuel excise', get: (p) => p.dials.taxRates.fuel, min: 0, max: () => 2, step: 0.05, fmt: pct },
-    ],
-  },
-  {
-    group: 'SPENDING',
-    tab: 'SPENDING',
-    brief: 'Choose whether each programme stays fixed, rises with prices, or stays a share of the latest official output figure.',
-    question: 'What should each programme follow?',
-    dials: [
-      { path: 'spending.transfers', label: 'Transfers', get: (p) => p.dials.spending.transfers, min: 0, max: spendMax, step: 0.1, fmt: money },
-      { path: 'spending.procurement', label: 'Procurement', get: (p) => p.dials.spending.procurement, min: 0, max: spendMax, step: 0.1, fmt: money },
-      { path: 'spending.investment', label: 'Public works', get: (p) => p.dials.spending.investment, min: 0, max: spendMax, step: 0.1, fmt: money },
-      { path: 'spending.research', label: 'Research grants', get: (p) => p.dials.spending.research, min: 0, max: spendMax, step: 0.1, fmt: money },
-    ],
-  },
-  {
-    group: 'MONEY',
-    tab: 'CENTRAL BANK',
-    brief: 'Set interest rates, support lending when rates hit zero, and decide how much of their own money banks must put at risk.',
-    question: 'How much financial risk should the state carry?',
-    dials: [
-      { path: 'policyRate', label: 'Policy rate', get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
-      {
-        path: 'assetPurchaseRate',
-        label: 'Asset purchases',
-        get: (p) => p.dials.assetPurchaseRate,
-        min: 0,
-        max: () => ASSET_PURCHASE_RATE_MAX,
-        step: 0.005,
-        fmt: pct1,
-      },
-      {
-        path: 'capitalRequirement',
-        label: 'Bank capital floor',
-        get: (p) => p.dials.capitalRequirement,
-        min: CAPITAL_REQUIREMENT_MIN,
-        max: () => CAPITAL_REQUIREMENT_MAX,
-        step: 0.005,
-        fmt: pct1,
-      },
-    ],
-  },
-  {
-    group: 'SUBSIDIES',
-    tab: 'INDUSTRY',
-    brief: 'Direct quarterly support to particular sectors. Subsidies can relieve a bottleneck, but they are recurring claims on the budget.',
-    question: 'Which industries get support?',
-    dials: SECTOR_IDS.map((sid) => ({
-      path: `subsidies.${sid}` as DialPath,
-      label: sid,
-      get: (p: PublishedState) => p.dials.subsidies[sid] ?? 0,
-      min: 0,
-      max: (p: PublishedState) => Math.max(p.treasury.revenue, 5),
-      step: 0.1,
-      fmt: money,
-    })),
-  },
-]
+/** The slider's arithmetic — range, step, and how a reading is printed. This
+ * is the half of a dial that belongs to the control rather than to the policy,
+ * so it stays here; what the lever IS lives in `../levers` beside the words
+ * the handbook prints about it. Total over `DialPath`, so a new dial cannot
+ * reach the rail without a range. */
+type DialMechanics = Omit<DialDef, 'path' | 'label'>
 
-const DIAL_TIPS: Partial<Record<DialPath, string>> = {
-  'taxRates.income': 'A tax on workers’ pay. A weak tax office collects less than the posted rate.',
-  'taxRates.corporate': 'A tax on company profits. A weak tax office collects less than the posted rate.',
-  'taxRates.tariff': 'A tax on imported goods, collected at the border. It raises import prices.',
-  'taxRates.fuel': 'A tax on fuel. It raises transport costs, which can raise food and other prices.',
-  'spending.transfers': 'Cash paid to households, including pensions and relief. A weak civil service loses part before it arrives.',
-  'spending.procurement': 'Goods and services bought by the government. It raises demand now and adds to spending.',
-  'spending.investment': 'Roads, power and other useful assets. It raises demand now and productive capacity later.',
-  'spending.research': 'Grants for better production methods. Schools provide researchers; a weak civil service loses part of the money.',
-  policyRate: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
-  assetPurchaseRate: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
-  capitalRequirement: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
+const DIAL_MECHANICS: Record<DialPath, DialMechanics> = {
+  'taxRates.income': { get: (p) => p.dials.taxRates.income, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
+  'taxRates.corporate': { get: (p) => p.dials.taxRates.corporate, min: 0, max: () => 0.8, step: 0.01, fmt: pct },
+  'taxRates.tariff': { get: (p) => p.dials.taxRates.tariff, min: 0, max: () => 1, step: 0.01, fmt: pct },
+  'taxRates.fuel': { get: (p) => p.dials.taxRates.fuel, min: 0, max: () => 2, step: 0.05, fmt: pct },
+  'spending.transfers': { get: (p) => p.dials.spending.transfers, min: 0, max: spendMax, step: 0.1, fmt: money },
+  'spending.procurement': { get: (p) => p.dials.spending.procurement, min: 0, max: spendMax, step: 0.1, fmt: money },
+  'spending.investment': { get: (p) => p.dials.spending.investment, min: 0, max: spendMax, step: 0.1, fmt: money },
+  'spending.research': { get: (p) => p.dials.spending.research, min: 0, max: spendMax, step: 0.1, fmt: money },
+  policyRate: { get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
+  assetPurchaseRate: {
+    get: (p) => p.dials.assetPurchaseRate,
+    min: 0,
+    max: () => ASSET_PURCHASE_RATE_MAX,
+    step: 0.005,
+    fmt: pct1,
+  },
+  capitalRequirement: {
+    get: (p) => p.dials.capitalRequirement,
+    min: CAPITAL_REQUIREMENT_MIN,
+    max: () => CAPITAL_REQUIREMENT_MAX,
+    step: 0.005,
+    fmt: pct1,
+  },
+  ...(Object.fromEntries(
+    SECTOR_IDS.map((sid) => [
+      `subsidies.${sid}`,
+      {
+        get: (p: PublishedState) => p.dials.subsidies[sid] ?? 0,
+        min: 0,
+        max: (p: PublishedState) => Math.max(p.treasury.revenue, 5),
+        step: 0.1,
+        fmt: money,
+      },
+    ]),
+  ) as Record<`subsidies.${SectorId}`, DialMechanics>),
 }
+
+const DIALS: DialGroup[] = LEVER_GROUPS.map((group) => ({
+  group: group.group,
+  tab: group.tab,
+  brief: group.brief,
+  question: group.question,
+  dials: group.paths.map((path) => ({ ...DIAL_MECHANICS[path], path, label: LEVER_COPY[path].label })),
+}))
 
 /**
  * Who a drafted programme change reaches, read off the ministry's own rules.
@@ -223,7 +195,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
       politicalCost={stagedCosts[key]}
       detail={incidence && <IncidenceNote incidence={incidence} />}
       dirty={dirty}
-      hint={DIAL_TIPS[def.path] ?? `A quarterly subsidy paid to the ${def.label} sector. Most of it leaks through weak administration; all of it hits the budget.`}
+      hint={LEVER_COPY[def.path].hint}
       min={def.min}
       max={max}
       step={def.step}
@@ -331,7 +303,7 @@ function SpendingRuleRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
         politicalCost={stagedCosts[key]}
         detail={incidence && <IncidenceNote incidence={incidence} />}
         dirty={dirty}
-        hint={`${DIAL_TIPS[def.path]} ${SPENDING_MODES.find((option) => option.value === mode)?.title}`}
+        hint={`${LEVER_COPY[def.path].hint} ${SPENDING_MODES.find((option) => option.value === mode)?.title}`}
         min={min}
         max={max}
         step={step}
@@ -347,28 +319,6 @@ function SpendingRuleRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
       </div>
     </div>
   )
-}
-
-const CAP_LABELS: Record<CapacityId, string> = {
-  tax: 'Tax admin',
-  statistical: 'Stat office',
-  administrative: 'Civil service',
-  education: 'Schools',
-}
-
-const CAP_TIPS: Record<CapacityId, string> = {
-  tax: 'How well the government collects the taxes it sets.',
-  statistical: 'Funds measurements, gets reports to you faster and makes them more accurate.',
-  administrative: 'How much programme money reaches its target instead of being lost on the way.',
-  education:
-    'Builds skills, helps the country adopt better technology and gradually lowers birth rates.',
-}
-
-const CAP_EFFECTS: Record<CapacityId, string> = {
-  tax: 'More of every posted tax rate is actually collected.',
-  statistical: 'Fits new wall instruments, then shortens lags and narrows error bands.',
-  administrative: 'More programme spending survives delivery instead of leaking away.',
-  education: 'Raises technology absorption and steadily changes the demographic future.',
 }
 
 function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
@@ -403,13 +353,13 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
   return (
     <div className={`border px-2.5 py-2 ${stagedAction ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/15 bg-[#22382d]/35'}`}>
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <TooltipLabel label={CAP_LABELS[id]} content={CAP_TIPS[id]} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper">
-          {CAP_LABELS[id]}
+        <TooltipLabel label={CAPACITY_COPY[id].label} content={CAPACITY_COPY[id].hint} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper">
+          {CAPACITY_COPY[id].label}
         </TooltipLabel>
         <span className="font-mono text-[10px] font-semibold tabular-nums text-dossier-brass">{(pub.capacity[id] * 100).toFixed(0)} / 100</span>
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)_70px] items-center gap-2">
-        <ProgressBar value={pub.capacity[id]} label={`${CAP_LABELS[id]} capacity`} />
+        <ProgressBar value={pub.capacity[id]} label={`${CAPACITY_COPY[id].label} capacity`} />
         <Button
           disabled={!pub.inPower || maxed}
           title={maxed ? 'This ministry is already at full strength.' : `Fund ${amount.toFixed(1)} over eight quarters.${building ? ` A programme has ${building.remaining} quarters remaining.` : ''}`}
@@ -421,7 +371,7 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
           {maxed ? 'FULL' : stagedAction ? 'RESET' : 'FUND'}
         </Button>
       </div>
-      <p className="mt-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/70">{CAP_EFFECTS[id]}</p>
+      <p className="mt-1.5 font-dossier text-[11px] leading-snug text-dossier-paper/70">{CAPACITY_COPY[id].effect}</p>
       {statisticalNote && (
         <div className="mt-1.5 border-l border-dossier-brass/60 pl-2 font-mono text-[8px] leading-relaxed tracking-[0.08em] text-dossier-brass">
           {statisticalNote}
@@ -569,7 +519,7 @@ export function ControlRail({
   }
 
   return (
-    <aside id="cabinet-controls" className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
+    <aside data-tour="cabinet" id="cabinet-controls" className="flex h-full min-h-0 flex-col border-l border-dossier-brass/70 bg-[#294235]" aria-label="Cabinet controls">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b border-dossier-paper/15 px-4 py-2.5">
         <div>
           <div className="flex items-center gap-2">
@@ -760,7 +710,7 @@ export function ControlRail({
           </section>
         )}
       </div>
-      <div className="mt-auto flex shrink-0 flex-col gap-2 border-t border-dossier-brass/45 bg-[#1d3027] px-4 py-2.5 shadow-[0_-8px_20px_rgba(0,0,0,0.2)]">
+      <div data-tour="enact" className="mt-auto flex shrink-0 flex-col gap-2 border-t border-dossier-brass/45 bg-[#1d3027] px-4 py-2.5 shadow-[0_-8px_20px_rgba(0,0,0,0.2)]">
         {(rejection || previewError) && <div className="border-l-2 border-terminal-alert pl-2 font-mono text-[9px] leading-snug text-terminal-alert">{rejection ?? previewError}</div>}
         {staged.size === 0 ? (
           <div className="grid grid-cols-3 gap-2 font-mono text-[8px] tracking-[0.08em]">
