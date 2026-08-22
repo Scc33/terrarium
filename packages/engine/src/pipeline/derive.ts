@@ -203,9 +203,21 @@ export function householdSavingRate(state: TrueState): number {
 
 /** The living standard as a LEVEL, against the standard 1946 country —
  * demographic behavior responds to how rich people are, not how rich they
- * are compared to their own grandparents. 1 until the first quarter books. */
+ * are compared to their own grandparents. 1 until the first quarter books,
+ * because `demography` runs ahead of `cohorts` and quarter zero's flows are
+ * still init's.
+ *
+ * That bootstrap reads the TICK and must never read `score.baselineWelfare`,
+ * even though the two agreed exactly while every run began in 1946. They are
+ * the two anchors AGENTS.md warns not to conflate: this one is an income
+ * LEVEL the vital rates respond to, that one is the yardstick a player is
+ * graded against, and ADR-0021 moved the second to the appointment quarter.
+ * Sharing the sentinel meant a 1973 posting spent its whole interregnum at
+ * `living = 1` — measured: births 35.3 per 1000 against 26.0, and a
+ * population 7.4% too large by the handover, with the demographic transition
+ * simply not happening. */
 export function livingStandard(state: TrueState): number {
-  if (state.score.baselineWelfare === null) return 1
+  if (state.meta.tick === 0) return 1
   return Math.exp(meanLogConsumption(state)) / LIVING_STANDARD_1946
 }
 

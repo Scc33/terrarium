@@ -77,9 +77,16 @@ interface GameState {
     forDraft: string | null
   }
 
-  newGame(country: CountryScenarioId, seed?: string, rules?: GameRules): void
+  /** `appointedAt` is the quarter the player takes office (ADR-0021) — zero,
+   * the ordinary 1946 posting, unless the posting room asked for a later one */
+  newGame(country: CountryScenarioId, seed?: string, rules?: GameRules, appointedAt?: number): void
   /** start a country a player wrote */
-  newDraftedGame(document: CountryDocument, seed?: string, rules?: GameRules): void
+  newDraftedGame(
+    document: CountryDocument,
+    seed?: string,
+    rules?: GameRules,
+    appointedAt?: number,
+  ): void
   loadSave(save: SaveFile): void
   loadAutosave(): Promise<boolean>
   loadDrafts(): Promise<void>
@@ -213,18 +220,18 @@ export const useGame = create<GameState>((set, get) => {
       set({ pinned: next })
     },
 
-    newGame(country, seed, rules = STANDARD_RULES) {
+    newGame(country, seed, rules = STANDARD_RULES, appointedAt = 0) {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'new', seed: s, country, rules })
+      send({ type: 'new', seed: s, country, rules, appointedAt })
     },
 
-    newDraftedGame(document, seed, rules = STANDARD_RULES) {
+    newDraftedGame(document, seed, rules = STANDARD_RULES, appointedAt = 0) {
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'newDrafted', seed: s, document, rules })
+      send({ type: 'newDrafted', seed: s, document, rules, appointedAt })
     },
 
     /** A file from the records office, or the autosave. Anything that isn't

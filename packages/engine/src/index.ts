@@ -12,12 +12,15 @@ import type { Action, ActionLog } from './actions/types'
 import { runTick } from './pipeline/pipeline'
 import { init as initState } from './state/init'
 import {
+  END_OF_HISTORY_TICK,
   ENGINE_VERSION,
   SCHEMA_VERSION,
+  appointmentTick,
   gameRules,
   type CountryParams,
   type GameMode,
   type GameRules,
+  type Qtr,
   type TrueState,
 } from './state/schema'
 import type { Seed } from './rng/rng'
@@ -26,8 +29,9 @@ export function init(
   params: CountryParams,
   seed: Seed,
   rules: GameMode | Partial<GameRules> = 'standard',
+  appointedAt = 0,
 ): TrueState {
-  return initState(params, seed, rules)
+  return initState(params, seed, rules, appointedAt)
 }
 
 export function applyActions(s: TrueState, actions: Action[]): TrueState {
@@ -39,6 +43,16 @@ export function step(s: TrueState): TrueState {
 }
 
 // ---------- saves ----------
+/** A save whose own replay inputs contradict each other. Distinct from
+ * `InvalidCountryError` (a vector this build refuses) because nothing is wrong
+ * with the country — the file's two numbers cannot both be true. */
+export class InvalidSaveError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidSaveError'
+  }
+}
+
 export interface SaveFile {
   version: { engine: string; schema: number }
   params: CountryParams
@@ -52,6 +66,10 @@ export interface SaveFile {
   /** The pre-v27 tenure scalar. Read when `rules` is absent, never written —
    * a save from before the rule set still has to reload protected. */
   mode?: GameMode
+  /** The quarter the player took office (ADR-0021). Absent on saves written
+   * before v28, which is the same thing as zero: every one of them began in
+   * 1946. The interregnum's own orders are in `actionLog` like any others. */
+  appointedAt?: Qtr
 }
 
 export function createSave(
@@ -60,6 +78,7 @@ export function createSave(
   actionLog: ActionLog,
   tick: number,
   rules: GameMode | Partial<GameRules> = 'standard',
+  appointedAt: Qtr = 0,
 ): SaveFile {
   return {
     version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION },
@@ -68,12 +87,30 @@ export function createSave(
     actionLog,
     tick,
     rules: gameRules(rules),
+    appointedAt,
   }
 }
 
-/** Replay a save to its current state. Deterministic by construction. */
+/** Replay a save to its current state. Deterministic by construction — the
+ * caretaker's quarters replay from the log like every other quarter, which is
+ * why the interregnum writes its orders down (ADR-0021).
+ *
+ * A save cannot have stopped before its own government took office: replaying
+ * one hands back an INTERREGNUM as though it were a playable position, with the
+ * political clock frozen and every order quoted and then not charged. The
+ * worker refuses that at the door (`replayWindow` in `ui/src/saveFile.ts`), but
+ * this is the engine's own public API and tools and tests call it directly, so
+ * the invariant belongs on the save contract rather than on one caller.
+ * `untilTick` is unaffected — inspecting an earlier quarter of a legal run,
+ * including one inside its interregnum, is exactly what it is for. */
 export function replay(save: SaveFile, untilTick?: number): TrueState {
-  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard')
+  const appointedAt = appointmentTick(save.appointedAt ?? 0)
+  if (appointedAt > Math.min(save.tick, END_OF_HISTORY_TICK)) {
+    throw new InvalidSaveError(
+      `the run was saved at quarter ${save.tick} but its government does not take office until ${appointedAt}`,
+    )
+  }
+  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard', appointedAt)
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
   const end = untilTick ?? save.tick
   while (s.meta.tick < end) {
@@ -115,6 +152,12 @@ export {
   parseCountryDocument,
 } from './countryDocument'
 export type { CountryDocument, CountryDossier } from './countryDocument'
+export {
+  APPOINTMENTS,
+  caretakerActions,
+  runInterregnum,
+  type Appointment,
+} from './interregnum'
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'
@@ -137,6 +180,11 @@ export {
   SPENDING_PROGRAM_IDS,
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
+  FIRST_YEAR,
+  LAST_APPOINTMENT_TICK,
+  appointmentTick,
+  tickForYear,
+  yearOfTick,
   ENGINE_VERSION,
   SCHEMA_VERSION,
 } from './state/schema'
@@ -228,6 +276,7 @@ export {
   NATURAL_UNEMPLOYMENT,
   PC_COST_CAMPAIGN,
   PC_COST_REFORM,
+  PC_START,
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
   REFORM_STEP,

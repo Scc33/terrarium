@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { COUNTRY_CATALOG, GAME_RULE_IDS } from '@terrarium/engine'
+import { APPOINTMENTS, COUNTRY_CATALOG, GAME_RULE_IDS } from '@terrarium/engine'
 import { CountrySelect } from './CountrySelect'
 import { RULE_COPY } from '../gameRules'
 import { draftFrom } from '../countryDraft'
@@ -9,6 +9,8 @@ const noop = () => {}
 const props = {
   onStart: noop,
   onStartDraft: noop,
+  appointedAt: 0,
+  onAppointedAt: noop,
   drafts: [],
   onNewDraft: noop,
   onEditDraft: noop,
@@ -63,6 +65,34 @@ describe('country selection', () => {
     // shows a catalogue posting and its earned difficulty stamp
     expect(html).toContain('INTRODUCTORY')
     expect(html).not.toContain('UNRATED')
+  })
+
+  it('offers every appointment year, and says what happens to the years before', () => {
+    const html = renderToStaticMarkup(<CountrySelect {...props} />)
+    // the choice is the app's, not this room's — the drafting room next door
+    // starts a game too, and it has to start the same one
+    const later = renderToStaticMarkup(
+      <CountrySelect {...props} appointedAt={APPOINTMENTS[1].tick} />,
+    )
+    expect(later).toContain(`January ${APPOINTMENTS[1].year}.`)
+    expect(later).toContain(APPOINTMENTS[1].summary)
+    expect(html).toContain('YEAR OF APPOINTMENT')
+    // sealed into the save like the standing orders, so this is the only place
+    // it can be chosen — every offered quarter has to be reachable here
+    expect(APPOINTMENTS.length).toBeGreaterThan(1)
+    for (const appointment of APPOINTMENTS) {
+      expect(html, `${appointment.year} segment`).toContain(`>${appointment.year}</button>`)
+    }
+    // it opens on the settlement: a default that quietly skipped a
+    // quarter-century would be a different game than the one anyone asked for
+    expect(html).toContain(`January ${APPOINTMENTS[0].year}.`)
+    expect(html).toContain(APPOINTMENTS[0].name)
+    expect(html).toContain(APPOINTMENTS[0].summary)
+    // the years not chosen explain themselves on hover, like every other
+    // caption in this room. A static render cannot open a tooltip, so their
+    // copy is deliberately absent here rather than missing — the wiring is
+    // `title` on each segment, and the aside's caption once one is picked
+    expect(html).not.toContain(APPOINTMENTS[1].summary)
   })
 
   it('marks a selected draft unrated rather than grading it', () => {

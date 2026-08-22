@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 27)
+## Current contract (schema 28)
 
 ### Inputs
 
@@ -47,6 +47,17 @@ false in ordinary play, each read in exactly one place)
 
 Saves from before v27 carry the `mode` scalar instead; `'god'` loads as `protectedTenure`, and a
 save from before v21 with neither loads with every rule off.
+
+**The appointment** (`meta.appointedAt: Qtr`, immutable after init — the quarter the player
+takes office, ADR-0021). Zero is the ordinary 1946 posting and is what every save before v28
+means. A later quarter makes the ones before it an **interregnum**: a caretaker administration
+governs them in the ordinary loop, its orders are written into `actionLog` like any others, and
+the state the player is handed is whatever that produced. The caretaker votes the opening
+appropriations into `gdpShare` rules at their opening share and invests `CARETAKER_CAPACITY_SPEND`
+in each capacity every `CARETAKER_CAPACITY_EVERY` quarters; it touches no other lever. During
+the interregnum the political clock is stopped — no election, no deposition, no PC accrual, and
+orders are quoted and objected to but not charged — and the score, corridor and tenure counters
+do not start until `appointedAt`.
 
 **Policy levers** (`DialState` plus `SpendingRules`)
 | Lever | Range |
@@ -190,6 +201,39 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 28 — The year you take office
+
+- **Inputs +**: `meta.appointedAt: Qtr` — a replay input with a save field, like `meta.rules`
+  (ADR-0021). `init(params, seed, rules, appointedAt)` and `createSave(…, appointedAt)`; a save
+  without the field is a 1946 posting, which is all of them before this version.
+- **Inputs +**: `runInterregnum(params, seed, rules, appointedAt)` opens a country and lets a
+  caretaker administration govern it up to the appointment, returning the state AND the action
+  log that produced it. `caretakerActions(state)` is the policy — pure, RNG-free, two kinds of
+  order (`setSpendingRule`, `investCapacity`) and nothing else.
+- **Inputs +**: `APPOINTMENTS` — the quarters the posting room offers (1946, 1973, 1995, 2005,
+  each a `FRONTIER_ERAS` boundary). Any quarter in `[0, LAST_APPOINTMENT_TICK]` is legal to the
+  engine; `appointmentTick` clamps anything else, and unreadable input falls back to 1946. The
+  bound stops one quarter short of the end of history on purpose: an appointment ON the closing
+  quarter banks no welfare baseline, so `reportCardOf` could never return a verdict and the run
+  could never end.
+- **Outputs +**: `PublishedState.appointedAt`, published exactly — the baseline every "since you
+  arrived" reading is measured from.
+- **Outputs ±**: `ReportCard.quartersGoverned` counts from the appointment rather than from
+  quarter zero, and `vsBaseline` is now the standard of living inherited on that day.
+  `score.baselineWelfare`, `corridorQuarters` and `governedQuarters` all open there too, and the
+  welfare discount is `WELFARE_DISCOUNT_Q ^ (tick − appointedAt)`.
+- **Fog**: unchanged in kind. A later appointment inherits the statistical office the caretaker
+  built — 21–29 of 29 instruments reporting by 1973, all 29 by 1995 — which is the point of
+  having a caretaker at all rather than a passive fast-forward.
+- **Internal**: `livingStandard` now bootstraps on `meta.tick === 0` rather than on
+  `score.baselineWelfare === null`. Bit-identical for every 1946 run (the two agreed exactly
+  while scoring began at tick zero), and load-bearing for a later one: the vital rates' income
+  LEVEL and the report card's yardstick are the two anchors that must not be conflated.
+- Economy bit-identical to v27 at `appointedAt: 0` (`pnpm diff-state --moved-only` reports
+  `meta.schemaVersion` and nothing else; passive century re-measured at 2.68 %/yr growth,
+  0.11 % inflation, 11.85 % unemployment, 8 % deposed over 200×400q). What each appointment
+  hands over is measured by `pnpm inheritance` and tabulated in `docs/country-scenarios.md`.
 
 ### schema 27 — The rules of a run
 

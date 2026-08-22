@@ -27,6 +27,7 @@
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "debt-baselines": "tsx tools/measure-debt-baselines.ts",
+    "inheritance": "tsx tools/measure-inheritance.ts",
     "ranges": "tsx tools/indicator-ranges.ts"
   },
   "devDependencies": {

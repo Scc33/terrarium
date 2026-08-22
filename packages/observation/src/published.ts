@@ -64,7 +64,8 @@ export interface ReportCard {
   electionsWon: number
   /** discounted geometric-mean real consumption per person per quarter */
   prosperity: number
-  /** prosperity relative to the 1946 standard of living */
+  /** prosperity relative to the standard of living inherited on the day the
+   * player took office — 1946 on an ordinary posting, later on an ADR-0021 one */
   vsBaseline: number
   /** annualized welfare growth over the tenure, %/yr — what gets graded */
   prosperityRate: number
@@ -122,6 +123,11 @@ export interface PublishedCampaign {
 
 export interface PublishedState {
   tick: Qtr
+  /** The quarter the player took office — zero for an ordinary 1946 posting,
+   * a later quarter when the years before it were somebody else's (ADR-0021).
+   * Published because it is the baseline every "since you arrived" reading on
+   * the desk is measured from, the report card's included. */
+  appointedAt: Qtr
   country: string
   /** True when the posting was written by a player rather than drawn from the
    * recipe catalogue. Nothing in the simulation reads it; the wall and the
