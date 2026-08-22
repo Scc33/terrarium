@@ -1,4 +1,4 @@
-/** Records office: saves in, saves out, and the drastic drawer. */
+/** Records office: saves in, saves out, the methodology, and the drastic drawer. */
 
 import { useRef } from 'react'
 import type { SaveFile } from '@terrarium/engine'
@@ -10,10 +10,16 @@ export function SettingsOverlay({
   pub,
   onClose,
   onNewCountry,
+  onMethodology,
 }: {
   pub: PublishedState
   onClose: () => void
   onNewCountry: () => void
+  /** #32: the methodology is a thing a player goes looking for in settings,
+   * so it is reachable from here — it lives in the handbook rather than being
+   * written a second time, because two accounts of how a print is made would
+   * eventually disagree about the one that matters. */
+  onMethodology: () => void
 }) {
   const { save, loadSave } = useGame()
   const fileInput = useRef<HTMLInputElement>(null)
@@ -37,6 +43,14 @@ export function SettingsOverlay({
         </Button>
         <Button fullWidth className="justify-start text-left" onClick={() => fileInput.current?.click()} title="Load a previously exported save file.">
           IMPORT SAVE — resume a filed game
+        </Button>
+        <Button
+          fullWidth
+          className="justify-start text-left"
+          onClick={onMethodology}
+          title="How a published figure is made: the lag, the error band, the revision schedule, and what funding the statistical office actually buys."
+        >
+          METHODOLOGY — how the published figures are made
         </Button>
         <Button
           fullWidth

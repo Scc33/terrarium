@@ -11,7 +11,7 @@ const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 export function NewsWire({ pub, onOpen }: { pub: PublishedState; onOpen: () => void }) {
   const items = [...pub.news].reverse().slice(0, 3)
   return (
-    <footer className="min-w-0 overflow-hidden border-t border-wire-ink/30 bg-wire-paper" aria-label="News wire">
+    <footer data-tour="wire" className="min-w-0 overflow-hidden border-t border-wire-ink/30 bg-wire-paper" aria-label="News wire">
       <Tooltip content="Recent reports and rumours. Select to read every dispatch.">
         <button
           type="button"
