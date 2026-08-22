@@ -7,6 +7,7 @@
 
 import { describe, expect, it } from 'vitest'
 import {
+  absorptiveCapacity,
   applyActions,
   BLOC_IDS,
   breakthroughHazard,
@@ -90,9 +91,63 @@ describe('two trees and the gap (§9)', () => {
     const passive = run('tech-4', 200)
     const invested = run('tech-4', 200, undefined, true)
     expect(invested.gov.capacity.education).toBeGreaterThan(passive.gov.capacity.education + 0.1)
+    expect(invested.demography.humanCapital).toBeGreaterThan(
+      passive.demography.humanCapital + 0.1,
+    )
     expect(invested.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf)
     // and schooling pulls fertility down beyond the income channel (§8)
     expect(invested.demography.tfr).toBeLessThan(passive.demography.tfr)
+  })
+
+  it('schools are an institution; human capital is the slow stock of people they taught', () => {
+    let state = init(standardCountry, 'tech-human-capital-lag')
+    const inherited = state.demography.humanCapital
+    state = applyActions(state, [
+      { kind: 'investCapacity', target: 'education', amount: 0.35 * state.flows.nominalGdp },
+    ])
+    for (let t = 0; t < 16; t++) state = step(state)
+
+    // The buildings have arrived, but a workforce is not built on the same
+    // two-year project schedule. Skills have started moving and still lag far
+    // behind the institution that is producing them.
+    expect(state.gov.capacity.education).toBeGreaterThan(
+      state.demography.humanCapital + 0.15,
+    )
+    expect(state.demography.humanCapital).toBeGreaterThan(inherited)
+
+    const schoolShell: TrueState = {
+      ...state,
+      gov: {
+        ...state.gov,
+        capacity: { ...state.gov.capacity, education: 0.95 },
+      },
+    }
+    const skilled: TrueState = {
+      ...state,
+      demography: { ...state.demography, humanCapital: 0.8 },
+    }
+    // Technology and research read the people, not the buildings. Merely
+    // relabelling the current school system cannot create trained staff.
+    expect(absorptiveCapacity(schoolShell)).toBeCloseTo(absorptiveCapacity(state), 12)
+    expect(absorptiveCapacity(skilled)).toBeGreaterThan(absorptiveCapacity(state))
+
+    const fundResearch = (s: TrueState): TrueState => ({
+      ...s,
+      gov: {
+        ...s.gov,
+        dials: {
+          ...s.gov.dials,
+          spending: { ...s.gov.dials.spending, research: 0.02 * s.flows.nominalGdp },
+        },
+      },
+    })
+    expect(researchAllocation(fundResearch(schoolShell)).effectiveShare).toBeCloseTo(
+      researchAllocation(fundResearch(state)).effectiveShare,
+      12,
+    )
+    expect(researchAllocation(fundResearch(skilled)).effectiveShare).toBeGreaterThan(
+      researchAllocation(fundResearch(state)).effectiveShare,
+    )
   })
 
   it('one research policy changes character with position: catch-up behind, invention near the frontier', () => {

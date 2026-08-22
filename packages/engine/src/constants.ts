@@ -173,6 +173,8 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   price_fuel: 0.2,
   unemployment: 0.35,
   labor_force_participation: 0.35,
+  // School completion records reconciled against the labour-force survey.
+  human_capital: 0.35,
   payrolls: 0.3,
   capital_stock: 0.3,
   // Output per worker needs the accounts and a labour force survey reconciled
@@ -203,8 +205,9 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   // reports, collate them, and dare to put a number on the result
   unrest: 0.4,
 }
-/** neglect is a policy — but it rots institutions fast and people slowly:
- * a taught generation stays taught for a working lifetime */
+/** neglect is a policy. This is institutional decay: school buildings and
+ * teaching systems deteriorate. The people they already taught persist in
+ * `demography.humanCapital`, which moves on its own generational clock. */
 export const CAPACITY_DECAY_BY_ID: Record<CapacityId, number> = {
   tax: 0.004,
   statistical: 0.004,
@@ -324,7 +327,7 @@ export const TECH_EXPOSURE: Record<SectorId, number> = {
 }
 /** per-quarter share of the remaining gap closed at absorption = 1 */
 export const CATCHUP_Q = 0.02
-/** absorption = base + gain × education capacity, damped by autarky —
+/** absorption = base + gain × human capital, damped by autarky —
  * the ceiling: you cannot absorb faster than your human capital allows,
  * which is why "just buy the machines" fails, repeatedly and expensively */
 export const ABSORB_BASE = 0.05
@@ -387,9 +390,13 @@ export const BREAKTHROUGH_HAZARD_MAX = 0.5
 
 // ---------- demography (§8) ----------
 /** schooling suppresses fertility beyond the income channel (§8: female
- * education) — TFR drop per unit of education capacity above the 1946 base */
+ * education) — TFR drop per unit of human capital above the 1946 base */
 export const FERT_EDU_GAIN = 1.2
 export const EDUCATION_1946 = 0.2 // default education capacity for old saves
+/** Workforce skills close one percent of the remaining gap to the school
+ * system each quarter: roughly a seventeen-year half-life. A ministry can be
+ * built in two years; the taught workforce cannot. */
+export const HUMAN_CAPITAL_ADJUST_Q = 0.01
 /** real consumption per capita of the standard 1946 country, in engine
  * units — the ABSOLUTE anchor for demographic behavior. Vital rates respond
  * to the level of income (a richer country starts its transition further
@@ -688,7 +695,7 @@ export const SOC_FRANCHISE = 0.14 // × population-weighted enfranchisement
 export const SOC_PRESS = 0.12
 export const SOC_LABOR = 0.12
 export const SOC_COURTS = 0.1
-export const SOC_EDU = 0.15 // × education capacity: literacy mobilizes
+export const SOC_EDU = 0.15 // × human capital: literacy mobilizes
 export const SOC_URBAN = 0.12 // × urban share: cities organize, villages don't
 export const SOC_INEQ = 0.5 // × Gini above neutral — elite capture
 export const SOC_GINI_NEUTRAL = 0.35

@@ -238,7 +238,7 @@ function societalTarget(state: TrueState, gini: number): number {
       SOC_PRESS * inst.press +
       SOC_LABOR * inst.labor_rights +
       SOC_COURTS * inst.courts +
-      SOC_EDU * state.gov.capacity.education +
+      SOC_EDU * state.demography.humanCapital +
       SOC_URBAN * urbanShare(state) -
       SOC_INEQ * Math.max(0, gini - SOC_GINI_NEUTRAL) -
       SOC_REPRESSION * inst.repression,

@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 29. Companion to the design doc
+*How the code is actually arranged, as of schema 30. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -161,7 +161,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 interface TrueState {
   meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules; appointedAt: Qtr }
   params: CountryParams        // immutable after init
-  demography: DemographyState  // the age pyramid; cohort sizes derive from it
+  demography: DemographyState  // age pyramid + slow workforce-skills stock
   tech: TechState              // global frontier + domestic attainment; research moves both
   finance: FinanceState        // credit, asset prices, bank capital
   cohorts: Cohort[]            // 5
@@ -237,7 +237,7 @@ introduced it:
 | # | step | what it does |
 |---|------|--------------|
 | 1 | `shocks` | the crisis clock: ruptures land before anyone works |
-| 2 | `demography` | births, deaths, and performance-relative migration move the pyramid; cohort sizes derive from it |
+| 2 | `demography` | births, deaths and migration move the pyramid; cohort sizes and workforce skills derive from it |
 | 3 | `technology` | the frontier advances; attainment chases it; research splits by position |
 | 4 | `world` | partner cycles set export demand and world prices |
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
@@ -288,6 +288,13 @@ The player sees two fogged instruments and never the frontier, sector attainment
 `technology_attainment` (the ratio — are we catching up?) and `productivity` (the level — output
 per worker against our own 1946). Two are needed because the ratio saturates: research pushes the
 frontier it is measured against, so the better the programme the quieter its own dial goes.
+
+Human capital is a slow stock carried by the workforce, not another name for school capacity
+(ADR-0023). `gov.capacity.education` is the Layer-2 institution the cabinet builds;
+`demography.humanCapital` closes one percent of the gap to it each quarter. Technology absorption,
+research staffing, fertility and societal power all read the stock, so a two-year school project
+does not educate a country on the construction schedule. The player sees only the lagged, fogged
+`human_capital` / **Workforce skills** instrument; the exact stock remains engine truth.
 
 Foreign direct investment is an owned capital stock, not another name for openness (ADR-0018).
 Small-country scale and external access set the structural FDI/GDP draw; the mean of sector

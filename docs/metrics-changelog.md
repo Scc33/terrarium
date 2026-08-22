@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 29)
+## Current contract (schema 30)
 
 ### Inputs
 
@@ -145,6 +145,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
 | `labor_force_participation` | % of population | 0.35 | v22 | labour force ÷ census population |
+| `human_capital` | idx | 0.35 | v30 | slow workforce knowledge-and-skills stock ×100 |
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
@@ -210,6 +211,21 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 30 — Schools build a slow human-capital stock
+
+- **Pipeline ±**: `demography.humanCapital` is initialized from inherited education capacity,
+  then closes 1% of the remaining gap to the current school system each quarter. Technology
+  absorption, research staffing, fertility and societal power read this stock rather than
+  `gov.capacity.education`, separating a two-year institution-building project from the taught
+  workforce it produces (ADR-0023). The pipeline order is unchanged.
+- **Outputs +**: fogged `human_capital` / **Workforce skills**, a 0–100 index, unlocks at 0.35
+  statistical capacity. Its fixed 0–100 dial matches the bounded underlying stock; prints remain
+  lagged, noisy and revisable, and the exact `demography.humanCapital` never crosses the worker
+  boundary.
+- **Compatibility**: true state, statistical worksheets and indicator ids changed, so schema 30
+  has new golden replays. Old country recipes deterministically initialize the new stock from
+  their education capacity; saves remain replay logs and need no snapshot repair.
 
 ### schema 29 — Relative migration and the immigration ceiling
 
