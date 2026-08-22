@@ -44,6 +44,7 @@ describe('the published-state contract (§1.1)', () => {
       'country',
       'rules',
       'indicators',
+      'industry',
       'dials',
       'spendingRules',
       'treasury',
@@ -145,6 +146,26 @@ describe('the published-state contract (§1.1)', () => {
       'publicInvestmentReal',
     ]
     for (const f of forbidden) expect(keys.has(f), `LEAKED true-state field: ${f}`).toBe(false)
+  })
+
+  it('the industrial census crosses as prints, never as the office’s worksheet', () => {
+    // The production side is the one published block whose field names are
+    // also true-state field names (a sector has `employment`), so the key
+    // grep above cannot speak for it. The contract it has to keep is the same
+    // one every survey keeps: lagged, and never equal to the truth.
+    // `tests/properties/industry-census.test.ts` holds the rest of it.
+    const state = play('contract-industry', 30, 1)
+    const pub = observe(state)
+    expect(pub.industry.length).toBeGreaterThan(0)
+    for (const print of pub.industry) {
+      expect(print.forQtr).toBeLessThan(pub.tick)
+      expect(print.publishedAt).toBeGreaterThan(print.forQtr)
+      const truth = state.stats.record[print.forQtr].industry
+      for (const id of Object.keys(print.valueAdded) as Array<keyof typeof truth>) {
+        expect(print.valueAdded[id]).not.toBe(truth[id].valueAdded)
+        expect(print.employment[id]).not.toBe(truth[id].employment)
+      }
+    }
   })
 
   it('never exposes a raw true GDP level: growth is fogged, levels are only estimates', () => {

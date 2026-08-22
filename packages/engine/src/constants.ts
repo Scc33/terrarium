@@ -214,6 +214,28 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   // reports, collate them, and dare to put a number on the result
   unrest: 0.4,
 }
+
+/** The industrial census sits on the establishment survey's rung, beside
+ * `payrolls` and `capital_stock`, because it IS that survey: an office that
+ * can count heads at every factory can also ask what those factories made,
+ * and `payrolls` is literally this census with agriculture struck out. It has
+ * to sit at or below `technology_attainment` (0.45), whose own note already
+ * assumes an industrial census exists underneath it.
+ *
+ * Adding a third unlock to 0.30 does not light up more of the wall — the
+ * census is paperwork in the industry office, not an instrument — so the
+ * warning attached to the 0.35 rung does not apply here. */
+export const INDUSTRY_CENSUS_FUNDED_AT = 0.3
+/** First-print noise on each industry's value added, as a FRACTION of it, at
+ * zero statistical capacity. Larger than the accounts' own error (0.035 on
+ * GDP per head): allocating output between industries is a harder job than
+ * totalling it, and the errors partly cancel in the total. Relative rather
+ * than absolute for the reason the expenditure accounts are — services can be
+ * ten times energy, and one band honest about the big one prints the small one
+ * negative. */
+export const INDUSTRY_VALUE_ADDED_SD = 0.06
+/** …and on the head count beside it, which an enumerator can actually count. */
+export const INDUSTRY_EMPLOYMENT_SD = 0.04
 /** neglect is a policy. This is institutional decay: school buildings and
  * teaching systems deteriorate. The people they already taught persist in
  * `demography.humanCapital`, which moves on its own generational clock. */

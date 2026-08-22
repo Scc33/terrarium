@@ -8,6 +8,9 @@
  * is dangerous. Against each other they land in different corners, and only
  * one corner is shaded.
  *
+ * The decision to have this figure at all, and the four alternatives it beat,
+ * is ADR-0026.
+ *
  * Like `TimeSeriesChart` it knows nothing about its subject — it takes
  * coordinates, thresholds and words, and the caller owns what they mean.
  * Geometry is in `../../../plot`; this file paints. It follows the same three
@@ -52,6 +55,11 @@ export interface PhaseChartProps {
 }
 
 const n1 = (x: number) => x.toFixed(1)
+
+/** Narrower than this and the corner label would overrun its own region and
+ * cross the threshold rule. Sized for the longest label in use at 8px mono
+ * with 1px tracking ("CRISIS RISK", 11 characters). */
+const CORNER_LABEL_MIN_W = 62
 
 export function PhaseChart({
   points,
@@ -228,7 +236,14 @@ export function PhaseChart({
               strokeDasharray="3 2"
               opacity="0.8"
             />
-            {cornerLabel && (
+            {/* The label goes INSIDE the region it names, and only when the
+                region is wide enough to hold it. Right-aligning it to the
+                plot edge unconditionally puts the text across the vertical
+                rail whenever the country is far from the threshold — which
+                is most of the time, and is exactly when the figure is most
+                often looked at. The shading and the two rules carry the
+                meaning on their own; `summary` always carries the words. */}
+            {cornerLabel && danger.w >= CORNER_LABEL_MIN_W && (
               <text
                 x={width - box.padR - 4}
                 y={box.padT + 10}

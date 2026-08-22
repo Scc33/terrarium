@@ -285,6 +285,25 @@ describe('phase geometry', () => {
     expect(corner!.h).toBeGreaterThan(0)
   })
 
+  it('leaves the corner too narrow to label when the country is far from the rail', () => {
+    // The corner label is suppressed below `CORNER_LABEL_MIN_W` because a
+    // right-aligned caption in a narrow corner runs back across the vertical
+    // threshold rule — and a country FAR from danger is the common case, so
+    // that collision is what the figure looks like most of the time. This
+    // pins the geometry the suppression reads, so the constant cannot quietly
+    // stop matching the shape it was chosen for.
+    const box = { w: 340, h: 300, padL: 38, padR: 10, padT: 10, padB: 30 }
+    const calm = [
+      { tick: 0, x: 49, y: 78 },
+      { tick: 1, x: 55, y: 92 },
+      { tick: 2, x: 59, y: 99 },
+    ]
+    const plot = phasePlot(calm, box, { include: [LEVERAGE_RAIL], pad: 0.08 }, { include: [VALUATION_RAIL, 100], pad: 0.08 })
+    const corner = plot.corner(LEVERAGE_RAIL, VALUATION_RAIL)!
+    expect(corner.w).toBeGreaterThan(0)
+    expect(corner.w).toBeLessThan(62)
+  })
+
   it('drops a corner that is entirely off the top of the face', () => {
     const plot = phasePlot([{ tick: 0, x: 10, y: 10 }, { tick: 1, x: 12, y: 12 }], box)
     expect(plot.corner(500, 500)).toBeNull()

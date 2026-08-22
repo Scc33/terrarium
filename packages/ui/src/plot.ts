@@ -349,7 +349,7 @@ export function rangeBetween<T extends PlotPoint>(
  * time, a country with cheap assets and enormous debt and a country with
  * dear assets and no debt look equally alarming on one chart each; drawn
  * against each other, they sit in different corners and only one corner is
- * dangerous.
+ * dangerous. ADR-0026.
  */
 export interface PhasePoint {
   tick: number

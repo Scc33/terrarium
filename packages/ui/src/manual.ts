@@ -315,7 +315,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
           { term: 'The wall', detail: 'The instruments, the ledger and the corridor plot. Everything you can see about the country.', meta: 'CENTRE' },
           { term: 'The cabinet', detail: 'Every lever, grouped by decision domain, with the draft-and-enact flow pinned below it.', meta: 'RIGHT' },
           { term: 'The wire', detail: 'Rumours and dispatches along the bottom. Some of them are wrong; that is the point.', meta: 'BOTTOM' },
-          { term: 'The offices', detail: 'Accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
+          { term: 'The offices', detail: 'Industry, accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
         ],
       },
     ],
@@ -370,6 +370,13 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
         body: [
           'Funding the statistical office buys three different things in sequence, and it is worth knowing which one you are buying. Below an instrument’s gate, it buys the instrument: the survey does not exist and the plate is blank. Above the gate, it buys speed — the lag falls from two quarters to one at half strength. Throughout, it buys accuracy: the error band narrows steadily with capacity.',
           'It never buys the truth. There is no level of funding at which the wall stops being an estimate.',
+        ],
+      },
+      {
+        heading: 'NOT EVERY SURVEY IS AN INSTRUMENT',
+        body: [
+          'The office publishes one thing that is not a dial. The industrial census — in the industry office, on the header — reports what each industry produced and how many people it employed, and it is fogged exactly like everything else: gated on the same statistical capacity, released with the same lag, revised on the same schedule. It has no gauge because a share of the economy has no single honest face; a country that opens half agricultural and one that opens barely agricultural cannot be read against the same dial.',
+          'Because each industry is surveyed separately, the five figures do not add up to the published output, and the census states its own uncertainty per table rather than for the release: an enumerator can count heads at a factory gate and has to estimate what the factory made, so the jobs column is measured better than the output column and says so.',
         ],
       },
       {

@@ -9,11 +9,19 @@
  */
 
 import { rngFor, type Seed } from '../rng/rng'
-import { INDICATOR_FUNDED_AT } from '../constants'
 import {
+  INDICATOR_FUNDED_AT,
+  INDUSTRY_CENSUS_FUNDED_AT,
+  INDUSTRY_EMPLOYMENT_SD,
+  INDUSTRY_VALUE_ADDED_SD,
+} from '../constants'
+import {
+  INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
   type IndicatorId,
+  type IndustryPrint,
+  type IndustryTableId,
   type NewsItem,
   type PolicyRecord,
   type SectorId,
@@ -29,6 +37,7 @@ import {
   householdSavingRate,
   realConsumptionPerCapita,
   realIncomePerHead,
+  sectorValueAdded,
   technologyAttainment,
   termsOfTrade,
   totalLaborForce,
@@ -342,6 +351,17 @@ function recordOf(state: TrueState): StatRecord {
       return employed > 1e-9 ? (4 * flows.realGdp) / employed : 0
     })(),
     capitalTotal: sectors.reduce((s, x) => s + x.capital, 0),
+    industry: (() => {
+      const valueAdded = sectorValueAdded(state)
+      const out = {} as StatRecord['industry']
+      for (let i = 0; i < SECTOR_IDS.length; i++) {
+        out[SECTOR_IDS[i]] = {
+          valueAdded: valueAdded[SECTOR_IDS[i]],
+          employment: sectors[i].employment,
+        }
+      }
+      return out
+    })(),
     technologyAttainment: technologyAttainment(state),
     confConsumer: ledger.confidence.consumer,
     confBusiness: ledger.confidence.business,
@@ -459,6 +479,82 @@ function printsDue(
   return out
 }
 
+/** The noise on each of the census's two tables, as a fraction of the figure
+ * at zero capacity. A total `Record` over the table ids, and the ONLY place
+ * either number is read: the wobble the office applies and the band it
+ * confesses come from this one entry, in the same loop iteration, so they
+ * cannot drift into two different accounts of how well it measured. (The same
+ * rule `politicalCostOfAction` keeps for a quote and its charge.) */
+const INDUSTRY_SD: Record<IndustryTableId, number> = {
+  valueAdded: INDUSTRY_VALUE_ADDED_SD,
+  employment: INDUSTRY_EMPLOYMENT_SD,
+}
+
+/**
+ * The industrial census's releases dated `publishedAt` — the same clock,
+ * funding gate, lag and revision schedule the indicators run on, applied to a
+ * vector instead of a scalar.
+ *
+ * It deliberately reuses `lagFor` and `noiseScale` rather than owning a
+ * second measurement model: this is the same office, and an industry survey
+ * that got sharper faster than the accounts it has to reconcile with would be
+ * a statement about the fog nobody meant to make. What it does NOT reuse is
+ * `IndicatorSpec`, because a spec is a scalar with a dial face and this has
+ * neither (see `IndustryPrint`).
+ *
+ * Each industry gets an INDEPENDENT draw, which is why the published parts do
+ * not sum to the published GDP. That is the office confessing its method, not
+ * a bug: the
+ * office is estimating five things, not dividing one thing five ways. The
+ * two tables draw from separate substreams so that adding a third column
+ * later cannot shift the census a century of saves already published.
+ */
+function industryPrintsDue(
+  record: StatRecord[],
+  publishedAt: number,
+  seed: Seed,
+  fullInstrumentation: boolean,
+): IndustryPrint[] {
+  const out: IndustryPrint[] = []
+  for (let r = 0; r < REVISION_DELAYS.length; r++) {
+    for (const lag of LAGS) {
+      const q = publishedAt - lag - REVISION_DELAYS[r]
+      if (q < 0 || q >= record.length) continue
+      const cap = record[q].statCapacity
+      if (!fullInstrumentation && cap < INDUSTRY_CENSUS_FUNDED_AT) continue
+      if (lagFor(cap) !== lag) continue
+      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const truth = record[q].industry
+      const tables = {} as Record<IndustryTableId, Record<SectorId, number>>
+      const errorBand = {} as IndustryPrint['errorBand']
+      for (const table of INDUSTRY_TABLE_IDS) {
+        const sd = INDUSTRY_SD[table] * settling
+        const rng = rngFor(seed, `obs:industry:${table}:${q}:${r}`, 0)
+        const figures = {} as Record<SectorId, number>
+        for (const sid of SECTOR_IDS) {
+          // A negative industry is not a thing a census can report, and a
+          // negative wedge cannot be drawn at all (`donutSlices` drops it).
+          // The floor bites only where the truth is already near zero.
+          figures[sid] = Math.max(0, truth[sid][table] * (1 + rng.normal(0, sd)))
+        }
+        tables[table] = figures
+        // the same threshold the indicators confess a band at, and relative
+        // for the same reason the noise is
+        errorBand[table] = cap >= 0.45 ? 1.96 * sd : 0
+      }
+      out.push({
+        forQtr: q,
+        publishedAt,
+        revision: r,
+        errorBand,
+        valueAdded: tables.valueAdded,
+        employment: tables.employment,
+      })
+    }
+  }
+  return out
+}
+
 const NEWS_RULES: Array<{
   when(s: StatRecord): boolean
   tone: NewsItem['tone']
@@ -564,8 +660,16 @@ export const statistics: PipelineStep = {
       const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]
     }
+    const censusDue = industryPrintsDue(
+      record,
+      releaseDate,
+      seed,
+      state.meta.rules.fullInstrumentation,
+    )
+    const industry =
+      censusDue.length > 0 ? [...state.stats.industry, ...censusDue] : state.stats.industry
     const rumor = rumorFor(record[record.length - 1], seed)
     const news = rumor ? [...state.stats.news, rumor] : state.stats.news
-    return { ...state, stats: { record, series, news } }
+    return { ...state, stats: { record, series, industry, news } }
   },
 }
