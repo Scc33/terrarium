@@ -26,6 +26,7 @@ import { COUNTRY_CATALOG, type CountryScenarioId } from '@terrarium/engine'
 import { useGame } from '../store/gameStore'
 import type { DevNode } from '../worker/protocol'
 import { DEFAULT_SCENARIO, YEAR_ZERO, tickLabel, type DevScenario } from '../devScenario'
+import { Tooltip } from '../components/ui'
 
 const CAPACITIES = ['tax', 'statistical', 'administrative', 'education'] as const
 
@@ -38,12 +39,13 @@ function Field({
   hint?: string
   children: React.ReactNode
 }) {
-  return (
-    <label className="flex flex-col gap-1" title={hint}>
+  const field = (
+    <label tabIndex={hint ? 0 : undefined} className="flex flex-col gap-1">
       <span className="font-mono text-[10px] tracking-[0.15em] text-terminal-primary/60">{label}</span>
       {children}
     </label>
   )
+  return hint ? <Tooltip content={hint}>{field}</Tooltip> : field
 }
 
 const inputCls =
@@ -105,9 +107,11 @@ export function DevConsole({ onClose }: { onClose: () => void }) {
     <div className="fixed right-0 top-0 z-[60] flex h-full w-[380px] max-w-full flex-col border-l-2 border-terminal-alert bg-terminal-bg font-mono text-[11px] text-terminal-primary">
       <div className="flex items-center justify-between border-b border-terminal-alert px-3 py-2">
         <span className="tracking-[0.2em] text-terminal-alert">DEV CONSOLE — NOT IN THE GAME</span>
-        <button onClick={onClose} title="Close (Esc)" className="text-terminal-primary/60 hover:text-terminal-alert">
-          ✕
-        </button>
+        <Tooltip content="Close the developer console. Escape works too.">
+          <button onClick={onClose} aria-label="Close developer console" className="text-terminal-primary/60 hover:text-terminal-alert">
+            ✕
+          </button>
+        </Tooltip>
       </div>
 
       <div className="flex border-b border-terminal-grid">

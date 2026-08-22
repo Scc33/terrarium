@@ -2,7 +2,7 @@
  * and the treasury's exact books inline (the only numbers you get raw). */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Button, Metric } from '../components/ui'
+import { Button, Metric, Tooltip, TooltipLabel } from '../components/ui'
 import { activeRuleMarks, capitalReading } from '../gameRules'
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
@@ -50,12 +50,13 @@ export function HeaderBar({
               <span key={mark} className="ml-1.5 text-dossier-paper/70">· {mark}</span>
             ))}
             {pub.countryAuthored && (
-              <span
+              <TooltipLabel
+                label="Drafted country"
+                content="A player-made country. It uses the same rules, but its difficulty has not been tested."
                 className="ml-1.5 text-dossier-paper/70"
-                title="A posting somebody wrote. It runs through the same engine as every other country, but nobody has balanced it — the catalogue's difficulty stamps do not apply."
               >
                 · DRAFTED
-              </span>
+              </TooltipLabel>
             )}
           </div>
         </div>
@@ -70,45 +71,47 @@ export function HeaderBar({
             value={pub.rules.unlimitedCapital ? capital.available : pub.politicalCapital.toFixed(0)}
             title={
               pub.rules.unlimitedCapital
-                ? 'Orders are priced as usual, but this cabinet is never charged.'
-                : 'Political capital available for staged decisions.'
+                ? 'Points you spend to change policy. Orders are priced as usual under this rule, but the cabinet is never charged.'
+                : 'Points you spend to change policy. Opposition from powerful groups makes some changes cost more.'
             }
           />
-          <Metric compact inverted label={pub.inPower ? 'ELECTION' : 'STATUS'} value={pub.inPower ? `${pub.quartersToElection}Q` : 'DEPOSED'} tone={!pub.inPower || pub.quartersToElection <= 2 ? 'danger' : 'default'} title="Quarters until the electorate weighs in." />
+          <Metric compact inverted label={pub.inPower ? 'ELECTION' : 'STATUS'} value={pub.inPower ? `${pub.quartersToElection}Q` : 'DEPOSED'} tone={!pub.inPower || pub.quartersToElection <= 2 ? 'danger' : 'default'} title="Quarters until the next election. Lose it and your run may end." />
         </HeaderGroup>
         <HeaderGroup label="DEMOGRAPHY">
-          <button type="button" onClick={onCensus} className="shrink-0 text-left hover:opacity-75 focus-visible:outline-2 focus-visible:outline-dossier-brass" title="Open the national census.">
-            <Metric compact inverted label="POP / LABOUR" value={`${pub.population.total.toFixed(1)} / ${pub.population.laborForce.toFixed(1)}M`} />
-          </button>
+          <Tooltip content="Total population and people working or looking for work, in millions. Select to open the census.">
+            <button type="button" onClick={onCensus} className="shrink-0 text-left hover:opacity-75 focus-visible:outline-2 focus-visible:outline-dossier-brass">
+              <Metric compact inverted label="POP / LABOUR" value={`${pub.population.total.toFixed(1)} / ${pub.population.laborForce.toFixed(1)}M`} />
+            </button>
+          </Tooltip>
         </HeaderGroup>
         <HeaderGroup label="TREASURY">
-          <Metric compact inverted label="REV / OUT" value={`${t.revenue.toFixed(1)} / ${t.outlays.toFixed(1)}`} />
-          <Metric compact inverted label="BALANCE" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} tone={t.balance < 0 ? 'danger' : 'default'} />
-          <Metric compact inverted label="DEBT" value={t.debt.toFixed(0)} />
+          <Metric compact inverted label="REV / OUT" value={`${t.revenue.toFixed(1)} / ${t.outlays.toFixed(1)}`} title="Money collected and spent this quarter." />
+          <Metric compact inverted label="BALANCE" value={(t.balance >= 0 ? '+' : '') + t.balance.toFixed(1)} tone={t.balance < 0 ? 'danger' : 'default'} title="Revenue minus spending this quarter. Below zero is a deficit." />
+          <Metric compact inverted label="DEBT" value={t.debt.toFixed(0)} title="Money the government still owes." />
           <div className="hidden lg:block">
-            <Metric compact inverted label="FX RESERVES" value={pub.reserves.toFixed(1)} tone={pub.reserves < 2 ? 'danger' : 'default'} />
+            <Metric compact inverted label="FX RESERVES" value={pub.reserves.toFixed(1)} tone={pub.reserves < 2 ? 'danger' : 'default'} title="Foreign money held by the central bank. It pays for imports when foreign earnings fall." />
           </div>
-          {t.printed > 0.05 && <Metric compact inverted label="PRINTED" value={t.printed.toFixed(1)} tone="danger" />}
+          {t.printed > 0.05 && <Metric compact inverted label="PRINTED" value={t.printed.toFixed(1)} tone="danger" title="New money used to cover a deficit that lenders would not finance. Too much can raise inflation." />}
         </HeaderGroup>
       </div>
 
       <nav className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
-        {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
-        <Button onClick={onAccounts} variant="secondary" size="compact" title="The expenditure accounts: who the economy’s output is for.">ACCOUNTS</Button>
-        <Button onClick={onFinance} variant="secondary" size="compact" title="The financial system.">FINANCE</Button>
-        <Button onClick={onStudy} variant="secondary" size="compact" title="The Study.">STUDY</Button>
-        <Button onClick={onSettings} variant="secondary" size="compact" title="Records office.">RECORDS</Button>
+        {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+        <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output: households, investors, government or other countries.">ACCOUNTS</Button>
+        <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices, including signs of a bubble or crisis.">FINANCE</Button>
+        <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures before playing it.">STUDY</Button>
+        <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
       </nav>
       <details className="relative justify-self-end xl:hidden">
         <summary className="flex min-h-8 list-none items-center border border-dossier-paper/30 px-2.5 font-mono text-[9px] font-medium tracking-[0.15em] text-dossier-paper marker:hidden hover:border-dossier-brass hover:text-dossier-brass">
           OFFICES <span className="ml-2 text-dossier-brass" aria-hidden="true">▾</span>
         </summary>
         <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
-          {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact">VERDICT</Button>}
-          <Button onClick={onAccounts} variant="secondary" size="compact">ACCOUNTS</Button>
-          <Button onClick={onFinance} variant="secondary" size="compact">FINANCE</Button>
-          <Button onClick={onStudy} variant="secondary" size="compact">STUDY</Button>
-          <Button onClick={onSettings} variant="secondary" size="compact">RECORDS</Button>
+          {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+          <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output.">ACCOUNTS</Button>
+          <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
+          <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
+          <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
         </nav>
       </details>
     </header>

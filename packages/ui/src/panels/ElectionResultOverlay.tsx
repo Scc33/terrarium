@@ -8,8 +8,8 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { Modal } from '../components/ui'
-import { BLOC_NAMES, PLATFORM_NAMES } from '../components/labels'
+import { Modal, TooltipLabel } from '../components/ui'
+import { BLOC_NAMES, COUNT_NOTES, PLATFORM_NAMES, PLATFORM_NOTES } from '../components/labels'
 
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`
 const yearOf = (q: number) => `${1946 + Math.floor(q / 4)}Q${(q % 4) + 1}`
@@ -57,15 +57,23 @@ export function ElectionResultOverlay({
           </div>
           <div className="flex flex-col gap-1 font-mono text-[12px] tabular-nums text-dossier-ink">
             <div className="flex justify-between">
-              <span className="font-dossier text-dossier-ink/75">Support among voters</span>
+              <TooltipLabel
+                label="Support among voters"
+                content={COUNT_NOTES.support}
+                className="font-dossier text-dossier-ink/75"
+              />
               <span>{pct(r.support)}</span>
             </div>
             {r.swing !== 0 && (
               <div className="flex justify-between text-dossier-brass">
-                <span className="font-dossier">
+                <TooltipLabel
+                  label={`The campaign — you ${PLATFORM_NAMES[r.platform]}`}
+                  content={PLATFORM_NOTES[r.platform]}
+                  className="font-dossier"
+                >
                   The campaign — you {PLATFORM_NAMES[r.platform]}
                   {r.bloc ? ` (${BLOC_NAMES[r.bloc]})` : ''}
-                </span>
+                </TooltipLabel>
                 <span>
                   {r.swing >= 0 ? '+' : ''}
                   {pct(r.swing)}
@@ -73,7 +81,11 @@ export function ElectionResultOverlay({
               </div>
             )}
             <div className="flex justify-between">
-              <span className="font-dossier text-dossier-ink/75">The bar to clear</span>
+              <TooltipLabel
+                label="The bar to clear"
+                content={COUNT_NOTES.threshold}
+                className="font-dossier text-dossier-ink/75"
+              />
               <span>{pct(r.threshold)}</span>
             </div>
             <div
@@ -81,7 +93,11 @@ export function ElectionResultOverlay({
                 r.won ? 'text-dossier-felt' : 'text-dossier-warn'
               }`}
             >
-              <span className="font-dossier">Margin</span>
+              <TooltipLabel
+                label="Margin"
+                content={COUNT_NOTES.margin}
+                className="font-dossier"
+              />
               <span>
                 {total - r.threshold >= 0 ? '+' : ''}
                 {pct(total - r.threshold)}

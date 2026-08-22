@@ -27,3 +27,10 @@ dist-ssr
 
 # test coverage output
 coverage
+
+# git worktrees checked out inside the repo. `git add -A` from the root stages
+# each one as a GITLINK — a 160000 entry pointing at whatever that branch's HEAD
+# happened to be — which compiles, tests and reviews clean while quietly
+# committing 23 phantom submodules. It has happened once; this is the guard.
+.worktrees/
+.claude/worktrees/

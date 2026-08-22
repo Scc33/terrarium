@@ -10,6 +10,7 @@
  */
 
 import { stackPlot, thin, type Share, type StackRow } from '../../../shares'
+import { Tooltip } from '../Tooltip/Tooltip'
 
 export interface StackedAreaChartProps {
   rows: readonly StackRow[]
@@ -49,10 +50,17 @@ export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, for
   // pixel height instead would shear the axis labels.
   return (
     <svg viewBox={`0 0 ${W} ${height}`} className="block w-full" role="img" aria-label={reading}>
-      <title>{reading}</title>
-      {plot.bands.map((b) => (
-        <path key={b.key} d={b.path} fill={b.ink} opacity="0.9"><title>{keys.find((key) => key.key === b.key)?.label ?? b.key}</title></path>
-      ))}
+      {plot.bands.map((b) => {
+        const key = keys.find((k) => k.key === b.key)
+        return (
+          <Tooltip
+            key={b.key}
+            content={`${key?.label ?? b.key} — the band's thickness is its ${mode === 'share' ? 'share of the total' : 'level'} at that date.`}
+          >
+            <path d={b.path} fill={b.ink} opacity="0.9" />
+          </Tooltip>
+        )
+      })}
       {/* the rules sit ON TOP of the bands — a gridline hidden under the ink
           it is there to measure is decoration */}
       {ticks.map((v) => (

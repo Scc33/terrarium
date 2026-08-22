@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
-import { ChartFrame, Modal, OverlayLayout, TimeSeriesChart } from '../components/ui'
+import { ChartFrame, Modal, OverlayLayout, TimeSeriesChart, Tooltip, TooltipLabel } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
@@ -164,35 +164,37 @@ function Pyramid({ pyramid, ghost }: { pyramid: number[]; ghost: number[] }) {
   const selMax = Math.max(...pyramid, 1e-9)
   const baseMax = Math.max(...ghost, 1e-9)
   return (
-    <div className="flex flex-col-reverse gap-[2px]" title="Persons (millions) per five-year age band. The faint outline is the 1946 shape at its own scale — watch the base narrow into a column.">
-      {pyramid.map((n, i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <span className="w-10 shrink-0 text-right font-mono text-[8px] tabular-nums text-dossier-ink/60">
-            {bandLabel(i)}
-          </span>
-          <div className="relative h-[11px] flex-1 border-l border-dossier-ink/30">
-            {/* 1946 ghost, normalized to its own peak — a shape to compare against */}
-            <div
-              className="absolute inset-y-0 left-0 border-r border-dossier-ink/40 bg-dossier-ink/5"
-              style={{ width: `${(100 * ghost[i]) / baseMax}%` }}
-            />
-            <div
-              className={
-                i >= RETIREMENT_BAND
-                  ? 'relative h-full bg-dossier-warn/70'
-                  : i >= WORKING_BANDS[0]
-                    ? 'relative h-full bg-dossier-brass'
-                    : 'relative h-full bg-dossier-felt/60'
-              }
-              style={{ width: `${(100 * n) / selMax}%` }}
-            />
+    <Tooltip content="People in each five-year age group, in millions. The faint outline shows the country’s 1946 shape for comparison.">
+      <div tabIndex={0} className="flex flex-col-reverse gap-[2px] focus-visible:outline-2 focus-visible:outline-dossier-brass">
+        {pyramid.map((n, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <span className="w-10 shrink-0 text-right font-mono text-[8px] tabular-nums text-dossier-ink/60">
+              {bandLabel(i)}
+            </span>
+            <div className="relative h-[11px] flex-1 border-l border-dossier-ink/30">
+              {/* 1946 ghost, normalized to its own peak — a shape to compare against */}
+              <div
+                className="absolute inset-y-0 left-0 border-r border-dossier-ink/40 bg-dossier-ink/5"
+                style={{ width: `${(100 * ghost[i]) / baseMax}%` }}
+              />
+              <div
+                className={
+                  i >= RETIREMENT_BAND
+                    ? 'relative h-full bg-dossier-warn/70'
+                    : i >= WORKING_BANDS[0]
+                      ? 'relative h-full bg-dossier-brass'
+                      : 'relative h-full bg-dossier-felt/60'
+                }
+                style={{ width: `${(100 * n) / selMax}%` }}
+              />
+            </div>
+            <span className="w-8 shrink-0 font-mono text-[8px] tabular-nums text-dossier-ink/70">
+              {n.toFixed(1)}
+            </span>
           </div>
-          <span className="w-8 shrink-0 font-mono text-[8px] tabular-nums text-dossier-ink/70">
-            {n.toFixed(1)}
-          </span>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </Tooltip>
   )
 }
 
@@ -254,23 +256,25 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           </div>
           <Pyramid pyramid={p} ghost={census[0]?.pyramid ?? p} />
           {hasHistory && (
-            <input
-              type="range"
-              min={0}
-              max={census.length - 1}
-              value={idx}
-              onChange={(e) => setSel(Number(e.target.value))}
-              className="mt-1 w-full accent-dossier-brass"
-              title="Scrub through the century — watch the pyramid become a column."
-            />
+            <Tooltip content="Move through time to see how the country’s age shape changed.">
+              <input
+                type="range"
+                min={0}
+                max={census.length - 1}
+                value={idx}
+                onChange={(e) => setSel(Number(e.target.value))}
+                className="mt-1 w-full accent-dossier-brass"
+                aria-label="Choose a census year"
+              />
+            </Tooltip>
           )}
           <div className="flex justify-between border-t border-dossier-ink/20 pt-2 font-mono text-[9px] tabular-nums text-dossier-ink/80">
-            <span title="Under 15.">Y {((100 * children) / shown.population).toFixed(0)}%</span>
-            <span title="Ages 15–59.">W {((100 * working) / shown.population).toFixed(0)}%</span>
-            <span title="60 and over — the pension rolls.">A {((100 * retired) / shown.population).toFixed(0)}%</span>
-            <span title="Workers per pensioner. It only falls once the transition ends.">
+            <TooltipLabel label="Young population" content="People under 15 as a share of the population.">Y {((100 * children) / shown.population).toFixed(0)}%</TooltipLabel>
+            <TooltipLabel label="Working-age population" content="People aged 15 to 59 as a share of the population.">W {((100 * working) / shown.population).toFixed(0)}%</TooltipLabel>
+            <TooltipLabel label="Older population" content="People aged 60 and over as a share of the population.">A {((100 * retired) / shown.population).toFixed(0)}%</TooltipLabel>
+            <TooltipLabel label="Workers per pensioner" content="Working-age people for every older person. Lower numbers make pensions harder to support.">
               {Number.isFinite(support) ? support.toFixed(1) : '—'}:1
-            </span>
+            </TooltipLabel>
           </div>
         </div>
         </div>

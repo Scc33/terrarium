@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "7e17c63",
+  "revision": "74bdf20",
   "repoRoot": "../..",
   "packages": [
     {
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 74,
-      "lines": 11359
+      "moduleCount": 76,
+      "lines": 12013
     }
   ],
   "modules": [
@@ -2049,6 +2049,7 @@ export const architecture = {
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/policyRecord.ts",
         "packages/ui/src/saveFile.ts",
@@ -4680,7 +4681,7 @@ export const architecture = {
           "name": "AnalogGauge",
           "kind": "function",
           "path": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
-          "line": 54
+          "line": 55
         }
       ],
       "imports": [
@@ -4688,6 +4689,7 @@ export const architecture = {
         "packages/ui/src/components/WallTile/WallTile.tsx",
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/domains.ts"
       ],
       "importedBy": [
@@ -4731,18 +4733,19 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The Narrow Corridor — the closest thing this game has to a map, docked permanently. Connecting-tissue register: hand-drawn strategy-map linework, its own quiet palette, neither dossier brass nor terminal phosphor.",
-      "lines": 166,
+      "lines": 173,
       "exports": [
         {
           "name": "CorridorPlot",
           "kind": "function",
           "path": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
-          "line": 48
+          "line": 49
         }
       ],
       "imports": [
         "packages/observation/src/index.ts",
-        "packages/ui/src/components/WallTile/WallTile.tsx"
+        "packages/ui/src/components/WallTile/WallTile.tsx",
+        "packages/ui/src/components/ui/index.ts"
       ],
       "importedBy": [
         "packages/ui/src/panels/Instruments.tsx"
@@ -4784,7 +4787,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Every name an instrument goes by, in one place.",
-      "lines": 157,
+      "lines": 218,
       "exports": [
         {
           "name": "IndicatorNames",
@@ -4817,28 +4820,46 @@ export const architecture = {
           "line": 98
         },
         {
+          "name": "COHORT_NOTES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 115
+        },
+        {
           "name": "BLOC_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 108
+          "line": 130
         },
         {
           "name": "BLOC_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 116
+          "line": 138
         },
         {
           "name": "INSTITUTION_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 127
+          "line": 149
         },
         {
           "name": "PLATFORM_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 150
+          "line": 172
+        },
+        {
+          "name": "PLATFORM_NOTES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 188
+        },
+        {
+          "name": "COUNT_NOTES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 210
         }
       ],
       "imports": [
@@ -4864,19 +4885,20 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "One instrument, compressed to a single line — the rack's unit.",
-      "lines": 125,
+      "lines": 127,
       "exports": [
         {
           "name": "RackStrip",
           "kind": "function",
           "path": "packages/ui/src/components/RackStrip/RackStrip.tsx",
-          "line": 50
+          "line": 51
         }
       ],
       "imports": [
         "packages/observation/src/index.ts",
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/domains.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/wallPlan.ts"
@@ -5007,34 +5029,36 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 49,
+      "lines": 63,
       "exports": [
         {
           "name": "ButtonVariant",
           "kind": "type",
           "path": "packages/ui/src/components/ui/Button/Button.tsx",
-          "line": 3
+          "line": 4
         },
         {
           "name": "ButtonSize",
           "kind": "type",
           "path": "packages/ui/src/components/ui/Button/Button.tsx",
-          "line": 4
+          "line": 5
         },
         {
           "name": "ButtonProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/Button/Button.tsx",
-          "line": 22
+          "line": 23
         },
         {
           "name": "Button",
           "kind": "constant",
           "path": "packages/ui/src/components/ui/Button/Button.tsx",
-          "line": 29
+          "line": 30
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx"
+      ],
       "importedBy": [
         "packages/ui/src/components/ui/Modal/Modal.tsx",
         "packages/ui/src/components/ui/index.ts"
@@ -5104,22 +5128,23 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "A share of a whole, in ink on paper: a donut and the table that reads it.",
-      "lines": 92,
+      "lines": 101,
       "exports": [
         {
           "name": "DonutChartProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
-          "line": 16
+          "line": 17
         },
         {
           "name": "DonutChart",
           "kind": "function",
           "path": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
-          "line": 27
+          "line": 28
         }
       ],
       "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
@@ -5156,7 +5181,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 25,
+      "lines": 32,
       "exports": [],
       "imports": [
         "packages/ui/src/components/ui/Button/Button.tsx",
@@ -5176,16 +5201,23 @@ export const architecture = {
         "packages/ui/src/components/ui/SliderField/SliderField.tsx",
         "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
         "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+        "packages/ui/src/components/ui/Tooltip/placement.ts",
         "packages/ui/src/components/ui/useFocusTrap.ts"
       ],
       "importedBy": [
         "packages/ui/src/App.tsx",
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/components/WallTile/WallTile.tsx",
         "packages/ui/src/dev/ComponentGallery.tsx",
         "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
+        "packages/ui/src/panels/DevConsole.tsx",
         "packages/ui/src/panels/DraftingRoom.tsx",
         "packages/ui/src/panels/ElectionOverlay.tsx",
         "packages/ui/src/panels/ElectionResultOverlay.tsx",
@@ -5195,6 +5227,7 @@ export const architecture = {
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/panels/NewsWire.tsx",
         "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
@@ -5242,28 +5275,30 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 32,
+      "lines": 36,
       "exports": [
         {
           "name": "MetricTone",
           "kind": "type",
           "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
-          "line": 3
+          "line": 4
         },
         {
           "name": "MetricProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
-          "line": 13
+          "line": 14
         },
         {
           "name": "Metric",
           "kind": "function",
           "path": "packages/ui/src/components/ui/Metric/Metric.tsx",
-          "line": 22
+          "line": 23
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx"
+      ],
       "importedBy": [
         "packages/ui/src/components/ui/index.ts"
       ],
@@ -5385,22 +5420,24 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 28,
+      "lines": 40,
       "exports": [
         {
           "name": "SectionBarProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
-          "line": 3
+          "line": 4
         },
         {
           "name": "SectionBar",
           "kind": "function",
           "path": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
-          "line": 11
+          "line": 13
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx"
+      ],
       "importedBy": [
         "packages/ui/src/components/ui/index.ts"
       ],
@@ -5435,22 +5472,24 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 52,
+      "lines": 61,
       "exports": [
         {
           "name": "SegmentOption",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
-          "line": 1
+          "line": 3
         },
         {
           "name": "SegmentedControl",
           "kind": "function",
           "path": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
-          "line": 8
+          "line": 10
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx"
+      ],
       "importedBy": [
         "packages/ui/src/components/ui/index.ts"
       ],
@@ -5463,22 +5502,24 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "",
-      "lines": 64,
+      "lines": 76,
       "exports": [
         {
           "name": "SliderFieldProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
-          "line": 3
+          "line": 4
         },
         {
           "name": "SliderField",
           "kind": "function",
           "path": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
-          "line": 19
+          "line": 20
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx"
+      ],
       "importedBy": [
         "packages/ui/src/components/ui/index.ts"
       ],
@@ -5491,22 +5532,23 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The same shares, over the whole century: a stacked band chart in ink on paper. The pie beside it answers \"what is the mix now\"; this answers \"what did the mix do when I moved the dial\", which is the question a headline total can never answer.",
-      "lines": 119,
+      "lines": 127,
       "exports": [
         {
           "name": "StackedAreaChartProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
-          "line": 14
+          "line": 15
         },
         {
           "name": "StackedAreaChart",
           "kind": "function",
           "path": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
-          "line": 28
+          "line": 29
         }
       ],
       "imports": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
@@ -5521,7 +5563,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The one time-series painter. Every line, area and ribbon in the game goes through it — the wall's terminal ticker, the treasury ledger, the expenditure accounts, the finance overlay, the census.",
-      "lines": 416,
+      "lines": 419,
       "exports": [
         {
           "name": "ChartRegister",
@@ -5566,6 +5608,80 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/components/ui/Tooltip/placement.ts",
+      "label": "placement",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "",
+      "lines": 46,
+      "exports": [
+        {
+          "name": "TooltipSide",
+          "kind": "type",
+          "path": "packages/ui/src/components/ui/Tooltip/placement.ts",
+          "line": 1
+        },
+        {
+          "name": "placeTooltip",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Tooltip/placement.ts",
+          "line": 20
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+        "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Tooltip/placement.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "label": "Tooltip",
+      "packageId": "ui",
+      "category": "Components",
+      "summary": "One tooltip for the whole game.",
+      "lines": 302,
+      "exports": [
+        {
+          "name": "TooltipProps",
+          "kind": "interface",
+          "path": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+          "line": 93
+        },
+        {
+          "name": "Tooltip",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+          "line": 105
+        },
+        {
+          "name": "TooltipLabel",
+          "kind": "function",
+          "path": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+          "line": 279
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/ui/Tooltip/placement.ts",
+        "packages/ui/src/components/ui/Tooltip/placement.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/ui/Button/Button.tsx",
+        "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+        "packages/ui/src/components/ui/Metric/Metric.tsx",
+        "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+        "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+        "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+        "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "path": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/components/ui/useFocusTrap.ts",
       "label": "useFocusTrap",
       "packageId": "ui",
@@ -5594,16 +5710,18 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The frame every instrument on the wall sits in — and the one place the wall's layout contract is written down.",
-      "lines": 100,
+      "lines": 103,
       "exports": [
         {
           "name": "WallTile",
           "kind": "function",
           "path": "packages/ui/src/components/WallTile/WallTile.tsx",
-          "line": 76
+          "line": 77
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/ui/src/components/ui/index.ts"
+      ],
       "importedBy": [
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
@@ -5775,7 +5893,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Development tools",
       "summary": "",
-      "lines": 216,
+      "lines": 220,
       "exports": [
         {
           "name": "ComponentGallery",
@@ -6189,7 +6307,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The expenditure accounts, opened out — what the economy's output was FOR.",
-      "lines": 153,
+      "lines": 156,
       "exports": [
         {
           "name": "AccountsOverlay",
@@ -6216,13 +6334,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The national census — drill-down paperwork, not a home view (design doc §3.2). Two registers of knowledge sit side by side, and the difference is the whole fog mechanic: • the head count and the age pyramid are EXACT — census-grade, always yours, scrubbable across the whole ce…",
-      "lines": 281,
+      "lines": 285,
       "exports": [
         {
           "name": "CensusOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/CensusOverlay.tsx",
-          "line": 199
+          "line": 201
         }
       ],
       "imports": [
@@ -6242,13 +6360,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 795,
+      "lines": 833,
       "exports": [
         {
           "name": "ControlRail",
           "kind": "function",
           "path": "packages/ui/src/panels/ControlRail.tsx",
-          "line": 537
+          "line": 553
         }
       ],
       "imports": [
@@ -6275,13 +6393,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The posting room: choose which country's 1946 settlement to inherit before the worker creates any true state. This is game furniture, not a settings form — six dossiers, one sealed appointment.",
-      "lines": 538,
+      "lines": 555,
       "exports": [
         {
           "name": "CountrySelect",
           "kind": "function",
           "path": "packages/ui/src/panels/CountrySelect.tsx",
-          "line": 241
+          "line": 257
         }
       ],
       "imports": [
@@ -6302,17 +6420,18 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The maintenance hatch. Deliberately NOT diegetic: this is the one surface in the app that is not part of the fiction, and it is styled to be unmistakable about that — no brass, no manila, no instrument register. If a dev tool ever reads as game furniture, someone will eventual…",
-      "lines": 274,
+      "lines": 278,
       "exports": [
         {
           "name": "DevConsole",
           "kind": "function",
           "path": "packages/ui/src/panels/DevConsole.tsx",
-          "line": 83
+          "line": 85
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/devScenario.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/worker/protocol.ts"
@@ -6356,7 +6475,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The election, as a scene (§3.1).",
-      "lines": 262,
+      "lines": 277,
       "exports": [
         {
           "name": "ElectionOverlay",
@@ -6383,7 +6502,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The night itself. A campaign that got its own scene deserves a result that gets one too — the wire line (\"The government is returned at the polls\") tells you the outcome but never the arithmetic, and the arithmetic is what teaches you whether the platform you mortgaged somethi…",
-      "lines": 106,
+      "lines": 122,
       "exports": [
         {
           "name": "ElectionResultOverlay",
@@ -6435,7 +6554,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
-      "lines": 117,
+      "lines": 120,
       "exports": [
         {
           "name": "HeaderBar",
@@ -6461,7 +6580,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The instrument wall — the home view, in three bands.",
-      "lines": 111,
+      "lines": 113,
       "exports": [
         {
           "name": "Instruments",
@@ -6547,17 +6666,18 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The news wire — teletype register (connecting tissue, neither dossier nor terminal). Rumor is the poor state's only instrument.",
-      "lines": 41,
+      "lines": 43,
       "exports": [
         {
           "name": "NewsWire",
           "kind": "function",
           "path": "packages/ui/src/panels/NewsWire.tsx",
-          "line": 10
+          "line": 11
         }
       ],
       "imports": [
-        "packages/observation/src/index.ts"
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts"
       ],
       "importedBy": [
         "packages/ui/src/App.tsx"
@@ -6571,13 +6691,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "THE POLICY RECORD — what you set, over the whole century.",
-      "lines": 408,
+      "lines": 413,
       "exports": [
         {
           "name": "PolicyOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/PolicyOverlay.tsx",
-          "line": 189
+          "line": 193
         }
       ],
       "imports": [
@@ -6598,16 +6718,17 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "§3.3 — the historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
-      "lines": 164,
+      "lines": 207,
       "exports": [
         {
           "name": "ReportCardOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/ReportCardOverlay.tsx",
-          "line": 54
+          "line": 97
         }
       ],
       "imports": [
+        "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/components/ui/index.ts"
       ],
@@ -6650,7 +6771,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The Study — where the minister pins published prints to the corkboard and draws curves through them. The Phillips scatter uses only what the statistical office has actually released: no survey, no dot. Drawn in the hand-annotated map register.",
-      "lines": 101,
+      "lines": 105,
       "exports": [
         {
           "name": "StudyOverlay",
@@ -6826,7 +6947,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The minute book: what the cabinet SET, quarter by quarter.",
-      "lines": 267,
+      "lines": 262,
       "exports": [
         {
           "name": "PolicyGroup",
@@ -6850,49 +6971,49 @@ export const architecture = {
           "name": "RULE_MODE_LABEL",
           "kind": "constant",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 117
+          "line": 112
         },
         {
           "name": "POLICY_LINES",
           "kind": "constant",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 127
+          "line": 122
         },
         {
           "name": "POLICY_LINES_BY_GROUP",
           "kind": "constant",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 162
+          "line": 157
         },
         {
           "name": "PolicyChange",
           "kind": "interface",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 172
+          "line": 167
         },
         {
           "name": "policyAt",
           "kind": "function",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 200
+          "line": 195
         },
         {
           "name": "policyChanges",
           "kind": "function",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 216
+          "line": 211
         },
         {
           "name": "formatPolicyValue",
           "kind": "function",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 258
+          "line": 253
         },
         {
           "name": "formatRuleValue",
           "kind": "function",
           "path": "packages/ui/src/policyRecord.ts",
-          "line": 264
+          "line": 259
         }
       ],
       "imports": [
@@ -8474,6 +8595,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
       "target": "packages/ui/src/components/WallTile/WallTile.tsx",
       "typeOnly": false
     },
@@ -8506,6 +8632,11 @@ export const architecture = {
       "source": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/components/CorridorPlot/CorridorPlot.tsx",
@@ -8564,6 +8695,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
       "target": "packages/ui/src/domains.ts",
       "typeOnly": false
     },
@@ -8610,6 +8746,16 @@ export const architecture = {
     {
       "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
       "target": "packages/ui/src/domains.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/Button/Button.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
       "typeOnly": false
     },
     {
@@ -8704,6 +8850,16 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Tooltip/placement.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/index.ts",
       "target": "packages/ui/src/components/ui/useFocusTrap.ts",
       "typeOnly": false
     },
@@ -8718,6 +8874,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/components/ui/Metric/Metric.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/components/ui/Modal/Modal.tsx",
       "target": "packages/ui/src/components/ui/Button/Button.tsx",
       "typeOnly": false
@@ -8725,6 +8886,26 @@ export const architecture = {
     {
       "source": "packages/ui/src/components/ui/Modal/Modal.tsx",
       "target": "packages/ui/src/components/ui/useFocusTrap.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/SectionBar/SectionBar.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/SegmentedControl/SegmentedControl.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/SliderField/SliderField.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
       "typeOnly": false
     },
     {
@@ -8740,6 +8921,21 @@ export const architecture = {
     {
       "source": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
       "target": "packages/ui/src/plot.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/placement.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/ui/Tooltip/Tooltip.tsx",
+      "target": "packages/ui/src/components/ui/Tooltip/placement.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/WallTile/WallTile.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
       "typeOnly": false
     },
     {
@@ -8959,6 +9155,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/panels/DevConsole.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/DevConsole.tsx",
       "target": "packages/ui/src/devScenario.ts",
       "typeOnly": false
     },
@@ -9148,6 +9349,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/panels/NewsWire.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/PolicyOverlay.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -9165,6 +9371,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/PolicyOverlay.tsx",
       "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
+      "target": "packages/engine/src/index.ts",
       "typeOnly": false
     },
     {
@@ -9420,7 +9631,7 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 21,
+      "count": 22,
       "typeOnlyCount": 7
     },
     {

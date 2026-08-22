@@ -51,17 +51,17 @@ export interface PolicyLine {
 }
 
 const TAX_FACE: Record<RevenueSourceId, { label: string; note: string }> = {
-  income: { label: 'INCOME TAX', note: 'Levied on wages, collected as well as your tax administration allows.' },
-  corporate: { label: 'CORPORATE TAX', note: 'Levied on positive sector profits.' },
-  tariff: { label: 'TARIFF', note: 'Levied at the border on imports.' },
-  fuel: { label: 'FUEL EXCISE', note: 'Levied on every energy purchase, household and industrial.' },
+  income: { label: 'INCOME TAX', note: 'A tax on workers’ pay. A stronger tax office collects more of the posted rate.' },
+  corporate: { label: 'CORPORATE TAX', note: 'A tax on company profits.' },
+  tariff: { label: 'TARIFF', note: 'A tax on imported goods, collected at the border.' },
+  fuel: { label: 'FUEL EXCISE', note: 'A tax on fuel bought by households and businesses.' },
 }
 
 const PROGRAMME_FACE: Record<SpendingProgramId, { label: string; note: string }> = {
   transfers: { label: 'TRANSFERS', note: 'Pensions and relief, paid to households.' },
-  procurement: { label: 'PROCUREMENT', note: 'The state buying goods and services from the economy.' },
-  investment: { label: 'PUBLIC WORKS', note: 'Construction that adds to the national capital stock.' },
-  research: { label: 'RESEARCH', note: 'Public R&D grants, banked as a stock that decays.' },
+  procurement: { label: 'PROCUREMENT', note: 'Goods and services bought by the government.' },
+  investment: { label: 'PUBLIC WORKS', note: 'Roads, power and other assets that support future production.' },
+  research: { label: 'RESEARCH', note: 'Grants for better production methods. Recent funding matters more than old funding.' },
 }
 
 const SECTOR_FACE: Record<SectorId, string> = {
@@ -73,45 +73,40 @@ const SECTOR_FACE: Record<SectorId, string> = {
 }
 
 /** The dials that are a bare number on the record rather than a table — every
- * `PolicyRecord` field that is not one of the four table-valued groups below. Derived from
+ * `PolicyRecord` field that is not one of the table-valued groups below. Derived from
  * the type, so a lever added to the cabinet lands here on its own and the
  * total face record beneath refuses to compile until it has been named.
- * `assetPurchaseRate`, `capitalRequirement`, and `immigrationLimit` arrived
- * exactly that way. The face carries its desk because not every scalar dial
- * belongs to the central bank. */
+ * `assetPurchaseRate`, `capitalRequirement`, and `immigrationLimit` arrived exactly that way. */
 type ScalarDialId = Exclude<
   keyof PolicyPoint,
   'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules'
 >
 
-const SCALAR_DIAL_FACE: Record<
-  ScalarDialId,
-  { label: string; note: string; group: 'CENTRAL BANK' | 'MIGRATION' }
-> = {
+const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; group: PolicyGroup }> = {
   policyRate: {
     label: 'POLICY RATE',
-    note: 'The annualized rate the central bank lends at. It prices credit, and through the real rate it decides whether cheap money inflates a bubble.',
+    note: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
     group: 'CENTRAL BANK',
   },
   assetPurchaseRate: {
     label: 'ASSET PURCHASES',
-    note: 'Quantitative easing — the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate has no room left, and feeds credit and asset prices while it does.',
+    note: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
     group: 'CENTRAL BANK',
   },
   capitalRequirement: {
     label: 'CAPITAL REQUIREMENT',
-    note: 'Bank equity required per unit of credit outstanding. Raising the floor leans against a boom; cutting it frees credit now and leaves less room for losses.',
+    note: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
     group: 'CENTRAL BANK',
   },
   immigrationLimit: {
     label: 'IMMIGRATION CEILING',
-    note: 'Maximum annual arrivals as a share of the resident population. It limits immigration, never emigration.',
+    note: 'The most people the country will admit each year, as a share of the population. It limits arrivals, never departures.',
     group: 'MIGRATION',
   },
 }
 
-/** Insertion order of the face record — which is the order the cabinet's
- * scalar-dial desks read in. */
+/** Insertion order of the face record — which is the order the cabinet desks
+ * read in. */
 const SCALAR_DIAL_IDS = Object.keys(SCALAR_DIAL_FACE) as ScalarDialId[]
 
 export const RULE_MODE_LABEL: Record<SpendingRuleMode, string> = {

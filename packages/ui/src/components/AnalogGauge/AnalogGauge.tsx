@@ -23,6 +23,7 @@ import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
 import { complementReading, NAMES, readingDigits } from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { WallTile } from '../WallTile/WallTile'
+import { Tooltip, TooltipLabel } from '../ui'
 
 // gauge geometry: 200×118 viewBox, arc centered at (100,100) r=78
 const CX = 100
@@ -82,18 +83,18 @@ export function AnalogGauge({
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
 
   const header = (
-    <div
-      className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink"
-      title={NAMES[indicator].note}
-    >
-      <span className="truncate">{NAMES[indicator].dossier}</span>
+    <div className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
+      <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate">
+        {NAMES[indicator].dossier}
+      </TooltipLabel>
       {latest.levels && (
-        <span
+        <TooltipLabel
+          label="Real and nominal output"
+          content="R removes price rises; N uses current prices. Both are the office’s estimate of total output."
           className="shrink-0 font-mono text-[9px] tracking-normal tabular-nums text-dossier-ink/60"
-          title="The office's estimate of the GDP level behind that growth figure: real (base-year prices) and nominal (current prices)."
         >
           R{latest.levels.real.toFixed(0)}·N{latest.levels.nominal.toFixed(0)}
-        </span>
+        </TooltipLabel>
       )}
       {!latest.levels && complement && (
         <span className="shrink-0 font-mono text-[9px] tracking-normal tabular-nums text-dossier-ink/60">
@@ -105,25 +106,24 @@ export function AnalogGauge({
 
   const footer = (
     <div>
-      <div
-        className="flex items-baseline justify-between gap-2 border-t border-dossier-ink/20 px-3 py-1"
-        title="The latest published figure, its confessed error band, the change since the previous print, and how stale it already was when it reached your desk."
-      >
-        <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className="font-mono text-lg font-medium leading-tight tabular-nums text-dossier-ink">
-            {latest.value.toFixed(digits)}
-          </span>
-          {band > 0 && (
-            <span className="font-mono text-[10px] tabular-nums text-dossier-ink/55">
-              ±{band.toFixed(digits)}
+      <Tooltip content="Latest reading; ± is the office’s uncertainty, the arrow is the change, and Q LATE says how old the figure was when published.">
+        <div tabIndex={0} className="flex items-baseline justify-between gap-2 border-t border-dossier-ink/20 px-3 py-1 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass">
+          <span className="flex min-w-0 items-baseline gap-1.5">
+            <span className="font-mono text-lg font-medium leading-tight tabular-nums text-dossier-ink">
+              {latest.value.toFixed(digits)}
             </span>
-          )}
-          <DeltaChip delta={quarterDelta(points)} digits={digits} />
-        </span>
-        <span className="shrink truncate font-mono text-[9px] tracking-[0.1em] text-dossier-ink/55">
-          {qtrLabel(latest.forQtr).slice(2)} · {latest.lag}Q LATE
-        </span>
-      </div>
+            {band > 0 && (
+              <span className="font-mono text-[10px] tabular-nums text-dossier-ink/55">
+                ±{band.toFixed(digits)}
+              </span>
+            )}
+            <DeltaChip delta={quarterDelta(points)} digits={digits} />
+          </span>
+          <span className="shrink truncate font-mono text-[9px] tracking-[0.1em] text-dossier-ink/55">
+            {qtrLabel(latest.forQtr).slice(2)} · {latest.lag}Q LATE
+          </span>
+        </div>
+      </Tooltip>
       <div className="flex justify-between gap-1 overflow-hidden border-t border-dossier-ink/20 px-3 py-0.5">
         {points.slice(-4, -1).map((p) => (
           <span key={p.forQtr} className="truncate font-mono text-[9px] tabular-nums text-dossier-ink/60">
@@ -237,7 +237,7 @@ export function AnalogGauge({
         {stamped && (
           <div
             className="absolute right-2 top-1 -rotate-12 border-2 border-dossier-warn px-1.5 py-0.5 text-center font-mono text-[9px] font-medium leading-tight tracking-[0.2em] text-dossier-warn"
-            title={`The office has revised ${qtrLabel(stamped.forQtr)} by ${stamped.revisionDelta.toFixed(1)} since it first printed ${stamped.firstPrint.toFixed(1)}. You may have acted on the old number.`}
+            aria-label={`The office revised ${qtrLabel(stamped.forQtr)} by ${stamped.revisionDelta.toFixed(1)} since first publication.`}
           >
             REVISED
             <span className="block tracking-normal tabular-nums">

@@ -23,4 +23,11 @@ describe('SliderField', () => {
     expect(html).toContain('aria-label="Decrease Tariff"')
     expect(html).toContain('aria-label="Increase Tariff"')
   })
+
+  it('keeps the field label and adds a keyboard help trigger', () => {
+    const html = renderToStaticMarkup(<SliderField label="Income tax" hint="A tax on workers’ pay." displayValue="25%" readOnly />)
+    expect(html).toContain('for="field-income-tax"')
+    expect(html).toContain('aria-label="Explain Income tax"')
+    expect(html).not.toContain('title=')
+  })
 })

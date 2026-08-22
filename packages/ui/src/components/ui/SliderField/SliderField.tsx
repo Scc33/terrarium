@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
+import { TooltipLabel } from '../Tooltip/Tooltip'
 
 export interface SliderFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: string
@@ -36,7 +37,18 @@ export function SliderField({
   return (
     <div className={`border-l-2 px-2 py-2 transition-colors ${dirty ? 'border-dossier-brass bg-dossier-paper/[0.08]' : 'border-dossier-paper/10 bg-[#22382d]/20'} ${className}`}>
       <div className="mb-1 flex items-center justify-between gap-2">
-        <label htmlFor={inputId} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper capitalize" title={hint}>{label}</label>
+        <div className="flex min-w-0 items-center gap-1">
+          <label htmlFor={inputId} className="truncate font-mono text-[11px] font-medium tracking-wide text-dossier-paper capitalize">{label}</label>
+          {hint && (
+            <TooltipLabel
+              label={label}
+              content={hint}
+              className="shrink-0 font-mono text-[9px] leading-none text-dossier-paper/55"
+            >
+              ?
+            </TooltipLabel>
+          )}
+        </div>
         {dirty && (
           <span className="font-mono text-[9px] font-medium tracking-[0.12em] text-dossier-brass">
             DRAFTED{politicalCost !== undefined ? ` · ${politicalCost.toFixed(1)} PC` : ''}

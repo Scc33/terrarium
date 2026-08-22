@@ -12,26 +12,69 @@
  * side by side and are never netted.
  */
 
+import {
+  LEGITIMACY_GRADE_ELECTIONS,
+  POSITION_GRADE_CUTS,
+  PROSPERITY_GRADE_CUTS,
+} from '@terrarium/engine'
 import type { Grade, PublishedState, ReportCard } from '@terrarium/observation'
-import { Modal, Panel } from '../components/ui'
+import { Modal, Panel, Tooltip } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
+/**
+ * The scale each letter was read off, built FROM the engine's own cutoffs.
+ *
+ * A stamped B explains nothing on its own — B against what? — and the numbers
+ * that answer it are calibrated constants that move when the economy is
+ * retuned. Spelling them into the copy by hand would produce a tooltip that is
+ * confidently wrong the first time somebody adjusts a cut, and nothing would
+ * fail. So the bands are rendered from the arrays the grader itself reads, and
+ * the trailing F is stated by the tables' own convention: below every cut.
+ */
+const band = <T extends { atLeast: number; grade: string }>(
+  cuts: readonly T[],
+  fmt: (v: number) => string,
+) => `${cuts.map((c) => `${c.grade} at ${fmt(c.atLeast)}`).join(', ')}, F below that.`
+
+const GRADE_SCALES: Record<string, string> = {
+  PROSPERITY: `Graded on the yearly rate of improvement in lived standards over the whole tenure: ${band(
+    PROSPERITY_GRADE_CUTS,
+    (v) => `${v.toFixed(2)}%/yr`,
+  )} C is the passive band — roughly what the country would have managed with nobody at the desk.`,
+  LEGITIMACY: `Reach 2050 still governing and the verdict is A. Fall, and it is how many mandates the electorate actually gave you: ${band(
+    LEGITIMACY_GRADE_ELECTIONS,
+    (v) => `${v} won`,
+  )} Elections taken rather than won cannot buy this grade — they cap it instead.`,
+  POSITION: `Graded on the share of the tenure spent inside the corridor: ${band(
+    POSITION_GRADE_CUTS,
+    (v) => `${Math.round(v * 100)}%`,
+  )} It grades the path, not where the dot finished.`,
+}
+
 /** The letter, rubber-stamped: the one thing on the card a minister's eye
  * finds first. Failing marks in oxblood; honors in the ministry's green. */
-function GradeStamp({ grade }: { grade: Grade }) {
+function GradeStamp({ grade, scale }: { grade: Grade; scale?: string }) {
   const tone =
     grade === 'F' || grade === 'D'
       ? 'border-dossier-warn text-dossier-warn'
       : grade === 'C'
         ? 'border-dossier-ink/70 text-dossier-ink/80'
         : 'border-dossier-felt text-dossier-felt'
-  return (
+  const stamp = (
     <span
       className={`inline-flex h-11 w-11 shrink-0 rotate-6 items-center justify-center border-2 font-dossier text-3xl font-bold ${tone}`}
     >
       {grade}
     </span>
+  )
+  if (!scale) return stamp
+  return (
+    <Tooltip content={scale} openOnClick>
+      <button type="button" aria-label={`Explain the ${grade} grade`} className="shrink-0 cursor-help">
+        {stamp}
+      </button>
+    </Tooltip>
   )
 }
 
@@ -45,7 +88,7 @@ function Axis({ name, grade, children }: { name: string; grade: Grade; children:
           </div>
           {children}
         </div>
-        <GradeStamp grade={grade} />
+        <GradeStamp grade={grade} scale={GRADE_SCALES[name]} />
       </div>
     </Panel>
   )
