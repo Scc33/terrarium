@@ -25,18 +25,21 @@ function settledAt(pts: { forQtr: number; value: number; revision: number }[], q
 }
 
 describe('vital registration is a fundable instrument (§8)', () => {
-  it('no birth/death series until civil registration is funded', () => {
+  it('no birth/death/migration series until civil registration is funded', () => {
     const poor = observe(play('vr-1', 16, 0.15)).indicators
     expect(poor.birth_rate).toBeUndefined()
     expect(poor.death_rate).toBeUndefined()
+    expect(poor.net_migration).toBeUndefined()
     const funded = observe(play('vr-1', 16, 0.4)).indicators
     expect(funded.birth_rate).toBeDefined()
     expect(funded.death_rate).toBeDefined()
+    expect(funded.net_migration).toBeDefined()
     // a registrar reads in sane per-1000 territory
     for (const p of [...funded.birth_rate!.points, ...funded.death_rate!.points]) {
       expect(p.value).toBeGreaterThan(2)
       expect(p.value).toBeLessThan(60)
     }
+    for (const p of funded.net_migration!.points) expect(Number.isFinite(p.value)).toBe(true)
   })
 
   it('the published register tracks the true transition: births fall, deaths fall, and births lead', () => {

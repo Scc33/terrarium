@@ -19,6 +19,7 @@ import {
   enfranchisementIndex,
   franchiseOf,
   inCorridor,
+  IMMIGRATION_LIMIT_MAX,
   init,
   REFORM_WINDOW_AT,
   reformWindowOpen,
@@ -305,6 +306,54 @@ describe('the veto players gate the levers (§4.3)', () => {
     expect(after.institutions.blocs.industrialists.favor).toBeLessThan(
       rich.institutions.blocs.industrialists.favor,
     )
+  })
+
+  it('an open immigration ceiling pleases employers and costs union goodwill', () => {
+    const rich = { ...s0, politics: { ...s0.politics, politicalCapital: 1e9 } }
+    const after = applyAction(rich, {
+      kind: 'setDial',
+      path: 'immigrationLimit',
+      value: IMMIGRATION_LIMIT_MAX,
+    })
+    expect(after.institutions.blocs.industrialists.favor).toBeGreaterThan(
+      rich.institutions.blocs.industrialists.favor,
+    )
+    expect(after.institutions.blocs.unions.favor).toBeLessThan(
+      rich.institutions.blocs.unions.favor,
+    )
+    expect(() =>
+      applyAction(rich, {
+        kind: 'setDial',
+        path: 'immigrationLimit',
+        value: IMMIGRATION_LIMIT_MAX + 0.001,
+      }),
+    ).toThrow()
+  })
+})
+
+describe('realized immigration reaches the political machine', () => {
+  const institutionsStep = TICK_ORDER.find((x) => x.name === 'institutions')!
+
+  it('sustained high arrivals shift bloc favour and add public-order pressure', () => {
+    const base = last(century('inst-migration', { ticks: 24 }))
+    const population = base.demography.pyramid.reduce((sum, people) => sum + people, 0)
+    const withMigration = (annualRate: number): TrueState => ({
+      ...base,
+      demography: {
+        ...base.demography,
+        netMigrationQ: (annualRate * population) / 4,
+      },
+    })
+    const quiet = institutionsStep.run(withMigration(0), undefined as never)
+    const high = institutionsStep.run(withMigration(0.02), undefined as never)
+
+    expect(high.institutions.blocs.industrialists.favor).toBeGreaterThan(
+      quiet.institutions.blocs.industrialists.favor,
+    )
+    expect(high.institutions.blocs.unions.favor).toBeLessThan(
+      quiet.institutions.blocs.unions.favor,
+    )
+    expect(high.institutions.unrest).toBeGreaterThan(quiet.institutions.unrest)
   })
 })
 

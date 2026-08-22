@@ -56,6 +56,7 @@ import {
 import {
   BASE_WORKER_SHARE,
   EDUCATION_1946,
+  IMMIGRATION_LIMIT_DEFAULT,
   FERT_MAX,
   FDI_OPENING_OWNERSHIP_BASE,
   TECH_ATTAINED_BASE,
@@ -120,6 +121,7 @@ function initialDemography(params: CountryParams): DemographyState {
     tfr: FERT_MAX,
     mortalityIndex: 1,
     netMigrationQ: 0,
+    migrationBaselineWelfare: null,
     crudeBirthRate,
     crudeDeathRate,
     workerShareMult: nonRetired > 1e-9 ? workingAge / nonRetired / BASE_WORKER_SHARE : 1,
@@ -372,6 +374,7 @@ export function init(
       dials: {
         taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
         spending: spendingDials,
+        immigrationLimit: IMMIGRATION_LIMIT_DEFAULT,
         policyRate: 0.04,
         assetPurchaseRate: ASSET_PURCHASE_RATE_DEFAULT,
         capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,

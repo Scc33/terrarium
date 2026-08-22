@@ -182,6 +182,9 @@ export const INDICATOR_IDS = [
   'approval',
   'gini',
   'income_real',
+  /** registered net migration, annualized per 1,000 residents. Positive is
+   * immigration; negative is emigration. */
+  'net_migration',
   'birth_rate',
   'death_rate',
   'terms_of_trade',
@@ -261,6 +264,10 @@ export interface DemographyState {
   mortalityIndex: number
   /** net migration this quarter, millions (+ = immigration) */
   netMigrationQ: number
+  /** mean log consumption inherited in 1946. Migration keeps this country
+   * baseline even when the player's report-card baseline opens at a later
+   * appointment (ADR-0021, ADR-0022). */
+  migrationBaselineWelfare: number | null
   /** crude birth/death rates this quarter, annualized per 1000 — engine
    * truth; only PUBLISHED once civil registration is funded (§8 fog) */
   crudeBirthRate: number
@@ -327,6 +334,9 @@ export interface MarketState {
 export interface DialState {
   taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
+  /** maximum annual immigration as a share of the resident population. This
+   * clips arrivals only: a government cannot keep people in by closing it. */
+  immigrationLimit: Ratio
   policyRate: number // annualized
   /** annualized central-bank asset purchases, as a share of annual GDP */
   assetPurchaseRate: Ratio
@@ -625,6 +635,8 @@ export interface StatRecord {
   /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
   birthRate: number
   deathRate: number
+  /** registered net migration, annualized per 1,000 residents */
+  netMigrationRate: number
   /** the exact head count and age pyramid this quarter — census-grade, no
    * fog: you can always count people, even when you can't survey them */
   population: number
@@ -766,7 +778,7 @@ export interface TrueState {
     /** Σ β^t · (population-weighted mean log real consumption per capita) */
     discountedWelfare: number
     discountWeight: number // Σ β^t, for normalizing to an average
-    /** quarter-zero welfare (mean log), the "vs 1946" yardstick */
+    /** welfare inherited at the appointment (mean log), the report-card yardstick */
     baselineWelfare: number | null
     /** §3.3 Position: quarters of your tenure spent inside the corridor, and
      * the tenure they are counted against. Accumulated as the run happens for
@@ -779,7 +791,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 28 // v28: the year you take office became a replay input
+export const SCHEMA_VERSION = 29 // v29: performance-relative migration + immigration policy
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

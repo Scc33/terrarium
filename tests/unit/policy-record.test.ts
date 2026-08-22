@@ -55,6 +55,7 @@ describe('the policy record', () => {
     // the quarter just played, not the one about to be
     expect(last.tick).toBe(pub.tick - 1)
     expect(last.taxRates).toEqual(pub.dials.taxRates)
+    expect(last.immigrationLimit).toBe(pub.dials.immigrationLimit)
     expect(last.policyRate).toBe(pub.dials.policyRate)
   })
 

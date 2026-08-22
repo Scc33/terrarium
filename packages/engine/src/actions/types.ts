@@ -19,6 +19,7 @@ export type DialPath =
   | 'spending.procurement'
   | 'spending.investment'
   | 'spending.research'
+  | 'immigrationLimit'
   | 'policyRate'
   | 'assetPurchaseRate'
   | 'capitalRequirement'

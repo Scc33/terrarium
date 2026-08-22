@@ -2,6 +2,7 @@ export const CABINET_GROUPS = [
   'TAXATION',
   'SPENDING',
   'MONEY',
+  'MIGRATION',
   'SUBSIDIES',
   'STATE CAPACITY',
   // Layer 3 (§4.3) and the veto players who price it. These sit last because
@@ -27,6 +28,7 @@ const TAB_IDS: Record<CabinetGroup, string> = {
   TAXATION: 'cabinet-tab-taxation',
   SPENDING: 'cabinet-tab-spending',
   MONEY: 'cabinet-tab-money',
+  MIGRATION: 'cabinet-tab-migration',
   SUBSIDIES: 'cabinet-tab-subsidies',
   'STATE CAPACITY': 'cabinet-tab-state-capacity',
   INSTITUTIONS: 'cabinet-tab-institutions',

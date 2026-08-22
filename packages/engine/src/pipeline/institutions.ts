@@ -42,6 +42,10 @@ import {
   IND_POWER_GAIN,
   INSTITUTION_EROSION_Q,
   LAND_POWER_GAIN,
+  MIG_INDUSTRIAL_FAVOR_GAIN,
+  MIG_LAND_FAVOR_GAIN,
+  MIG_UNION_FAVOR_LOSS,
+  MIG_UNREST_FREE_RATE,
   NATURAL_REAL_RATE,
   NATURAL_UNEMPLOYMENT,
   REFORM_WINDOW_AT,
@@ -68,6 +72,7 @@ import {
   UNREST_DISCONTENT,
   UNREST_VOICELESS,
   UNREST_INEQ,
+  UNREST_IMMIGRATION,
   UNREST_REPRESSION,
 } from '../constants'
 import { clamp } from '../math'
@@ -141,6 +146,14 @@ function blocPower(state: TrueState): Record<BlocId, number> {
   }
 }
 
+/** Annual inward flow as a share of residents. Emigration is economically
+ * painful but is not high-arrival pressure, so the political terms below
+ * deliberately ignore negative flows. */
+function inwardMigrationRate(state: TrueState): number {
+  const population = state.demography.pyramid.reduce((sum, people) => sum + people, 0)
+  return population > 1e-9 ? Math.max(0, (4 * state.demography.netMigrationQ) / population) : 0
+}
+
 /**
  * What each bloc makes of the government's current programme, −1..1.
  *
@@ -159,6 +172,7 @@ function favorTargets(state: TrueState): Record<BlocId, number> {
   const realRate = dials.policyRate - state.ledger.inflationExpectations
   const annualInflation = state.flows.inflationQ * 4
   const printedShare = state.flows.printedThisQtr / gdp
+  const immigration = inwardMigrationRate(state)
 
   // every sum is recentred by BLOC_FAVOR_BASE so the 1946 settlement reads as
   // indifference — see the constant's note
@@ -171,6 +185,7 @@ function favorTargets(state: TrueState): Record<BlocId, number> {
         0.8 * dials.taxRates.corporate -
         1.0 * inst.labor_rights -
         0.8 * inst.suffrage +
+        MIG_LAND_FAVOR_GAIN * immigration +
         0.5 * inst.repression,
       -1,
       1,
@@ -183,6 +198,7 @@ function favorTargets(state: TrueState): Record<BlocId, number> {
         2.0 * Math.max(0, realRate - NATURAL_REAL_RATE) -
         1.0 * inst.labor_rights -
         0.8 * dials.taxRates.fuel +
+        MIG_INDUSTRIAL_FAVOR_GAIN * immigration +
         0.3 * inst.courts,
       -1,
       1,
@@ -206,7 +222,8 @@ function favorTargets(state: TrueState): Record<BlocId, number> {
         2.0 * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) -
         1.0 * dials.taxRates.fuel -
         1.5 * inst.repression -
-        0.8 * Math.max(0, annualInflation - 0.05),
+        0.8 * Math.max(0, annualInflation - 0.05) -
+        MIG_UNION_FAVOR_LOSS * immigration,
       -1,
       1,
     ),
@@ -234,13 +251,15 @@ function unrestTarget(state: TrueState, gini: number): number {
   const strain = corridorStrain(state)
   const crisis = state.finance.crisisQtrsLeft > 0 ? state.finance.crisisSeverity : 0
   const { discontent, voiceless } = discontentIndex(state)
+  const immigration = inwardMigrationRate(state)
   // what the country has to be angry about
   const grievance =
     UNREST_BASE +
     UNREST_DISCONTENT * discontent +
     UNREST_VOICELESS * voiceless +
     UNREST_INEQ * Math.max(0, gini - UNREST_GINI_NEUTRAL) +
-    UNREST_CRISIS * crisis
+    UNREST_CRISIS * crisis +
+    UNREST_IMMIGRATION * Math.max(0, immigration - MIG_UNREST_FREE_RATE)
   // The boot holds the lid down — it does not empty the pot. Repression damps
   // the EXPRESSION of grievance and can never remove all of it, so a despotism
   // with a genuinely miserable population still boils. Subtracting repression

@@ -7,7 +7,17 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { AGE_BANDS, init, RETIREMENT_BAND, step, type TrueState } from '@terrarium/engine'
+import {
+  AGE_BANDS,
+  IMMIGRATION_LIMIT_MAX,
+  init,
+  migrationFlow,
+  NATURAL_UNEMPLOYMENT,
+  RETIREMENT_BAND,
+  step,
+  WORKING_BANDS,
+  type TrueState,
+} from '@terrarium/engine'
 import { standardCountry } from '@terrarium/fixtures'
 
 function century(seed: string, ticks = 416): TrueState[] {
@@ -77,5 +87,104 @@ describe('the demographic transition (§8)', () => {
       b = step(b)
     }
     expect(b.demography.tfr).toBeLessThan(a.demography.tfr)
+  })
+
+  it('relative performance reverses migration around the outside option', () => {
+    let base = init(standardCountry, 'migration-performance')
+    // Establish the inherited welfare anchor. The paired states then have the
+    // same labor market and differ only in lived performance against it.
+    for (let t = 0; t < 8; t++) base = step(base)
+    const withConsumption = (multiplier: number): TrueState => ({
+      ...base,
+      flows: {
+        ...base.flows,
+        unemployment: NATURAL_UNEMPLOYMENT,
+        cohortSpend: Object.fromEntries(
+          Object.entries(base.flows.cohortSpend).map(([id, value]) => [id, value * multiplier]),
+        ) as TrueState['flows']['cohortSpend'],
+      },
+    })
+
+    const lagging = migrationFlow(withConsumption(0.6))
+    const leading = migrationFlow(withConsumption(1.8))
+    expect(lagging.performanceGap).toBeLessThan(0)
+    expect(lagging.netQ).toBeLessThan(0)
+    expect(leading.performanceGap).toBeGreaterThan(0)
+    expect(leading.netQ).toBeGreaterThan(0)
+  })
+
+  it('the immigration ceiling clips arrivals but cannot prevent emigration', () => {
+    let base = init(standardCountry, 'migration-policy')
+    for (let t = 0; t < 8; t++) base = step(base)
+    const withPolicy = (
+      immigrationLimit: number,
+      unemployment: number,
+      consumptionMultiplier: number,
+    ): TrueState => ({
+      ...base,
+      gov: { ...base.gov, dials: { ...base.gov.dials, immigrationLimit } },
+      flows: {
+        ...base.flows,
+        unemployment,
+        cohortSpend: Object.fromEntries(
+          Object.entries(base.flows.cohortSpend).map(([id, value]) => [
+            id,
+            value * consumptionMultiplier,
+          ]),
+        ) as TrueState['flows']['cohortSpend'],
+      },
+    })
+
+    const openBoom = migrationFlow(withPolicy(IMMIGRATION_LIMIT_MAX, 0, 2))
+    const closedBoom = migrationFlow(withPolicy(0, 0, 2))
+    expect(openBoom.desiredQ).toBeGreaterThan(0)
+    expect(openBoom.netQ).toBeGreaterThan(0)
+    expect(closedBoom.netQ).toBe(0)
+
+    // At the mathematical best case the advertised 2% ceiling is exactly
+    // reachable: every resident is working age, unemployment is zero, and
+    // domestic performance is at the capped lead over the outside option.
+    const allWorking = Array(AGE_BANDS).fill(0)
+    allWorking[WORKING_BANDS[0]] = pop(base)
+    const bestCase: TrueState = {
+      ...withPolicy(IMMIGRATION_LIMIT_MAX, 0, 2),
+      demography: {
+        ...base.demography,
+        pyramid: allWorking,
+        migrationBaselineWelfare: -10,
+      },
+      tech: { ...base.tech, frontier: 1 },
+    }
+    const fullRange = migrationFlow(bestCase)
+    expect(fullRange.performanceGap).toBe(1)
+    expect(fullRange.desiredQ).toBeCloseTo(fullRange.immigrationCapQ, 12)
+    expect(fullRange.netQ).toBeCloseTo(fullRange.immigrationCapQ, 12)
+
+    const openSlump = migrationFlow(withPolicy(IMMIGRATION_LIMIT_MAX, 0.35, 0.5))
+    const closedSlump = migrationFlow(withPolicy(0, 0.35, 0.5))
+    expect(openSlump.desiredQ).toBeLessThan(0)
+    expect(closedSlump.netQ).toBeCloseTo(openSlump.netQ, 12)
+  })
+
+  it('records only migration that can be allocated to the age pyramid', () => {
+    const pyramid = [...standardCountry.pyramid!]
+    let displaced = 0
+    for (let i = WORKING_BANDS[0]; i <= WORKING_BANDS[1]; i++) {
+      displaced += pyramid[i]
+      pyramid[i] = 0
+    }
+    pyramid[WORKING_BANDS[0] - 1] += displaced
+    const custom = { ...standardCountry, pyramid }
+    const base = init(custom, 'migration-empty-young-adults')
+    const attractive: TrueState = {
+      ...base,
+      demography: { ...base.demography, migrationBaselineWelfare: -10 },
+      flows: { ...base.flows, unemployment: 0 },
+      tech: { ...base.tech, frontier: 1 },
+    }
+
+    expect(migrationFlow(attractive).netQ).toBeGreaterThan(0)
+    const after = step(attractive)
+    expect(after.demography.netMigrationQ).toBe(0)
   })
 })

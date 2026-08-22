@@ -70,48 +70,51 @@ loop, and its orders are written into the save's action log, so a later posting 
 replayable save. The caretaker holds the opening appropriations at their share of the economy
 and builds the four state capacities; it touches no other lever.
 
-What that produces is measured, not authored. Median over 48 seeds per cell, schema 28,
+What that produces is measured, not authored. Median over 48 seeds per cell, schema 29,
 2026-08-21 — re-measure with `pnpm inheritance` rather than trusting this, exactly as with the
 matrices above.
 
 | appointment | country | GDP × | GDP/head × | pop × | statistical | reporting | unemployment | debt/GDP |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| 1973 | Meridia | 3.19 | 2.14 | 1.49 | 0.48 | 27/29 | 14.1 % | 0 % |
-| 1973 | Costona | 2.34 | 1.35 | 1.73 | 0.42 | 21/29 | 17.0 % | 0 % |
-| 1973 | Veltravia | 2.77 | 2.81 | 0.99 | 0.65 | 29/29 | 7.0 % | 40 % |
-| 1973 | Oranga | 3.42 | 3.08 | 1.11 | 0.70 | 29/29 | 7.1 % | 40 % |
-| 1973 | Kestrel | 3.30 | 2.18 | 1.52 | 0.47 | 27/29 | 13.2 % | 24 % |
-| 1995 | Meridia | 7.88 | 4.94 | 1.60 | 0.65 | 29/29 | 8.2 % | 0 % |
-| 1995 | Costona | 7.06 | 2.90 | 2.44 | 0.61 | 29/29 | 15.8 % | 0 % |
-| 1995 | Veltravia | 5.04 | 5.30 | 0.95 | 0.77 | 29/29 | 3.4 % | 0 % |
-| 1995 | Oranga | 6.61 | 5.95 | 1.11 | 0.80 | 29/29 | 3.7 % | 0 % |
-| 1995 | Kestrel | 9.12 | 5.39 | 1.70 | 0.64 | 29/29 | 8.1 % | 0 % |
-| 2005 | Meridia | 10.39 | 6.51 | 1.60 | 0.70 | 29/29 | 5.1 % | 0 % |
-| 2005 | Costona | 11.42 | 4.38 | 2.61 | 0.67 | 29/29 | 13.7 % | 0 % |
-| 2005 | Veltravia | 6.03 | 6.56 | 0.92 | 0.81 | 29/29 | 3.0 % | 0 % |
-| 2005 | Oranga | 7.99 | 7.37 | 1.09 | 0.84 | 29/29 | 3.0 % | 0 % |
-| 2005 | Kestrel | 12.65 | 7.38 | 1.71 | 0.70 | 29/29 | 4.9 % | 0 % |
+| 1973 | Meridia | 3.26 | 2.13 | 1.53 | 0.48 | 28/30 | 15.4 % | 0 % |
+| 1973 | Costona | 2.18 | 1.38 | 1.58 | 0.42 | 22/30 | 16.2 % | 0 % |
+| 1973 | Veltravia | 3.14 | 2.81 | 1.12 | 0.65 | 30/30 | 10.4 % | 32 % |
+| 1973 | Oranga | 3.88 | 3.08 | 1.26 | 0.70 | 30/30 | 10.6 % | 33 % |
+| 1973 | Kestrel | 3.40 | 2.15 | 1.58 | 0.47 | 28/30 | 14.8 % | 23 % |
+| 1995 | Meridia | 9.79 | 4.86 | 2.01 | 0.65 | 30/30 | 12.8 % | 0 % |
+| 1995 | Costona | 6.75 | 2.97 | 2.27 | 0.61 | 30/30 | 17.1 % | 0 % |
+| 1995 | Veltravia | 7.35 | 5.16 | 1.42 | 0.77 | 30/30 | 8.5 % | 0 % |
+| 1995 | Oranga | 9.66 | 5.77 | 1.67 | 0.80 | 30/30 | 8.4 % | 0 % |
+| 1995 | Kestrel | 11.88 | 5.32 | 2.23 | 0.64 | 30/30 | 12.8 % | 0 % |
+| 2005 | Meridia | 14.62 | 6.37 | 2.29 | 0.70 | 30/30 | 10.9 % | 0 % |
+| 2005 | Costona | 11.64 | 4.43 | 2.63 | 0.67 | 30/30 | 16.2 % | 0 % |
+| 2005 | Veltravia | 9.95 | 6.31 | 1.58 | 0.81 | 30/30 | 7.3 % | 0 % |
+| 2005 | Oranga | 13.16 | 7.05 | 1.87 | 0.84 | 30/30 | 6.8 % | 0 % |
+| 2005 | Kestrel | 18.66 | 7.22 | 2.57 | 0.70 | 30/30 | 10.4 % | 0 % |
 
 Four things to read out of it, none of them tuned for:
 
-- **1973 is the appointment with a fiscal inheritance.** Veltravia and Oranga still carry real
-  debt; everyone is debt-free by 1995, because the caretaker's tax collection outgrows even
+- **1973 is the appointment with a fiscal inheritance.** Veltravia, Oranga, and Kestrel still
+  carry real debt; everyone is debt-free by 1995, because the caretaker's tax collection outgrows even
   GDP-share appropriations (investigation 0008 explains the mechanism at greater length). If a
   later posting should hand over a balance sheet, that is a debt-model question, not an
   appointment one.
-- **The countries split on the demographic transition, and it is the income channel doing it.**
-  Veltravia and Oranga get rich, stop growing, and are *shrinking* by 2005 (pop ×0.92, ×1.09)
-  with unemployment at 3 %. Costona stays poor, stays young, and is still 2.6× its 1946
-  population with 13.7 % unemployed. That is the §8 youth-bulge bomb tracking living standards
-  exactly as designed — nothing here is scripted per country.
-- **Aggregate growth is mostly demography in the poor countries.** Costona's output is 11.4× by
-  2005 on 2.6× the people, which is 4.4× per head. Read the per-head column beside it
+- **The countries split on the demographic transition, while migration keeps the split from
+  becoming a population target.** Costona stays poor and young enough to reach 2.63× its 1946
+  population with 16.2 % unemployed. Richer Veltravia and Oranga complete more of the fertility
+  transition, but their relative performance attracts young adults, so neither now shrinks.
+  Both channels are systemic; neither country has an authored population path.
+- **Aggregate growth is partly demography and migration.** Costona's output is 11.64× by 2005
+  on 2.63× the people, which is 4.43× per head; Meridia reaches 14.62× aggregate output but
+  6.37× per head. Read the per-head column beside every aggregate
   (investigation 0007).
 - **These numbers are load-bearing evidence, not decoration.** An earlier revision of ADR-0021
   gated `livingStandard` on the scoring baseline, which left the whole interregnum at a constant
   income level: the transition never fired, births ran at 35.3 per 1000 against 26.0, and every
-  population above was up to 7 % too large. The table looked entirely plausible. `pnpm inheritance`
-  beside a same-orders 1946 replay is what caught it, and
+  population above was up to 7 % too large. The schema-29 merge found the same class of coupling
+  in reverse: migration had borrowed the appointment-based scoring baseline, so the same caretaker
+  orders produced a different pyramid. Migration now keeps its own 1946 anchor (ADR-0022).
+  `pnpm inheritance` beside a same-orders 1946 replay is what caught both errors, and
   `tests/properties/interregnum.test.ts` now pins the two against each other.
 
 ## Countries players write

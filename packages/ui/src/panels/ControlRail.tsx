@@ -10,6 +10,7 @@ import {
   CAPACITY_IDS,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  IMMIGRATION_LIMIT_MAX,
   SECTOR_IDS,
   type CapacityId,
   type DialPath,
@@ -115,6 +116,23 @@ const DIALS: DialGroup[] = [
     ],
   },
   {
+    group: 'MIGRATION',
+    tab: 'BORDERS',
+    brief: 'Set the annual ceiling on arrivals as a share of the resident population. Jobs and relative living standards decide how many people want to come or leave; this order limits immigration only.',
+    question: 'How many arrivals will the country admit?',
+    dials: [
+      {
+        path: 'immigrationLimit',
+        label: 'Immigration ceiling',
+        get: (p) => p.dials.immigrationLimit,
+        min: 0,
+        max: () => IMMIGRATION_LIMIT_MAX,
+        step: 0.001,
+        fmt: pct1,
+      },
+    ],
+  },
+  {
     group: 'SUBSIDIES',
     tab: 'INDUSTRY',
     brief: 'Direct quarterly support to particular sectors. Subsidies can relieve a bottleneck, but they are recurring claims on the budget.',
@@ -140,6 +158,7 @@ const DIAL_TIPS: Partial<Record<DialPath, string>> = {
   'spending.procurement': 'Goods and services bought by the government. It raises demand now and adds to spending.',
   'spending.investment': 'Roads, power and other useful assets. It raises demand now and productive capacity later.',
   'spending.research': 'Grants for better production methods. Schools provide researchers; a weak civil service loses part of the money.',
+  immigrationLimit: 'The most people the country will admit each year, as a share of the population. Zero closes the border to arrivals, but cannot stop residents leaving.',
   policyRate: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
   assetPurchaseRate: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
   capitalRequirement: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
@@ -207,7 +226,8 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
     def.path.startsWith('taxRates.') ||
     def.path === 'policyRate' ||
     def.path === 'assetPurchaseRate' ||
-    def.path === 'capitalRequirement'
+    def.path === 'capitalRequirement' ||
+    def.path === 'immigrationLimit'
   const deltaDigits = def.step < 0.01 ? 1 : 0
   const deltaLabel = percentagePoints
     ? `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(deltaDigits)} PT`

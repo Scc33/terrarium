@@ -260,6 +260,8 @@ export {
   urbanShare,
 } from './pipeline/derive'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
+export { migrationFlow, vitalRates } from './pipeline/demography'
+export type { MigrationFlow } from './pipeline/demography'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
@@ -272,6 +274,8 @@ export {
   ELECTION_WIN_THRESHOLD,
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,
+  IMMIGRATION_LIMIT_DEFAULT,
+  IMMIGRATION_LIMIT_MAX,
   LEGITIMACY_GRADE_ELECTIONS,
   NATURAL_UNEMPLOYMENT,
   PC_COST_CAMPAIGN,
