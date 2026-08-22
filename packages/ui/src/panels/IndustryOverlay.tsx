@@ -32,6 +32,7 @@ import {
   TooltipLabel,
 } from '../components/ui'
 import {
+  censusAvailability,
   industryGrowth,
   readIndustry,
   toShares,
@@ -71,16 +72,29 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
   const [lens, setLens] = useState<IndustryLens>('valueAdded')
   const release = readIndustry(pub)
 
+  // Three states, not two. A commissioned census with nothing published yet
+  // looks exactly like a census that does not exist, and telling a player to
+  // fund a survey they already paid for is the ADR-0020 miss — so the branch
+  // reads the rule and the capacity, never the presence of data.
   if (!release) {
+    const commissioned = censusAvailability(pub) === 'awaiting'
     return (
       <Modal title="THE INDUSTRIAL CENSUS — WHAT THE ECONOMY IS MADE OF" onClose={onClose} size="wide">
-        <EmptyState title="THE MINISTRY CANNOT TELL ITS INDUSTRIES APART" requirement="CENSUS OF INDUSTRY">
-          The country has farms, factories and workshops; nobody has been sent to count what
-          each of them made. Raise the statistics office from{' '}
-          {(100 * pub.capacity.statistical).toFixed(0)} to{' '}
-          {(100 * INDUSTRY_CENSUS_FUNDED_AT).toFixed(0)} and the enumerators go out. Until
-          then the ministry knows how much the country produced and not who produced it.
-        </EmptyState>
+        {commissioned ? (
+          <EmptyState title="THE ENUMERATORS ARE IN THE FIELD">
+            The census of industry has been commissioned and the returns are still coming in.
+            The office reports a quarter or two behind the country it is measuring; nothing
+            more needs funding for this one.
+          </EmptyState>
+        ) : (
+          <EmptyState title="THE MINISTRY CANNOT TELL ITS INDUSTRIES APART" requirement="CENSUS OF INDUSTRY">
+            The country has farms, factories and workshops; nobody has been sent to count what
+            each of them made. Raise the statistics office from{' '}
+            {(100 * pub.capacity.statistical).toFixed(0)} to{' '}
+            {(100 * INDUSTRY_CENSUS_FUNDED_AT).toFixed(0)} and the enumerators go out. Until
+            then the ministry knows how much the country produced and not who produced it.
+          </EmptyState>
+        )}
       </Modal>
     )
   }
@@ -104,7 +118,7 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
                 label={r.label.toUpperCase()}
                 value={pct(100 * r.share)}
                 detail={`${pct(100 * jobs.find((j) => j.key === r.key)!.share)} of jobs`}
-                title={`${r.note} Share of output in the ${qtrLabel(measured)} census; the office says each industry's figure may be off by ${band(release.errorBand)}.`}
+                title={`${r.note} Share of output in the ${qtrLabel(measured)} census; the office says each industry's figure may be off by ${band(release.errorBand.valueAdded)}.`}
               />
             ))}
           </div>
@@ -148,7 +162,7 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
                   content="How far the office thinks each industry's figure may be from the truth. Better statistics make this range smaller."
                   className="tracking-[0.1em] text-dossier-ink/45"
                 >
-                  {copy.unit} · {band(release.errorBand)} EACH ⓘ
+                  {copy.unit} · {band(release.errorBand[lens])} EACH ⓘ
                 </TooltipLabel>
               </div>
             </div>

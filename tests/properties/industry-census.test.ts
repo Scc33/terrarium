@@ -22,6 +22,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   INDUSTRY_CENSUS_FUNDED_AT,
+  INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   init,
   sectorValueAdded,
@@ -173,8 +174,42 @@ describe('the industrial census is a survey, not a window', () => {
     expect(rich.error).toBeLessThan(poor.error)
     // below 0.45 the office cannot even estimate its own error, and says so
     // with a zero — which the UI prints as a shrug, never as certainty
-    expect(poor.bands.every((b) => b === 0)).toBe(true)
-    expect(rich.bands.every((b) => b > 0)).toBe(true)
+    for (const table of INDUSTRY_TABLE_IDS) {
+      expect(poor.bands.every((b) => b[table] === 0)).toBe(true)
+      expect(rich.bands.every((b) => b[table] > 0)).toBe(true)
+    }
+  })
+
+  it('confesses a band per table, and each one describes its own table', () => {
+    // Heads at a factory gate can be counted; what the factory made has to be
+    // estimated. A single band would overstate the jobs survey by half at
+    // every capacity — the office confessing an error it did not make.
+    const s = play('census-bands', 40, 1)
+    const pub = observe(s)
+    expect(pub.industry.length).toBeGreaterThan(0)
+    for (const print of pub.industry) {
+      expect(print.errorBand.employment).toBeLessThan(print.errorBand.valueAdded)
+    }
+
+    // and the band is the band that table was actually noised to: measured
+    // dispersion should land inside the half-width the office quoted
+    for (const table of INDUSTRY_TABLE_IDS) {
+      const errors: number[] = []
+      for (const print of pub.industry) {
+        if (print.revision !== 0) continue
+        const truth = s.stats.record[print.forQtr].industry
+        for (const id of SECTOR_IDS) {
+          errors.push(Math.abs(print[table][id] / truth[id][table] - 1))
+        }
+      }
+      errors.sort((a, b) => a - b)
+      const p95 = errors[Math.floor(0.95 * (errors.length - 1))]
+      const quoted = pub.industry.find((p) => p.revision === 0)!.errorBand[table]
+      // a 95% half-width against the 95th percentile of |error|: the quote has
+      // to be in the same neighbourhood as the wobble, not merely non-zero
+      expect(p95).toBeLessThan(quoted * 1.5)
+      expect(p95).toBeGreaterThan(quoted * 0.3)
+    }
   })
 })
 

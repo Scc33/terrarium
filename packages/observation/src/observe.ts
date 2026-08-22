@@ -172,6 +172,7 @@ export function observe(state: TrueState): PublishedState {
     // the office's own archive.
     industry: state.stats.industry.map((print) => ({
       ...print,
+      errorBand: { ...print.errorBand },
       valueAdded: { ...print.valueAdded },
       employment: { ...print.employment },
     })),

@@ -22,7 +22,13 @@
  *    what a minister actually reads them as.
  */
 
-import { SECTOR_IDS, type PublishedState, type SectorId } from '@terrarium/observation'
+import { INDUSTRY_CENSUS_FUNDED_AT } from '@terrarium/engine'
+import {
+  SECTOR_IDS,
+  type IndustryTableId,
+  type PublishedState,
+  type SectorId,
+} from '@terrarium/observation'
 import { SHARE_INKS, type Share, type StackRow } from './shares'
 
 /** What each industry is called on paper, what ink it is drawn in, and what
@@ -62,8 +68,33 @@ export const SECTOR_FACE: Record<SectorId, { label: string; ink: string; note: s
   },
 }
 
-/** the two tables one census release carries */
-export type IndustryLens = 'valueAdded' | 'employment'
+/** The two tables one census release carries. The engine's own id, not a
+ * parallel union: the lens key indexes the table AND the band the office
+ * confessed on that table, so the page cannot show one table's figures beside
+ * the other's uncertainty. */
+export type IndustryLens = IndustryTableId
+
+/**
+ * Whether the census exists, is on its way, or has reported.
+ *
+ * Derived HERE, and derived from the RULE and the CAPACITY rather than from
+ * whether data happens to have arrived — which is the whole of ADR-0020's
+ * miss, repeated. `maturity.ts` once read the funding gate only where the
+ * series lands, so for the first quarters of a `fullInstrumentation` run it
+ * called 29 instruments UNFITTED and told the player to fund surveys they
+ * already had. The census has exactly the same two-quarter hole: the office
+ * reports a quarter or two behind, so "nothing published yet" is true of a
+ * commissioned survey and of a survey that does not exist, and only one of
+ * them is asking the player to spend anything.
+ */
+export type CensusAvailability = 'unfunded' | 'awaiting' | 'reporting'
+
+export function censusAvailability(pub: PublishedState): CensusAvailability {
+  if (pub.industry.length > 0) return 'reporting'
+  return pub.rules.fullInstrumentation || pub.capacity.statistical >= INDUSTRY_CENSUS_FUNDED_AT
+    ? 'awaiting'
+    : 'unfunded'
+}
 
 export interface IndustryReading {
   key: SectorId
@@ -99,9 +130,12 @@ export interface IndustryRelease {
   /** how many quarters ago that was, from the caller's `pub.tick` */
   lag: number
   revision: number
-  /** the office's own half-width, as a fraction of each figure; 0 = it cannot
-   * even estimate its error, which is a shrug and must never print as ±0.0 */
-  errorBand: number
+  /** The office's own half-width per table, as a fraction of each figure;
+   * 0 = it cannot even estimate its error, which is a shrug and must never
+   * print as ±0.0. Keyed by lens so the band shown is always the band that
+   * table was measured to — heads are counted better than output is
+   * estimated, and one band for both overstates the jobs survey by half. */
+  errorBand: Record<IndustryLens, number>
   valueAdded: IndustryReading[]
   employment: IndustryReading[]
   /** the census's own totals — real output at base prices, and millions of
@@ -159,7 +193,7 @@ export function readIndustry(pub: PublishedState): IndustryRelease | null {
     forQtr: latest.forQtr,
     lag: pub.tick - latest.forQtr,
     revision: latest.revision,
-    errorBand: latest.errorBand,
+    errorBand: { ...latest.errorBand },
     valueAdded: read('valueAdded'),
     employment: read('employment'),
     totals,

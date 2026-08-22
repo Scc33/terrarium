@@ -7,11 +7,13 @@ export {
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
   SECTOR_IDS,
+  INDUSTRY_TABLE_IDS,
   type IndicatorId,
   type IndicatorPoint,
   type IndicatorSeries,
   // the production side, by industry — a fogged vector release, not a dial
   type IndustryPoint,
+  type IndustryTableId,
   type SectorId,
   type Grade,
   type NewsItem,

@@ -233,7 +233,11 @@ of headroom, and a sector share has no honest fixed dial face (ADR-0006) when th
 opens countries anywhere between 5% and 60% agricultural. It reuses `lagFor` / `noiseScale` /
 `REVISION_DELAYS` in `statistics.ts` rather than owning a second measurement model — same
 office, same fog — and each sector is drawn INDEPENDENTLY, so the published parts do not sum
-to the published GDP. The worksheet behind them does: `sectorValueAdded` is
+to the published GDP. It carries ONE BAND PER TABLE (`errorBand` is a `Record` over
+`INDUSTRY_TABLE_IDS`), read from the same constant that draws the noise: heads are counted
+better than output is estimated, and a single band would have the office confessing an error
+the jobs survey never made. The overlay indexes the table and its band with the same lens key,
+so it cannot show one table's figures beside the other's uncertainty. The worksheet behind them does: `sectorValueAdded` is
 `output × (1 − Σᵢ coeff[i][j])`, the same arithmetic `production` sums for the headline, at
 BASE prices so a commodity boom cannot make an industry look larger. Reach for this shape when
 the thing you want to publish is a composition rather than a number.

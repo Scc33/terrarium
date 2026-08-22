@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 30. Companion to the design doc
+*How the code is actually arranged, as of schema 31. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -172,7 +172,7 @@ interface TrueState {
   external: ExternalState      // partners, prices, reserves, FX, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
-  stats: StatsOffice           // prints, revision history — the fog's own state
+  stats: StatsOffice           // prints, revision history, industrial census — the fog's own state
   score: { discountedWelfare; discountWeight }   // §3.3, accumulated as the run happens
 }
 ```
@@ -181,8 +181,8 @@ Id lists in `schema.ts` are the single source of truth and are exported as `cons
 downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
 
 `SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
-`INDICATOR_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` · `SPENDING_PROGRAM_IDS` · `AGE_BANDS` ·
-`PARTNER_IDS`
+`INDICATOR_IDS` · `INDUSTRY_TABLE_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` ·
+`SPENDING_PROGRAM_IDS` · `AGE_BANDS` · `PARTNER_IDS`
 
 **Schema rules:**
 
@@ -202,6 +202,8 @@ interface PublishedState {
   rules: GameRules            // exact immutable safeties chosen at the posting
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear,
                                    // unless rules.fullInstrumentation fits them all
+  industry: IndustryPoint[]        // the industrial census: value added and employment by
+                                   // sector, fogged. A VECTOR release, not an indicator (§3.2)
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
   policy: PolicyPoint[]            // …and what they were every quarter before now
@@ -214,6 +216,28 @@ interface PublishedState {
 
 A point in an `IndicatorSeries` is a `StatPrint` — the figure *exactly as released*, carrying
 `forQtr`, `publishedAt`, `value`, `revision`, and the error band the office confessed.
+
+### 3.2 Not every fogged output is an indicator
+
+`industry` is the exception, and the shape is reusable. The industrial census publishes a
+**vector** — two tables (`INDUSTRY_TABLE_IDS`: `valueAdded`, `employment`) over `SECTOR_IDS` —
+on the office's ordinary clock: the same funding gate (`INDUSTRY_CENSUS_FUNDED_AT`), the same
+capacity-dependent lag, the same three revisions, the same `noiseScale`. What it does not have
+is a dial face, because it could not have an honest one: five sectors × two tables is ten
+instruments against the wall's remaining headroom, and a fixed face (ADR-0006) cannot serve
+countries that open anywhere between 5% and 60% agricultural.
+
+Two properties follow and both are load-bearing:
+
+- **Each figure is drawn independently**, with noise *relative* to it, so the published parts do
+  not sum to the published GDP — the same §6.1 confession the expenditure accounts make. The
+  worksheet behind them does sum exactly: `sectorValueAdded` is `output × (1 − Σᵢ coeff[i][j])`,
+  the arithmetic `production` already runs for the headline, at **base** prices.
+- **One band per table**, because the two are surveyed to different accuracy. `errorBand` is a
+  `Record<IndustryTableId, number>` read from the same constant that draws the noise, in the same
+  loop iteration, so the quote and the wobble cannot become two accounts of the same survey.
+
+Reach for this shape when what you want to publish is a *composition* rather than a number.
 
 ---
 

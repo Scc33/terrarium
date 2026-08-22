@@ -30,6 +30,7 @@ import type {
 
 export {
   INDICATOR_IDS,
+  INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
@@ -43,6 +44,7 @@ export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId }
+export type { IndustryTableId } from '@terrarium/engine'
 
 /** One quarter of the government's own record of itself. */
 export type PolicyPoint = PolicyRecord & { tick: Qtr }

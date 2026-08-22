@@ -16,10 +16,12 @@ import {
   INDUSTRY_VALUE_ADDED_SD,
 } from '../constants'
 import {
+  INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
   type IndicatorId,
   type IndustryPrint,
+  type IndustryTableId,
   type NewsItem,
   type PolicyRecord,
   type SectorId,
@@ -460,6 +462,17 @@ function printsDue(
   return out
 }
 
+/** The noise on each of the census's two tables, as a fraction of the figure
+ * at zero capacity. A total `Record` over the table ids, and the ONLY place
+ * either number is read: the wobble the office applies and the band it
+ * confesses come from this one entry, in the same loop iteration, so they
+ * cannot drift into two different accounts of how well it measured. (The same
+ * rule `politicalCostOfAction` keeps for a quote and its charge.) */
+const INDUSTRY_SD: Record<IndustryTableId, number> = {
+  valueAdded: INDUSTRY_VALUE_ADDED_SD,
+  employment: INDUSTRY_EMPLOYMENT_SD,
+}
+
 /**
  * The industrial census's releases dated `publishedAt` — the same clock,
  * funding gate, lag and revision schedule the indicators run on, applied to a
@@ -494,34 +507,30 @@ function industryPrintsDue(
       if (lagFor(cap) !== lag) continue
       const settling = noiseScale(cap) * Math.pow(0.45, r)
       const truth = record[q].industry
-      const valueRng = rngFor(seed, `obs:industry:valueAdded:${q}:${r}`, 0)
-      const headRng = rngFor(seed, `obs:industry:employment:${q}:${r}`, 0)
-      const valueAdded = {} as Record<SectorId, number>
-      const employment = {} as Record<SectorId, number>
-      for (const sid of SECTOR_IDS) {
-        // A negative industry is not a thing a census can report, and a
-        // negative wedge cannot be drawn at all (`donutSlices` drops it).
-        // The floor bites only where the truth is already near zero.
-        valueAdded[sid] = Math.max(
-          0,
-          truth[sid].valueAdded *
-            (1 + valueRng.normal(0, INDUSTRY_VALUE_ADDED_SD * settling)),
-        )
-        employment[sid] = Math.max(
-          0,
-          truth[sid].employment *
-            (1 + headRng.normal(0, INDUSTRY_EMPLOYMENT_SD * settling)),
-        )
+      const tables = {} as Record<IndustryTableId, Record<SectorId, number>>
+      const errorBand = {} as IndustryPrint['errorBand']
+      for (const table of INDUSTRY_TABLE_IDS) {
+        const sd = INDUSTRY_SD[table] * settling
+        const rng = rngFor(seed, `obs:industry:${table}:${q}:${r}`, 0)
+        const figures = {} as Record<SectorId, number>
+        for (const sid of SECTOR_IDS) {
+          // A negative industry is not a thing a census can report, and a
+          // negative wedge cannot be drawn at all (`donutSlices` drops it).
+          // The floor bites only where the truth is already near zero.
+          figures[sid] = Math.max(0, truth[sid][table] * (1 + rng.normal(0, sd)))
+        }
+        tables[table] = figures
+        // the same threshold the indicators confess a band at, and relative
+        // for the same reason the noise is
+        errorBand[table] = cap >= 0.45 ? 1.96 * sd : 0
       }
       out.push({
         forQtr: q,
         publishedAt,
         revision: r,
-        // the same threshold the indicators confess a band at, and relative
-        // for the same reason the noise is
-        errorBand: cap >= 0.45 ? 1.96 * INDUSTRY_VALUE_ADDED_SD * settling : 0,
-        valueAdded,
-        employment,
+        errorBand,
+        valueAdded: tables.valueAdded,
+        employment: tables.employment,
       })
     }
   }

@@ -19,11 +19,13 @@ import { SECTOR_IDS, type PublishedState, type SectorId } from '@terrarium/obser
 import {
   GROWTH_MIN_QTRS,
   SECTOR_FACE,
+  censusAvailability,
   industryGrowth,
   industryRows,
   readIndustry,
   toShares,
 } from '../../packages/ui/src/industry'
+import { INDUSTRY_CENSUS_FUNDED_AT } from '@terrarium/engine'
 import { eachQuarter } from './harness'
 
 type Print = PublishedState['industry'][number]
@@ -39,7 +41,7 @@ function print(
   valueAdded: readonly number[],
   employment: readonly number[],
   revision = 0,
-  errorBand = 0.05,
+  errorBand: Print['errorBand'] = { valueAdded: 0.06, employment: 0.04 },
 ): Print {
   return {
     forQtr,
@@ -52,8 +54,19 @@ function print(
 }
 
 /** the smallest PublishedState this module actually touches */
-function pubWith(industry: Print[], tick = 40, subsidies: Partial<Record<SectorId, number>> = {}): PublishedState {
-  return { tick, industry, dials: { subsidies } } as unknown as PublishedState
+function pubWith(
+  industry: Print[],
+  tick = 40,
+  subsidies: Partial<Record<SectorId, number>> = {},
+  desk: { statistical?: number; fullInstrumentation?: boolean } = {},
+): PublishedState {
+  return {
+    tick,
+    industry,
+    dials: { subsidies },
+    capacity: { statistical: desk.statistical ?? 0.6 },
+    rules: { fullInstrumentation: desk.fullInstrumentation ?? false },
+  } as unknown as PublishedState
 }
 
 const JOBS = [4, 2, 0.5, 3, 0.5]
@@ -113,6 +126,15 @@ describe('reading the industrial census', () => {
     expect(release.valueAdded[1].sinceFirst).toBeCloseTo(10, 9)
   })
 
+  it('keeps each table’s own band, because heads are counted better than output is estimated', () => {
+    const release = readIndustry(
+      pubWith([print(0, [20, 15, 10, 30, 5], JOBS, 0, { valueAdded: 0.09, employment: 0.05 })]),
+    )!
+    // one band for both would confess an error the jobs survey did not make
+    expect(release.errorBand.valueAdded).toBe(0.09)
+    expect(release.errorBand.employment).toBe(0.05)
+  })
+
   it('carries the cabinet’s own subsidy dial beside the fogged figure', () => {
     const release = readIndustry(pubWith([print(0, [20, 15, 10, 30, 5], JOBS)], 40, { manuf: 3.5 }))!
     expect(release.valueAdded.find((r) => r.key === 'manuf')!.subsidy).toBe(3.5)
@@ -123,6 +145,32 @@ describe('reading the industrial census', () => {
   it('says how stale the release is, because the office always answers late', () => {
     const release = readIndustry(pubWith([print(30, [20, 15, 10, 30, 5], JOBS)], 36))!
     expect(release.lag).toBe(6)
+  })
+})
+
+describe('whether the census exists at all', () => {
+  const empty = (desk: { statistical?: number; fullInstrumentation?: boolean }) =>
+    censusAvailability(pubWith([], 40, {}, desk))
+
+  it('is unfunded only when the office genuinely cannot run it', () => {
+    expect(empty({ statistical: INDUSTRY_CENSUS_FUNDED_AT - 0.01 })).toBe('unfunded')
+  })
+
+  it('is AWAITING once it is paid for, before the first return lands', () => {
+    // the office reports a quarter or two behind, so a funded census is empty
+    // for its first quarters — and telling the player to fund it again there
+    // is the ADR-0020 miss this function exists to prevent
+    expect(empty({ statistical: INDUSTRY_CENSUS_FUNDED_AT })).toBe('awaiting')
+    expect(empty({ statistical: 0.9 })).toBe('awaiting')
+  })
+
+  it('is AWAITING under the fitted-instrument rule at any capacity', () => {
+    expect(empty({ statistical: 0, fullInstrumentation: true })).toBe('awaiting')
+  })
+
+  it('is reporting the moment a release exists, however poor the office became', () => {
+    const decayed = pubWith([print(0, [20, 15, 10, 30, 5], JOBS)], 40, {}, { statistical: 0.05 })
+    expect(censusAvailability(decayed)).toBe('reporting')
   })
 })
 

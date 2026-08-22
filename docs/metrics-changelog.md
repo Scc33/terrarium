@@ -181,8 +181,15 @@ survey's rung beside `payrolls` and `capital_stock`, and at or below `technology
 (0.45), whose own gate already assumes an industrial census beneath it. Each release carries
 `{ forQtr, publishedAt, revision, errorBand, valueAdded, employment }` and runs on the office's
 ordinary clock — the same lags, the same three revisions, the same `noiseScale(capacity)`.
-`errorBand` is a **fraction** of each figure rather than an absolute half-width, and every
-industry is drawn independently, so the published parts do **not** sum to the published GDP.
+
+`errorBand` is a `Record<IndustryTableId, number>`: a **fraction** of each figure rather than an
+absolute half-width (the industries differ by an order of magnitude in size), and **one band per
+table** rather than one for the release. An enumerator can count heads at a factory gate and has
+to estimate what the factory made, so the two tables carry different constants
+(`INDUSTRY_EMPLOYMENT_SD` 0.04 against `INDUSTRY_VALUE_ADDED_SD` 0.06); a single band would
+overstate the employment survey's uncertainty by half at every capacity. Both are read from the
+same table that draws the noise, in the same loop iteration, so quote and wobble cannot drift.
+Every industry is drawn independently, so the published parts do **not** sum to the published GDP.
 
 It is not an indicator because it cannot be one honestly: five sectors × two tables is ten
 dials against six rack strips of headroom, and a sector share has no fixed dial face (ADR-0006)
