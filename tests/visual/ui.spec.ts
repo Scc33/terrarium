@@ -115,6 +115,108 @@ test('rolling chart mode remains legible inside a fitted board slot', async ({ p
   await expect(gdpTicker).toHaveScreenshot('rolling-chart-12m.png')
 })
 
+test('time-series charts compare a dragged or keyboard-selected range', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const chart = page.getByRole('img', { name: /REAL GDP GROWTH.*most recent 40 quarters/ }).first()
+  await chart.scrollIntoViewIfNeeded()
+  // Map exact viewBox endpoints through the browser's screen CTM. The square
+  // terminal viewBox is letterboxed in its fitted board slot; a component
+  // that divides by the CSS bounding-box width snaps to the wrong releases.
+  const box = await chart.boundingBox()
+  expect(box).not.toBeNull()
+  const scale = Math.min(box!.width / 300, box!.height / 300)
+  const meetX = box!.x + (box!.width - 300 * scale) / 2
+  const meetY = box!.y + (box!.height - 300 * scale) / 2
+  const endpoints = {
+    start: { x: meetX + 34 * scale, y: meetY + 150 * scale },
+    end: { x: meetX + 292 * scale, y: meetY + 150 * scale },
+  }
+
+  await page.mouse.move(endpoints!.start.x, endpoints!.start.y)
+  await page.mouse.down()
+  await page.mouse.move(endpoints!.end.x, endpoints!.end.y, { steps: 8 })
+  await page.mouse.up()
+
+  const chartBox = chart.locator('..')
+  const readout = chartBox.locator('[data-chart-range-readout]')
+  await expect(readout).toBeVisible()
+  await expect(readout).toContainText('2040 Q1 → 2049 Q4')
+  await expect(readout).toContainText('Δ')
+  await expect(readout).toContainText('RANGE')
+  await expect(chart.locator('[data-chart-range]')).toHaveCount(1)
+  await expect(chart).toHaveClass(/touch-pan-y/)
+
+  await chart.press('Escape')
+  await expect(readout).toHaveCount(0)
+  await chart.press('Shift+ArrowLeft')
+  await expect(chartBox.locator('[data-chart-range-readout]')).toBeVisible()
+
+  const gdpTicker = page
+    .locator('figure')
+    .filter({ hasText: 'TERMINAL · REAL GDP GROWTH' })
+    .locator('> div')
+  await expect(gdpTicker).toHaveScreenshot('chart-range-selection.png')
+  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+})
+
+test('compact charts keep the range readout clear of most of the trace', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const chart = page.getByRole('img', { name: /Series from 1946 Q1 to 1950 Q1/ }).first()
+  await chart.scrollIntoViewIfNeeded()
+  const box = await chart.boundingBox()
+  expect(box).not.toBeNull()
+
+  await page.mouse.move(box!.x + box!.width * 0.2, box!.y + box!.height * 0.6)
+  await page.mouse.down()
+  await page.mouse.move(box!.x + box!.width * 0.8, box!.y + box!.height * 0.6, { steps: 6 })
+  await page.mouse.up()
+
+  const chartBox = chart.locator('..')
+  const readout = chartBox.locator('[data-chart-range-readout-layout="compact"]')
+  await expect(readout).toBeVisible()
+  await expect(readout).toContainText('Δ')
+  await expect(readout).toContainText('R ')
+
+  const readoutBox = await readout.boundingBox()
+  expect(readoutBox).not.toBeNull()
+  expect(readoutBox!.height).toBeLessThan(box!.height * 0.55)
+  await expect(chartBox).toHaveScreenshot('compact-chart-range.png')
+})
+
+test('ledger chart inspection does not activate the ledger tile', async ({ page }) => {
+  await openGame(page)
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (const quarter of ['1946 Q2', '1946 Q3']) {
+    await advance.click()
+    await expect(page.getByText(quarter, { exact: true })).toBeVisible()
+  }
+
+  const openLedger = page.getByRole('button', { name: 'Open the full treasury ledger' })
+  const tile = openLedger.locator('..')
+  const chart = tile.locator('[data-chart-interactive]')
+  await expect(chart).toBeVisible()
+  await expect(openLedger.locator('[data-chart-interactive]')).toHaveCount(0)
+
+  const box = await chart.boundingBox()
+  expect(box).not.toBeNull()
+  await page.mouse.move(box!.x + box!.width * 0.25, box!.y + box!.height * 0.55)
+  await page.mouse.down()
+  await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height * 0.55, { steps: 6 })
+  await page.mouse.up()
+
+  await expect(tile.locator('[data-chart-range-readout]')).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })).toHaveCount(0)
+
+  await openLedger.click()
+  await expect(page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })).toBeVisible()
+})
+
 test('dashboard with empty instruments', async ({ page }) => {
   await openGame(page)
   await expect(page).toHaveScreenshot('dashboard-empty.png')

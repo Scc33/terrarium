@@ -28,9 +28,9 @@ const TREND = [
   { tick: 16, value: 112 },
 ]
 
-/** a price board leaving its own face — the excursion the old chart clamped
- * flat. The peak is the measured `price_fuel` maximum over a surveyed
- * century, against that indicator's real 40–130 face. */
+/** A price shock the old chart clamped flat. The peak is the measured
+ * `price_fuel` maximum over a surveyed century; the analytical chart must
+ * draw the whole shape without importing that indicator's dial face. */
 const FUEL_SHOCK = [
   { tick: 0, value: 62 },
   { tick: 8, value: 71 },
@@ -101,32 +101,32 @@ export function ComponentGallery() {
           />
           <ChartFrame
             title="NATIONAL OUTPUT"
-            detail="1946=100 · PUBLISHED"
+            detail="1946=100 · COMPACT RANGE"
             value="112.0"
             legend={[{ label: 'OUTPUT', color: 'var(--color-dossier-felt)' }]}
             summary="National output rose from 100 to 112 between 1946 and 1950."
           >
-            <div className="p-2"><LineChart data={TREND} primaryColor="var(--color-dossier-felt)" /></div>
+            <div className="max-w-[276px] p-2">
+              <LineChart data={TREND} height={54} primaryColor="var(--color-dossier-felt)" />
+            </div>
           </ChartFrame>
-          {/* The case the whole chart consolidation exists for: a series that
-              leaves its dial face. The axis extends and the face's own bound is
-              ruled — it is NOT clamped flat along the rail (ADR-0016). Kept in
-              the gallery because this is invisible in a normal century, so a
-              regression here would otherwise only surface during a crisis. */}
+          {/* The case the whole chart consolidation exists for: a crisis must
+              remain fully drawable. The chart owns its analytical scale and
+              never imports the gauge's fixed face (ADR-0025). */}
           <ChartFrame
-            title="FUEL PRICE BOARD · OFF THE DIAL"
-            detail="1946=100 · FACE 40–130"
+            title="FUEL PRICE BOARD · FULL EXCURSION"
+            detail="1946=100 · DRAG TO COMPARE"
             value="152.1"
-            legend={[{ label: 'DIAL LIMIT', color: 'var(--color-dossier-warn)', dashed: true }]}
-            summary="Fuel prices ran from 62 to 152.1, past the 130 top of the instrument's printed face."
+            summary="Fuel prices ran from 62 to 152.1 and returned to 118."
           >
             <div className="p-2">
               <TimeSeriesChart
                 traces={[{ key: 'fuel', points: FUEL_SHOCK, color: 'var(--color-dossier-warn)' }]}
-                face={{ lo: 40, hi: 130 }}
+                pad={0.08}
                 height={110}
                 formatTick={(t) => `${1946 + Math.floor(t / 4)}`}
-                summary="Fuel prices ran from 62 to 152.1, past the 130 top of the instrument's printed face."
+                formatRange={(value) => value.toFixed(1)}
+                summary="Fuel prices ran from 62 to 152.1 and returned to 118."
                 hover
               />
             </div>

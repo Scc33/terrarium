@@ -73,7 +73,9 @@ can be tested — anything pushed into a component becomes untestable:
   paths), pinned by `tests/ui/plot.test.ts`. **`TimeSeriesChart` in `components/ui` is the one
   painter**: the wall's terminal ticker, the ledger, the accounts, finance and census all go
   through it, and a new figure over time reuses it rather than hand-rolling `sx`/`sy` again.
-  A chart FRAMES the dial face and extends past it — it never clamps (ADR-0016).
+  A chart scales the record it displays and never accepts a gauge face; semantic anchors such
+  as zero come through `include`. Point inspection and snapped drag/keyboard range comparison
+  belong here too, so every chart gets them together (ADR-0025).
 - **`ui/src/policyRecord.ts`** — the minute book's rule: a change log over `pub.policy` files
   DECISIONS, never consequences. Rates are diffed; appropriations are not, because an indexed
   or GDP-share rule moves its own money every quarter — so they are filed against the engine's
@@ -385,14 +387,14 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   `tech.researchStock` and decays; gains read the stock, not the cheque. A steady programme is
   arithmetically identical to the old flow model — only the transients moved — which is how a
   behavioural change ships without a recalibration.
-- **A dial pegs; a chart must not.** Pegging costs a needle one number for one quarter and says
-  so with a chevron. The same rule applied to a TRACE erases a whole episode silently — the
-  terminal chart clamped into the dial face, so a hyperinflation and a calm plateau drew as the
-  same flat line along the rail, and most indicators leave their face in the tails (`price_fuel`
-  reaches 152 against a 130 face). A chart has printed axis numbers, so it can describe its own
-  scale: frame against the face, extend outward where the data leaves it, rule the face's bound
-  (ADR-0016). Before reusing an instrument's constraint on a different instrument, ask what that
-  constraint COSTS in the new register.
+- **A dial pegs; a chart owns an analytical scale.** Pegging costs a needle one number for one
+  quarter and says so with a chevron. The same rule applied to a TRACE erases a whole episode
+  silently — the terminal chart clamped into the dial face, so a hyperinflation and a calm
+  plateau drew as the same flat line along the rail. Framing the trace against that face fixed
+  the clamp but added a DIAL LIMIT that looked like a chart constraint and flattened quiet
+  windows. A chart has printed axis numbers, so scale the displayed record, include only real
+  semantic anchors such as zero, and never import `INDICATOR_FACE` (ADR-0025). Range comparison
+  snaps to published points and reports gaps as elapsed time rather than inventing observations.
 - **Precision belongs to the scale, not the value.** `v => v.toFixed(v < 10 ? 1 : 0)` prints an
   axis reading `0.0, 20, 40`, which looks like three different quantities. Decide decimals once
   per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range
