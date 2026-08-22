@@ -54,7 +54,7 @@ terrarium/
 │   │   │   └── published.ts      # PublishedState types — the ONLY types ui may import
 │   │   └── package.json
 │   │
-│   ├── ui/                       # React app. See the terrarium-design skill for the spec.
+│   ├── ui/                       # React app. See the terrarium-ui skill for the spec.
 │   │   ├── src/
 │   │   │   ├── worker/           # the ONLY engine host (ADR-0004)
 │   │   │   │   ├── sim.worker.ts # owns TrueState; emits PublishedState only
@@ -419,8 +419,11 @@ passes happily while the wall clips every figure it publishes. What is covered:
 century and rejects a face an instrument spends >2% of its life pegged against),
 `revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry).
 
-Layout itself is verified **in a browser at 1280×720** — see CLAUDE.md for the check. There is
-no Playwright suite; that was planned in v0.1 and never built.
+Layout itself is verified by `tests/visual/ui.spec.ts`, a Playwright suite whose default viewport
+is **1280×720**. It asserts that the dense wall has no page or horizontal scroll, no clipped rack
+labels, no below-fold rack, no tile shear, and no console errors; it also snapshots the main
+cabinet and overlay states and checks the tablet and smaller-laptop layouts. Run it with
+`pnpm test:visual`.
 
 ### 7.5 Coverage
 
@@ -489,5 +492,6 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 - `docs/investigations/` — open questions about the model, with the measurements that raised
   them. Evidence, not decisions.
 - `docs/archive/` — superseded documents, kept for provenance. Not maintained.
-- `CLAUDE.md` — the operating manual: hard rules, workflows, and the hard-won tuning lessons.
-- The `terrarium-design` skill — the spec for all `packages/ui` work.
+- `AGENTS.md` — the operating notes: hard rules, workflows, and hard-won tuning lessons.
+- The `terrarium-ui` and `verify-the-wall` skills — the implementation and browser-verification
+  procedures for `packages/ui` work.
