@@ -148,7 +148,8 @@ const cabinetSections = (): ManualSection[] => [
   {
     heading: 'INSTITUTIONS — THE SLOWEST DRAWER',
     body: [
-      `Reform is generational, contested, and ratcheting. The people who would lose by a reform are, by construction, the people currently holding the veto — which is why a reform costs more than a decade of ordinary policy, and why it becomes affordable only when unrest passes ${REFORM_WINDOW_AT.toFixed(2)} and prises a window open.`,
+      `Reform is generational, contested, and ratcheting. The people who would lose by a reform are, by construction, the people currently holding the veto, which is why one costs more than a decade of ordinary policy.`,
+      `Unrest past ${REFORM_WINDOW_AT.toFixed(2)} prises a window open, and the window is a DISCOUNT rather than a permission: it cuts the price and softens the veto premium while it lasts. A reform nobody much minds — the courts are the usual example — is affordable in a calm decade to a government that has banked the capital for it. Waiting for a crisis is a way to afford the contested ones, not a condition of reforming at all.`,
       'Institutions are also the y-axis of the corridor. Broadening who may vote, print, organise and sue raises what society can do for itself; repression raises what the state can do to society. Prosperity lives in the band where neither has run away from the other.',
     ],
     entries: INSTITUTION_IDS.map((id) => ({
@@ -177,7 +178,7 @@ const wallSections = (): ManualSection[] => {
       heading: 'THE INSTRUMENTS',
       body: [
         'Each survey needs a minimum statistical-office strength before it reports at all. The number against each instrument is that gate, out of 100. They are listed in the order a country can afford them, which is roughly the order they are worth learning in.',
-        'Under the ALL FITTED standing order these gates do not apply: every survey reports from the first quarter, and capacity buys only speed and accuracy from then on. The gates below describe an ordinary run.',
+        'Under the ALL FITTED standing order these gates do not apply: every survey is commissioned from the first quarter and starts measuring at once. It does not start REPORTING at once — the lag is untouched, so the opening quarter or two still show commissioned instruments awaiting their first return, and capacity goes on buying speed and accuracy from there. The gates below describe an ordinary run.',
       ],
       entries: byGate.map((id) => ({
         term: NAMES[id].plate,
@@ -193,7 +194,8 @@ const roomSections = (): ManualSection[] => [
     heading: 'THE VETO PLAYERS',
     body: [
       'Bloc power is never authored. It is read off the economy each quarter — the landed interest is as strong as agriculture is large, finance as strong as the credit stock and the debt it holds — which is why a crisis is a political opening rather than a scripted event. What is authored is only what each bloc WANTS.',
-      'Favour is judged against the settlement you inherited, not against zero. A government that does nothing keeps the room it was given; a government that governs spends favour, and a bloc it has spent is a bloc that prices its levers dearly.',
+      'Favour is judged against the settlement you inherited, not against zero. A government that does nothing keeps the room it was given; a government that governs spends favour.',
+      'What spent favour costs you is not a higher price at the cabinet — the quote reads a bloc’s POWER and how much it minds this particular change, never how it feels about you generally. What an aggrieved bloc withdraws is its cooperation with the economy. Industry invests less, organised labour presses harder on wages, the landed pay less of what they owe, and the money interest takes less of your debt at auction. Restoring goodwill will not make a lever cheaper; it will make the country work better.',
     ],
     entries: BLOC_IDS.map((id) => ({ term: BLOC_NAMES[id], detail: BLOC_NOTES[id] })),
   },
