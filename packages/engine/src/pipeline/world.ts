@@ -77,11 +77,12 @@ export const world: PipelineStep = {
       }
       a = clamp(a, PARTNER_ACTIVITY_MIN, PARTNER_ACTIVITY_MAX)
       // foreign news: crises always, booms/slumps only as they cross the line
-      if (crisis) news.push({ tick: state.meta.tick, text: NEWS[p.id].crisis, tone: 'bad' })
+      if (crisis)
+        news.push({ tick: state.meta.tick, text: NEWS[p.id].crisis, tone: 'bad', kind: 'partner_crisis' })
       else if (p.activity < PARTNER_BOOM_AT && a >= PARTNER_BOOM_AT)
-        news.push({ tick: state.meta.tick, text: NEWS[p.id].boom, tone: 'good' })
+        news.push({ tick: state.meta.tick, text: NEWS[p.id].boom, tone: 'good', kind: 'partner_boom' })
       else if (p.activity > PARTNER_SLUMP_AT && a <= PARTNER_SLUMP_AT)
-        news.push({ tick: state.meta.tick, text: NEWS[p.id].slump, tone: 'bad' })
+        news.push({ tick: state.meta.tick, text: NEWS[p.id].slump, tone: 'bad', kind: 'partner_slump' })
       return { id: p.id, activity: a }
     })
     const activity = Object.fromEntries(partners.map((p) => [p.id, p.activity])) as Record<

@@ -334,6 +334,42 @@ test('financial overlay empty state', async ({ page }) => {
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
 
+test('financial overlay plots the position and the stance once surveyed', async ({ page }) => {
+  // The empty state above proves the brass plates. This proves the figures —
+  // and specifically the one thing no unit test can see: that the shaded
+  // fragility corner is drawn against the same axes as the trail, so a dot
+  // outside it really is outside it. The phase chart is the only figure in
+  // the game whose x axis is not time, so it has no existing baseline to
+  // inherit correctness from.
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (let i = 0; i < 12; i++) await advance.click()
+
+  // `exact` matters here and not in the empty-state test above: once the rack
+  // is fitted, the consumer-confidence strip's aria-label contains the word
+  // "finances" and a loose name match resolves to two elements.
+  await page.getByRole('button', { name: 'FINANCE', exact: true }).click()
+  const finance = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
+  await expect(finance.getByText('WHERE THE COUNTRY STANDS', { exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('finance-overlay-position.png')
+
+  await finance.getByRole('button', { name: 'THE STANCE', exact: true }).click()
+  // exact, unrevised, and available whether or not a survey was ever funded
+  await expect(finance.getByText('POLICY RATE · %', { exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('finance-overlay-stance.png')
+
+  await finance.getByRole('button', { name: 'THE BANKS', exact: true }).click()
+  await expect(
+    finance.getByText('BANK CAPITAL · % OF CREDIT, AGAINST YOUR FLOOR', { exact: true }),
+  ).toBeVisible()
+  await expect(page).toHaveScreenshot('finance-overlay-banks.png')
+})
+
 test('census files net migration with the other population flows', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')

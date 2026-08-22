@@ -31,6 +31,7 @@ export const shocks: PipelineStep = {
           tick: state.meta.tick,
           text: 'Rains return; the provinces expect a decent harvest.',
           tone: 'good',
+          kind: 'drought_ends',
         })
       }
     } else if (rng.next() < DROUGHT_P) {
@@ -41,6 +42,7 @@ export const shocks: PipelineStep = {
         tick: state.meta.tick,
         text: 'Drought grips the growing provinces; the harvest is given up for lost.',
         tone: 'bad',
+        kind: 'drought_begins',
       })
     }
 
@@ -52,6 +54,7 @@ export const shocks: PipelineStep = {
         tick: state.meta.tick,
         text: 'Crisis abroad: world fuel markets are in tumult.',
         tone: 'bad',
+        kind: 'fuel_shock',
       })
     }
 

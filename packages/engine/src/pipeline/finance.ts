@@ -123,6 +123,7 @@ export const finance: PipelineStep = {
           tick: state.meta.tick,
           text: 'The banks are recapitalized at last; credit begins to thaw.',
           tone: 'good',
+          kind: 'banking_recovery',
         })
       }
     } else {
@@ -159,6 +160,7 @@ export const finance: PipelineStep = {
               ? 'A sudden stop: foreign credit vanishes and the banks seize up.'
               : 'Banking crisis: a great lender fails and credit freezes overnight.',
           tone: 'bad',
+          kind: 'banking_crisis',
         })
       } else if (fin.assetPrice < ASSET_BUBBLE_AT && assetPrice >= ASSET_BUBBLE_AT) {
         // a bubble cresting is not fog either — the financial pages crow
@@ -166,6 +168,7 @@ export const finance: PipelineStep = {
           tick: state.meta.tick,
           text: 'Speculation runs hot; asset prices reach giddy new heights.',
           tone: 'neutral',
+          kind: 'asset_bubble',
         })
       }
     }

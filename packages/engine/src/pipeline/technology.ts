@@ -206,6 +206,7 @@ export const technology: PipelineStep = {
         // three quarters running reads as a stuck ticker rather than as luck.
         text: BREAKTHROUGH_NEWS[Math.floor(rng.next() * BREAKTHROUGH_NEWS.length)],
         tone: 'good',
+        kind: 'breakthrough',
       })
     }
 

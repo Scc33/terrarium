@@ -27,6 +27,8 @@
  */
 
 import {
+  CRISIS_ASSET_SAFE,
+  CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
   ELECTION_WIN_THRESHOLD,
   NATURAL_UNEMPLOYMENT,
@@ -121,6 +123,24 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   terms_of_trade: { lo: 85, hi: 115 },
   asset_prices: { lo: 50, hi: 140 },
   credit_growth: { lo: -30, hi: 30 },
+  // Deliberately WIDER than the surveyed century, and this is the one face
+  // where `pnpm ranges` is not the whole evidence. The funded sweep puts it
+  // at p01–p99 40.3–65.9, extrema 29.3–82.4 — but that sweep never touches
+  // the money dials, and the reading this instrument exists for is the
+  // fragility rail at 75. A face fitted to the percentiles would put the rail
+  // in its last tenth and peg for a quarter of the century under an easy-money
+  // government, which a separate sweep (0% policy rate, maximum purchases,
+  // minimum bank-capital floor) measured reaching 112. So the face covers the
+  // play the levers actually reach; ordinary play sits in the middle third,
+  // which is still legible. Zero is the honest low rail — a crunch clamps
+  // credit to almost nothing, and no lending at all is a real position.
+  credit_to_gdp: { lo: 0, hi: 120 },
+  // Measured p01–p99 15.7–26.0, extrema 8.3–30.9, so the upper rail clears
+  // the maximum rather than pegging on it. The low rail is zero because the
+  // whole legal range of the `capitalRequirement` floor (3–25) has to fit on
+  // the face: "am I above the floor I set" is the reading, and a dial that
+  // could not draw the floor could not answer it.
+  bank_capital_ratio: { lo: 0, hi: 35 },
   unrest: { lo: 0, hi: 60 },
 }
 
@@ -138,6 +158,12 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   inflation: { at: 0, label: 'STABLE' },
   net_migration: { at: 0, label: 'BALANCED' },
   credit_growth: { at: 0, label: 'FLAT' },
+  // the leverage rail of the banking-crisis hazard. Above it, and only above
+  // it, expensive assets start to cost something: the hazard is a PRODUCT of
+  // this excess and the one on `asset_prices`, so either mark alone is a
+  // threshold the player can cross harmlessly. Both are drawn for that reason.
+  credit_to_gdp: { at: CRISIS_LEVERAGE_SAFE * 100, label: 'FRAGILE' },
+  asset_prices: { at: CRISIS_ASSET_SAFE * 100, label: 'RICH' },
   // where revolutionary pressure prises the reform window open. A rule,
   // not a reading — the government knows the threshold exactly and only its
   // own position against it is fogged. That gap is the game.

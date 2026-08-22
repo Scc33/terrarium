@@ -193,6 +193,19 @@ export const INDICATOR_IDS = [
   'terms_of_trade',
   'asset_prices',
   'credit_growth',
+  // The LEVEL of leverage, beside its rate of change. Both are needed and
+  // they are not substitutes: the banking crisis hazard reads
+  // `max(0, credit/GDP − CRISIS_LEVERAGE_SAFE) × max(0, q − CRISIS_ASSET_SAFE)`,
+  // a PRODUCT of two excesses, so a government that can see how fast credit
+  // is growing but not where the stock stands is reading one term of a
+  // multiplication. Publishing the growth rate alone made half the crisis
+  // clock unobservable.
+  'credit_to_gdp',
+  /** bank capital as a share of credit outstanding — the shock absorber, and
+   * the only way to see whether the `capitalRequirement` floor actually binds.
+   * At the inherited 6% floor it is slack for a whole century; a government
+   * that raises the floor cannot otherwise tell it did anything. */
+  'bank_capital_ratio',
   'unrest',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
@@ -563,10 +576,51 @@ export interface StatPrint {
   levels?: { real: number; nominal: number }
 }
 
+/** What a wire item IS, independent of how it is worded.
+ *
+ * The finance overlay used to find banking crises by matching
+ * `/banking crisis|sudden stop/i` against `text`, which meant the crisis
+ * markers on every chart were one copy-edit away from silently vanishing —
+ * and silently is the whole problem: a chart with no markers looks exactly
+ * like a century with no crises. So an event names itself, and the prose is
+ * free to change.
+ *
+ * `kind` is REQUIRED, so a new wire item cannot ship without joining this
+ * list, and anything filtering the wire fails to compile rather than quietly
+ * missing the event it was built to catch. */
+export const NEWS_KINDS = [
+  // finance
+  'banking_crisis',
+  'banking_recovery',
+  'asset_bubble',
+  // the world outside
+  'partner_crisis',
+  'partner_boom',
+  'partner_slump',
+  // shocks
+  'drought_begins',
+  'drought_ends',
+  'fuel_shock',
+  // the constitution
+  'corridor_exit',
+  'corridor_return',
+  'reform_window',
+  // the government's tenure
+  'revolt',
+  'coup',
+  'election',
+  // the economy at large
+  'breakthrough',
+  /** the statistical office's rumor mill — a fogged hint, not an event */
+  'rumor',
+] as const
+export type NewsKind = (typeof NEWS_KINDS)[number]
+
 export interface NewsItem {
   tick: Qtr
   text: string
   tone: 'good' | 'bad' | 'neutral'
+  kind: NewsKind
 }
 
 /** One quarter's measurable truth, filed at measurement time. The office
@@ -657,6 +711,12 @@ export interface StatRecord {
   assetPrice: number
   /** credit outstanding / annual GDP — what a bank supervisor would tabulate */
   creditToGdp: number
+  /** bank capital ÷ credit outstanding: the banking system's own buffer,
+   * filed as the RATIO rather than the level because the ratio is the number
+   * a supervisor publishes and the only one directly comparable to the
+   * `capitalRequirement` floor the government sets. A level would have to be
+   * divided by a fogged GDP before it could be read against the dial. */
+  bankCapitalRatio: Ratio
   /** revolutionary pressure, 0..1 — what the provincial governors' reports
    * would add up to if anyone collated them. Fogged like everything
    * else: a state that cannot survey its own people cannot see the street. */
@@ -800,7 +860,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 30 // v30: slow human-capital stock + workforce-skills print
+export const SCHEMA_VERSION = 31 // v31: leverage + bank-capital prints, and wire items name their kind
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
