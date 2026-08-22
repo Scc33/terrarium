@@ -102,6 +102,11 @@ can be tested — anything pushed into a component becomes untestable:
   bucket a tail into "other" rather than extend the ramp. The label/ink tables in
   `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
   spending line fails the build until it has been named and given an ink.
+- **`ui/src/industry.ts`** — the industrial census read for the page: GDP down the PRODUCTION
+  side, the composition twin of `accounts.ts`. Its shares are taken against the CENSUS's own
+  total, never the GDP headline — the two come from different releases with different survey
+  error, and dividing one by the other imports a fog it never had. `SECTOR_FACE` is a total
+  `Record` over `SECTOR_IDS`, so a sixth sector fails the build until named and inked.
 
 - **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
   chapter that LISTS something the game has is generated from the engine's id lists — levers
@@ -240,6 +245,22 @@ below, and a scoring gate is a new way to break it.
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
 checks, but `INDICATOR_SPECS` is an **array**, so a missing spec compiles clean and the
 instrument simply never publishes.
+
+Not every fogged output is an indicator. The **industrial census** (schema 31,
+`PublishedState.industry`) is value added and employment by sector, published on the office's
+ordinary clock but as a VECTOR: five sectors × two tables is ten dials against six rack strips
+of headroom, and a sector share has no honest fixed dial face (ADR-0006) when the catalogue
+opens countries anywhere between 5% and 60% agricultural. It reuses `lagFor` / `noiseScale` /
+`REVISION_DELAYS` in `statistics.ts` rather than owning a second measurement model — same
+office, same fog — and each sector is drawn INDEPENDENTLY, so the published parts do not sum
+to the published GDP. It carries ONE BAND PER TABLE (`errorBand` is a `Record` over
+`INDUSTRY_TABLE_IDS`), read from the same constant that draws the noise: heads are counted
+better than output is estimated, and a single band would have the office confessing an error
+the jobs survey never made. The overlay indexes the table and its band with the same lens key,
+so it cannot show one table's figures beside the other's uncertainty. The worksheet behind them does: `sectorValueAdded` is
+`output × (1 − Σᵢ coeff[i][j])`, the same arithmetic `production` sums for the headline, at
+BASE prices so a commodity boom cannot make an industry look larger. Reach for this shape when
+the thing you want to publish is a composition rather than a number.
 
 ### The dev console (ADR-0010)
 
