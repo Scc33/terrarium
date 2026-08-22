@@ -25,15 +25,13 @@
  * `inflation` reaches 42 — so the clamp erased the most legible moments in
  * the century, and erased them silently.
  *
- * So a chart FRAMES against the face rather than obeying it: the axis is the
- * face, extended outward only where the data leaves it, and the face's own
- * rails are then drawn as reference rules (`Axis.faceLo` / `faceHi`). A
- * normal century is pixel-identical to a fixed face; a crisis shows the whole
- * excursion *and* says it went off the dial. The dial itself is untouched,
- * so ADR-0006's promise still holds where it was made.
+ * ADR-0024 takes the separation all the way: the dial face belongs to the
+ * dial, while a chart scales the record it currently displays. The printed
+ * axis numbers make that changing scale explicit, and the full excursion is
+ * always drawable. The dial itself is untouched, so ADR-0006's promise still
+ * holds where it was made.
  */
 
-import type { Domain } from './domains'
 import { thin } from './shares'
 
 export interface PlotPoint {
@@ -57,12 +55,9 @@ export interface PlotBox {
 
 /**
  * How the vertical axis is chosen. Every field is optional; with none of
- * them the axis is simply the data, rounded outward onto a readable grid.
+ * them the axis is simply the displayed data.
  */
 export interface YAxisSpec {
-  /** a fixed dial face to frame against — never shrunk inside, extended
-   * outward only where the data leaves it, and marked where it ended */
-  face?: Domain
   /** values the axis must contain whatever the data does: zero for a rate,
    * 100 for an index, a floor that keeps a quiet series from filling the box */
   include?: readonly number[]
@@ -77,12 +72,19 @@ export interface YAxisSpec {
 export interface Axis {
   lo: number
   hi: number
-  /** the fixed face's lower rail, when the axis had to extend below it —
-   * `null` when there is no face, or the face already contained the data */
-  faceLo: number | null
-  faceHi: number | null
   /** readable gridline values, ascending, inside [lo, hi] */
   ticks: number[]
+}
+
+/** The lead series between two snapped inspection points. `start` and `end`
+ * are chronological even when the player dragged from right to left. */
+export interface PlotRange<T extends PlotPoint = PlotPoint> {
+  start: T
+  end: T
+  change: number
+  low: number
+  high: number
+  quarters: number
 }
 
 export interface TimePlot {
@@ -158,48 +160,26 @@ export function niceTicks(lo: number, hi: number, target = 4): number[] {
 /**
  * The vertical axis for a set of series.
  *
- * With a face, the rails start at the face and can only move outward — which
- * is what makes the trace's height comparable to the dial beside it in every
- * normal quarter, and comparable between the 40Q and ALL views. Where the
- * data does leave the face the rail is pushed out to a readable number and
- * the face's own bound is reported back so the painter can rule it.
- *
- * With no face the axis is the data, padded and rounded outward. A series
- * that never moves still gets a box with height, because a zero-span axis
- * divides by zero and paints every point on one line.
+ * The axis is the displayed data plus any caller-owned semantic anchors,
+ * padded by the requested amount. A series that never moves still gets a box
+ * with height, because a zero-span axis divides by zero and paints every
+ * point on one line.
  */
 export function yAxis(values: readonly number[], spec: YAxisSpec = {}): Axis {
-  const face = spec.face
   const seen = values.filter((v) => Number.isFinite(v))
   const anchors = (spec.include ?? []).filter((v) => Number.isFinite(v))
   const pool = [...seen, ...anchors]
 
-  let lo: number
-  let hi: number
-  if (face) {
-    lo = Math.min(face.lo, ...pool)
-    hi = Math.max(face.hi, ...pool)
-  } else if (pool.length > 0) {
-    lo = Math.min(...pool)
-    hi = Math.max(...pool)
-    const pad = (spec.pad ?? 0) * (hi - lo)
-    lo -= pad
-    hi += pad
-  } else {
-    return { lo: 0, hi: 1, faceLo: null, faceHi: null, ticks: [0, 1] }
-  }
+  if (pool.length === 0) return { lo: 0, hi: 1, ticks: [0, 1] }
 
-  // A face that the data left gets its rail pushed out to the same readable
-  // grid the gridlines use, so the extended rail carries a label worth
-  // reading rather than the raw extremum's fifteenth decimal place.
-  const step = tickStep(Math.max(hi - lo, Number.MIN_VALUE), spec.ticks ?? 4)
-  const belowFace = face !== undefined && lo < face.lo
-  const aboveFace = face !== undefined && hi > face.hi
-  if (belowFace) lo = onGrid(Math.floor(lo / step) * step, step)
-  if (aboveFace) hi = onGrid(Math.ceil(hi / step) * step, step)
+  let lo = Math.min(...pool)
+  let hi = Math.max(...pool)
+  const pad = (spec.pad ?? 0) * (hi - lo)
+  lo -= pad
+  hi += pad
 
   if (!(hi > lo)) {
-    // a flat series, or a degenerate face: give the box a unit of height
+    // a flat series: give the box a unit of height
     // rather than a scale that divides by zero
     const mid = Number.isFinite(lo) ? lo : 0
     lo = mid - 0.5
@@ -209,8 +189,6 @@ export function yAxis(values: readonly number[], spec: YAxisSpec = {}): Axis {
   return {
     lo,
     hi,
-    faceLo: belowFace ? face!.lo : null,
-    faceHi: aboveFace ? face!.hi : null,
     ticks: niceTicks(lo, hi, spec.ticks ?? 4),
   }
 }
@@ -327,4 +305,34 @@ export function nearestPoint<T extends { tick: number }>(
     }
   }
   return best
+}
+
+/**
+ * Snap a dragged interval to the lead series and describe what happened
+ * inside it. The time span is the distance between releases, not a fabricated
+ * count of observations — a gap in a survey stays a gap.
+ */
+export function rangeBetween<T extends PlotPoint>(
+  points: readonly T[],
+  anchorTick: number,
+  focusTick: number,
+): PlotRange<T> | null {
+  const finitePoints = points.filter(finite) as T[]
+  const anchor = nearestPoint(finitePoints, anchorTick)
+  const focus = nearestPoint(finitePoints, focusTick)
+  if (!anchor || !focus) return null
+
+  const start = anchor.tick <= focus.tick ? anchor : focus
+  const end = anchor.tick <= focus.tick ? focus : anchor
+  const inside = finitePoints.filter((point) => point.tick >= start.tick && point.tick <= end.tick)
+  const values = inside.map((point) => point.value)
+
+  return {
+    start,
+    end,
+    change: end.value - start.value,
+    low: Math.min(...values),
+    high: Math.max(...values),
+    quarters: end.tick - start.tick,
+  }
 }

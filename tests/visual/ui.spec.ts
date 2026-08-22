@@ -108,6 +108,41 @@ test('rolling chart mode remains legible inside a fitted board slot', async ({ p
   await expect(gdpTicker).toHaveScreenshot('rolling-chart-12m.png')
 })
 
+test('time-series charts compare a dragged or keyboard-selected range', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const chart = page.getByRole('img', { name: /REAL GDP GROWTH.*most recent 40 quarters/ }).first()
+  await chart.scrollIntoViewIfNeeded()
+  const box = await chart.boundingBox()
+  expect(box).not.toBeNull()
+
+  await page.mouse.move(box!.x + box!.width * 0.25, box!.y + box!.height * 0.55)
+  await page.mouse.down()
+  await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height * 0.55, { steps: 8 })
+  await page.mouse.up()
+
+  const chartBox = chart.locator('..')
+  const readout = chartBox.locator('[data-chart-range-readout]')
+  await expect(readout).toBeVisible()
+  await expect(readout).toContainText('Δ')
+  await expect(readout).toContainText('RANGE')
+  await expect(chart.locator('[data-chart-range]')).toHaveCount(1)
+
+  await chart.press('Escape')
+  await expect(readout).toHaveCount(0)
+  await chart.press('Shift+ArrowLeft')
+  await expect(chartBox.locator('[data-chart-range-readout]')).toBeVisible()
+
+  const gdpTicker = page
+    .locator('figure')
+    .filter({ hasText: 'TERMINAL · REAL GDP GROWTH' })
+    .locator('> div')
+  await expect(gdpTicker).toHaveScreenshot('chart-range-selection.png')
+  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+})
+
 test('dashboard with empty instruments', async ({ page }) => {
   await openGame(page)
   await expect(page).toHaveScreenshot('dashboard-empty.png')

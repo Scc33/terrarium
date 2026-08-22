@@ -8,8 +8,8 @@
  * clamped its trace into a fixed face, one auto-scaled, two forced a zero
  * floor with different padding; one had a hover crosshair, one had invisible
  * hit-circles carrying a `<title>`, three had nothing at all. Consolidating
- * them is not tidiness — it is the only way a fix to the axis, the readout or
- * the accessible summary reaches every figure in the game at once.
+ * them is not tidiness — it is the only way a fix to the axis, the readout,
+ * range comparison or accessible summary reaches every figure at once.
  *
  * Geometry lives in `../../../plot`; this file paints. It knows nothing about
  * indicators, budgets or censuses: callers own the subject matter, the units,
@@ -17,9 +17,9 @@
  *
  * Three rules it must not break:
  *
- * 1. IT DOES NOT CLAMP. A value outside the frame extends the frame (see the
- *    y-axis note in `plot.ts`). Drawing a trace flat along a rail is the bug
- *    this component was built to end.
+ * 1. IT DOES NOT CLAMP OR BORROW A DIAL FACE. The chart scales the displayed
+ *    record and prints its own axis (ADR-0024). Drawing a trace flat along a
+ *    rail is the bug this component was built to end.
  * 2. IT FILLS ITS SLOT WHEN ASKED. `fill` puts the SVG in a `min-h-0 flex-1`
  *    box so a docked wall tile's bay is the height budget. Without it the SVG
  *    takes height from its viewBox ratio, which is WallTile failure mode 2 —
@@ -28,11 +28,17 @@
  *    exists to measure is decoration, so rules and labels paint after traces.
  */
 
-import { useState, type ReactNode } from 'react'
-import type { Domain } from '../../../domains'
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from 'react'
 import {
   axisDecimals,
   nearestPoint,
+  rangeBetween,
   timePlot,
   type BandPoint,
   type PlotPoint,
@@ -77,12 +83,9 @@ export interface TimeSeriesChartProps {
   ribbon?: { points: readonly BandPoint[]; color?: string }
   /** shade the region between two traces, named by key */
   wedge?: { over: string; under: string; color?: string; opacity?: number }
-  /** frame against a fixed dial face; the axis extends past it rather than
-   * clamping, and the face's own rails are ruled where it did */
-  face?: Domain
   /** values the axis must contain whatever the data does */
   include?: readonly number[]
-  /** breathing room as a fraction of the data span, where no face pins a rail */
+  /** breathing room as a fraction of the data span */
   pad?: number
   /** pin the horizontal extent instead of taking it from the data. Stacked
    * figures reading the same century (the census's vital rates over its head
@@ -102,6 +105,9 @@ export interface TimeSeriesChartProps {
   /** how a value prints in the hover readout; defaults to `format`. The
    * terminal register carries a digit more here than on its axis. */
   formatReading?: (value: number) => string
+  /** how values print in a selected-range comparison. Defaults to the axis
+   * format so a unit is not repeated until the readout no longer fits. */
+  formatRange?: (value: number) => string
   /** how a tick prints on the x axis — quarters or years, caller's choice */
   formatTick?: (tick: number) => string
   /** plain-language reading beside the visual, for assistive technology */
@@ -110,6 +116,9 @@ export interface TimeSeriesChartProps {
   emptyLabel?: string
   /** a crosshair and a readout following the pointer */
   hover?: boolean
+  /** drag or Shift+Arrow to compare two releases. Defaults to `hover`, so
+   * every chart that already offers point inspection gets range inspection. */
+  rangeSelection?: boolean
   /** extra lines in the hover readout. The point is the LEAD trace's own
    * object, so a caller whose points carry more than `{tick, value}` gets
    * them back — pass the richer array and narrow it here. */
@@ -166,7 +175,6 @@ export function TimeSeriesChart({
   traces,
   ribbon,
   wedge,
-  face,
   include,
   pad = 0,
   xDomain,
@@ -177,15 +185,23 @@ export function TimeSeriesChart({
   fill = false,
   format,
   formatReading,
+  formatRange,
   formatTick = (t) => String(t),
   summary,
   emptyLabel = 'INSUFFICIENT HISTORY',
   hover = false,
+  rangeSelection = hover,
   hoverDetail,
   overlay,
   className = '',
 }: TimeSeriesChartProps) {
-  const [cursor, setCursor] = useState<PlotPoint | null>(null)
+  const [cursorTick, setCursorTick] = useState<number | null>(null)
+  const [selectionTicks, setSelectionTicksState] = useState<{
+    anchor: number
+    focus: number
+  } | null>(null)
+  const selectionTicksRef = useRef(selectionTicks)
+  const dragPointer = useRef<number | null>(null)
   const skin = SKINS[register]
 
   const lead = traces.find((t) => t.lead) ?? traces[0]
@@ -201,14 +217,23 @@ export function TimeSeriesChart({
   }
 
   // Padding is generous on the left because a y label is the widest text on
-  // the chart and an axis extended past its face can grow a digit mid-century.
+  // the chart and an analytical scale can grow a digit mid-century.
   const box = { w: width, h: height, padL: 34, padR: 8, padT: 8, padB: 15 }
+  // A ribbon is published ink too. Scale to its confessed bounds rather than
+  // letting the SVG clip uncertainty that extends beyond the point estimate.
+  const scaleInclude = [
+    ...(include ?? []),
+    ...(ribbon?.points.flatMap((point) => {
+      const band = Math.abs(point.band)
+      return [point.value - band, point.value + band]
+    }) ?? []),
+  ]
   const plot = timePlot(
     traces.map((t) => t.points),
     box,
     // a short strip wants fewer rules than a full figure; `niceTicks`
     // guarantees the floor of two either way
-    { face, include, pad, ticks: height >= 110 ? 4 : 3 },
+    { include: scaleInclude, pad, ticks: height >= 110 ? 4 : 3 },
     xDomain,
   )
   const { y } = plot
@@ -218,13 +243,118 @@ export function TimeSeriesChart({
   // never reads `0.0, 20, 40`
   const fmt = format ?? ((v: number) => v.toFixed(axisDecimals(y)))
   const reading = formatReading ?? fmt
+  const rangeReading = formatRange ?? fmt
 
-  const onMove = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!hover || !lead) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const px = ((e.clientX - rect.left) / rect.width) * width
+  const readablePoints = (lead?.points ?? []).filter(
+    (point) => Number.isFinite(point.tick) && Number.isFinite(point.value),
+  )
+  const cursor = cursorTick === null ? null : nearestPoint(readablePoints, cursorTick)
+  const selected = selectionTicks
+    ? rangeBetween(readablePoints, selectionTicks.anchor, selectionTicks.focus)
+    : null
+  const range = selected && selected.quarters > 0 ? selected : null
+
+  const setSelectionTicks = (next: { anchor: number; focus: number } | null) => {
+    selectionTicksRef.current = next
+    setSelectionTicksState(next)
+  }
+
+  const pointAtClientX = (clientX: number, svg: SVGSVGElement) => {
+    if (!lead) return null
+    const rect = svg.getBoundingClientRect()
+    if (!(rect.width > 0)) return null
+    const rawX = ((clientX - rect.left) / rect.width) * width
+    const px = Math.max(box.padL, Math.min(width - box.padR, rawX))
     const tick = plot.x0 + ((px - box.padL) / (width - box.padL - box.padR)) * (plot.x1 - plot.x0)
-    setCursor(nearestPoint(lead.points, tick))
+    return nearestPoint(readablePoints, tick)
+  }
+
+  const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
+    if (!hover || !lead) return
+    const point = pointAtClientX(e.clientX, e.currentTarget)
+    if (!point) return
+    if (rangeSelection && dragPointer.current === e.pointerId) {
+      const anchor = selectionTicksRef.current?.anchor ?? point.tick
+      setSelectionTicks({ anchor, focus: point.tick })
+      setCursorTick(null)
+    } else if (!range) {
+      setCursorTick(point.tick)
+    }
+  }
+
+  const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
+    if (!hover || !rangeSelection || !lead) return
+    const point = pointAtClientX(e.clientX, e.currentTarget)
+    if (!point) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragPointer.current = e.pointerId
+    setSelectionTicks({ anchor: point.tick, focus: point.tick })
+    setCursorTick(point.tick)
+  }
+
+  const finishPointer = (e: PointerEvent<SVGSVGElement>) => {
+    if (dragPointer.current !== e.pointerId) return
+    const point = pointAtClientX(e.clientX, e.currentTarget)
+    const selection = selectionTicksRef.current
+    if (point && selection) {
+      const next = { ...selection, focus: point.tick }
+      if (next.anchor === next.focus) {
+        setSelectionTicks(null)
+        setCursorTick(point.tick)
+      } else {
+        setSelectionTicks(next)
+        setCursorTick(null)
+      }
+    }
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    dragPointer.current = null
+  }
+
+  const cancelPointer = (e: PointerEvent<SVGSVGElement>) => {
+    if (dragPointer.current !== e.pointerId) return
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    dragPointer.current = null
+    setSelectionTicks(null)
+    setCursorTick(null)
+  }
+
+  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+    if (!hover || readablePoints.length === 0) return
+    if (e.key === 'Escape') {
+      if (range || cursor) e.preventDefault()
+      setSelectionTicks(null)
+      setCursorTick(null)
+      return
+    }
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+    e.preventDefault()
+
+    const currentTick = selectionTicksRef.current?.focus ?? cursor?.tick ?? readablePoints[readablePoints.length - 1].tick
+    const current = nearestPoint(readablePoints, currentTick)!
+    const currentIndex = Math.max(0, readablePoints.indexOf(current))
+    const nextIndex =
+      e.key === 'Home'
+        ? 0
+        : e.key === 'End'
+          ? readablePoints.length - 1
+          : Math.max(
+              0,
+              Math.min(readablePoints.length - 1, currentIndex + (e.key === 'ArrowLeft' ? -1 : 1)),
+            )
+    const next = readablePoints[nextIndex]
+
+    if (e.shiftKey && rangeSelection) {
+      const anchor = selectionTicksRef.current?.anchor ?? current.tick
+      setSelectionTicks({ anchor, focus: next.tick })
+      setCursorTick(null)
+    } else {
+      setSelectionTicks(null)
+      setCursorTick(next.tick)
+    }
   }
 
   const wedgePath = wedge
@@ -243,11 +373,24 @@ export function TimeSeriesChart({
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
-        className={`block w-full ${fill ? 'min-h-0 flex-1' : ''} ${hover ? 'cursor-crosshair' : ''}`}
-        onMouseMove={onMove}
-        onMouseLeave={() => setCursor(null)}
+        className={`block w-full ${fill ? 'min-h-0 flex-1' : ''} ${hover ? 'cursor-crosshair focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px]' : ''}`}
+        onPointerMove={onPointerMove}
+        onPointerDown={onPointerDown}
+        onPointerUp={finishPointer}
+        onPointerCancel={cancelPointer}
+        onPointerLeave={() => {
+          if (dragPointer.current === null && !range) setCursorTick(null)
+        }}
+        onKeyDown={onKeyDown}
+        tabIndex={hover ? 0 : undefined}
         role="img"
         aria-label={summary}
+        aria-keyshortcuts={
+          rangeSelection
+            ? 'ArrowLeft ArrowRight Home End Shift+ArrowLeft Shift+ArrowRight Escape'
+            : undefined
+        }
+        data-chart-interactive={hover ? '' : undefined}
       >
         {/* No `<title>`: it renders as the browser's own bubble, which drifts in
             after a second and sits on top of the crosshair readout this chart
@@ -267,6 +410,18 @@ export function TimeSeriesChart({
             opacity={skin.gridOpacity}
           />
         ))}
+
+        {range && (
+          <rect
+            x={Math.min(plot.sx(range.start.tick), plot.sx(range.end.tick))}
+            y={box.padT}
+            width={Math.max(1, Math.abs(plot.sx(range.end.tick) - plot.sx(range.start.tick)))}
+            height={baseY - box.padT}
+            fill={skin.ink}
+            opacity="0.08"
+            data-chart-range=""
+          />
+        )}
 
         {wedgePath && (
           <path d={wedgePath} fill={wedge!.color ?? skin.ink} opacity={wedge!.opacity ?? 0.12} />
@@ -296,39 +451,6 @@ export function TimeSeriesChart({
         })}
 
         {overlay?.(plot)}
-
-        {/* The face's own rails, where the economy left the dial. Drawn after
-            the trace so the excursion is visibly ABOVE the line it crossed —
-            which is the whole reading. */}
-        {[
-          y.faceHi === null ? null : { at: y.faceHi, label: 'DIAL LIMIT' },
-          y.faceLo === null ? null : { at: y.faceLo, label: 'DIAL LIMIT' },
-        ].map((rail) =>
-          rail === null ? null : (
-            <g key={`face-${rail.at}`} opacity="0.8">
-              <line
-                x1={box.padL}
-                x2={width - box.padR}
-                y1={plot.sy(rail.at)}
-                y2={plot.sy(rail.at)}
-                stroke={register === 'terminal' ? 'var(--color-terminal-alert)' : 'var(--color-dossier-warn)'}
-                strokeWidth="0.8"
-                strokeDasharray="4 3"
-              />
-              <text
-                x={width - box.padR}
-                y={plot.sy(rail.at) - 2.5}
-                textAnchor="end"
-                fontSize="7"
-                fontFamily="var(--font-mono)"
-                letterSpacing="0.5"
-                fill={register === 'terminal' ? 'var(--color-terminal-alert)' : 'var(--color-dossier-warn)'}
-              >
-                {rail.label}
-              </text>
-            </g>
-          ),
-        )}
 
         {rules.map((rule, i) => {
           const p = rule.axis === 'y' ? plot.sy(rule.at) : plot.sx(rule.at)
@@ -387,7 +509,29 @@ export function TimeSeriesChart({
           {formatTick(plot.x1)}
         </text>
 
-        {cursor && (
+        {range ? (
+          <g>
+            {[range.start, range.end].map((point) => (
+              <g key={`selection-${point.tick}`}>
+                <line
+                  x1={plot.sx(point.tick)}
+                  x2={plot.sx(point.tick)}
+                  y1={box.padT}
+                  y2={baseY}
+                  stroke={skin.ink}
+                  strokeWidth="0.8"
+                  opacity="0.7"
+                />
+                <circle
+                  cx={plot.sx(point.tick)}
+                  cy={plot.sy(point.value)}
+                  r="2.4"
+                  fill={lead?.color ?? skin.ink}
+                />
+              </g>
+            ))}
+          </g>
+        ) : cursor ? (
           <g>
             <line
               x1={plot.sx(cursor.tick)}
@@ -400,18 +544,39 @@ export function TimeSeriesChart({
             />
             <circle cx={plot.sx(cursor.tick)} cy={plot.sy(cursor.value)} r="2.2" fill={lead?.color ?? skin.ink} />
           </g>
-        )}
+        ) : null}
       </svg>
 
-      {cursor && (
+      {range ? (
+        <div
+          className={`pointer-events-none absolute right-1 top-1 max-w-[calc(100%-0.5rem)] border px-2 py-1 font-mono text-[9px] leading-relaxed ${skin.readout}`}
+          role="status"
+          aria-live="polite"
+          data-chart-range-readout=""
+        >
+          <div className="whitespace-nowrap">
+            {formatTick(range.start.tick)} → {formatTick(range.end.tick)}
+          </div>
+          <div className="whitespace-nowrap tabular-nums">
+            {rangeReading(range.start.value)} → {rangeReading(range.end.value)}
+          </div>
+          <div className="whitespace-nowrap tabular-nums">
+            Δ {range.change > 0 ? '+' : ''}{rangeReading(range.change)} · {range.quarters}Q
+          </div>
+          <div className="whitespace-nowrap tabular-nums opacity-60">
+            RANGE {rangeReading(range.low)}…{rangeReading(range.high)} · ESC TO CLEAR
+          </div>
+        </div>
+      ) : cursor ? (
         <div
           className={`pointer-events-none absolute right-1 top-1 border px-2 py-1 font-mono text-[9px] leading-relaxed ${skin.readout}`}
         >
           <div>{formatTick(cursor.tick)}</div>
           <div className="tabular-nums">{reading(cursor.value)}</div>
           {hoverDetail?.(cursor)}
+          {rangeSelection && <div className="opacity-60">DRAG TO COMPARE</div>}
         </div>
-      )}
+      ) : null}
       <p className="sr-only">{summary}</p>
     </div>
   )

@@ -1,6 +1,6 @@
 # ADR-0016 — A chart frames the dial face; only the dial obeys it
 
-**Status:** Accepted · **Date:** M6.5 · **Refines:** [ADR-0006](0006-fixed-dial-faces.md)
+**Status:** Superseded by [ADR-0024](0024-charts-own-their-analytical-scale.md) · **Date:** M6.5 · **Refines:** [ADR-0006](0006-fixed-dial-faces.md)
 
 ## Context
 

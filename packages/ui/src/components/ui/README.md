@@ -20,9 +20,10 @@ This folder is the shared, role-based interface layer for the game. Import from
 - `TimeSeriesChart` is **the** painter for anything over time — lines, areas, uncertainty
   ribbons, the region between two series — in any of the three registers. It replaced five
   hand-rolled charts that disagreed about the y-axis, the hover readout and the accessible
-  summary. Geometry lives in `ui/src/plot.ts`; pass `face` to frame against a dial (it extends
-  past it rather than clamping — ADR-0016), `include` to pin zero or an index baseline,
-  `rules` for reference lines, and `overlay` for instrument-specific ink.
+  summary. Geometry lives in `ui/src/plot.ts`; the chart scales the displayed record rather
+  than borrowing a dial face (ADR-0024), `include` pins zero or an index baseline, `rules`
+  add reference lines, and `overlay` adds instrument-specific ink. Every chart with point
+  inspection also supports drag or Shift+Arrow range comparison.
 - `LineChart` is a compact labelled preset over it, for dense bays.
 - `DonutChart` and `StackedAreaChart` paint what `ui/src/shares.ts` returns.
 - All of them are exact-data visualizations; their callers own the subject matter, labels,

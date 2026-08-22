@@ -1,8 +1,8 @@
 /**
  * The painter's contract. Geometry is held by `tests/ui/plot.test.ts` — what
- * is asserted here is only what a render can still get wrong: that the face's
- * limit is CONFESSED when the axis extends past it, that every register paints
- * something, and that an accessible reading survives.
+ * is asserted here is only what a render can still get wrong: that a chart
+ * does not resurrect dial-limit chrome, that every register paints something,
+ * and that an accessible reading survives.
  *
  * jsdom has no layout engine, so nothing here can prove the chart fits its
  * slot. That is `verify-the-wall`'s job and it is not optional.
@@ -17,33 +17,26 @@ const calm = [
   { tick: 4, value: 95 },
   { tick: 8, value: 88 },
 ]
-/** the measured price_fuel excursion against its 40–130 face */
+/** the measured price_fuel excursion the old chart flattened at 130 */
 const shock = [...calm, { tick: 12, value: 152.1 }]
-const FUEL_FACE = { lo: 40, hi: 130 }
 
 describe('TimeSeriesChart', () => {
-  it('draws the excursion and names the dial it left', () => {
+  it('draws the excursion on its own scale without dial-limit chrome', () => {
     const html = renderToStaticMarkup(
-      <TimeSeriesChart traces={[{ key: 'fuel', points: shock }]} face={FUEL_FACE} summary="Fuel prices." />,
+      <TimeSeriesChart traces={[{ key: 'fuel', points: shock }]} pad={0.08} summary="Fuel prices." />,
     )
-    expect(html).toContain('DIAL LIMIT')
-    // the whole reading is that the trace goes PAST the ruled limit, so a
-    // clamp reintroduced here would leave the line flat along it
+    expect(html).not.toContain('DIAL LIMIT')
+    expect(html).toContain('<path')
     expect(html).not.toMatch(/NaN|Infinity|undefined/)
   })
 
-  it('says nothing about a dial the economy never left', () => {
+  it('exposes point and range keyboard inspection when interactive', () => {
     const html = renderToStaticMarkup(
-      <TimeSeriesChart traces={[{ key: 'fuel', points: calm }]} face={FUEL_FACE} summary="Fuel prices." />,
+      <TimeSeriesChart traces={[{ key: 'fuel', points: calm }]} summary="Fuel prices." hover />,
     )
-    expect(html).not.toContain('DIAL LIMIT')
-    // The quiet century is still drawn against the whole face rather than
-    // auto-scaled to itself: gridlines start at the face's floor, and none of
-    // them is anywhere near the data's own minimum of 60. (The rails
-    // themselves are held numerically in tests/ui/plot.test.ts — labels are
-    // readable multiples, so a rail at 130 is not necessarily printed.)
-    expect(html).toContain('>40<')
-    expect(html).toContain('>120<')
+    expect(html).toContain('tabindex="0"')
+    expect(html).toContain('aria-keyshortcuts="ArrowLeft ArrowRight Home End Shift+ArrowLeft Shift+ArrowRight Escape"')
+    expect(html).toContain('data-chart-interactive=""')
   })
 
   it('carries the caller’s reading for assistive technology, without a native bubble', () => {
