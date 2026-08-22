@@ -167,6 +167,14 @@ export function observe(state: TrueState): PublishedState {
     countryAuthored: state.params.authored === true,
     rules: { ...state.meta.rules },
     indicators,
+    // the industrial census, as released. Cloned rather than shared: every
+    // print holds two records, and a caller that mutated one would be editing
+    // the office's own archive.
+    industry: state.stats.industry.map((print) => ({
+      ...print,
+      valueAdded: { ...print.valueAdded },
+      employment: { ...print.employment },
+    })),
     dials: structuredClone(state.gov.dials),
     spendingRules: structuredClone(state.gov.spendingRules),
     treasury: {

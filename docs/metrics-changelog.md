@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 30)
+## Current contract (schema 31)
 
 ### Inputs
 
@@ -166,6 +166,30 @@ Each published point carries `{ forQtr, publishedAt, value, revision, errorBand 
 additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
 rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal ticker.
 
+### Outputs — the industrial census (fogged, and not an indicator)
+
+`PublishedState.industry`, since v31. The one fogged output that is a **vector** rather than an
+indicator series: one release carries two tables over `SECTOR_IDS`.
+
+| Table | Unit | Underlying truth |
+|---|---|---|
+| `valueAdded` | real output at 1946 prices | per-industry value added, `output × (1 − Σᵢ coeff[i][j])` — sums to `flows.realGdp` **exactly** in the truth |
+| `employment` | millions of people | `Sector.employment`; sums to the whole employed workforce, of which `payrolls` is the ex-agricultural part |
+
+Unlocks at **0.30** statistical capacity (`INDUSTRY_CENSUS_FUNDED_AT`), on the establishment
+survey's rung beside `payrolls` and `capital_stock`, and at or below `technology_attainment`
+(0.45), whose own gate already assumes an industrial census beneath it. Each release carries
+`{ forQtr, publishedAt, revision, errorBand, valueAdded, employment }` and runs on the office's
+ordinary clock — the same lags, the same three revisions, the same `noiseScale(capacity)`.
+`errorBand` is a **fraction** of each figure rather than an absolute half-width, and every
+industry is drawn independently, so the published parts do **not** sum to the published GDP.
+
+It is not an indicator because it cannot be one honestly: five sectors × two tables is ten
+dials against six rack strips of headroom, and a sector share has no fixed dial face (ADR-0006)
+when the catalogue's countries open anywhere between 5% and 60% agricultural. Shown in the
+**industrial census** overlay — donut for the release, stacked bands for the century, and the
+two shares side by side in a table, which is the only place the dual economy reads as one fact.
+
 ### Outputs — exact (no fog)
 
 | Output | Since | Contents |
@@ -211,6 +235,29 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 31 — The industrial census
+
+- **Outputs +**: `PublishedState.industry` — value added and employment by sector, fogged,
+  unlocking at **0.30** statistical capacity. GDP read down the PRODUCTION side: the wall can
+  say output grew, and nothing on it could say whether the country growing was agrarian or
+  industrial. A vector release rather than a family of indicators (see the contract section
+  above for why), so the wall's rack is unchanged and `INDICATOR_IDS` is unchanged.
+- **Internal state +**: `StatRecord.industry` (the worksheet — exact, at measurement time) and
+  `StatsOffice.industry` (the releases). `sectorValueAdded(state)` in `pipeline/derive.ts` is the
+  shared arithmetic: `output × (1 − Σᵢ coeff[i][j])`, which is what `production` already sums for
+  the headline, so the worksheet is an identity rather than a second estimate of GDP.
+- **Base prices, deliberately.** A commodity boom raises energy's *nominal* share without anybody
+  producing more energy, and the question this figure exists to answer is about volumes. This also
+  makes it consistent with the expenditure accounts, which are shares of real final expenditure.
+- **Accounting boundary**: value added, not gross output. Gross output double-counts everything
+  the I/O table moves between industries, so a country that industrialises would appear to grow
+  its economy simply by lengthening its own supply chains.
+- **Pipeline**: unchanged. Additive measurement on new `obs:industry:*` substreams orthogonal to
+  the economic RNG, plus the schema stamp — `pnpm diff-state --moved-only` reported
+  `meta.schemaVersion` and nothing else on both golden replays.
+- **Compatibility**: saves are replay logs, so every existing save reopens; the census is
+  rebuilt from the replay like every other statistical output.
 
 ### schema 30 — Schools build a slow human-capital stock
 

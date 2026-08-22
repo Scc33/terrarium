@@ -14,6 +14,7 @@ import type {
   ElectionResult,
   GameRules,
   IndicatorId,
+  IndustryPrint,
   InstitutionId,
   NewsItem,
   OutlaySplit,
@@ -22,12 +23,14 @@ import type {
   Qtr,
   Ratio,
   RevenueSplit,
+  SectorId,
   StatPrint,
   SpendingRules,
 } from '@terrarium/engine'
 
 export {
   INDICATOR_IDS,
+  SECTOR_IDS,
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
   BLOC_IDS,
@@ -39,7 +42,7 @@ export {
 export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
-export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord }
+export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId }
 
 /** One quarter of the government's own record of itself. */
 export type PolicyPoint = PolicyRecord & { tick: Qtr }
@@ -53,6 +56,13 @@ export interface IndicatorSeries {
   unit: string
   points: IndicatorPoint[]
 }
+
+/** One release of the industrial census — the production side of the same
+ * output the headline measures, by industry. Fogged like everything the office
+ * compiles: lagged, noisy, revised, and absent entirely until the
+ * establishment survey is funded. See `IndustryPrint` in the engine for why
+ * this is a vector release rather than a family of indicators. */
+export type IndustryPoint = IndustryPrint
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
@@ -138,6 +148,12 @@ export interface PublishedState {
   rules: GameRules
   /** only funded indicators appear at all — unless `rules.fullInstrumentation` */
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
+  /** the industrial census, in publication order — value added and heads at
+   * work by industry. Empty until the establishment survey is funded
+   * (`INDUSTRY_CENSUS_FUNDED_AT`), which is the same thing every other
+   * unfunded survey says: the country has industries, the ministry has no
+   * means of counting them apart. */
+  industry: IndustryPoint[]
   /** you always know your own settings */
   dials: DialState
   /** Exact standing appropriations; the economic denominator remains fogged. */

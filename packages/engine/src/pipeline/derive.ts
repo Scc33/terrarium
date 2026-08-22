@@ -92,6 +92,32 @@ export function potentialOutput(s: Sector): number {
   return s.tfp * Math.pow(Math.max(s.capital, 1e-9), CAPITAL_ELASTICITY) * Math.pow(Math.max(s.employment, 1e-9), LABOR_ELASTICITY)
 }
 
+/**
+ * Real value added by industry, at base prices — GDP read down the production
+ * side. A column of the I/O table sums to the intermediate input each unit of
+ * that industry's gross output consumes, so `1 − Σᵢ coeff[i][j]` is the
+ * industry's technical value-added ratio and this vector sums to
+ * `flows.realGdp` EXACTLY, by the same arithmetic `production` uses for the
+ * headline.
+ *
+ * Base prices, not current, and that is the whole reason it is worth
+ * publishing: a commodity boom raises energy's share of nominal output without
+ * anybody producing more energy, and the question a player asks of this figure
+ * ("am I industrializing?") is about volumes. The coefficients are technical
+ * constants, so nothing here depends on which step last moved a price —
+ * `statistics` recomputes the same number `production` did.
+ */
+export function sectorValueAdded(state: TrueState): Record<SectorId, number> {
+  const out = {} as Record<SectorId, number>
+  for (let j = 0; j < SECTOR_IDS.length; j++) {
+    const sid = SECTOR_IDS[j]
+    let intermediate = 0
+    for (let i = 0; i < SECTOR_IDS.length; i++) intermediate += state.io.coeff[i][j]
+    out[sid] = state.sectors[j].output * (1 - intermediate)
+  }
+  return out
+}
+
 /** How much of the currently reachable world technique is operating at home.
  * Each sector is compared with its own exposure-adjusted frontier, then
  * weighted by current output. Unlike a 1946-base productivity index this can

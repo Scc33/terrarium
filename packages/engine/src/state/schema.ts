@@ -569,6 +569,39 @@ export interface NewsItem {
   tone: 'good' | 'bad' | 'neutral'
 }
 
+/**
+ * One quarter of the industrial census, exactly as the office released it —
+ * the PRODUCTION side of the same output the headline measures. `gdp_growth`
+ * says the economy grew; this says which industries grew it and who they put
+ * to work, which is the only form in which the question "what kind of country
+ * is this becoming" can be asked.
+ *
+ * It is a vector rather than a family of indicators on purpose. Five sectors
+ * times two tables is ten dials, and the wall has room for six more strips in
+ * total; more to the point, a sector share has no honest FIXED dial face
+ * (ADR-0006) when the countries in the catalogue open anywhere between 5% and
+ * 60% agricultural. The census is paperwork, so it is read as paperwork.
+ *
+ * Each industry is estimated separately, so the parts do NOT sum to the
+ * published GDP and the employment column does not sum to the published
+ * payrolls — the same confession the expenditure accounts make (§6.1). The
+ * composition views renormalize rather than pretend otherwise.
+ */
+export interface IndustryPrint {
+  forQtr: Qtr // period measured
+  publishedAt: Qtr // period released
+  revision: number // 0 = first print
+  /** half-width the office confesses, as a FRACTION of each figure — the
+   * industries differ by an order of magnitude in size, so one absolute band
+   * honest about services would print energy negative. 0 = it cannot say. */
+  errorBand: number
+  /** real value added at base prices, by industry. The truth behind this sums
+   * exactly to real GDP; these estimates do not. */
+  valueAdded: Record<SectorId, Money>
+  /** people at work, millions, by industry */
+  employment: Record<SectorId, number>
+}
+
 /** One quarter's measurable truth, filed at measurement time. The office
  * revises against THIS worksheet later — and the capacity that existed when
  * the quarter happened decides forever whether it was surveyed at all. */
@@ -626,6 +659,12 @@ export interface StatRecord {
    * this number is supposed to notice. */
   labourProductivity: number
   capitalTotal: Money
+  /** the industrial census's worksheet: real value added at base prices and
+   * heads at work, by industry. Value added sums to `realGdp` exactly — it is
+   * the same GDP read down the production side rather than the expenditure
+   * side — and employment sums to the whole employed workforce, of which
+   * `payrolls` above is the ex-agricultural part. */
+  industry: Record<SectorId, { valueAdded: Money; employment: number }>
   /** output-weighted domestic technique relative to the sector-adjusted world frontier */
   technologyAttainment: number
   confConsumer: Ratio
@@ -693,6 +732,9 @@ export interface StatsOffice {
   record: StatRecord[]
   /** everything ever published, in publication order */
   series: Partial<Record<IndicatorId, StatPrint[]>>
+  /** the industrial census, in publication order. A vector release rather
+   * than an `IndicatorId`, for the reasons on `IndustryPrint`. */
+  industry: IndustryPrint[]
   news: NewsItem[]
 }
 
@@ -800,7 +842,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 30 // v30: slow human-capital stock + workforce-skills print
+export const SCHEMA_VERSION = 31 // v31: the industrial census — value added and employment by sector
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

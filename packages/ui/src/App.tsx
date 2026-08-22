@@ -14,6 +14,7 @@ import { NewsWire } from './panels/NewsWire'
 import { LedgerOverlay } from './panels/LedgerOverlay'
 import { PolicyOverlay } from './panels/PolicyOverlay'
 import { AccountsOverlay } from './panels/AccountsOverlay'
+import { IndustryOverlay } from './panels/IndustryOverlay'
 import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
@@ -34,6 +35,7 @@ type OverlayKind =
   | 'ledger'
   | 'policy'
   | 'accounts'
+  | 'industry'
   | 'wire'
   | 'study'
   | 'settings'
@@ -249,6 +251,7 @@ export default function App() {
         onCensus={() => setOverlay('census')}
         onFinance={() => setOverlay('finance')}
         onAccounts={() => setOverlay('accounts')}
+        onIndustry={() => setOverlay('industry')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
       <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
@@ -294,6 +297,7 @@ export default function App() {
       {overlay === 'ledger' && <LedgerOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'policy' && <PolicyOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'accounts' && <AccountsOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {overlay === 'industry' && <IndustryOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'wire' && <WireOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'settings' && (
