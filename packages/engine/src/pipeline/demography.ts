@@ -24,6 +24,7 @@ import {
   FERT_SURVIVAL_GAIN,
   FERT_URBAN_GAIN,
   FERTILE_YEARS,
+  HUMAN_CAPITAL_ADJUST_Q,
   MIG_EMIGRATION_CAP_Q,
   MIG_LABOR_GAIN,
   MIG_PERFORMANCE_GAIN_Q,
@@ -147,6 +148,16 @@ export const demography: PipelineStep = {
     const p = d.pyramid
     const living = livingStandard(state)
     const lnLiving = Math.log(Math.max(living, 0.05))
+    // Buildings arrive through fiscal in two years. People learn on a
+    // generational clock, so the stock only closes a fraction of the gap to
+    // the current school system each quarter. This happens before technology
+    // so the same workforce fact prices absorption, staffing and fertility.
+    const humanCapital = clamp(
+      d.humanCapital +
+        HUMAN_CAPITAL_ADJUST_Q * (state.gov.capacity.education - d.humanCapital),
+      0,
+      1,
+    )
 
     // --- vital rates respond to how life actually is ---
     const mortalityIndex = clamp(
@@ -160,7 +171,7 @@ export const demography: PipelineStep = {
         FERT_INCOME_GAIN * Math.max(0, lnLiving) -
         FERT_URBAN_GAIN * Math.max(0, urbanShare - 0.5) -
         FERT_SURVIVAL_GAIN * (1 - mortalityIndex) -
-        FERT_EDU_GAIN * Math.max(0, state.gov.capacity.education - EDUCATION_1946) -
+        FERT_EDU_GAIN * Math.max(0, humanCapital - EDUCATION_1946) -
         FERT_SECULAR_Q * state.meta.tick,
       FERT_MIN,
       FERT_MAX,
@@ -235,6 +246,7 @@ export const demography: PipelineStep = {
         crudeBirthRate,
         crudeDeathRate,
         workerShareMult,
+        humanCapital,
         classShares,
       },
       cohorts: classSizesFrom(pyramid, classShares, state.cohorts),

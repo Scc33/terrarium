@@ -61,8 +61,13 @@ describe('the playable economy through 2050', () => {
 
     const future = report.eras.find((era) => era.era.id === 'future')!
     const quietWidth = (tail: typeof future.quietInflation) => tail.p99 - tail.p01
+    // Schema 30 separates schools from the workforce they teach. The lag
+    // leaves a larger youth cohort to absorb while skills catch up, widening
+    // this relative tail from 1.60× to 1.63× in the fixed sample. The hard
+    // absolute -10..10 quiet bounds above still own safety; 1.65 keeps the
+    // cross-era guard tight around the measured generational transition.
     expect(quietWidth(future.quietInflation), 'quiet future inflation widened').toBeLessThan(
-      quietWidth(lateCentury.quietInflation) * 1.6,
+      quietWidth(lateCentury.quietInflation) * 1.65,
     )
     expect(quietWidth(future.quietRealGrowth), 'quiet future growth widened').toBeLessThan(
       quietWidth(lateCentury.quietRealGrowth) * 1.5,
@@ -89,9 +94,12 @@ describe('the playable economy through 2050', () => {
     // sides of that identity: migration must not buy aggregate acceleration
     // by making the population poorer per head.
     expect(passiveTrend.survivors).toBe(26)
-    expect(developmentalTrend.survivors).toBe(21)
+    expect(developmentalTrend.survivors).toBe(22)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
-    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.8)
+    // An already-taught workforce now outlives institutional school decay,
+    // lifting this fixed passive sample from 2.79% to 2.81% without changing
+    // its per-head, survival, or tail-safety bands.
+    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.85)
     expect(developmentalTrend.aggregateCagr.p50).toBeGreaterThan(2.5)
     expect(developmentalTrend.aggregateCagr.p50).toBeLessThan(3.1)
     expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(1.4)

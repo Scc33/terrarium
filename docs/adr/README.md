@@ -35,3 +35,4 @@ the old one and update the Status line of both.
 | [0020](0020-the-rules-of-a-run-are-a-set.md) | The rules of a run are a set of independent safeties, not a ladder of modes | Accepted |
 | [0021](0021-the-year-you-take-office.md) | The year you take office is a replay input, and the years before it are governed | Accepted |
 | [0022](0022-migration-is-a-relative-outside-option.md) | Migration is a relative outside-option flow, not a population target | Accepted |
+| [0023](0023-human-capital-is-not-school-capacity.md) | Human capital is a slow stock carried by people, not the school system itself | Accepted |

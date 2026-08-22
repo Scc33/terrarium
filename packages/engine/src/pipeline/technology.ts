@@ -55,11 +55,11 @@ export function frontierGrowthAt(tick: number): number {
  * curve by driving into it.
  */
 export function absorptiveCapacity(state: TrueState): number {
-  const education = state.gov.capacity.education
+  const humanCapital = state.demography.humanCapital
   const opennessFactor =
     1 - ABSORB_OPENNESS_WEIGHT + ABSORB_OPENNESS_WEIGHT * clamp(state.params.openness, 0, 1.5) / 1.5
   return clamp(
-    (ABSORB_BASE + ABSORB_EDU_GAIN * education) * opennessFactor * creativeDestruction(state),
+    (ABSORB_BASE + ABSORB_EDU_GAIN * humanCapital) * opennessFactor * creativeDestruction(state),
     0,
     1,
   )
@@ -106,7 +106,7 @@ export function researchAllocation(state: TrueState): ResearchAllocation {
     state.gov.dials.spending.research / Math.max(state.flows.nominalGdp, 1e-9)
   const delivery = adminEffectiveness(state.gov.capacity.administrative)
   const staffing =
-    RESEARCH_SKILL_FLOOR + (1 - RESEARCH_SKILL_FLOOR) * state.gov.capacity.education
+    RESEARCH_SKILL_FLOOR + (1 - RESEARCH_SKILL_FLOOR) * state.demography.humanCapital
   const effectiveShare = clamp(
     appropriatedShare * delivery * staffing,
     0,

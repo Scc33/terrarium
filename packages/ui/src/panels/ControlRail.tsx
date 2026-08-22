@@ -381,14 +381,14 @@ const CAP_TIPS: Record<CapacityId, string> = {
   statistical: 'Funds measurements, gets reports to you faster and makes them more accurate.',
   administrative: 'How much programme money reaches its target instead of being lost on the way.',
   education:
-    'Builds skills, helps the country adopt better technology and gradually lowers birth rates.',
+    'Builds schools. Their graduates raise workforce skills over decades; skilled people help the country use better technology, staff research and gradually lower birth rates.',
 }
 
 const CAP_EFFECTS: Record<CapacityId, string> = {
   tax: 'More of every posted tax rate is actually collected.',
   statistical: 'Fits new wall instruments, then shortens lags and narrows error bands.',
   administrative: 'More programme spending survives delivery instead of leaking away.',
-  education: 'Raises technology absorption and steadily changes the demographic future.',
+  education: 'Workforce skills rise slowly, then lift technology absorption, research and social organization while changing the demographic future.',
 }
 
 function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {

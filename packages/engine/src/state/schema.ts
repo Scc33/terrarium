@@ -167,6 +167,9 @@ export const INDICATOR_IDS = [
   'price_fuel',
   'unemployment',
   'labor_force_participation',
+  /** the slow stock carried by the workforce, built by schools over a
+   * generation rather than identical to the school system itself */
+  'human_capital',
   'payrolls',
   'capital_stock',
   'technology_attainment',
@@ -276,6 +279,10 @@ export interface DemographyState {
    * participation, so the dividend and the aging squeeze reach the labor
    * market through one number */
   workerShareMult: number
+  /** workforce knowledge and skills, 0..1. Schools are the institution that
+   * replenishes this stock; educated people persist when a building project
+   * finishes or a ministry later decays. */
+  humanCapital: Ratio
   /** how the non-retired population splits into the four working classes */
   classShares: Record<WorkingClassId, Ratio>
 }
@@ -603,6 +610,8 @@ export interface StatRecord {
    * LF / population term in the exact per-capita growth identity; unlike the
    * live head count, the published share comes from the labour force survey. */
   laborForceParticipation: Ratio
+  /** workforce knowledge and skills, filed by the education/labour census */
+  humanCapital: Ratio
   payrolls: number // millions, ex-agri
   /** annualized real output per employed person, economy-wide and INCLUDING
    * agriculture. The published indicator indexes it against its own 1946
@@ -791,7 +800,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 29 // v29: performance-relative migration + immigration policy
+export const SCHEMA_VERSION = 30 // v30: slow human-capital stock + workforce-skills print
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

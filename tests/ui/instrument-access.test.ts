@@ -56,7 +56,7 @@ describe('instrument access', () => {
       indicators: ['price_food', 'price_fuel'],
     })
     // the expenditure accounts are one publication, so the rail promises all
-    // three of them — plus the two labour force survey returns they share a rung with
+    // three of them — plus the labour-force and education returns they share a rung with
     expect(nextInstrumentUnlock(0.32)).toEqual({
       fundedAt: 0.35,
       indicators: [
@@ -65,6 +65,7 @@ describe('instrument access', () => {
         'export_share',
         'unemployment',
         'labor_force_participation',
+        'human_capital',
       ],
     })
     expect(nextInstrumentUnlock(0.55)).toBeNull()

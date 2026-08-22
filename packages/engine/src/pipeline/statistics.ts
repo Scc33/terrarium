@@ -164,6 +164,14 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 1.5,
   },
   {
+    id: 'human_capital',
+    trueValue: (h, q) => h[q].humanCapital * 100,
+    // Completion records are reconciled against a labour-force sample. The
+    // uncertainty is in index points, not proportional to how few skills a
+    // country inherited.
+    baseSd: 2.5,
+  },
+  {
     id: 'payrolls',
     trueValue: (h, q) => h[q].payrolls,
     baseSd: 0.05,
@@ -311,6 +319,7 @@ function recordOf(state: TrueState): StatRecord {
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
     laborForceParticipation: population > 1e-9 ? totalLaborForce(state) / population : 0,
+    humanCapital: state.demography.humanCapital,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
     labourProductivity: (() => {
       const employed = sectors.reduce((s, x) => s + x.employment, 0)
