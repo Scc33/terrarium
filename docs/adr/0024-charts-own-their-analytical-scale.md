@@ -26,15 +26,16 @@ that the shared `TimeSeriesChart` was introduced to remove.
 **A dial keeps a fixed face. A chart owns the analytical scale of the record it displays.**
 
 - `TimeSeriesChart` has no dial-face input and paints no DIAL LIMIT. Its y-axis derives from the
-  plotted points plus explicit, subject-matter anchors supplied through `include` (zero for a
-  signed rate, 100 for an index, and so on). It never clamps a point.
+  plotted points plus explicit, subject-matter anchors supplied through `include` (known rule
+  lines from `FACE_MARK`, 100 for a 1946-base index, and so on). It never clamps a point.
 - Changing 40Q, ALL, or a rolling window may change the y-axis. The printed axis numbers make
   that scale explicit; visual position is comparable within the figure, not to an analog needle
   or a different window.
 - Every chart that offers point inspection also offers range inspection. Pointer drag and
   Shift+Arrow choose two actual points from the lead series. The shared painter shades the
   interval and reports the start and end readings, absolute change, elapsed quarters, and the
-  low/high readings observed inside it. Escape or a click clears the selection.
+  low/high readings observed inside it. Short strips use the same facts in a compact readout so
+  the annotation does not hide the trace. Escape or a click clears the selection.
 - Selection is inspection, not zoom. The axis does not rescale around the selected interval,
   because moving the trace while the player is still choosing endpoints makes the gesture a
   moving target.

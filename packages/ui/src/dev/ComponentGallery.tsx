@@ -101,12 +101,14 @@ export function ComponentGallery() {
           />
           <ChartFrame
             title="NATIONAL OUTPUT"
-            detail="1946=100 · PUBLISHED"
+            detail="1946=100 · COMPACT RANGE"
             value="112.0"
             legend={[{ label: 'OUTPUT', color: 'var(--color-dossier-felt)' }]}
             summary="National output rose from 100 to 112 between 1946 and 1950."
           >
-            <div className="p-2"><LineChart data={TREND} primaryColor="var(--color-dossier-felt)" /></div>
+            <div className="max-w-[276px] p-2">
+              <LineChart data={TREND} height={54} primaryColor="var(--color-dossier-felt)" />
+            </div>
           </ChartFrame>
           {/* The case the whole chart consolidation exists for: a crisis must
               remain fully drawable. The chart owns its analytical scale and

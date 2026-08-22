@@ -37,6 +37,21 @@ describe('TimeSeriesChart', () => {
     expect(html).toContain('tabindex="0"')
     expect(html).toContain('aria-keyshortcuts="ArrowLeft ArrowRight Home End Shift+ArrowLeft Shift+ArrowRight Escape"')
     expect(html).toContain('data-chart-interactive=""')
+    expect(html).toContain('touch-pan-y')
+    expect(html).toContain('data-chart-range-layout="full"')
+  })
+
+  it('selects the compact readout contract for short charts', () => {
+    const html = renderToStaticMarkup(
+      <TimeSeriesChart
+        traces={[{ key: 'fuel', points: calm }]}
+        height={54}
+        summary="Fuel prices."
+        hover
+      />,
+    )
+
+    expect(html).toContain('data-chart-range-layout="compact"')
   })
 
   it('carries the caller’s reading for assistive technology, without a native bubble', () => {

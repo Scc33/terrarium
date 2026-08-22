@@ -23,4 +23,37 @@ describe('TerminalTicker', () => {
     expect(html).toContain('R3M, R6M and R12M')
     expect(html).toContain('The readout below remains the latest raw published figure')
   })
+
+  it('preserves nonzero semantic references without borrowing the dial face', () => {
+    const priceSeries: IndicatorSeries = {
+      id: 'price_fuel',
+      label: 'Fuel prices',
+      unit: '1946=100',
+      points: [
+        { forQtr: 8, publishedAt: 8, value: 132, revision: 0, errorBand: 2 },
+        { forQtr: 9, publishedAt: 9, value: 140, revision: 0, errorBand: 2 },
+      ],
+    }
+    const frontierSeries: IndicatorSeries = {
+      id: 'technology_attainment',
+      label: 'Technology attained',
+      unit: '% frontier',
+      points: [
+        { forQtr: 8, publishedAt: 8, value: 82, revision: 0, errorBand: 2 },
+        { forQtr: 9, publishedAt: 9, value: 86, revision: 0, errorBand: 2 },
+      ],
+    }
+
+    const price = renderToStaticMarkup(
+      <TerminalTicker indicator="price_fuel" series={priceSeries} now={9} />,
+    )
+    const frontier = renderToStaticMarkup(
+      <TerminalTicker indicator="technology_attainment" series={frontierSeries} now={9} />,
+    )
+
+    expect(price).toContain('1946 BASE')
+    expect(frontier).toContain('FRONTIER')
+    expect(price).not.toContain('DIAL LIMIT')
+    expect(frontier).not.toContain('DIAL LIMIT')
+  })
 })

@@ -6,24 +6,30 @@
  */
 
 import type { PublishedState } from '@terrarium/observation'
-import { LineChart } from '../components/ui'
+import { LineChart, Tooltip } from '../components/ui'
 import { WallTile } from '../components/WallTile/WallTile'
 
 export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () => void }) {
   const books = pub.books.slice(-40)
+  const openHelp = 'The government’s exact accounts. BAL is revenue minus spending, DEBT is money still owed, and FX is foreign money held in reserve. Open for the full history.'
   return (
     <WallTile
-      onClick={onOpen}
-      title="The government’s exact accounts. BAL is revenue minus spending, DEBT is money still owed, and FX is foreign money held in reserve. Select for the full history."
       className="border-2 border-dossier-brass bg-dossier-paper hover:border-dossier-ink"
       bodyClassName="px-3 py-1.5"
       header={
-        <div className="flex w-full items-baseline justify-between border-b border-dossier-ink/20 px-3 py-1.5">
-          <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
-            TREASURY LEDGER
-          </span>
-          <span className="font-mono text-[9px] tracking-[0.15em] text-dossier-ink/50">OPEN →</span>
-        </div>
+        <Tooltip content={openHelp}>
+          <button
+            type="button"
+            onClick={onOpen}
+            aria-label="Open the full treasury ledger"
+            className="flex w-full items-baseline justify-between border-b border-dossier-ink/20 px-3 py-1.5 text-left hover:bg-dossier-brass/10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass"
+          >
+            <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
+              TREASURY LEDGER
+            </span>
+            <span className="font-mono text-[9px] tracking-[0.15em] text-dossier-ink/50">OPEN →</span>
+          </button>
+        </Tooltip>
       }
       footer={
         <div className="flex w-full gap-4 border-t border-dossier-ink/20 px-3 py-1 font-mono text-[10px] tabular-nums text-dossier-ink/80">

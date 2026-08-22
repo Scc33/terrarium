@@ -66,6 +66,18 @@ const H = 300
  * hover readout can speak about revisions rather than just a number */
 type TickerPoint = ShapedPoint & { tick: number }
 
+/** Base-year references that are part of the quantity, not the gauge face.
+ * FACE_MARK supplies rule/threshold references such as zero or the frontier;
+ * these six series additionally define 100 as their inherited 1946 level. */
+const INDEX_BASELINE: Partial<Record<IndicatorId, { at: number; label: string }>> = {
+  price_food: { at: 100, label: '1946 BASE' },
+  price_fuel: { at: 100, label: '1946 BASE' },
+  productivity: { at: 100, label: '1946 BASE' },
+  income_real: { at: 100, label: '1946 BASE' },
+  terms_of_trade: { at: 100, label: '1946 BASE' },
+  asset_prices: { at: 100, label: '1946 BASE' },
+}
+
 type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12'
 
 const CHART_VIEWS: readonly {
@@ -114,15 +126,16 @@ export function TerminalTicker({
   const complement = complementReading(indicator, latest.value, digits)
 
   const plotted: TickerPoint[] = points.map((p) => ({ ...p, tick: p.forQtr }))
-  // Zero is a semantic reference for signed rates, not a borrowed dial rail.
-  // FACE_MARK owns that meaning already; the chart uses it only when the mark
-  // is actually zero and otherwise scales strictly to the displayed record.
-  const zero = FACE_MARK[indicator]?.at === 0 ? 0 : null
+  // A known baseline or threshold is subject-matter context, not a borrowed
+  // dial rail. Keep it on the analytical scale even when the displayed record
+  // lies wholly to one side: 100 for a base-year index or frontier, zero for a
+  // signed rate, and the rule line for the remaining marked instruments.
+  const reference = FACE_MARK[indicator] ?? INDEX_BASELINE[indicator] ?? null
   // Superseded first prints are still painted as strike marks. They therefore
   // belong to the scale just as much as the current trace and its error band;
   // otherwise an unusually large revision can be clipped outside the SVG.
   const scaleAnchors = [
-    ...(zero === null ? [] : [zero]),
+    ...(reference === null ? [] : [reference.at]),
     ...plotted.filter((point) => point.visiblyRevised).map((point) => point.firstPrint),
   ]
   const banded = plotted.filter((p) => p.errorBand > 0).map((p) => ({ ...p, band: p.errorBand }))
@@ -200,7 +213,7 @@ export function TerminalTicker({
         ribbon={banded.length >= 2 ? { points: banded } : undefined}
         include={scaleAnchors}
         pad={0.08}
-        rules={zero === null ? [] : [{ axis: 'y', at: zero }]}
+        rules={reference === null ? [] : [{ axis: 'y', at: reference.at, label: reference.label }]}
         formatReading={(v) => v.toFixed(digits)}
         formatRange={(v) => v.toFixed(digits)}
         formatTick={qtrLabel}

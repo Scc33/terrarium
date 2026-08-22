@@ -244,6 +244,10 @@ export function TimeSeriesChart({
   const fmt = format ?? ((v: number) => v.toFixed(axisDecimals(y)))
   const reading = formatReading ?? fmt
   const rangeReading = formatRange ?? fmt
+  // Below the full gallery figure, four relaxed rows obscure more context
+  // than they explain. Dense ledger, policy, accounts and census strips use
+  // the same facts in a wrapping one/two-line annotation.
+  const compactRangeReadout = height < 110
 
   const readablePoints = (lead?.points ?? []).filter(
     (point) => Number.isFinite(point.tick) && Number.isFinite(point.value),
@@ -259,11 +263,35 @@ export function TimeSeriesChart({
     setSelectionTicksState(next)
   }
 
-  const pointAtClientX = (clientX: number, svg: SVGSVGElement) => {
+  const pointAtClientPosition = (clientX: number, clientY: number, svg: SVGSVGElement) => {
     if (!lead) return null
-    const rect = svg.getBoundingClientRect()
-    if (!(rect.width > 0)) return null
-    const rawX = ((clientX - rect.left) / rect.width) * width
+    let rawX: number | null = null
+
+    // The SVG keeps its aspect ratio, so its viewBox can be letterboxed inside
+    // the CSS box. The screen CTM includes that meet offset and scale; mapping
+    // against getBoundingClientRect().width alone shifts every snapped release
+    // whenever the slot and the viewBox have different shapes.
+    const ctm = svg.getScreenCTM()
+    if (ctm) {
+      try {
+        const point = svg.createSVGPoint()
+        point.x = clientX
+        point.y = clientY
+        rawX = point.matrixTransform(ctm.inverse()).x
+      } catch {
+        // Detached/test SVGs may expose an incomplete matrix implementation.
+        // The explicit xMidYMid-meet calculation below is the same transform.
+      }
+    }
+
+    if (rawX === null) {
+      const rect = svg.getBoundingClientRect()
+      const scale = Math.min(rect.width / width, rect.height / height)
+      if (!(scale > 0)) return null
+      const meetOffsetX = (rect.width - width * scale) / 2
+      rawX = (clientX - rect.left - meetOffsetX) / scale
+    }
+
     const px = Math.max(box.padL, Math.min(width - box.padR, rawX))
     const tick = plot.x0 + ((px - box.padL) / (width - box.padL - box.padR)) * (plot.x1 - plot.x0)
     return nearestPoint(readablePoints, tick)
@@ -271,7 +299,7 @@ export function TimeSeriesChart({
 
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
     if (!hover || !lead) return
-    const point = pointAtClientX(e.clientX, e.currentTarget)
+    const point = pointAtClientPosition(e.clientX, e.clientY, e.currentTarget)
     if (!point) return
     if (rangeSelection && dragPointer.current === e.pointerId) {
       const anchor = selectionTicksRef.current?.anchor ?? point.tick
@@ -284,7 +312,7 @@ export function TimeSeriesChart({
 
   const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
     if (!hover || !rangeSelection || !lead) return
-    const point = pointAtClientX(e.clientX, e.currentTarget)
+    const point = pointAtClientPosition(e.clientX, e.clientY, e.currentTarget)
     if (!point) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragPointer.current = e.pointerId
@@ -294,7 +322,7 @@ export function TimeSeriesChart({
 
   const finishPointer = (e: PointerEvent<SVGSVGElement>) => {
     if (dragPointer.current !== e.pointerId) return
-    const point = pointAtClientX(e.clientX, e.currentTarget)
+    const point = pointAtClientPosition(e.clientX, e.clientY, e.currentTarget)
     const selection = selectionTicksRef.current
     if (point && selection) {
       const next = { ...selection, focus: point.tick }
@@ -369,15 +397,23 @@ export function TimeSeriesChart({
     // `relative` unconditionally: the hover readout is absolutely positioned,
     // and without a positioned ancestor here it escapes to whichever container
     // happens to have one — which for a docked tile is the whole wall.
-    <div className={`relative ${fill ? 'flex h-full min-h-0 flex-col' : ''} ${className}`}>
+    <div
+      className={`relative ${fill ? 'flex h-full min-h-0 flex-col' : ''} ${className}`}
+      data-chart-range-layout={rangeSelection ? (compactRangeReadout ? 'compact' : 'full') : undefined}
+    >
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
-        className={`block w-full ${fill ? 'min-h-0 flex-1' : ''} ${hover ? 'cursor-crosshair focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px]' : ''}`}
+        className={`block w-full ${fill ? 'min-h-0 flex-1' : ''} ${hover ? 'cursor-crosshair focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-[-2px]' : ''} ${hover && rangeSelection ? 'touch-pan-y' : ''}`}
         onPointerMove={onPointerMove}
         onPointerDown={onPointerDown}
         onPointerUp={finishPointer}
         onPointerCancel={cancelPointer}
+        onClick={(event) => {
+          // Chart inspection is its own action. Do not let a click synthesized
+          // after a drag activate a surrounding card control.
+          if (hover) event.stopPropagation()
+        }}
         onPointerLeave={() => {
           if (dragPointer.current === null && !range) setCursorTick(null)
         }}
@@ -547,12 +583,34 @@ export function TimeSeriesChart({
         ) : null}
       </svg>
 
-      {range ? (
+      {range && compactRangeReadout ? (
+        <div
+          className={`pointer-events-none absolute inset-x-1 top-1 flex flex-wrap items-center gap-x-2 gap-y-0 border px-1.5 py-0.5 font-mono text-[8px] leading-tight ${skin.readout}`}
+          role="status"
+          aria-live="polite"
+          data-chart-range-readout=""
+          data-chart-range-readout-layout="compact"
+        >
+          <span className="whitespace-nowrap">
+            {formatTick(range.start.tick)} → {formatTick(range.end.tick)}
+          </span>
+          <span className="whitespace-nowrap tabular-nums">
+            {rangeReading(range.start.value)} → {rangeReading(range.end.value)}
+          </span>
+          <span className="whitespace-nowrap tabular-nums">
+            Δ {range.change > 0 ? '+' : ''}{rangeReading(range.change)} · {range.quarters}Q
+          </span>
+          <span className="whitespace-nowrap tabular-nums opacity-60">
+            R {rangeReading(range.low)}…{rangeReading(range.high)} · ESC
+          </span>
+        </div>
+      ) : range ? (
         <div
           className={`pointer-events-none absolute right-1 top-1 max-w-[calc(100%-0.5rem)] border px-2 py-1 font-mono text-[9px] leading-relaxed ${skin.readout}`}
           role="status"
           aria-live="polite"
           data-chart-range-readout=""
+          data-chart-range-readout-layout="full"
         >
           <div className="whitespace-nowrap">
             {formatTick(range.start.tick)} → {formatTick(range.end.tick)}
