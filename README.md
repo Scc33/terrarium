@@ -1,55 +1,85 @@
 # Terrarium
 
-You've just taken control of a nation's economy in 1946 — and you can't even see it clearly.
-A browser-based policy game: quarterly decisions, an emergent 5-cohort × 5-sector economy,
-and statistics that are late, noisy, and quietly revised after you've bet your career on them.
+Terrarium is a browser-based economic policy game about governing a country you cannot see
+clearly. Each quarter you set taxes, spending rules, monetary and financial policy, invest in
+state capacity, and attempt reforms while official statistics arrive late, noisy, and subject to
+revision.
 
-Design docs live in [docs/](docs/) — start with [game-description.md](docs/game-description.md),
-then [proposal-1.md](docs/proposal-1.md) (design) and [tech-architecture.md](docs/tech-architecture.md)
-(architecture). The current build implements **M0 + M1**: the full engine skeleton and the
-v0.1 terrarium.
+The simulation is systemic rather than scripted: a five-sector, five-cohort economy connects
+production, trade, finance, technology, demography, and migration, while institutions and social
+blocs turn economic outcomes into political power, favour, elections, coups, and revolts.
+
+![Terrarium's single-screen instrument wall](tests/visual/__screenshots__/dashboard-empty.png)
+
+The current build is playable end to end. Choose a curated, procedural, or player-authored
+country; take office in 1946 or inherit it later in the century; and govern quarterly through
+2050. Runs are deterministic and replayable from their materialized country, seed, standing
+orders, appointment, and action log. Saves are stored in IndexedDB and can be exported or
+imported as JSON.
 
 ## Play it
 
+Requires Node.js 24 or later and pnpm 10.
+
 ```sh
 pnpm install
-pnpm dev        # → http://localhost:5173
+pnpm dev        # http://localhost:5173
 ```
 
-Read the instruments, stage dial changes, advance the quarter. Elections every 16 quarters.
-Saves are `{seed, actionLog}` — autosaved to IndexedDB every turn, exportable as JSON, and
-replayed deterministically on load.
+Choose a posting, read the instrument wall, stage orders in the cabinet, and advance one quarter
+at a time. Investing in the state improves what the government can measure and deliver; the fog
+never disappears by itself.
+
+## Read the design
+
+- [Game description](docs/game-description.md) — the short pitch and design pillars.
+- [Working design](docs/proposal-1.md) — the mechanics and rationale referenced by the code.
+- [Technical architecture](docs/tech-architecture.md) — packages, state, pipeline, tests, and
+  persistence as they exist now.
+- [Country scenarios](docs/country-scenarios.md) — authored and procedural countries, later
+  appointments, and calibration evidence.
+- [Architecture decisions](docs/adr/README.md) — accepted decisions, alternatives, and costs.
+- [Metrics changelog](docs/metrics-changelog.md) — the versioned engine input/output contract.
+
+Superseded planning documents are retained for provenance in
+[docs/archive/](docs/archive/README.md) and are not maintained as current documentation.
 
 ## Workspace
 
 | Package | What it is |
 | --- | --- |
-| `packages/engine` | The sim. Pure TS, zero dependencies, fully deterministic. `init` / `applyActions` / `step`. |
-| `packages/observation` | Presentation-only projection of engine-made prints into `PublishedState`, the only state types the UI may see. |
-| `packages/ui` | React instrument panel. Runs the engine in a Web Worker; renders `PublishedState` only. |
-| `packages/runner` | Headless batch CLI — the balance dashboard. |
-| `packages/fixtures` | Shared countries, scripts, golden snapshots. |
-| `packages/architecture-visualizer` | Code-derived engine atlas: pipeline order, package seams, and module relationships. |
+| `packages/engine` | Pure, deterministic simulation: country recipes, actions, state, and the quarterly pipeline. |
+| `packages/observation` | Presentation-only projection of engine-made releases into `PublishedState`, the only state the UI may see. |
+| `packages/ui` | React instrument wall and cabinet. A Web Worker is the only host that runs the engine. |
+| `packages/runner` | Headless batch and long-horizon stability tools for model calibration. |
+| `packages/fixtures` | Shared country inputs and named policy scripts used by tests and runners. |
+| `packages/architecture-visualizer` | Code-derived atlas of pipeline order, package seams, and module relationships. |
 
-## Commands
+The dependency direction is lint-enforced:
 
-```sh
-pnpm test          # unit + golden + property suites (incl. the M1 exit criteria)
-pnpm typecheck
-pnpm lint          # includes import-boundary rules and the Math.random ban
-pnpm architecture  # scan the source and open the engine atlas on localhost:4174
-pnpm batch -- --runs 1000 --ticks 120 --policy random
-pnpm bless         # re-bless golden snapshots after intentional engine changes
-pnpm diff-state    # see exactly which state variables moved before you bless
+```text
+ui → observation → engine
 ```
 
-## The two claims the tests enforce (M1 exit criteria)
+## Develop and validate
 
-- **A fuel tax raises bread prices** — through energy → transport → agriculture in the
-  input–output table. No scripted arrow exists; `tests/properties/fuel-tax.test.ts` proves it
-  across 60 seeds.
-- **A subsidy in a low-capacity state does more harm than good** — leakage takes most of it,
-  the budget takes all of it; `tests/properties/subsidy.test.ts`.
+```sh
+pnpm test          # unit, golden, property, contract, and pure UI suites
+pnpm typecheck
+pnpm lint          # architectural boundaries and deterministic-runtime rules included
+pnpm coverage      # tests plus the 80% floor over the pure core
+pnpm test:visual   # Playwright screenshots, layout, overflow, and accessibility checks
 
-Plus the standing invariants: replay determinism, no NaN across thousands of runs, budget
-identity, prices bounded.
+pnpm batch -- --runs 1000 --ticks 120 --policy random
+pnpm stability -- --runs 120 --policy all --country all
+pnpm architecture  # scan the source and open the engine atlas
+```
+
+The validation strategy matches the kind of claim being made: exact golden replays catch any
+state movement, statistical properties and runners test behavior across seeds and countries,
+contract tests protect the fog boundary, and Playwright checks the rendered war room in a real
+browser. CI gates changes on typechecking, lint, coverage, and a 200-run random-policy balance
+smoke test.
+
+Before accepting an intentional engine change, inspect `pnpm diff-state -- --moved-only`; only
+then does `pnpm bless` update the golden replays.
