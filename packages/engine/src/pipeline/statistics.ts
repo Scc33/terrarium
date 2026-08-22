@@ -235,6 +235,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'net_migration',
+    trueValue: (h, q) => h[q].netMigrationRate,
+    // Border registers count entries and exits, but a weak office still has
+    // informal crossings and delayed local returns to reconcile.
+    baseSd: 1.5,
+  },
+  {
     id: 'birth_rate',
     trueValue: (h, q) => h[q].birthRate,
     baseSd: 2.5,
@@ -320,6 +327,8 @@ function recordOf(state: TrueState): StatRecord {
     incomeMeanReal: realIncomePerHead(state).mean,
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
+    netMigrationRate:
+      population > 1e-9 ? (4000 * state.demography.netMigrationQ) / population : 0,
     population,
     pyramid: [...state.demography.pyramid],
     termsOfTrade: termsOfTrade(state),

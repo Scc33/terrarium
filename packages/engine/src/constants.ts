@@ -191,6 +191,9 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   gini: 0.55,
   // national accounts and a price index between them give you the average
   income_real: 0.45,
+  // border and civil-registration returns are reconciled with the same
+  // population register that produces births and deaths
+  net_migration: 0.3,
   birth_rate: 0.3,
   death_rate: 0.3,
   terms_of_trade: 0.4,
@@ -418,10 +421,34 @@ export const FERT_SURVIVAL_GAIN = 1.5
 export const FERT_SECULAR_Q = 0.0015 // norms/contraception drift per quarter
 export const FERTILE_YEARS = 25 // width of the childbearing window
 
-/** migration: the pressure valve. Slack labor markets push the young out;
- * tight ones pull them in. Millions/quarter, capped. */
-export const MIG_GAIN = 0.02
-export const MIG_CAP_Q = 0.003 // as a share of total population
+/** Migration is a relative outside-option calculation. The inherited country
+ * starts neutral; thereafter households compare domestic welfare progress to
+ * a baseline that rides part of the global technology frontier. This avoids
+ * granting rich recipes a permanent inflow before the player has governed a
+ * quarter, while still making outperformance cumulative and worth defending. */
+export const MIG_WORLD_FRONTIER_SHARE = 0.75
+/** quarterly net-flow response per unit log welfare lead over the outside option */
+export const MIG_PERFORMANCE_GAIN_Q = 0.0035
+/** cap the log comparison before it becomes an implausible century-long force */
+export const MIG_PERFORMANCE_GAP_CAP = 1
+/** slack labor markets still push the young out; tight ones pull them in */
+export const MIG_LABOR_GAIN = 0.02
+/** people may leave at up to 1.2% of the population per year. The immigration
+ * policy does not touch this side of the flow. */
+export const MIG_EMIGRATION_CAP_Q = 0.003
+/** inherited annual immigration ceiling and the widest order the cabinet can
+ * write, both as shares of resident population */
+export const IMMIGRATION_LIMIT_DEFAULT = 0.012
+export const IMMIGRATION_LIMIT_MAX = 0.02
+
+/** Sustained high immigration is politically distributive rather than a flat
+ * approval penalty. Employers gain; organized labor minds the extra supply;
+ * only inflows above an ordinary churn rate add broad public-order pressure. */
+export const MIG_LAND_FAVOR_GAIN = 4
+export const MIG_INDUSTRIAL_FAVOR_GAIN = 8
+export const MIG_UNION_FAVOR_LOSS = 12
+export const MIG_UNREST_FREE_RATE = 0.005
+export const UNREST_IMMIGRATION = 5
 
 /** The Lewis subsistence sector: a share of the openly unemployed pools
  * into family agriculture each quarter — underemployment at falling

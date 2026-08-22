@@ -121,6 +121,11 @@ test('dashboard with empty instruments', async ({ page }) => {
 })
 
 test('dense desktop rack fits every instrument name on one screen', async ({ page }) => {
+  const browserErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') browserErrors.push(message.text())
+  })
+  page.on('pageerror', (error) => browserErrors.push(error.message))
   await openGame(page)
   // This project typechecks Playwright under the Node libs, so keep browser
   // globals inside the evaluated source string rather than adding DOM types to
@@ -150,6 +155,7 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
     clippedLabels: [],
     rackBelowFold: false,
   })
+  expect(browserErrors).toEqual([])
 })
 
 test('cabinet draft review', async ({ page }) => {
@@ -166,6 +172,17 @@ test('central bank exposes conventional, QE, and macroprudential controls', asyn
   await expect(page.getByRole('slider', { name: 'Asset purchases' })).toHaveValue('0')
   await expect(page.getByRole('slider', { name: 'Bank capital floor' })).toHaveValue('0.06')
   await expect(page).toHaveScreenshot('central-bank-controls.png')
+})
+
+test('migration desk exposes the annual immigration ceiling', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'BORDERS 1 CONTROL' }).click()
+  const ceiling = page.getByRole('slider', { name: 'Immigration ceiling' })
+  await expect(ceiling).toHaveValue('0.012')
+  await expect(ceiling).toHaveAttribute('max', '0.02')
+  await page.getByRole('button', { name: 'Decrease Immigration ceiling' }).click()
+  await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
+  await expect(page).toHaveScreenshot('migration-controls.png')
 })
 
 test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
@@ -271,7 +288,12 @@ test('the opening walkthrough introduces the room without covering it', async ({
   // the card about the wall must not sit on the wall, and the card about the
   // cabinet must not sit on the cabinet. jsdom cannot see this and neither can
   // a pixel diff — a card in the wrong corner is a perfectly plausible render.
-  await page.getByRole('button', { name: 'NEXT' }).click()
+  // advanced from the keyboard, not the mouse: the card focuses its own NEXT
+  // on every step (so the tour is usable without a pointer), and clicking
+  // leaves the cursor resting on the wall, where it opens whichever tooltip
+  // happens to be under it. That is a screenshot that changes with the mouse.
+  await expect(page.getByRole('button', { name: 'NEXT' })).toBeFocused()
+  await page.keyboard.press('Enter')
   const overlap = (await page.evaluate(`(() => {
     const card = document.querySelector('[aria-label="Introduction to the war room"]').getBoundingClientRect()
     const wallEl = document.querySelector('main[data-tour="wall"]')

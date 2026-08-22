@@ -111,6 +111,12 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
     resists:
       'Money enters a research stock and decays, so gains follow the stock rather than the cheque — a steady programme is worth far more than a large one-off. Far from the frontier it adapts what already exists; close to it, progress slows to original work.',
   },
+  immigrationLimit: {
+    label: 'Immigration ceiling',
+    hint: 'The most people the country will admit each year, as a share of the population. Zero closes the border to arrivals, but cannot stop residents leaving.',
+    resists:
+      'It is a ceiling, not a target: how many people actually want to come is decided by jobs here and living standards relative to everywhere else. Arrivals are working-age, so they widen the labour force before they widen the pyramid — and above ordinary churn they move bloc favour and unrest.',
+  },
   policyRate: {
     label: 'Policy rate',
     hint: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
@@ -214,6 +220,14 @@ export const LEVER_GROUPS: readonly LeverGroup[] = [
       'Set interest rates, support lending when rates hit zero, and decide how much of their own money banks must put at risk.',
     question: 'How much financial risk should the state carry?',
     paths: ['policyRate', 'assetPurchaseRate', 'capitalRequirement'],
+  },
+  {
+    group: 'MIGRATION',
+    tab: 'BORDERS',
+    brief:
+      'Set the annual ceiling on arrivals as a share of the resident population. Jobs and relative living standards decide how many people want to come or leave; this order limits immigration only.',
+    question: 'How many arrivals will the country admit?',
+    paths: ['immigrationLimit'],
   },
   {
     group: 'SUBSIDIES',

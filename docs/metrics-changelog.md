@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 28)
+## Current contract (schema 29)
 
 ### Inputs
 
@@ -68,6 +68,7 @@ do not start until `appointedAt`.
 | `policyRate` | annualized nominal rate |
 | `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
+| `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
@@ -103,6 +104,13 @@ The **rest of world** is exogenous input, not a lever: four abstract partners ru
 business cycles (`world` step), setting export demand and semi-endogenous world prices. Their
 booms/slumps/crises reach the wire but you cannot set them.
 
+The **migration flow** (`demography` step) compares domestic mean log consumption progress since
+1946 with a frontier-linked outside option, then adds the current labor-market signal. The
+cabinet's `immigrationLimit` clips positive arrivals only; emigration remains possible when the
+country underperforms. Realized migrants enter young-adult age bands and therefore change labor
+supply and the future birth base. The `institutions` step prices realized inward migration through
+bloc favor and, above ordinary churn, unrest (ADR-0022).
+
 The **financial sector** (`finance` step) has three distinct levers. The policy rate sets the
 price of overnight money. `assetPurchaseRate` is QE: it lowers the common private funding rate
 without lowering the policy rate or counting as fiscal deficit printing, so it remains available
@@ -132,6 +140,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
 | `capital_stock` | index | 0.30 | v1.5 | total capital stock |
+| `net_migration` | per 1000/yr | 0.30 | v29 | arrivals minus departures, annualized per 1,000 residents |
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
@@ -161,7 +170,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | Output | Since | Contents |
 |---|---|---|
 | `mode` | v21 | exact opening rule, `standard` or `god` |
-| `dials` | v1 | your own lever settings |
+| `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
 | ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
@@ -201,6 +210,26 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 29 — Relative migration and the immigration ceiling
+
+- **Inputs +**: `DialState.immigrationLimit`, an exact annual share of resident population from
+  0..2%. It clips desired immigration only. `setDial` moves it through the same action-log,
+  veto-player pricing, policy-history, save, and replay path as every other cabinet lever.
+- **Pipeline ±**: `demography` replaces the old labor-slack-only migration term with a relative
+  outside-option flow: domestic mean log consumption progress from the inherited 1946 baseline
+  minus a frontier-linked alternative, plus current labor-market tightness. The 1946 migration
+  baseline is stored separately from the appointment-based report-card baseline, so a later
+  posting does not alter caretaker-era population history. Migrants remain
+  concentrated in young-adult bands. `institutions` reads realized inward migration: employers
+  and landowners gain favor, unions lose it, and only inflows above ordinary churn add unrest
+  (ADR-0022).
+- **Outputs +**: fogged `net_migration`, annualized per 1,000 residents, unlocks at 0.30
+  statistical capacity. The fixed −15..15 face covers the measured all-country funded-century
+  range (−11.9..12.1; p01 −8.0, p99 9.6).
+- **Compatibility**: state shape, policy history, and indicator ids changed, so schema 29 has new
+  golden replays. Older replay-log saves still omit only a deterministic opening dial and are
+  handled by the engine's existing replay load path rather than repaired as snapshots.
 
 ### schema 28 — The year you take office
 

@@ -3,6 +3,7 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
+import { IMMIGRATION_LIMIT_MAX } from '../constants'
 import {
   BLOC_IDS,
   INSTITUTION_IDS,
@@ -52,6 +53,13 @@ export function validate(state: TrueState): void {
   }
   finite(state.gov.debt, 'debt')
   finite(state.gov.budget.balance, 'budget.balance')
+  finite(state.gov.dials.immigrationLimit, 'immigrationLimit')
+  if (
+    state.gov.dials.immigrationLimit < 0 ||
+    state.gov.dials.immigrationLimit > IMMIGRATION_LIMIT_MAX
+  ) {
+    throw new InvariantError('immigrationLimit out of range')
+  }
   for (const programme of SPENDING_PROGRAM_IDS) {
     const amount = state.gov.dials.spending[programme]
     const rule = state.gov.spendingRules[programme]

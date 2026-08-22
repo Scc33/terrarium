@@ -54,6 +54,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   approval: { label: 'Approval poll', unit: '%' },
   gini: { label: 'Income inequality', unit: 'Gini pts' },
   income_real: { label: 'Household income', unit: '1946=100' },
+  net_migration: { label: 'Net migration', unit: 'per 1000/yr' },
   birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
   death_rate: { label: 'Death rate', unit: 'per 1000/yr' },
   terms_of_trade: { label: 'Terms of trade', unit: '1946=100' },

@@ -29,6 +29,7 @@ import {
   COALITION_FAVOR_SNUB,
   COALITION_SWING_GAIN,
   FRANCHISE_SUFFRAGE_STEP,
+  IMMIGRATION_LIMIT_MAX,
   LARGESSE_BUMP,
   LARGESSE_SWING_GAIN,
   PC_COST_CAMPAIGN,
@@ -90,6 +91,12 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   'spending.procurement': { industrialists: -0.4, financiers: 0.4 },
   'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
   'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
+  immigrationLimit: {
+    landowners: -0.25,
+    industrialists: -0.6,
+    financiers: -0.1,
+    unions: 0.8,
+  },
   policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
   assetPurchaseRate: { financiers: 0.4, industrialists: -0.5, unions: -0.2 },
   capitalRequirement: { financiers: 0.9, industrialists: 0.3, unions: -0.2 },
@@ -229,6 +236,16 @@ const DIALS: Record<DialPath, DialSpec> = {
   'spending.procurement': spend('procurement'),
   'spending.investment': spend('investment'),
   'spending.research': spend('research'),
+  immigrationLimit: {
+    get: (s) => s.gov.dials.immigrationLimit,
+    set: (s, v) => ({
+      ...s,
+      gov: { ...s.gov, dials: { ...s.gov.dials, immigrationLimit: v } },
+    }),
+    min: 0,
+    max: () => IMMIGRATION_LIMIT_MAX,
+    scale: () => 0.01,
+  },
   policyRate: {
     get: (s) => s.gov.dials.policyRate,
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, policyRate: v } } }),

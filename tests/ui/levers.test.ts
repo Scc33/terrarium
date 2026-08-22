@@ -21,6 +21,7 @@ const ALL_PATHS: DialPath[] = [
   'spending.procurement',
   'spending.investment',
   'spending.research',
+  'immigrationLimit',
   'policyRate',
   'assetPurchaseRate',
   'capitalRequirement',

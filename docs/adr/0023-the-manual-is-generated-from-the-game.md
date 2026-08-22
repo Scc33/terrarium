@@ -1,4 +1,4 @@
-# ADR-0022 — The manual is generated from the game, not written beside it
+# ADR-0023 — The manual is generated from the game, not written beside it
 
 **Status:** Accepted · **Date:** M6.6
 

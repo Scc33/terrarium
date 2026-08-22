@@ -101,7 +101,7 @@ can be tested — anything pushed into a component becomes untestable:
   `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
   spending line fails the build until it has been named and given an ink.
 
-- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0022). Every
+- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0023). Every
   chapter that LISTS something the game has is generated from the engine's id lists — levers
   from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
   `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
@@ -316,6 +316,14 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   fix*: absolute thresholds made a do-nothing government inherit a capital strike, and pinned
   unrest so flat that reform windows and revolts were both unreachable. Centre any new
   political response the same way and **measure the resting value** before picking the constant.
+- **Migration is an outside-option flow, not a population target.** Compare domestic welfare
+  progress from the inherited 1946 anchor with a frontier-linked alternative; an absolute income
+  threshold makes rich recipes win before the first turn and poor ones lose forever. That anchor
+  is not `score.baselineWelfare`: ADR-0021 moves the score baseline with the appointment, while
+  migration must keep the 1946 comparison or the same caretaker orders produce a different
+  population. The border ceiling clips arrivals only — scaling negative flows by it lets a closed
+  border imprison a failing country. Calibrate the sign and the cap under passive, developmental,
+  random, and all-country runs; pin per-capita as well as aggregate growth once labor supply moves.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
   distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
   mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the

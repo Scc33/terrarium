@@ -136,6 +136,13 @@ export const cohorts: PipelineStep = {
       business: conf.business + CONF_ADAPT * (businessTarget - conf.business),
     }
 
+    // Migration always compares with the country's inherited 1946 welfare.
+    // The report-card baseline may open decades later with the appointment;
+    // sharing that field would make the caretaker's population history depend
+    // on who eventually receives the posting.
+    const migrationBaselineWelfare =
+      state.demography.migrationBaselineWelfare ?? meanLogConsumption(state)
+
     // --- §3.3 prosperity: what it was actually like to live here this
     // quarter. Log consumption per head, population-weighted: diminishing
     // returns mean a unit of bread to the poor scores more than a unit of
@@ -162,6 +169,12 @@ export const cohorts: PipelineStep = {
       }
     }
 
-    return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence }, score }
+    return {
+      ...state,
+      demography: { ...state.demography, migrationBaselineWelfare },
+      cohorts: newCohorts,
+      ledger: { ...state.ledger, confidence },
+      score,
+    }
   },
 }

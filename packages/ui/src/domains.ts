@@ -86,11 +86,13 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   price_food: { lo: 50, hi: 160 },
   price_fuel: { lo: 40, hi: 130 },
   unemployment: { lo: 0, hi: 25 },
-  // Measured across 12 seeds × 6 countries × 400 quarters: p01–p99
-  // 44.0–56.1, extrema 41.4–57.4. Keep enough rail for exceptional
-  // demographic paths without flattening the normal dividend and ageing arc.
-  labor_force_participation: { lo: 40, hi: 60 },
-  payrolls: { lo: 0, hi: 50 },
+  // Schema 28 migration broadens the late demographic paths. Measured across
+  // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema
+  // 41.3–60.7. Keep room for exceptional participation without flattening
+  // the normal dividend and ageing arc.
+  labor_force_participation: { lo: 40, hi: 65 },
+  // The same sweep puts payrolls at p01–p99 2.4–46.3 M, extrema 1.6–54.3 M.
+  payrolls: { lo: 0, hi: 60 },
   capital_stock: 'ratchet',
   // Measured across 12 seeds × 6 countries × 400 quarters: 1st–99th
   // percentile 53.4–94.6, extrema 47.5–96.5. Keep the frontier mark visible
@@ -106,6 +108,9 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   approval: { lo: 20, hi: 80 },
   gini: { lo: 20, hi: 60 },
   income_real: 'ratchet',
+  // Measured across the all-country funded century: -11.9..12.1, with
+  // p01 -8.0 and p99 9.6. Keep zero centered: the sign is the story.
+  net_migration: { lo: -15, hi: 15 },
   birth_rate: { lo: 0, hi: 45 },
   death_rate: { lo: 0, hi: 30 },
   terms_of_trade: { lo: 85, hi: 115 },
@@ -126,6 +131,7 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   debt_to_gdp: { at: DEBT_RISK_PREMIUM_AT * 100, label: 'PREMIUM' },
   household_saving_rate: { at: 0, label: 'DRAWDOWN' },
   inflation: { at: 0, label: 'STABLE' },
+  net_migration: { at: 0, label: 'BALANCED' },
   credit_growth: { at: 0, label: 'FLAT' },
   // where revolutionary pressure prises the reform window open (§4.3). A rule,
   // not a reading — the government knows the threshold exactly and only its

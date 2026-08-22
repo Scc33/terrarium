@@ -24,6 +24,7 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
     tick,
     taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
     spending: { transfers: 4, procurement: 3, investment: 2, research: 1 },
+    immigrationLimit: 0.012,
     policyRate: 0.04,
     assetPurchaseRate: 0,
     capitalRequirement: 0.06,
@@ -51,6 +52,7 @@ describe('the minute book files decisions, not consequences', () => {
     const opening = policyChanges(passive).filter((c) => c.tick === 0)
     expect(opening.map((c) => c.key).sort()).toEqual([
       'capitalRequirement',
+      'immigrationLimit',
       'policyRate',
       'spending.investment',
       'spending.procurement',
@@ -207,11 +209,11 @@ describe('reading the dials back', () => {
   })
 
   it('covers every dial the cabinet can set', () => {
-    // 4 taxes · 3 central-bank dials · 4 appropriations · 5 sector subsidies.
-    // The central-bank count is derived from `PolicyRecord`, so a lever added
+    // 4 taxes · 3 central-bank dials · 1 migration dial · 4 appropriations ·
+    // 5 sector subsidies. The scalar count is derived from `PolicyRecord`, so a lever added
     // to the cabinet fails the build here until it has been named and faced —
     // which is how `assetPurchaseRate` and `capitalRequirement` arrived.
-    expect(POLICY_LINES).toHaveLength(4 + 3 + 4 + 5)
+    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
   })
 
@@ -227,6 +229,12 @@ describe('reading the dials back', () => {
       expect(line.note.length, line.key).toBeGreaterThan(0)
       expect(line.unit).toBe('rate')
     }
+  })
+
+  it('files the immigration ceiling on its own desk', () => {
+    const migration = POLICY_LINES.filter((l) => l.group === 'MIGRATION')
+    expect(migration.map((l) => l.key)).toEqual(['immigrationLimit'])
+    expect(migration[0].read(point(0))).toBeCloseTo(1.2)
   })
 
   it('reads every line off a record without emitting NaN', () => {

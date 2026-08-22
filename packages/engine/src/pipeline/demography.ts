@@ -24,8 +24,11 @@ import {
   FERT_SURVIVAL_GAIN,
   FERT_URBAN_GAIN,
   FERTILE_YEARS,
-  MIG_CAP_Q,
-  MIG_GAIN,
+  MIG_EMIGRATION_CAP_Q,
+  MIG_LABOR_GAIN,
+  MIG_PERFORMANCE_GAIN_Q,
+  MIG_PERFORMANCE_GAP_CAP,
+  MIG_WORLD_FRONTIER_SHARE,
   MORT_BASE_ANNUAL,
   MORT_FLOOR,
   MORT_INCOME_GAIN,
@@ -41,10 +44,11 @@ import {
   WORKING_BANDS,
   type Cohort,
   type DemographyState,
+  type TrueState,
   type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { livingStandard } from './derive'
+import { livingStandard, meanLogConsumption } from './derive'
 
 const sumBands = (p: number[], from: number, to: number) => {
   let s = 0
@@ -88,6 +92,54 @@ export function classSizesFrom(
   )
 }
 
+export interface MigrationFlow {
+  /** domestic log-welfare progress minus the frontier-linked outside option */
+  performanceGap: number
+  /** desired flow before the cabinet's immigration ceiling, millions/quarter */
+  desiredQ: number
+  /** realized flow after inbound and outbound limits, millions/quarter */
+  netQ: number
+  /** the cabinet's maximum inward flow this quarter, millions */
+  immigrationCapQ: number
+}
+
+/**
+ * The migration decision, kept pure so its two asymmetric limits can be
+ * tested directly. Domestic performance and the outside option both start at
+ * the country's inherited 1946 welfare: migration therefore judges what this
+ * government did with its inheritance rather than making a richer recipe win
+ * before the first turn. The outside option then rides the global frontier,
+ * while the local labor market supplies the immediate jobs signal.
+ *
+ * The immigration dial clips positive flows only. A closed border can refuse
+ * arrivals; it cannot prevent residents from leaving a failing country.
+ */
+export function migrationFlow(state: TrueState): MigrationFlow {
+  const p = state.demography.pyramid
+  const totalPop = sumBands(p, 0, AGE_BANDS - 1)
+  const workingAge = sumBands(p, WORKING_BANDS[0], WORKING_BANDS[1])
+  const domesticProgress =
+    state.demography.migrationBaselineWelfare === null
+      ? 0
+      : meanLogConsumption(state) - state.demography.migrationBaselineWelfare
+  const outsideProgress =
+    MIG_WORLD_FRONTIER_SHARE * Math.log(Math.max(state.tech.frontier, 1e-9))
+  const performanceGap = clamp(
+    domesticProgress - outsideProgress,
+    -MIG_PERFORMANCE_GAP_CAP,
+    MIG_PERFORMANCE_GAP_CAP,
+  )
+  const desiredQ =
+    MIG_LABOR_GAIN * (NATURAL_UNEMPLOYMENT - state.flows.unemployment) * workingAge +
+    MIG_PERFORMANCE_GAIN_Q * performanceGap * totalPop
+  const immigrationCapQ = (state.gov.dials.immigrationLimit * totalPop) / 4
+  const netQ =
+    desiredQ >= 0
+      ? Math.min(desiredQ, immigrationCapQ)
+      : Math.max(desiredQ, -MIG_EMIGRATION_CAP_Q * totalPop)
+  return { performanceGap, desiredQ, netQ, immigrationCapQ }
+}
+
 export const demography: PipelineStep = {
   name: 'demography',
   run(state) {
@@ -120,26 +172,38 @@ export const demography: PipelineStep = {
     const aged = p.map((n, i) => (i < AGE_BANDS - 1 ? (n - deaths[i]) / 20 : 0))
     const { births, crudeBirthRate, crudeDeathRate } = vitalRates(p, tfr, mortalityIndex)
 
-    // --- migration: slack pushes the young out, tightness pulls them in ---
-    const totalPop = sumBands(p, 0, AGE_BANDS - 1)
-    const workingAge = sumBands(p, WORKING_BANDS[0], WORKING_BANDS[1])
-    const netMigrationQ = clamp(
-      MIG_GAIN * (NATURAL_UNEMPLOYMENT - state.flows.unemployment) * workingAge,
-      -MIG_CAP_Q * totalPop,
-      MIG_CAP_Q * totalPop,
-    )
-    // migrants are the young: spread across the fertile bands by weight
-    const migBase = sumBands(p, FERTILE_BANDS[0], FERTILE_BANDS[1])
-
-    const pyramid = p.map((n, i) => {
+    const naturalPyramid = p.map((n, i) => {
       let next = n - deaths[i] - aged[i]
       if (i === 0) next += births
       else next += aged[i - 1]
-      if (i >= FERTILE_BANDS[0] && i <= FERTILE_BANDS[1] && migBase > 1e-9) {
-        next += netMigrationQ * (p[i] / migBase)
-      }
       return Math.max(0, next)
     })
+
+    // --- migration: relative performance sets the destination pressure;
+    // policy clips arrivals, never departures ---
+    const plannedNetMigrationQ = migrationFlow(state).netQ
+    // Migrants are the young: spread across the fertile bands by weight. A
+    // legal custom pyramid may put nobody in those bands. In that edge case
+    // the model has nowhere to apply its young-adult flow, so record zero
+    // rather than publish and politically price migration that never happened.
+    const migBase = sumBands(p, FERTILE_BANDS[0], FERTILE_BANDS[1])
+    let migrationClipped = false
+    let appliedNetMigrationQ = 0
+    const pyramid = naturalPyramid.map((natural, i) => {
+      if (i < FERTILE_BANDS[0] || i > FERTILE_BANDS[1] || migBase <= 1e-9) return natural
+      const migration = plannedNetMigrationQ * (p[i] / migBase)
+      const candidate = natural + migration
+      if (candidate < 0) migrationClipped = true
+      const next = Math.max(0, candidate)
+      appliedNetMigrationQ += next - natural
+      return next
+    })
+    const netMigrationQ =
+      migBase <= 1e-9
+        ? 0
+        : migrationClipped
+          ? appliedNetMigrationQ
+          : plannedNetMigrationQ
 
     // --- class structure: the cities pull when city wages pull, and only
     // when the cities have work — a slump stops the buses ---
@@ -163,6 +227,7 @@ export const demography: PipelineStep = {
     return {
       ...state,
       demography: {
+        ...d,
         pyramid,
         tfr,
         mortalityIndex,

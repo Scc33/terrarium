@@ -10,6 +10,7 @@ import {
   CAPACITY_IDS,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  IMMIGRATION_LIMIT_MAX,
   SECTOR_IDS,
   type CapacityId,
   type DialPath,
@@ -80,6 +81,13 @@ const DIAL_MECHANICS: Record<DialPath, DialMechanics> = {
   'spending.procurement': { get: (p) => p.dials.spending.procurement, min: 0, max: spendMax, step: 0.1, fmt: money },
   'spending.investment': { get: (p) => p.dials.spending.investment, min: 0, max: spendMax, step: 0.1, fmt: money },
   'spending.research': { get: (p) => p.dials.spending.research, min: 0, max: spendMax, step: 0.1, fmt: money },
+  immigrationLimit: {
+    get: (p) => p.dials.immigrationLimit,
+    min: 0,
+    max: () => IMMIGRATION_LIMIT_MAX,
+    step: 0.001,
+    fmt: pct1,
+  },
   policyRate: { get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
   assetPurchaseRate: {
     get: (p) => p.dials.assetPurchaseRate,
@@ -179,7 +187,8 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
     def.path.startsWith('taxRates.') ||
     def.path === 'policyRate' ||
     def.path === 'assetPurchaseRate' ||
-    def.path === 'capitalRequirement'
+    def.path === 'capitalRequirement' ||
+    def.path === 'immigrationLimit'
   const deltaDigits = def.step < 0.01 ? 1 : 0
   const deltaLabel = percentagePoints
     ? `${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(deltaDigits)} PT`
