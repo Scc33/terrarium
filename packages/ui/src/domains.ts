@@ -91,6 +91,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // 41.3–60.7. Keep room for exceptional participation without flattening
   // the normal dividend and ageing arc.
   labor_force_participation: { lo: 40, hi: 65 },
+  // Schema 30, 12 seeds × 6 countries × 400 funded quarters: p01–p99
+  // 20.7–93.7, extrema 14.4–95.4. The stock is bounded 0..100 by
+  // construction, so keep the natural face and preserve room for failed or
+  // exceptionally educated workforces without rescaling under the needle.
+  human_capital: { lo: 0, hi: 100 },
   // The same sweep puts payrolls at p01–p99 2.4–46.3 M, extrema 1.6–54.3 M.
   payrolls: { lo: 0, hi: 60 },
   capital_stock: 'ratchet',

@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 29. Companion to the design doc
+*How the code is actually arranged, as of schema 30. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -54,7 +54,7 @@ terrarium/
 │   │   │   └── published.ts      # PublishedState types — the ONLY types ui may import
 │   │   └── package.json
 │   │
-│   ├── ui/                       # React app. See the terrarium-design skill for the spec.
+│   ├── ui/                       # React app. See the terrarium-ui skill for the spec.
 │   │   ├── src/
 │   │   │   ├── worker/           # the ONLY engine host (ADR-0004)
 │   │   │   │   ├── sim.worker.ts # owns TrueState; emits PublishedState only
@@ -161,7 +161,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 interface TrueState {
   meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules; appointedAt: Qtr }
   params: CountryParams        // immutable after init
-  demography: DemographyState  // the age pyramid; cohort sizes derive from it
+  demography: DemographyState  // age pyramid + slow workforce-skills stock
   tech: TechState              // global frontier + domestic attainment; research moves both
   finance: FinanceState        // credit, asset prices, bank capital
   cohorts: Cohort[]            // 5
@@ -237,7 +237,7 @@ introduced it:
 | # | step | what it does |
 |---|------|--------------|
 | 1 | `shocks` | the crisis clock: ruptures land before anyone works |
-| 2 | `demography` | births, deaths, and performance-relative migration move the pyramid; cohort sizes derive from it |
+| 2 | `demography` | births, deaths and migration move the pyramid; cohort sizes and workforce skills derive from it |
 | 3 | `technology` | the frontier advances; attainment chases it; research splits by position |
 | 4 | `world` | partner cycles set export demand and world prices |
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
@@ -288,6 +288,13 @@ The player sees two fogged instruments and never the frontier, sector attainment
 `technology_attainment` (the ratio — are we catching up?) and `productivity` (the level — output
 per worker against our own 1946). Two are needed because the ratio saturates: research pushes the
 frontier it is measured against, so the better the programme the quieter its own dial goes.
+
+Human capital is a slow stock carried by the workforce, not another name for school capacity
+(ADR-0023). `gov.capacity.education` is the Layer-2 institution the cabinet builds;
+`demography.humanCapital` closes one percent of the gap to it each quarter. Technology absorption,
+research staffing, fertility and societal power all read the stock, so a two-year school project
+does not educate a country on the construction schedule. The player sees only the lagged, fogged
+`human_capital` / **Workforce skills** instrument; the exact stock remains engine truth.
 
 Foreign direct investment is an owned capital stock, not another name for openness (ADR-0018).
 Small-country scale and external access set the structural FDI/GDP draw; the mean of sector
@@ -412,8 +419,11 @@ passes happily while the wall clips every figure it publishes. What is covered:
 century and rejects a face an instrument spends >2% of its life pegged against),
 `revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry).
 
-Layout itself is verified **in a browser at 1280×720** — see CLAUDE.md for the check. There is
-no Playwright suite; that was planned in v0.1 and never built.
+Layout itself is verified by `tests/visual/ui.spec.ts`, a Playwright suite whose default viewport
+is **1280×720**. It asserts that the dense wall has no page or horizontal scroll, no clipped rack
+labels, no below-fold rack, no tile shear, and no console errors; it also snapshots the main
+cabinet and overlay states and checks the tablet and smaller-laptop layouts. Run it with
+`pnpm test:visual`.
 
 ### 7.5 Coverage
 
@@ -482,5 +492,6 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 - `docs/investigations/` — open questions about the model, with the measurements that raised
   them. Evidence, not decisions.
 - `docs/archive/` — superseded documents, kept for provenance. Not maintained.
-- `CLAUDE.md` — the operating manual: hard rules, workflows, and the hard-won tuning lessons.
-- The `terrarium-design` skill — the spec for all `packages/ui` work.
+- `AGENTS.md` — the operating notes: hard rules, workflows, and hard-won tuning lessons.
+- The `terrarium-ui` and `verify-the-wall` skills — the implementation and browser-verification
+  procedures for `packages/ui` work.

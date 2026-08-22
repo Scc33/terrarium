@@ -101,7 +101,7 @@ can be tested — anything pushed into a component becomes untestable:
   `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
   spending line fails the build until it has been named and given an ink.
 
-- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0023). Every
+- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
   chapter that LISTS something the game has is generated from the engine's id lists — levers
   from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
   `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one

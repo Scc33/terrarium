@@ -41,6 +41,10 @@ export function validate(state: TrueState): void {
   if (state.external.foreignOwnedCapital < 0) {
     throw new InvariantError('external.foreignOwnedCapital < 0')
   }
+  finite(state.demography.humanCapital, 'demography.humanCapital')
+  if (state.demography.humanCapital < 0 || state.demography.humanCapital > 1) {
+    throw new InvariantError('demography.humanCapital out of [0,1]')
+  }
   for (const c of state.cohorts) {
     finite(c.savings, `savings[${c.id}]`)
     finite(c.approval, `approval[${c.id}]`)

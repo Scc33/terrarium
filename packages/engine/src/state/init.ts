@@ -125,6 +125,11 @@ function initialDemography(params: CountryParams): DemographyState {
     crudeBirthRate,
     crudeDeathRate,
     workerShareMult: nonRetired > 1e-9 ? workingAge / nonRetired / BASE_WORKER_SHARE : 1,
+    // The opening workforce inherits the schooling system encoded by the
+    // country recipe. From quarter one the people and the institution become
+    // separate stocks: schools can be built quickly; skills cannot.
+    humanCapital:
+      (params.capacities.education as number | undefined) ?? EDUCATION_1946,
     classShares,
   }
 }

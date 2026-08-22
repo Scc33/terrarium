@@ -89,7 +89,7 @@ const CAPACITY_HINTS: Record<(typeof CAPACITY_IDS)[number], string> = {
   tax: 'How much of what is owed actually arrives.',
   statistical: 'How early and how honestly the instruments print. Low is the fog.',
   administrative: 'How much of a transfer survives the journey to the household.',
-  education: 'How fast the workforce can absorb technique from the frontier.',
+  education: 'The school system the inherited workforce came through, and the target future skills move toward.',
 }
 
 const COHORT_LABELS: Record<(typeof COHORT_IDS)[number], string> = {

@@ -4,9 +4,9 @@
  * the whole fog mechanic:
  *   • the head count and the age pyramid are EXACT — census-grade, always
  *     yours, scrubbable across the whole century;
- *   • the birth and death RATES are fogged — the demographic transition
- *     diagram only draws once you've funded civil registration, and even
- *     then it lags and wobbles like any published series.
+ *   • birth, death and net-migration RATES are fogged — the demographic
+ *     transition diagram only draws once you've funded civil registration,
+ *     and even then it lags and wobbles like any published series.
  * You can always count how many people there are. Knowing why the number
  * moves is a thing you buy.
  */
@@ -32,38 +32,42 @@ function settled(points: IndicatorPoint[]): Array<{ tick: number; value: number 
     .sort((a, b) => a.tick - b.tick)
 }
 
-// ---- the transition diagram: birth & death rates over time (fogged) ----
+// ---- the transition diagram: population-change rates over time (fogged) ----
 const RW = 470
 const RH = 150
 
 function TransitionChart({
   birth,
   death,
+  migration,
   xMin,
   xMax,
   markTick,
 }: {
   birth: Array<{ tick: number; value: number }>
   death: Array<{ tick: number; value: number }>
+  migration: Array<{ tick: number; value: number }>
   xMin: number
   xMax: number
   markTick: number
 }) {
-  const funded = birth.length >= 2 || death.length >= 2
+  const funded = birth.length >= 2 || death.length >= 2 || migration.length >= 2
   const latestBirth = birth[birth.length - 1]?.value
   const latestDeath = death[death.length - 1]?.value
+  const latestMigration = migration[migration.length - 1]?.value
   const summary = funded
-    ? `Vital rates from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest published birth rate ${latestBirth?.toFixed(1) ?? 'unavailable'} and death rate ${latestDeath?.toFixed(1) ?? 'unavailable'} per thousand per year.`
-    : 'Birth and death rates are unavailable because civil registration is not funded.'
+    ? `Population-change rates from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest published birth rate ${latestBirth?.toFixed(1) ?? 'unavailable'}, death rate ${latestDeath?.toFixed(1) ?? 'unavailable'}, and net migration ${latestMigration?.toFixed(1) ?? 'unavailable'} per thousand per year.`
+    : 'Birth, death and net-migration rates are unavailable because civil registration is not funded.'
 
   return (
     <ChartFrame
-      title="THE VITAL RATES"
+      title="THE POPULATION FLOWS"
       detail="PER 1,000 / YEAR · PUBLISHED ESTIMATES"
       summary={summary}
       legend={funded ? [
         { label: 'BIRTHS', color: 'var(--color-dossier-felt)' },
         { label: 'DEATHS', color: 'var(--color-dossier-warn)' },
+        { label: 'NET MIGRATION', color: 'var(--color-dossier-ink)', dashed: true },
       ] : []}
     >
       {funded ? (
@@ -72,7 +76,8 @@ function TransitionChart({
           height={RH}
           traces={[
             { key: 'death', points: death, color: 'var(--color-dossier-warn)' },
-            { key: 'birth', points: birth, color: 'var(--color-dossier-felt)', lead: true },
+            { key: 'birth', points: birth, color: 'var(--color-dossier-felt)' },
+            { key: 'migration', points: migration, color: 'var(--color-dossier-ink)', dashed: true, lead: true },
           ]}
           // the natural-increase wedge: how far births ran ahead of deaths,
           // which is the whole transition in one shaded region
@@ -88,7 +93,7 @@ function TransitionChart({
           // pinned rather than taken from whichever register published longer
           xDomain={{ x0: xMin, x1: xMax }}
           formatTick={(t) => String(yearOf(t))}
-          formatReading={(v) => `${v.toFixed(1)} BIRTHS/1,000`}
+          formatReading={(v) => `${v > 0 ? '+' : ''}${v.toFixed(1)} NET MIGRATION/1,000`}
           summary={summary}
           hover
         />
@@ -101,8 +106,8 @@ function TransitionChart({
             REQUIRES: CIVIL REGISTRATION
           </div>
           <div className="mt-1 max-w-[300px] text-center font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
-            You can count the living. To know how fast they are born and how
-            soon they die, fund the registrar.
+            You can count the living. To know how births, deaths and migration
+            changed the count, fund the registrar.
           </div>
         </div>
       )}
@@ -206,6 +211,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
 
   const birth = settled(pub.indicators.birth_rate?.points ?? [])
   const death = settled(pub.indicators.death_rate?.points ?? [])
+  const migration = settled(pub.indicators.net_migration?.points ?? [])
   const xMin = census[0]?.tick ?? 0
   const xMax = census[census.length - 1]?.tick ?? pub.tick
 
@@ -226,7 +232,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
           </div>
         )}
-        note="The census counts heads exactly. Birth and death rates are estimates from civil registration, so they can lag and revise. Scrub the age pyramid to see the population structure that today’s headline total conceals."
+        note="The census counts heads exactly. Births, deaths and net migration are published estimates, so they can lag and revise. Net migration is arrivals minus departures: positive means more people arrived; negative means more left. Scrub the age pyramid to see the population structure that today’s headline total conceals."
         footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -234,7 +240,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
         <div className="flex flex-col gap-3">
           {hasHistory ? (
             <>
-              <TransitionChart birth={birth} death={death} xMin={xMin} xMax={xMax} markTick={shown.tick} />
+              <TransitionChart birth={birth} death={death} migration={migration} xMin={xMin} xMax={xMax} markTick={shown.tick} />
               <PopulationStrip census={census} xMin={xMin} xMax={xMax} markTick={shown.tick} />
             </>
           ) : (

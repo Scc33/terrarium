@@ -183,10 +183,11 @@ export const CAPACITY_COPY: Record<CapacityId, CapacityCopy> = {
   },
   education: {
     label: 'Schools',
-    hint: 'Builds skills, helps the country adopt better technology and gradually lowers birth rates.',
-    effect: 'Raises technology absorption and steadily changes the demographic future.',
+    hint: 'Builds schools. Their graduates raise workforce skills over decades; skilled people help the country use better technology, staff research and gradually lower birth rates.',
+    effect:
+      'Workforce skills rise slowly, then lift technology absorption, research and social organization while changing the demographic future.',
     detail:
-      'The slowest lever in the game and the one with the longest reach: it decides how fast the country can absorb methods that already exist elsewhere, supplies the researchers a grant programme needs, and pulls the birth rate down over decades rather than quarters.',
+      'The slowest lever in the game and the one with the longest reach — and the only one that acts through a second stock rather than directly. Funding builds the school system in eight quarters; what technology, research, fertility and social organization actually read is WORKFORCE SKILLS, which closes about one percent of its gap to the schools each quarter. That is a half-life near seventeen years. Finishing a classroom is not the same event as a taught generation entering work, and the instrument between the two is on the wall so you can watch the gap close.',
   },
 }
 

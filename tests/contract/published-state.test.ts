@@ -110,6 +110,7 @@ describe('the published-state contract (§1.1)', () => {
       'technologyAttainment',
       'mortalityIndex',
       'workerShareMult',
+      'humanCapital',
       'classShares',
       'crudeBirthRate',
       'crudeDeathRate',
