@@ -28,7 +28,7 @@ the old one and update the Status line of both.
 | [0013](0013-invention-is-a-hazard-research-is-a-stock.md) | Invention is a hazard, research is a stock | Accepted |
 | [0014](0014-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Accepted |
 | [0015](0015-game-modes-are-replay-inputs.md) | Game modes are replay inputs, not UI preferences | Superseded by 0020 |
-| [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Superseded by 0024 |
+| [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Superseded by 0025 |
 | [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Accepted |
 | [0018](0018-fdi-is-owned-capital.md) | Foreign direct investment is owned capital, not an openness bonus | Accepted |
 | [0019](0019-a-country-is-a-document.md) | A country is a document, and a study is what makes it a claim | Accepted |
@@ -36,4 +36,5 @@ the old one and update the Status line of both.
 | [0021](0021-the-year-you-take-office.md) | The year you take office is a replay input, and the years before it are governed | Accepted |
 | [0022](0022-migration-is-a-relative-outside-option.md) | Migration is a relative outside-option flow, not a population target | Accepted |
 | [0023](0023-human-capital-is-not-school-capacity.md) | Human capital is a slow stock carried by people, not the school system itself | Accepted |
-| [0024](0024-charts-own-their-analytical-scale.md) | Charts own their analytical scale and shared range inspection | Accepted |
+| [0024](0024-the-manual-is-generated-from-the-game.md) | The manual is generated from the game, not written beside it | Accepted |
+| [0025](0025-charts-own-their-analytical-scale.md) | Charts own their analytical scale and shared range inspection | Accepted |

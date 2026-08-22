@@ -9,7 +9,7 @@
  * `preserveAspectRatio`), but not its fixed face. A dial's position must keep
  * the same meaning forever; this chart prints its own axis and scales the
  * record on screen. Borrowing the dial face produced the orange DIAL LIMIT
- * rail players quite reasonably read as a chart constraint. ADR-0024 keeps
+ * rail players quite reasonably read as a chart constraint. ADR-0025 keeps
  * the two instruments separate while retaining the no-clamp guarantee.
  *
  * The geometry and the painting both live one level down now — `../../plot`

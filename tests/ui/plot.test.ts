@@ -6,7 +6,7 @@
  * value outside the face drew as a flat line along the rail. Over a surveyed
  * century that is not a rare event — `price_fuel` reaches 152 against a 130
  * face, `gdp_growth` spans −33 to +54 against ±15 — so the chart failed
- * silently at exactly the moments worth looking at. ADR-0024 now keeps dial
+ * silently at exactly the moments worth looking at. ADR-0025 now keeps dial
  * faces out of charts entirely: the plotted record owns the analytical scale.
  */
 

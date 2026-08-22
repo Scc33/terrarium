@@ -25,7 +25,7 @@
  * `inflation` reaches 42 — so the clamp erased the most legible moments in
  * the century, and erased them silently.
  *
- * ADR-0024 takes the separation all the way: the dial face belongs to the
+ * ADR-0025 takes the separation all the way: the dial face belongs to the
  * dial, while a chart scales the record it currently displays. The printed
  * axis numbers make that changing scale explicit, and the full excursion is
  * always drawable. The dial itself is untouched, so ADR-0006's promise still

@@ -112,7 +112,7 @@ export function ComponentGallery() {
           </ChartFrame>
           {/* The case the whole chart consolidation exists for: a crisis must
               remain fully drawable. The chart owns its analytical scale and
-              never imports the gauge's fixed face (ADR-0024). */}
+              never imports the gauge's fixed face (ADR-0025). */}
           <ChartFrame
             title="FUEL PRICE BOARD · FULL EXCURSION"
             detail="1946=100 · DRAG TO COMPARE"

@@ -1,4 +1,4 @@
-# ADR-0024 — Charts own their analytical scale and shared range inspection
+# ADR-0025 — Charts own their analytical scale and shared range inspection
 
 **Status:** Accepted · **Date:** 2026-08-21 · **Supersedes:** [ADR-0016](0016-a-chart-frames-a-dial-face.md) · **Preserves:** [ADR-0006](0006-fixed-dial-faces.md)
 

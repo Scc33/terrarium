@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test'
+import { BRIEFED_KEY } from '../../packages/ui/src/walkthrough'
 
+/** Every screenshot below is taken in a browser that has never run the game,
+ * which is precisely the browser the opening walkthrough introduces itself in
+ * (#33). Mark it briefed before the app mounts, so these shots stay pictures
+ * of the war room rather than of the tour card. The tour has a shot of its
+ * own, at the bottom of this file. */
 async function openGame(page: Page, cabinetVisible = true) {
+  await page.addInitScript({ content: `localStorage.setItem(${JSON.stringify(BRIEFED_KEY)}, '1')` })
   await page.goto('/?seed=visual-regression')
   if (cabinetVisible) await expect(page.getByRole('complementary', { name: 'Cabinet controls' })).toBeVisible()
   else await expect(page.getByRole('button', { name: /OPEN CABINET/ })).toBeVisible()
@@ -387,4 +394,37 @@ test('cabinet drawer tabs support keyboard navigation and focus return', async (
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
   await expect(trigger).toBeFocused()
+})
+
+test('the opening walkthrough introduces the room without covering it', async ({ page }) => {
+  // deliberately NOT `openGame`: this is the first-run browser, and the tour
+  // opening itself is the behaviour under test.
+  await page.goto('/?seed=visual-regression')
+  const card = page.getByRole('dialog', { name: 'Introduction to the war room' })
+  await expect(card).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  // the card about the wall must not sit on the wall, and the card about the
+  // cabinet must not sit on the cabinet. jsdom cannot see this and neither can
+  // a pixel diff — a card in the wrong corner is a perfectly plausible render.
+  // advanced from the keyboard, not the mouse: the card focuses its own NEXT
+  // on every step (so the tour is usable without a pointer), and clicking
+  // leaves the cursor resting on the wall, where it opens whichever tooltip
+  // happens to be under it. That is a screenshot that changes with the mouse.
+  await expect(page.getByRole('button', { name: 'NEXT' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  const overlap = (await page.evaluate(`(() => {
+    const card = document.querySelector('[aria-label="Introduction to the war room"]').getBoundingClientRect()
+    const wallEl = document.querySelector('main[data-tour="wall"]')
+    const wall = wallEl.getBoundingClientRect()
+    const covered = Math.max(0, Math.min(card.right, wall.right) - Math.max(card.left, wall.left))
+    return { ring: document.body.getAttribute('data-tour-active'), coveredPx: Math.round(covered), ringed: getComputedStyle(wallEl).outlineStyle }
+  })()`)) as { ring: string; coveredPx: number; ringed: string }
+  expect(overlap.ring).toBe('wall')
+  expect(overlap.coveredPx).toBe(0)
+  // and the region it names is actually ringed — the highlight is a stylesheet
+  // rule keyed off an attribute, so it fails silently if either end is renamed
+  expect(overlap.ringed).toBe('solid')
+
+  await expect(page).toHaveScreenshot('walkthrough-wall.png')
 })

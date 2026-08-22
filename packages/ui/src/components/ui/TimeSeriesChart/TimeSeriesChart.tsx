@@ -18,7 +18,7 @@
  * Three rules it must not break:
  *
  * 1. IT DOES NOT CLAMP OR BORROW A DIAL FACE. The chart scales the displayed
- *    record and prints its own axis (ADR-0024). Drawing a trace flat along a
+ *    record and prints its own axis (ADR-0025). Drawing a trace flat along a
  *    rail is the bug this component was built to end.
  * 2. IT FILLS ITS SLOT WHEN ASKED. `fill` puts the SVG in a `min-h-0 flex-1`
  *    box so a docked wall tile's bay is the height budget. Without it the SVG

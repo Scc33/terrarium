@@ -21,7 +21,7 @@ This folder is the shared, role-based interface layer for the game. Import from
   ribbons, the region between two series — in any of the three registers. It replaced five
   hand-rolled charts that disagreed about the y-axis, the hover readout and the accessible
   summary. Geometry lives in `ui/src/plot.ts`; the chart scales the displayed record rather
-  than borrowing a dial face (ADR-0024), `include` pins zero or an index baseline, `rules`
+  than borrowing a dial face (ADR-0025), `include` pins zero or an index baseline, `rules`
   add reference lines, and `overlay` adds instrument-specific ink. Every chart with point
   inspection also supports drag or Shift+Arrow range comparison.
 - `LineChart` is a compact labelled preset over it, for dense bays.

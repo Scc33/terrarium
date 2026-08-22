@@ -75,7 +75,7 @@ can be tested — anything pushed into a component becomes untestable:
   through it, and a new figure over time reuses it rather than hand-rolling `sx`/`sy` again.
   A chart scales the record it displays and never accepts a gauge face; semantic anchors such
   as zero come through `include`. Point inspection and snapped drag/keyboard range comparison
-  belong here too, so every chart gets them together (ADR-0024).
+  belong here too, so every chart gets them together (ADR-0025).
 - **`ui/src/policyRecord.ts`** — the minute book's rule: a change log over `pub.policy` files
   DECISIONS, never consequences. Rates are diffed; appropriations are not, because an indexed
   or GDP-share rule moves its own money every quarter — so they are filed against the engine's
@@ -102,6 +102,24 @@ can be tested — anything pushed into a component becomes untestable:
   bucket a tail into "other" rather than extend the ramp. The label/ink tables in
   `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
   spending line fails the build until it has been named and given an ink.
+
+- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
+  chapter that LISTS something the game has is generated from the engine's id lists — levers
+  from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
+  `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
+  is documented the quarter it ships, and cannot ship unnamed. Only prose about MECHANISM is
+  authored. `levers.ts` is where a dial's WORDS live; `ControlRail` keeps only the slider's
+  arithmetic — and a lever names its own cabinet drawer there, so the drawers are ASSEMBLED and
+  a new `DialPath` cannot compile without a home. The one list the manual copies by hand is the
+  tick order (`TICK_ORDER` is across the import boundary); `tests/ui/manual.test.ts` crosses it
+  and fails by name when a pipeline step moves.
+- **`ui/src/walkthrough.ts`** — the opening tour's six cards. A card must never sit on the side
+  of the screen its own subject is on (pinned by `tests/ui/walkthrough.test.ts`, and again in
+  the browser by the `walkthrough-wall` visual test) — a tour card covering the thing it points
+  at is invisible in review AND in jsdom. The highlight is a stylesheet rule keyed off
+  `data-tour-active` on `<body>`; that attribute is deliberately named differently from the
+  regions' `data-tour`, because one name for both makes `[data-tour="wall"]` select the body too
+  and every measurement of the region silently becomes a measurement of the document.
 
 Import shared primitives from `components/ui`, never by reaching into a folder.
 
@@ -375,7 +393,7 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   plateau drew as the same flat line along the rail. Framing the trace against that face fixed
   the clamp but added a DIAL LIMIT that looked like a chart constraint and flattened quiet
   windows. A chart has printed axis numbers, so scale the displayed record, include only real
-  semantic anchors such as zero, and never import `INDICATOR_FACE` (ADR-0024). Range comparison
+  semantic anchors such as zero, and never import `INDICATOR_FACE` (ADR-0025). Range comparison
   snaps to published points and reports gaps as elapsed time rather than inventing observations.
 - **Precision belongs to the scale, not the value.** `v => v.toFixed(v < 10 ? 1 : 0)` prints an
   axis reading `0.0, 20, 40`, which looks like three different quantities. Decide decimals once

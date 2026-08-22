@@ -17,6 +17,8 @@ import { AccountsOverlay } from './panels/AccountsOverlay'
 import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
+import { ManualOverlay } from './panels/ManualOverlay'
+import { Walkthrough } from './panels/Walkthrough'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
 import { FinanceOverlay } from './panels/FinanceOverlay'
@@ -25,7 +27,9 @@ import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
 import { CountrySelect } from './panels/CountrySelect'
 import { DraftingRoom } from './panels/DraftingRoom'
-import { Button, useFocusTrap } from './components/ui'
+import { Button, Modal, useFocusTrap } from './components/ui'
+import { hasBeenBriefed, markBriefed } from './walkthrough'
+import type { ManualChapterId } from './manual'
 import { draftFrom, sharedCountryFromUrl, type CountryDocument } from './countryDraft'
 import type { CuratedCountryId } from '@terrarium/engine'
 import type { CabinetGroup } from './cabinetNavigation'
@@ -43,6 +47,7 @@ type OverlayKind =
   | 'election'
   | 'count'
   | 'country'
+  | 'manual'
   | null
 
 export default function App() {
@@ -58,6 +63,15 @@ export default function App() {
    * too, and a year chosen next door is still the year that player means. */
   const [appointedAt, setAppointedAt] = useState(0)
   const [cabinetOpen, setCabinetOpen] = useState(false)
+  /** the handbook opens on whichever chapter the player was reaching for —
+   * the records office wants the methodology, the header wants the front */
+  const [manualChapter, setManualChapter] = useState<ManualChapterId>('briefing')
+  /** the opening walkthrough (#33). `null` is "not touring". Decided once, at
+   * mount, from a preference of this BROWSER rather than of the run — a player
+   * on their fourth country has been introduced. The card itself renders only
+   * inside the war room, so a tour armed here waits for a game to exist
+   * without needing an effect to notice one arriving. */
+  const [tourStep, setTourStep] = useState<number | null>(() => (hasBeenBriefed() ? null : 0))
   const [devOpen, setDevOpen] = useState(false)
   const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
   const [cabinetFocusRequest, setCabinetFocusRequest] = useState(0)
@@ -123,6 +137,11 @@ export default function App() {
         setDevOpen((o) => !o)
         return
       }
+      // the tour keeps its own focus on NEXT, so Space belongs to that button
+      // rather than to the quarter. Returning BEFORE preventDefault is the
+      // whole point: swallowing the key here left the tour advancing on Enter
+      // only, with Space doing nothing at all.
+      if (tourStep !== null) return
       if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
         const s = useGame.getState()
@@ -131,7 +150,17 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [overlay, devOpen])
+  }, [overlay, devOpen, tourStep])
+
+  const endTour = useCallback(() => {
+    setTourStep(null)
+    markBriefed()
+  }, [])
+
+  const openManual = (chapter: ManualChapterId) => {
+    setManualChapter(chapter)
+    setOverlay('manual')
+  }
 
   // the verdict presents itself exactly once, when the run ends
   useEffect(() => {
@@ -245,6 +274,7 @@ export default function App() {
       <HeaderBar
         pub={published}
         onStudy={() => setOverlay('study')}
+        onManual={() => openManual('briefing')}
         onSettings={() => setOverlay('settings')}
         onCensus={() => setOverlay('census')}
         onFinance={() => setOverlay('finance')}
@@ -252,7 +282,7 @@ export default function App() {
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
       <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
-        <main className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
+        <main data-tour="wall" className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
           <Instruments pub={published} onLedger={() => setOverlay('ledger')} onOpenCapacity={() => openCabinet('STATE CAPACITY')} />
         </main>
         {cabinetOpen && (
@@ -301,6 +331,7 @@ export default function App() {
           pub={published}
           onClose={() => setOverlay(null)}
           onNewCountry={() => setOverlay('country')}
+          onMethodology={() => openManual('figures')}
         />
       )}
       {overlay === 'census' && <CensusOverlay pub={published} onClose={() => setOverlay(null)} />}
@@ -321,6 +352,28 @@ export default function App() {
           onStartDraft={(doc, seed, rules) => {
             newDraftedGame(doc, seed, rules, appointedAt)
             setOverlay(null)
+          }}
+        />
+      )}
+      {overlay === 'manual' && (
+        <Modal title="MINISTRY HANDBOOK" size="full" onClose={() => setOverlay(null)}>
+          <ManualOverlay
+            initialChapter={manualChapter}
+            onWalkthrough={() => {
+              setOverlay(null)
+              setTourStep(0)
+            }}
+          />
+        </Modal>
+      )}
+      {tourStep !== null && overlay === null && (
+        <Walkthrough
+          index={tourStep}
+          onIndex={setTourStep}
+          onClose={endTour}
+          onHandbook={() => {
+            endTour()
+            openManual('briefing')
           }}
         />
       )}
