@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 28)
+## Current contract (schema 29)
 
 ### Inputs
 
@@ -48,6 +48,17 @@ false in ordinary play, each read in exactly one place)
 Saves from before v27 carry the `mode` scalar instead; `'god'` loads as `protectedTenure`, and a
 save from before v21 with neither loads with every rule off.
 
+**The appointment** (`meta.appointedAt: Qtr`, immutable after init — the quarter the player
+takes office, ADR-0021). Zero is the ordinary 1946 posting and is what every save before v28
+means. A later quarter makes the ones before it an **interregnum**: a caretaker administration
+governs them in the ordinary loop, its orders are written into `actionLog` like any others, and
+the state the player is handed is whatever that produced. The caretaker votes the opening
+appropriations into `gdpShare` rules at their opening share and invests `CARETAKER_CAPACITY_SPEND`
+in each capacity every `CARETAKER_CAPACITY_EVERY` quarters; it touches no other lever. During
+the interregnum the political clock is stopped — no election, no deposition, no PC accrual, and
+orders are quoted and objected to but not charged — and the score, corridor and tenure counters
+do not start until `appointedAt`.
+
 **Policy levers** (`DialState` plus `SpendingRules`)
 | Lever | Range |
 |---|---|
@@ -57,7 +68,7 @@ save from before v21 with neither loads with every rule off.
 | `policyRate` | annualized nominal rate |
 | `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
-| `immigrationLimit` | maximum annual immigration as a share of resident population, 0..3%; does not restrict emigration |
+| `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
@@ -98,7 +109,7 @@ The **migration flow** (`demography` step) compares domestic mean log consumptio
 cabinet's `immigrationLimit` clips positive arrivals only; emigration remains possible when the
 country underperforms. Realized migrants enter young-adult age bands and therefore change labor
 supply and the future birth base. The `institutions` step prices realized inward migration through
-bloc favor and, above ordinary churn, unrest (ADR-0021).
+bloc favor and, above ordinary churn, unrest (ADR-0022).
 
 The **financial sector** (`finance` step) has three distinct levers. The policy rate sets the
 price of overnight money. `assetPurchaseRate` is QE: it lowers the common private funding rate
@@ -129,7 +140,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
 | `capital_stock` | index | 0.30 | v1.5 | total capital stock |
-| `net_migration` | per 1000/yr | 0.30 | v28 | arrivals minus departures, annualized per 1,000 residents |
+| `net_migration` | per 1000/yr | 0.30 | v29 | arrivals minus departures, annualized per 1,000 residents |
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
@@ -159,7 +170,7 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 | Output | Since | Contents |
 |---|---|---|
 | `mode` | v21 | exact opening rule, `standard` or `god` |
-| `dials` | v1 | your own lever settings, including the v28 immigration ceiling |
+| `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
 | `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
 | ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
@@ -200,23 +211,58 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 
 ## Version history — what each release added to the contract
 
-### schema 28 — Relative migration and the immigration ceiling
+### schema 29 — Relative migration and the immigration ceiling
 
 - **Inputs +**: `DialState.immigrationLimit`, an exact annual share of resident population from
-  0..3%. It clips desired immigration only. `setDial` moves it through the same action-log,
+  0..2%. It clips desired immigration only. `setDial` moves it through the same action-log,
   veto-player pricing, policy-history, save, and replay path as every other cabinet lever.
 - **Pipeline ±**: `demography` replaces the old labor-slack-only migration term with a relative
   outside-option flow: domestic mean log consumption progress from the inherited 1946 baseline
-  minus a frontier-linked alternative, plus current labor-market tightness. Migrants remain
+  minus a frontier-linked alternative, plus current labor-market tightness. The 1946 migration
+  baseline is stored separately from the appointment-based report-card baseline, so a later
+  posting does not alter caretaker-era population history. Migrants remain
   concentrated in young-adult bands. `institutions` reads realized inward migration: employers
   and landowners gain favor, unions lose it, and only inflows above ordinary churn add unrest
-  (ADR-0021).
+  (ADR-0022).
 - **Outputs +**: fogged `net_migration`, annualized per 1,000 residents, unlocks at 0.30
   statistical capacity. The fixed −15..15 face covers the measured all-country funded-century
   range (−11.9..12.1; p01 −8.0, p99 9.6).
-- **Compatibility**: state shape, policy history, and indicator ids changed, so schema 28 has new
+- **Compatibility**: state shape, policy history, and indicator ids changed, so schema 29 has new
   golden replays. Older replay-log saves still omit only a deterministic opening dial and are
   handled by the engine's existing replay load path rather than repaired as snapshots.
+
+### schema 28 — The year you take office
+
+- **Inputs +**: `meta.appointedAt: Qtr` — a replay input with a save field, like `meta.rules`
+  (ADR-0021). `init(params, seed, rules, appointedAt)` and `createSave(…, appointedAt)`; a save
+  without the field is a 1946 posting, which is all of them before this version.
+- **Inputs +**: `runInterregnum(params, seed, rules, appointedAt)` opens a country and lets a
+  caretaker administration govern it up to the appointment, returning the state AND the action
+  log that produced it. `caretakerActions(state)` is the policy — pure, RNG-free, two kinds of
+  order (`setSpendingRule`, `investCapacity`) and nothing else.
+- **Inputs +**: `APPOINTMENTS` — the quarters the posting room offers (1946, 1973, 1995, 2005,
+  each a `FRONTIER_ERAS` boundary). Any quarter in `[0, LAST_APPOINTMENT_TICK]` is legal to the
+  engine; `appointmentTick` clamps anything else, and unreadable input falls back to 1946. The
+  bound stops one quarter short of the end of history on purpose: an appointment ON the closing
+  quarter banks no welfare baseline, so `reportCardOf` could never return a verdict and the run
+  could never end.
+- **Outputs +**: `PublishedState.appointedAt`, published exactly — the baseline every "since you
+  arrived" reading is measured from.
+- **Outputs ±**: `ReportCard.quartersGoverned` counts from the appointment rather than from
+  quarter zero, and `vsBaseline` is now the standard of living inherited on that day.
+  `score.baselineWelfare`, `corridorQuarters` and `governedQuarters` all open there too, and the
+  welfare discount is `WELFARE_DISCOUNT_Q ^ (tick − appointedAt)`.
+- **Fog**: unchanged in kind. A later appointment inherits the statistical office the caretaker
+  built — 21–29 of 29 instruments reporting by 1973, all 29 by 1995 — which is the point of
+  having a caretaker at all rather than a passive fast-forward.
+- **Internal**: `livingStandard` now bootstraps on `meta.tick === 0` rather than on
+  `score.baselineWelfare === null`. Bit-identical for every 1946 run (the two agreed exactly
+  while scoring began at tick zero), and load-bearing for a later one: the vital rates' income
+  LEVEL and the report card's yardstick are the two anchors that must not be conflated.
+- Economy bit-identical to v27 at `appointedAt: 0` (`pnpm diff-state --moved-only` reports
+  `meta.schemaVersion` and nothing else; passive century re-measured at 2.68 %/yr growth,
+  0.11 % inflation, 11.85 % unemployment, 8 % deposed over 200×400q). What each appointment
+  hands over is measured by `pnpm inheritance` and tabulated in `docs/country-scenarios.md`.
 
 ### schema 27 — The rules of a run
 

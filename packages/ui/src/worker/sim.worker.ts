@@ -5,11 +5,13 @@
 
 import {
   applyActions,
+  appointmentTick,
   countryFromDocument,
   createSave,
   createCountryParams,
   gameRules,
   init,
+  runInterregnum,
   STANDARD_RULES,
   step,
   END_OF_HISTORY_TICK,
@@ -26,7 +28,7 @@ import {
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
-import { unreadableSaveMessage } from '../saveFile'
+import { replayWindow, unreadableSaveMessage } from '../saveFile'
 import { runTrial } from './trial'
 import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
 
@@ -35,6 +37,9 @@ let params: CountryParams | null = null
 let seed = ''
 let actionLog: ActionLog = []
 let rules: GameRules = STANDARD_RULES
+/** the quarter the player took office — part of the save, so it has to live
+ * beside the other three replay inputs rather than be read back off the state */
+let appointedAt = 0
 
 const post = (m: WorkerMessage) => postMessage(m)
 
@@ -43,29 +48,50 @@ function publish(): void {
   post({
     type: 'published',
     published: observe(state),
-    save: createSave(params, seed, actionLog, state.meta.tick, rules),
+    save: createSave(params, seed, actionLog, state.meta.tick, rules, appointedAt),
   })
 }
 
-function startNew(newSeed: string, country: CountryScenarioId, newRules: GameRules): void {
+/** Open a posting. On a 1946 appointment `runInterregnum` returns `init` and an
+ * empty log; on a later one it hands back the country a caretaker administration
+ * governed up to that quarter, and the orders that got it there — which go into
+ * the save's action log like any others, so the run replays without needing
+ * this file's policy again (ADR-0021). */
+function openPosting(
+  newSeed: string,
+  vector: CountryParams,
+  newRules: GameRules,
+  takeOfficeAt: number,
+): void {
   seed = newSeed
   rules = newRules
-  params = createCountryParams(country, seed)
-  state = init(params, seed, rules)
-  actionLog = []
+  params = vector
+  appointedAt = appointmentTick(takeOfficeAt)
+  const opened = runInterregnum(params, seed, rules, appointedAt)
+  state = opened.state
+  actionLog = opened.actionLog
   publish()
+}
+
+function startNew(
+  newSeed: string,
+  country: CountryScenarioId,
+  newRules: GameRules,
+  takeOfficeAt: number,
+): void {
+  openPosting(newSeed, createCountryParams(country, newSeed), newRules, takeOfficeAt)
 }
 
 /** Start a country a player wrote. Identical to `startNew` in every respect
  * except where the vector came from — same init, same pipeline, same RNG — so
  * the save it produces is an ordinary save and replays anywhere. */
-function startDrafted(newSeed: string, document: CountryDocument, newRules: GameRules): void {
-  seed = newSeed
-  rules = newRules
-  params = countryFromDocument(document)
-  state = init(params, seed, rules)
-  actionLog = []
-  publish()
+function startDrafted(
+  newSeed: string,
+  document: CountryDocument,
+  newRules: GameRules,
+  takeOfficeAt: number,
+): void {
+  openPosting(newSeed, countryFromDocument(document), newRules, takeOfficeAt)
 }
 
 /** Study a candidate country. Errors here are the document's, not the game's,
@@ -103,16 +129,19 @@ function load(save: {
   tick: number
   rules?: GameRules
   mode?: GameMode
+  appointedAt?: number
 }): void {
   // a save written before the rule set names only its tenure rule
   const saveRules = gameRules(save.rules ?? save.mode ?? 'standard')
+  // …and one from before the appointment year began in 1946, like all of them.
+  // `replayWindow` also says whether the two replay inputs can both be true —
+  // a save that stopped before its own government took office cannot.
+  const { until, appointedAt: saveAppointedAt, conflict } = replayWindow(save)
   let next: TrueState
   try {
-    next = init(save.params, save.seed, saveRules)
+    if (conflict) throw new Error(conflict)
+    next = init(save.params, save.seed, saveRules, saveAppointedAt)
     const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
-    // a tick past the end of history can only be corruption or a hand edit, and
-    // an unbounded `while` on it is a hung tab. History ends at 416 either way.
-    const until = Math.min(save.tick, END_OF_HISTORY_TICK)
     while (next.meta.tick < until) {
       const acts = byTick.get(next.meta.tick)
       if (acts) {
@@ -135,6 +164,7 @@ function load(save: {
   }
   seed = save.seed
   rules = saveRules
+  appointedAt = saveAppointedAt
   params = save.params
   actionLog = save.actionLog
   state = next
@@ -260,6 +290,10 @@ function handleDev(msg: ClientMessage): void {
 function devScenario(sc: DevScenario): void {
   seed = sc.seed
   rules = STANDARD_RULES
+  // a scenario is still a 1946 posting run forward with nobody governing — the
+  // console's whole point is that you specify the country and let it live, and
+  // the posting room's caretaker would put its own decisions in the way
+  appointedAt = 0
   params = applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc)
   state = init(params, seed, rules)
   actionLog = []
@@ -280,10 +314,10 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     }
     switch (msg.type) {
       case 'new':
-        startNew(msg.seed, msg.country, msg.rules)
+        startNew(msg.seed, msg.country, msg.rules, msg.appointedAt)
         break
       case 'newDrafted':
-        startDrafted(msg.seed, msg.document, msg.rules)
+        startDrafted(msg.seed, msg.document, msg.rules, msg.appointedAt)
         break
       case 'trial':
         trial(msg.document, msg.baseSeed)

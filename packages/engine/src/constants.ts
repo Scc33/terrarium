@@ -439,7 +439,7 @@ export const MIG_EMIGRATION_CAP_Q = 0.003
 /** inherited annual immigration ceiling and the widest order the cabinet can
  * write, both as shares of resident population */
 export const IMMIGRATION_LIMIT_DEFAULT = 0.012
-export const IMMIGRATION_LIMIT_MAX = 0.03
+export const IMMIGRATION_LIMIT_MAX = 0.02
 
 /** Sustained high immigration is politically distributive rather than a flat
  * approval penalty. Employers gain; organized labor minds the extra supply;
@@ -886,3 +886,16 @@ export const POSITION_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C
   { atLeast: 0.35, grade: 'C' },
   { atLeast: 0.12, grade: 'D' },
 ] // below: F — the country spent your whole tenure outside the corridor
+
+// ---------- the caretaker administration (ADR-0021) ----------
+/** How the years before a later appointment are governed. Deliberately the
+ * same numbers as the runner's `developmental` policy, so the interregnum is a
+ * measured baseline rather than a second model of government behaviour — but
+ * NOT shared with it: the runner's baselines are a published measurement of the
+ * engine, and coupling them to a game-facing constant would let a retune here
+ * silently invalidate the tables in `economics-review`. Retuning either number
+ * rewrites what every later posting inherits, and old saves are immune only
+ * because the caretaker's orders are written into them. Measure with
+ * `pnpm inheritance` before touching them. */
+export const CARETAKER_CAPACITY_EVERY = 8 // quarters between ministry programmes
+export const CARETAKER_CAPACITY_SPEND = 2 // money per programme, per ministry

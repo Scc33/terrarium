@@ -13,11 +13,14 @@ import type { DevScenario } from '../devScenario'
 import type { TrialProgress, TrialReport } from './trial'
 
 export type ClientMessage =
-  | { type: 'new'; seed: string; country: CountryScenarioId; rules: GameRules }
+  /** `appointedAt` is the quarter the player takes office (ADR-0021). Zero is
+   * the ordinary 1946 posting; anything later asks the worker to run the
+   * caretaker's interregnum before the game is handed over. */
+  | { type: 'new'; seed: string; country: CountryScenarioId; rules: GameRules; appointedAt: number }
   /** start a country a player wrote. The document is materialized into params
    * here rather than in a component, so the UI never holds a playable vector
    * it could be tempted to run. */
-  | { type: 'newDrafted'; seed: string; document: CountryDocument; rules: GameRules }
+  | { type: 'newDrafted'; seed: string; document: CountryDocument; rules: GameRules; appointedAt: number }
   | { type: 'load'; save: SaveFile }
   | { type: 'advance'; actions: Action[] }
   | { type: 'previewCost'; actions: Action[] }

@@ -84,7 +84,10 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
   const over = !politics.inPower || meta.tick >= END_OF_HISTORY_TICK
   if (!over || score.discountWeight <= 0 || score.baselineWelfare === null) return undefined
   const meanLog = score.discountedWelfare / score.discountWeight
-  const quartersGoverned = politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK)
+  // the caretaker's quarters are not the player's tenure (ADR-0021), and on an
+  // ordinary 1946 posting `appointedAt` is zero and this is the old expression
+  const quartersGoverned =
+    (politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK)) - meta.appointedAt
   const prosperityRate =
     (400 * (meanLog - score.baselineWelfare)) / Math.max(effectiveQuarters(quartersGoverned), 1)
   const prosperityGrade: Grade =
@@ -158,6 +161,7 @@ export function observe(state: TrueState): PublishedState {
   }
   return {
     tick: state.meta.tick,
+    appointedAt: state.meta.appointedAt,
     country: state.params.name,
     countryAuthored: state.params.authored === true,
     rules: { ...state.meta.rules },

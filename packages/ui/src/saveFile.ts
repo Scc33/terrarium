@@ -22,7 +22,12 @@
  * can't read has to end at the posting room, not at devtools.
  */
 
-import { SCHEMA_VERSION, type SaveFile } from '@terrarium/engine'
+import {
+  appointmentTick,
+  END_OF_HISTORY_TICK,
+  SCHEMA_VERSION,
+  type SaveFile,
+} from '@terrarium/engine'
 
 /**
  * A structural check, not a validation: is this thing shaped enough like a save
@@ -40,8 +45,54 @@ export function looksLikeSave(value: unknown): value is SaveFile {
     Array.isArray(save.actionLog) &&
     typeof save.tick === 'number' &&
     Number.isInteger(save.tick) &&
-    save.tick >= 0
+    save.tick >= 0 &&
+    quarterOrAbsent(save.appointedAt)
   )
+}
+
+/** A quarter field that a save may legally omit. Absent means zero everywhere
+ * `appointedAt` is read, so `undefined` passes — but `"108"` or `null` must
+ * NOT, because `appointmentTick` turns anything it cannot read into quarter
+ * zero, and quietly opening a 1946 posting from a file that named 1973 is the
+ * silent repair this module exists to refuse. The appointment is a replay
+ * input: getting it wrong changes the century from the first quarter on, with
+ * the same country, seed and log. */
+function quarterOrAbsent(value: unknown): boolean {
+  return value === undefined || (typeof value === 'number' && Number.isInteger(value) && value >= 0)
+}
+
+/**
+ * The window a save is to be replayed over, and whether its own two replay
+ * inputs can both be true.
+ *
+ * Both numbers are clamped where the engine clamps them: history ends at 416
+ * whatever `tick` says (an unbounded `while` on a hand-edited quarter is a hung
+ * tab), and an appointment is clamped by `appointmentTick`. Derived here, once,
+ * so the worker cannot drift from the check.
+ *
+ * The conflict this catches is `appointedAt > until`: a run that stopped BEFORE
+ * its own government took office. Replaying one hands back an interregnum as a
+ * playable game — the political clock frozen, no election, no deposition, and
+ * every order quoted at its real price and then charged nothing, which is
+ * `unlimitedCapital` by hand edit for as many quarters as the gap. It is
+ * refused rather than repaired for this file's usual reason: moving either
+ * number opens *a* run, not *the* one that was saved.
+ */
+export function replayWindow(save: { tick: number; appointedAt?: number }): {
+  until: number
+  appointedAt: number
+  conflict: string | null
+} {
+  const until = Math.min(save.tick, END_OF_HISTORY_TICK)
+  const appointedAt = appointmentTick(save.appointedAt ?? 0)
+  return {
+    until,
+    appointedAt,
+    conflict:
+      appointedAt > until
+        ? `the run was saved at quarter ${until} but its government does not take office until ${appointedAt}`
+        : null,
+  }
 }
 
 /** The schema a save was filed under, or null if it doesn't say. */

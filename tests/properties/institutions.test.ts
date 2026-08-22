@@ -19,6 +19,7 @@ import {
   enfranchisementIndex,
   franchiseOf,
   inCorridor,
+  IMMIGRATION_LIMIT_MAX,
   init,
   REFORM_WINDOW_AT,
   reformWindowOpen,
@@ -312,7 +313,7 @@ describe('the veto players gate the levers (§4.3)', () => {
     const after = applyAction(rich, {
       kind: 'setDial',
       path: 'immigrationLimit',
-      value: 0.03,
+      value: IMMIGRATION_LIMIT_MAX,
     })
     expect(after.institutions.blocs.industrialists.favor).toBeGreaterThan(
       rich.institutions.blocs.industrialists.favor,
@@ -321,7 +322,11 @@ describe('the veto players gate the levers (§4.3)', () => {
       rich.institutions.blocs.unions.favor,
     )
     expect(() =>
-      applyAction(rich, { kind: 'setDial', path: 'immigrationLimit', value: 0.031 }),
+      applyAction(rich, {
+        kind: 'setDial',
+        path: 'immigrationLimit',
+        value: IMMIGRATION_LIMIT_MAX + 0.001,
+      }),
     ).toThrow()
   })
 })

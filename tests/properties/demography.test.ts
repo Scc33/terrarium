@@ -15,6 +15,7 @@ import {
   NATURAL_UNEMPLOYMENT,
   RETIREMENT_BAND,
   step,
+  WORKING_BANDS,
   type TrueState,
 } from '@terrarium/engine'
 import { standardCountry } from '@terrarium/fixtures'
@@ -140,9 +141,50 @@ describe('the demographic transition (§8)', () => {
     expect(openBoom.netQ).toBeGreaterThan(0)
     expect(closedBoom.netQ).toBe(0)
 
+    // At the mathematical best case the advertised 2% ceiling is exactly
+    // reachable: every resident is working age, unemployment is zero, and
+    // domestic performance is at the capped lead over the outside option.
+    const allWorking = Array(AGE_BANDS).fill(0)
+    allWorking[WORKING_BANDS[0]] = pop(base)
+    const bestCase: TrueState = {
+      ...withPolicy(IMMIGRATION_LIMIT_MAX, 0, 2),
+      demography: {
+        ...base.demography,
+        pyramid: allWorking,
+        migrationBaselineWelfare: -10,
+      },
+      tech: { ...base.tech, frontier: 1 },
+    }
+    const fullRange = migrationFlow(bestCase)
+    expect(fullRange.performanceGap).toBe(1)
+    expect(fullRange.desiredQ).toBeCloseTo(fullRange.immigrationCapQ, 12)
+    expect(fullRange.netQ).toBeCloseTo(fullRange.immigrationCapQ, 12)
+
     const openSlump = migrationFlow(withPolicy(IMMIGRATION_LIMIT_MAX, 0.35, 0.5))
     const closedSlump = migrationFlow(withPolicy(0, 0.35, 0.5))
     expect(openSlump.desiredQ).toBeLessThan(0)
     expect(closedSlump.netQ).toBeCloseTo(openSlump.netQ, 12)
+  })
+
+  it('records only migration that can be allocated to the age pyramid', () => {
+    const pyramid = [...standardCountry.pyramid!]
+    let displaced = 0
+    for (let i = WORKING_BANDS[0]; i <= WORKING_BANDS[1]; i++) {
+      displaced += pyramid[i]
+      pyramid[i] = 0
+    }
+    pyramid[WORKING_BANDS[0] - 1] += displaced
+    const custom = { ...standardCountry, pyramid }
+    const base = init(custom, 'migration-empty-young-adults')
+    const attractive: TrueState = {
+      ...base,
+      demography: { ...base.demography, migrationBaselineWelfare: -10 },
+      flows: { ...base.flows, unemployment: 0 },
+      tech: { ...base.tech, frontier: 1 },
+    }
+
+    expect(migrationFlow(attractive).netQ).toBeGreaterThan(0)
+    const after = step(attractive)
+    expect(after.demography.netMigrationQ).toBe(0)
   })
 })

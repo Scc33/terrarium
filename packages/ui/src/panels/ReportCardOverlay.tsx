@@ -13,6 +13,7 @@
  */
 
 import {
+  FIRST_YEAR,
   LEGITIMACY_GRADE_ELECTIONS,
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
@@ -20,7 +21,7 @@ import {
 import type { Grade, PublishedState, ReportCard } from '@terrarium/observation'
 import { Modal, Panel, Tooltip } from '../components/ui'
 
-const yearOf = (q: number) => 1946 + Math.floor(q / 4)
+const yearOf = (q: number) => FIRST_YEAR + Math.floor(q / 4)
 
 /**
  * The scale each letter was read off, built FROM the engine's own cutoffs.
@@ -103,7 +104,10 @@ export function ReportCardOverlay({
   card: ReportCard
   onClose: () => void
 }) {
-  const endYear = yearOf(card.quartersGoverned)
+  // the card grades the tenure, and on a later posting the tenure did not
+  // start in 1946 — both ends of this line come off the appointment (ADR-0021)
+  const startYear = yearOf(pub.appointedAt)
+  const endYear = yearOf(pub.appointedAt + card.quartersGoverned)
   const years = Math.max(1, Math.round(card.quartersGoverned / 4))
   return (
     <Modal title="THE HISTORIANS' VERDICT" onClose={onClose}>
@@ -111,7 +115,7 @@ export function ReportCardOverlay({
         <div className="text-center">
           <div className="font-dossier text-2xl font-semibold text-dossier-ink">{pub.country}</div>
           <div className="mt-1 font-mono text-[11px] tabular-nums tracking-[0.2em] text-dossier-ink/70">
-            1946 — {endYear}
+            {startYear} — {endYear}
           </div>
           <div
             className={`mx-auto mt-3 inline-block -rotate-3 border-2 px-3 py-1 font-mono text-xs font-bold tracking-[0.3em] ${
@@ -137,7 +141,7 @@ export function ReportCardOverlay({
               ×{card.vsBaseline.toFixed(2)}
             </span>
             <span className="font-dossier text-sm italic text-dossier-ink/70">
-              the 1946 standard of living
+              the {startYear} standard of living you inherited
             </span>
           </div>
           <div className="mt-1 font-mono text-[11px] tabular-nums text-dossier-ink/80">

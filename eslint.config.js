@@ -73,7 +73,7 @@ export default defineConfig([
               // engine, but never the functions that build or advance TrueState
               // — only the sim worker runs the engine (§1.1)
               name: '@terrarium/engine',
-              importNames: ['init', 'step', 'replay', 'applyActions', 'runTick'],
+              importNames: ['init', 'step', 'replay', 'applyActions', 'runTick', 'runInterregnum'],
               message:
                 'Only packages/ui/src/worker may run the engine; components see PublishedState via @terrarium/observation.',
             },

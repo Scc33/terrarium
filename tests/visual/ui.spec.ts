@@ -172,7 +172,7 @@ test('migration desk exposes the annual immigration ceiling', async ({ page }) =
   await page.getByRole('tab', { name: 'BORDERS 1 CONTROL' }).click()
   const ceiling = page.getByRole('slider', { name: 'Immigration ceiling' })
   await expect(ceiling).toHaveValue('0.012')
-  await expect(ceiling).toHaveAttribute('max', '0.03')
+  await expect(ceiling).toHaveAttribute('max', '0.02')
   await page.getByRole('button', { name: 'Decrease Immigration ceiling' }).click()
   await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
   await expect(page).toHaveScreenshot('migration-controls.png')

@@ -421,7 +421,10 @@ export const institutions: PipelineStep = {
     }
 
     // --- §3.3 Position: the path, banked as it happens, like welfare
-    const governing = state.politics.inPower && state.politics.deposedAt === null
+    const governing =
+      state.politics.inPower &&
+      state.politics.deposedAt === null &&
+      state.meta.tick >= state.meta.appointedAt // the caretaker's quarters are not your tenure
     const score = governing
       ? {
           ...state.score,

@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "74bdf20",
+  "revision": "b5735d4",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 31,
-      "lines": 7828
+      "moduleCount": 32,
+      "lines": 8186
     },
     {
       "id": "fixtures",
@@ -25,7 +25,7 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 3,
-      "lines": 491
+      "lines": 501
     },
     {
       "id": "runner",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 76,
-      "lines": 12013
+      "lines": 12202
     }
   ],
   "modules": [
@@ -49,7 +49,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Actions",
       "summary": "Action application. Validates legality (dial bounds, PC affordability) and rejects loudly — an illegal action in a replay means a bug or a version mismatch, never a silent skip (§5).",
-      "lines": 596,
+      "lines": 603,
       "exports": [
         {
           "name": "IllegalActionError",
@@ -73,13 +73,13 @@ export const architecture = {
           "name": "politicalCostOfAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 364
+          "line": 371
         },
         {
           "name": "applyAction",
           "kind": "function",
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 444
+          "line": 451
         }
       ],
       "imports": [
@@ -91,7 +91,8 @@ export const architecture = {
         "packages/engine/src/state/spending.ts"
       ],
       "importedBy": [
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts"
       ],
       "path": "packages/engine/src/actions/apply.ts",
       "line": 1
@@ -134,7 +135,8 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/engine/src/actions/apply.ts",
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts"
       ],
       "path": "packages/engine/src/actions/types.ts",
       "line": 1
@@ -145,7 +147,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the M1 exit criterion (c)).",
-      "lines": 889,
+      "lines": 902,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -1700,6 +1702,18 @@ export const architecture = {
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 883
+        },
+        {
+          "name": "CARETAKER_CAPACITY_EVERY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 900
+        },
+        {
+          "name": "CARETAKER_CAPACITY_SPEND",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 901
         }
       ],
       "imports": [
@@ -1709,6 +1723,7 @@ export const architecture = {
         "packages/engine/src/actions/apply.ts",
         "packages/engine/src/countries.ts",
         "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts",
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
@@ -1960,43 +1975,49 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The whole engine is three functions (§2):",
-      "lines": 262,
+      "lines": 311,
       "exports": [
         {
           "name": "init",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 25
+          "line": 28
         },
         {
           "name": "applyActions",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 33
+          "line": 37
         },
         {
           "name": "step",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 37
+          "line": 41
+        },
+        {
+          "name": "InvalidSaveError",
+          "kind": "class",
+          "path": "packages/engine/src/index.ts",
+          "line": 49
         },
         {
           "name": "SaveFile",
           "kind": "interface",
           "path": "packages/engine/src/index.ts",
-          "line": 42
+          "line": 56
         },
         {
           "name": "createSave",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 57
+          "line": 75
         },
         {
           "name": "replay",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 75
+          "line": 106
         }
       ],
       "imports": [
@@ -2008,6 +2029,7 @@ export const architecture = {
         "packages/engine/src/countryDocument.ts",
         "packages/engine/src/countryDocument.ts",
         "packages/engine/src/hash.ts",
+        "packages/engine/src/interregnum.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
@@ -2039,6 +2061,7 @@ export const architecture = {
         "packages/runner/src/stability.ts",
         "packages/ui/src/App.tsx",
         "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/series.ts",
         "packages/ui/src/countryDraft.ts",
         "packages/ui/src/devScenario.ts",
         "packages/ui/src/domains.ts",
@@ -2049,6 +2072,7 @@ export const architecture = {
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/DevConsole.tsx",
+        "packages/ui/src/panels/HeaderBar.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/policyRecord.ts",
@@ -2061,6 +2085,54 @@ export const architecture = {
         "packages/ui/src/worker/trial.ts"
       ],
       "path": "packages/engine/src/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/interregnum.ts",
+      "label": "interregnum",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "The years before you (ADR-0021).",
+      "lines": 174,
+      "exports": [
+        {
+          "name": "Appointment",
+          "kind": "interface",
+          "path": "packages/engine/src/interregnum.ts",
+          "line": 62
+        },
+        {
+          "name": "APPOINTMENTS",
+          "kind": "constant",
+          "path": "packages/engine/src/interregnum.ts",
+          "line": 78
+        },
+        {
+          "name": "caretakerActions",
+          "kind": "function",
+          "path": "packages/engine/src/interregnum.ts",
+          "line": 131
+        },
+        {
+          "name": "runInterregnum",
+          "kind": "function",
+          "path": "packages/engine/src/interregnum.ts",
+          "line": 151
+        }
+      ],
+      "imports": [
+        "packages/engine/src/actions/apply.ts",
+        "packages/engine/src/actions/types.ts",
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/interregnum.ts",
       "line": 1
     },
     {
@@ -2134,7 +2206,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 7 — cohorts. Incomes land, savings absorb the difference, and approval drifts toward *experienced* conditions: real income growth (loss-averse), own-basket inflation, joblessness, and queues for goods that never arrived. Whatever the statistics office printed, the bread l…",
-      "lines": 161,
+      "lines": 181,
       "exports": [
         {
           "name": "cohorts",
@@ -2162,7 +2234,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1.5 — demography (§8). The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort…",
-      "lines": 226,
+      "lines": 244,
       "exports": [
         {
           "name": "vitalRates",
@@ -2217,7 +2289,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Shared derived quantities used by several steps. Pure reads, no mutation.",
-      "lines": 442,
+      "lines": 454,
       "exports": [
         {
           "name": "financierAnger",
@@ -2313,97 +2385,97 @@ export const architecture = {
           "name": "livingStandard",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 207
+          "line": 219
         },
         {
           "name": "giniIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 215
+          "line": 227
         },
         {
           "name": "realIncomePerHead",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 260
+          "line": 272
         },
         {
           "name": "termsOfTrade",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 289
+          "line": 301
         },
         {
           "name": "enfranchisementIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 311
+          "line": 323
         },
         {
           "name": "discontentIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 333
+          "line": 345
         },
         {
           "name": "urbanShare",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 349
+          "line": 361
         },
         {
           "name": "statePower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 357
+          "line": 369
         },
         {
           "name": "corridorOffset",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 369
+          "line": 381
         },
         {
           "name": "corridorStrain",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 375
+          "line": 387
         },
         {
           "name": "inCorridor",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 383
+          "line": 395
         },
         {
           "name": "effectiveBlocPower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 391
+          "line": 403
         },
         {
           "name": "eliteHostility",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 399
+          "line": 411
         },
         {
           "name": "eliteCapture",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 414
+          "line": 426
         },
         {
           "name": "creativeDestruction",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 427
+          "line": 439
         },
         {
           "name": "cohortCpi",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 436
+          "line": 448
         }
       ],
       "imports": [
@@ -2518,7 +2590,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the game that isn't the economy.",
-      "lines": 440,
+      "lines": 443,
       "exports": [
         {
           "name": "franchiseOf",
@@ -2657,6 +2729,7 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts",
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/finance.ts",
@@ -2683,7 +2756,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (§3.4): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a later re…",
-      "lines": 171,
+      "lines": 182,
       "exports": [
         {
           "name": "electionThreshold",
@@ -2979,6 +3052,7 @@ export const architecture = {
         "packages/engine/src/countries.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/pipeline/statistics.ts",
         "packages/engine/src/state/init.ts",
@@ -2993,19 +3067,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (§10 of the design doc); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 446,
+      "lines": 453,
       "exports": [
         {
           "name": "synthPyramid",
           "kind": "function",
           "path": "packages/engine/src/state/init.ts",
-          "line": 89
+          "line": 91
         },
         {
           "name": "init",
           "kind": "function",
           "path": "packages/engine/src/state/init.ts",
-          "line": 152
+          "line": 155
         }
       ],
       "imports": [
@@ -3018,7 +3092,8 @@ export const architecture = {
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts"
       ],
       "path": "packages/engine/src/state/init.ts",
       "line": 1
@@ -3029,7 +3104,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 796,
+      "lines": 840,
       "exports": [
         {
           "name": "Qtr",
@@ -3305,181 +3380,211 @@ export const architecture = {
           "name": "Cohort",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 280
+          "line": 284
         },
         {
           "name": "Sector",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 298
+          "line": 302
         },
         {
           "name": "IOTable",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 311
+          "line": 315
         },
         {
           "name": "MarketState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 317
+          "line": 321
         },
         {
           "name": "DialState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 330
+          "line": 334
         },
         {
           "name": "PolicyRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 360
+          "line": 364
         },
         {
           "name": "CapacityBuild",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 371
+          "line": 375
         },
         {
           "name": "GovernmentState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 378
+          "line": 382
         },
         {
           "name": "WorldPartner",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 395
+          "line": 399
         },
         {
           "name": "WorldState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 400
+          "line": 404
         },
         {
           "name": "ExternalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 407
+          "line": 411
         },
         {
           "name": "TechState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 427
+          "line": 431
         },
         {
           "name": "FinanceState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 446
+          "line": 450
         },
         {
           "name": "Bloc",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 472
+          "line": 476
         },
         {
           "name": "InstitutionState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 479
+          "line": 483
         },
         {
           "name": "ElectionResult",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 501
+          "line": 505
         },
         {
           "name": "PoliticalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 517
+          "line": 521
         },
         {
           "name": "FragilityLedger",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 537
+          "line": 541
         },
         {
           "name": "StatPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 545
+          "line": 549
         },
         {
           "name": "NewsItem",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 555
+          "line": 559
         },
         {
           "name": "StatRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 564
+          "line": 568
         },
         {
           "name": "StatsOffice",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 678
+          "line": 682
         },
         {
           "name": "TickFlows",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 687
+          "line": 691
         },
         {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 742
+          "line": 746
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 784
+          "line": 794
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 785
+          "line": 795
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 786
+          "line": 796
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 789
+          "line": 799
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 791
+          "line": 801
+        },
+        {
+          "name": "FIRST_YEAR",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 806
+        },
+        {
+          "name": "yearOfTick",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 808
+        },
+        {
+          "name": "tickForYear",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 812
+        },
+        {
+          "name": "LAST_APPOINTMENT_TICK",
+          "kind": "constant",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 817
+        },
+        {
+          "name": "appointmentTick",
+          "kind": "function",
+          "path": "packages/engine/src/state/schema.ts",
+          "line": 832
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 793
+          "line": 837
         }
       ],
       "imports": [
@@ -3493,6 +3598,7 @@ export const architecture = {
         "packages/engine/src/countryDocument.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
+        "packages/engine/src/interregnum.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
@@ -3761,13 +3867,13 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (§6.1). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: publish…",
-      "lines": 252,
+      "lines": 256,
       "exports": [
         {
           "name": "observe",
           "kind": "function",
           "path": "packages/observation/src/observe.ts",
-          "line": 151
+          "line": 154
         }
       ],
       "imports": [
@@ -3786,7 +3892,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 205,
+      "lines": 211,
       "exports": [
         {
           "name": "PolicyPoint",
@@ -3822,25 +3928,25 @@ export const architecture = {
           "name": "PublishedBloc",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 89
+          "line": 90
         },
         {
           "name": "PublishedCorridor",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 101
+          "line": 102
         },
         {
           "name": "PublishedCampaign",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 113
+          "line": 114
         },
         {
           "name": "PublishedState",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 123
+          "line": 124
         }
       ],
       "imports": [
@@ -4528,7 +4634,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 326,
+      "lines": 332,
       "exports": [
         {
           "name": "App",
@@ -4915,70 +5021,71 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Shared shaping of IndicatorSeries for rendering — latest print per quarter, plus whether a revision moved a number the player already saw.",
-      "lines": 177,
+      "lines": 178,
       "exports": [
         {
           "name": "ShapedPoint",
           "kind": "interface",
           "path": "packages/ui/src/components/series.ts",
-          "line": 11
+          "line": 12
         },
         {
           "name": "shapeSeries",
           "kind": "function",
           "path": "packages/ui/src/components/series.ts",
-          "line": 32
+          "line": 33
         },
         {
           "name": "RollingMonths",
           "kind": "type",
           "path": "packages/ui/src/components/series.ts",
-          "line": 63
+          "line": 64
         },
         {
           "name": "rollingAverage",
           "kind": "function",
           "path": "packages/ui/src/components/series.ts",
-          "line": 79
+          "line": 80
         },
         {
           "name": "STAMP_WINDOW_QTRS",
           "kind": "constant",
           "path": "packages/ui/src/components/series.ts",
-          "line": 121
+          "line": 122
         },
         {
           "name": "MATERIAL_REVISION_BANDS",
           "kind": "constant",
           "path": "packages/ui/src/components/series.ts",
-          "line": 129
+          "line": 130
         },
         {
           "name": "MATERIAL_REVISION_FACE_FRACTION",
           "kind": "constant",
           "path": "packages/ui/src/components/series.ts",
-          "line": 131
+          "line": 132
         },
         {
           "name": "stampWorthyRevision",
           "kind": "function",
           "path": "packages/ui/src/components/series.ts",
-          "line": 152
+          "line": 153
         },
         {
           "name": "quarterDelta",
           "kind": "function",
           "path": "packages/ui/src/components/series.ts",
-          "line": 171
+          "line": 172
         },
         {
           "name": "qtrLabel",
           "kind": "constant",
           "path": "packages/ui/src/components/series.ts",
-          "line": 176
+          "line": 177
         }
       ],
       "imports": [
+        "packages/engine/src/index.ts",
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
@@ -6393,13 +6500,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The posting room: choose which country's 1946 settlement to inherit before the worker creates any true state. This is game furniture, not a settings form — six dossiers, one sealed appointment.",
-      "lines": 555,
+      "lines": 637,
       "exports": [
         {
           "name": "CountrySelect",
           "kind": "function",
           "path": "packages/ui/src/panels/CountrySelect.tsx",
-          "line": 257
+          "line": 326
         }
       ],
       "imports": [
@@ -6554,16 +6661,17 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
-      "lines": 120,
+      "lines": 121,
       "exports": [
         {
           "name": "HeaderBar",
           "kind": "function",
           "path": "packages/ui/src/panels/HeaderBar.tsx",
-          "line": 19
+          "line": 20
         }
       ],
       "imports": [
+        "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/gameRules.ts"
@@ -6718,13 +6826,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "§3.3 — the historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
-      "lines": 207,
+      "lines": 211,
       "exports": [
         {
           "name": "ReportCardOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/ReportCardOverlay.tsx",
-          "line": 97
+          "line": 98
         }
       ],
       "imports": [
@@ -7032,25 +7140,31 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "Whether a save this browser is still holding can be opened, and what to say when it can't.",
-      "lines": 74,
+      "lines": 125,
       "exports": [
         {
           "name": "looksLikeSave",
           "kind": "function",
           "path": "packages/ui/src/saveFile.ts",
-          "line": 33
+          "line": 38
+        },
+        {
+          "name": "replayWindow",
+          "kind": "function",
+          "path": "packages/ui/src/saveFile.ts",
+          "line": 81
         },
         {
           "name": "saveSchema",
           "kind": "function",
           "path": "packages/ui/src/saveFile.ts",
-          "line": 48
+          "line": 99
         },
         {
           "name": "unreadableSaveMessage",
           "kind": "function",
           "path": "packages/ui/src/saveFile.ts",
-          "line": 71
+          "line": 122
         }
       ],
       "imports": [
@@ -7234,13 +7348,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "",
-      "lines": 361,
+      "lines": 368,
       "exports": [
         {
           "name": "useGame",
           "kind": "constant",
           "path": "packages/ui/src/store/gameStore.ts",
-          "line": 117
+          "line": 124
         }
       ],
       "imports": [
@@ -7402,7 +7516,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The single shared contract between UI and sim worker (§1.1). Payloads are typed exclusively with PublishedState, action types, and save files — the true state never crosses this boundary.",
-      "lines": 69,
+      "lines": 72,
       "exports": [
         {
           "name": "ClientMessage",
@@ -7414,13 +7528,13 @@ export const architecture = {
           "name": "WorkerMessage",
           "kind": "type",
           "path": "packages/ui/src/worker/protocol.ts",
-          "line": 32
+          "line": 35
         },
         {
           "name": "DevNode",
           "kind": "interface",
           "path": "packages/ui/src/worker/protocol.ts",
-          "line": 63
+          "line": 66
         }
       ],
       "imports": [
@@ -7443,7 +7557,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (§6.1 of the design doc).",
-      "lines": 308,
+      "lines": 342,
       "exports": [],
       "imports": [
         "packages/engine/src/index.ts",
@@ -7665,6 +7779,11 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/interregnum.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/demography.ts",
       "typeOnly": false
     },
@@ -7731,6 +7850,41 @@ export const architecture = {
     {
       "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/state/validate.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/actions/apply.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/actions/types.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/pipeline/pipeline.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/state/init.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/interregnum.ts",
+      "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
     },
     {
@@ -8715,6 +8869,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/series.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/series.ts",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
     },
@@ -8986,7 +9145,7 @@ export const architecture = {
     {
       "source": "packages/ui/src/devScenario.ts",
       "target": "packages/engine/src/index.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/domains.ts",
@@ -9242,6 +9401,11 @@ export const architecture = {
       "source": "packages/ui/src/panels/FinanceOverlay.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
       "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/HeaderBar.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/HeaderBar.tsx",
@@ -9631,8 +9795,8 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 22,
-      "typeOnlyCount": 7
+      "count": 24,
+      "typeOnlyCount": 6
     },
     {
       "source": "ui",
@@ -10071,6 +10235,7 @@ export const architecture = {
       "summary": "Step 7 — cohorts. Incomes land, savings absorb the difference, and approval drifts toward *experienced* conditions: real income growth (loss-averse), own-basket inflation, joblessness, and queues for goods that never arrived. Whatever the statistics office printed, the bread l…",
       "stateAreas": [
         "cohorts",
+        "demography",
         "flows",
         "gov",
         "ledger",
@@ -10237,7 +10402,7 @@ export const architecture = {
         },
         {
           "path": "packages/observation/src/observe.ts",
-          "line": 151
+          "line": 154
         }
       ]
     },
@@ -10248,7 +10413,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/ui/src/worker/sim.worker.ts",
-          "line": 33
+          "line": 35
         },
         {
           "path": "packages/ui/src/worker/protocol.ts",
@@ -10263,7 +10428,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/actions/apply.ts",
-          "line": 364
+          "line": 371
         },
         {
           "path": "packages/observation/src/observe.ts",

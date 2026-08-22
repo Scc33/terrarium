@@ -10,8 +10,19 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { SCHEMA_VERSION, createCountryParams, createSave, init } from '@terrarium/engine'
-import { looksLikeSave, saveSchema, unreadableSaveMessage } from '../../packages/ui/src/saveFile'
+import {
+  END_OF_HISTORY_TICK,
+  SCHEMA_VERSION,
+  createCountryParams,
+  createSave,
+  init,
+} from '@terrarium/engine'
+import {
+  looksLikeSave,
+  replayWindow,
+  saveSchema,
+  unreadableSaveMessage,
+} from '../../packages/ui/src/saveFile'
 
 /** the autosave a browser was holding from before the education capacity */
 function legacySave() {
@@ -63,6 +74,63 @@ describe('saveSchema', () => {
     ['not an object at all', 'autosave'],
   ])('returns null for %s', (_label, value) => {
     expect(saveSchema(value)).toBeNull()
+  })
+})
+
+describe('the appointment a save carries', () => {
+  const withAppointment = (appointedAt: unknown) => ({
+    ...createSave(createCountryParams('meridia', 'a'), 'a', [], 200, 'standard', 108),
+    appointedAt,
+  })
+
+  it('accepts a save that omits it, because that is what 1946 looks like', () => {
+    const preV28 = createSave(createCountryParams('meridia', 'a'), 'a', [], 40)
+    delete preV28.appointedAt
+    expect(looksLikeSave(preV28)).toBe(true)
+  })
+
+  it.each([
+    ['a stringified quarter', '108'],
+    ['null', null],
+    ['a fraction', 108.5],
+    ['a negative quarter', -4],
+    ['NaN', Number.NaN],
+  ])('refuses %s rather than quietly opening a 1946 posting', (_label, value) => {
+    // `appointmentTick` turns anything it cannot read into quarter zero, so
+    // without this gate a file naming 1973 opens 1946 — a different century
+    // from the same country, seed and log, with nothing said about it
+    expect(looksLikeSave(withAppointment(value))).toBe(false)
+  })
+})
+
+describe('the replay window a save asks for', () => {
+  const at = (tick: number, appointedAt?: number) => replayWindow({ tick, appointedAt })
+
+  it('is the whole run for an ordinary save, whenever its government arrived', () => {
+    expect(at(40)).toMatchObject({ until: 40, appointedAt: 0, conflict: null })
+    // a save from before v28 names no appointment at all, and means 1946
+    expect(at(120, undefined).appointedAt).toBe(0)
+    // and a later posting saved after it took office is perfectly ordinary
+    expect(at(150, 108)).toMatchObject({ until: 150, appointedAt: 108, conflict: null })
+    // including the quarter it took office on
+    expect(at(108, 108).conflict).toBeNull()
+  })
+
+  it('stops at the end of history, so a hand-edited tick cannot hang the tab', () => {
+    expect(at(9000).until).toBe(END_OF_HISTORY_TICK)
+  })
+
+  it('refuses a run that stopped before its own government took office', () => {
+    // replaying it would hand back an INTERREGNUM as a playable game: orders
+    // quoted at their real price and charged nothing, no election, no
+    // deposition — `unlimitedCapital` by hand edit, for 136 quarters
+    const { conflict } = at(100, 236)
+    expect(conflict).not.toBeNull()
+    expect(conflict).toContain('100')
+    expect(conflict).toContain('236')
+    // and it reaches the player as a refusal, not as a repair
+    expect(unreadableSaveMessage(createSave(createCountryParams('meridia', 'x'), 'x', [], 100, 'standard', 236), conflict!))
+      .toContain('does not take office until')
   })
 })
 

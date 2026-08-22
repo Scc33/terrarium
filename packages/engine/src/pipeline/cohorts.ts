@@ -136,6 +136,13 @@ export const cohorts: PipelineStep = {
       business: conf.business + CONF_ADAPT * (businessTarget - conf.business),
     }
 
+    // Migration always compares with the country's inherited 1946 welfare.
+    // The report-card baseline may open decades later with the appointment;
+    // sharing that field would make the caretaker's population history depend
+    // on who eventually receives the posting.
+    const migrationBaselineWelfare =
+      state.demography.migrationBaselineWelfare ?? meanLogConsumption(state)
+
     // --- §3.3 prosperity: what it was actually like to live here this
     // quarter. Log consumption per head, population-weighted: diminishing
     // returns mean a unit of bread to the poor scores more than a unit of
@@ -144,9 +151,16 @@ export const cohorts: PipelineStep = {
     // the tenure — quarters after deposition (or after 2050) are somebody
     // else's record, so the verdict must not drift if the sim keeps running.
     let score = state.score
-    if (state.politics.deposedAt === null && state.meta.tick < END_OF_HISTORY_TICK) {
+    if (
+      state.politics.deposedAt === null &&
+      // quarters before the appointment are the caretaker's (ADR-0021), so the
+      // ledger opens when the player does — which is also what makes
+      // `baselineWelfare` the standard of living they actually inherited
+      state.meta.tick >= state.meta.appointedAt &&
+      state.meta.tick < END_OF_HISTORY_TICK
+    ) {
       const welfareQ = meanLogConsumption(state)
-      const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick)
+      const beta = Math.pow(WELFARE_DISCOUNT_Q, state.meta.tick - state.meta.appointedAt)
       score = {
         ...state.score,
         discountedWelfare: state.score.discountedWelfare + beta * welfareQ,
@@ -155,6 +169,12 @@ export const cohorts: PipelineStep = {
       }
     }
 
-    return { ...state, cohorts: newCohorts, ledger: { ...state.ledger, confidence }, score }
+    return {
+      ...state,
+      demography: { ...state.demography, migrationBaselineWelfare },
+      cohorts: newCohorts,
+      ledger: { ...state.ledger, confidence },
+      score,
+    }
   },
 }

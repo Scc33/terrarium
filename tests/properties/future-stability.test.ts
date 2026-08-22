@@ -2,7 +2,6 @@ import { COUNTRY_CATALOG } from '@terrarium/engine'
 import { describe, expect, it } from 'vitest'
 import { developmentalPolicy } from '../../packages/runner/src/policies'
 import type { RunnerPolicy } from '../../packages/runner/src/policies'
-import { cagr, summarize } from '../../packages/runner/src/metrics'
 import { runOne } from '../../packages/runner/src/run'
 import { analyzeStability } from '../../packages/runner/src/stability'
 
@@ -26,6 +25,8 @@ describe('the playable economy through 2050', () => {
     }
     const runs = [...policyRuns.passive, ...policyRuns.developmental]
     const report = analyzeStability(runs)
+    const passiveTrend = analyzeStability(policyRuns.passive).survivorTrend
+    const developmentalTrend = analyzeStability(policyRuns.developmental).survivorTrend
 
     expect(report.reachableNonFiniteRuns).toEqual([])
     expect(report.reachablePriceExplosionRuns).toEqual([])
@@ -82,18 +83,20 @@ describe('the playable economy through 2050', () => {
     // Exact 40-quarter opening behavior is owned by the goldens. These
     // survivor bands keep a shock retune from buying smoother prints by
     // silently lowering century trend growth or ending more governments.
-    const passiveSurvivors = policyRuns.passive.filter((run) => run.deposedAt === null)
-    const developmentalSurvivors = policyRuns.developmental.filter((run) => run.deposedAt === null)
-    // Productive foreign capital and v28 migration both reach this fixed
+    // Productive foreign capital and v29 migration both reach this fixed
     // cohort. Relative outperformance gives developmental runs more workers,
-    // so aggregate GDP now grows faster than per-capita welfare alone; pin the
-    // intended political and population consequence rather than treating it
-    // as test noise.
-    expect(passiveSurvivors).toHaveLength(26)
-    expect(developmentalSurvivors).toHaveLength(21)
-    expect(summarize(passiveSurvivors.map(cagr)).p50).toBeGreaterThan(2.3)
-    expect(summarize(passiveSurvivors.map(cagr)).p50).toBeLessThan(2.8)
-    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeGreaterThan(2.5)
-    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeLessThan(3.1)
+    // so aggregate GDP can grow faster than output per resident. Pin both
+    // sides of that identity: migration must not buy aggregate acceleration
+    // by making the population poorer per head.
+    expect(passiveTrend.survivors).toBe(26)
+    expect(developmentalTrend.survivors).toBe(21)
+    expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
+    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.8)
+    expect(developmentalTrend.aggregateCagr.p50).toBeGreaterThan(2.5)
+    expect(developmentalTrend.aggregateCagr.p50).toBeLessThan(3.1)
+    expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(1.4)
+    expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeLessThan(2.0)
+    expect(developmentalTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(2.0)
+    expect(developmentalTrend.realGdpPerCapitaCagr.p50).toBeLessThan(2.5)
   })
 })

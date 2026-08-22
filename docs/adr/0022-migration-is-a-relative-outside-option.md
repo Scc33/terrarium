@@ -1,4 +1,4 @@
-# ADR-0021 — Migration is a relative outside-option flow, not a population target
+# ADR-0022 — Migration is a relative outside-option flow, not a population target
 
 **Status:** Accepted · **Date:** 2026-08-21
 
@@ -37,6 +37,10 @@ emigration bound: a closed border may refuse entrants but cannot make a failing 
 residents. Realized migrants are allocated across young-adult age bands, so they join both the
 labor force and the future birth base rather than changing a headline total alone.
 
+The 1946 comparison is stored separately from the report-card welfare baseline. A later
+appointment moves the start of the player's score, not the inherited outside-option anchor, so
+the caretaker and an ordinary 1946 government produce the same population under the same orders.
+
 The exact policy dial is part of the ordinary action log, policy history, save, and replay
 contract. The outcome is separately published as the fogged `net_migration` indicator,
 annualized per 1,000 residents and gated by civil-registration capacity.
@@ -64,10 +68,12 @@ is quoted and charged through the existing veto-player machinery in `politicalCo
   inspecting per-capita outcomes.
 - The attraction signal reads the settled state available before the quarter's economy runs, so
   it reacts with one-quarter discipline rather than looking ahead.
+- The migration baseline always opens in 1946; the report-card baseline opens when the player
+  takes office. Neither scoring nor appointment timing can reach back into population history.
 - A ceiling binds only when the country is attractive. Raising it cannot manufacture immigrants,
   and lowering it cannot prevent departures.
 - `net_migration` joins the indicator contract and `immigrationLimit` joins the policy contract,
-  requiring schema 28, new goldens, a measured fixed dial face, and a wider desktop rack.
+  requiring schema 29, new goldens, a measured fixed dial face, and a wider desktop rack.
 - Migrants are not a separately tracked identity or cohort. The politics captures labor-market
   distribution and high-flow pressure, but not nationality, assimilation, or second-generation
   politics; adding those would be a separate model decision.

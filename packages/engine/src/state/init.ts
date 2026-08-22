@@ -41,12 +41,14 @@ import {
   SECTOR_IDS,
   WORKING_BANDS,
   WORKING_CLASS_IDS,
+  appointmentTick,
   gameRules,
   type Cohort,
   type CountryParams,
   type DemographyState,
   type GameMode,
   type GameRules,
+  type Qtr,
   type SectorId,
   type TickFlows,
   type TrueState,
@@ -119,6 +121,7 @@ function initialDemography(params: CountryParams): DemographyState {
     tfr: FERT_MAX,
     mortalityIndex: 1,
     netMigrationQ: 0,
+    migrationBaselineWelfare: null,
     crudeBirthRate,
     crudeDeathRate,
     workerShareMult: nonRetired > 1e-9 ? workingAge / nonRetired / BASE_WORKER_SHARE : 1,
@@ -153,6 +156,7 @@ export function init(
   params: CountryParams,
   seed: Seed,
   rules: GameMode | Partial<GameRules> = 'standard',
+  appointedAt: Qtr = 0,
 ): TrueState {
   validateCountryParams(params)
   const totalPop = Object.values(params.cohortSizes).reduce((a, b) => a + b, 0)
@@ -320,6 +324,9 @@ export function init(
       tick: 0,
       seed,
       rules: gameRules(rules),
+      // clamped, never trusted: this is the door a hand-edited save comes
+      // through, and quarter 900 would open a game whose player never arrives
+      appointedAt: appointmentTick(appointedAt),
     },
     params,
     demography,

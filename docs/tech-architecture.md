@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 28. Companion to the design doc
+*How the code is actually arranged, as of schema 29. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -123,24 +123,32 @@ somehow obtains one anyway, the contract test fails.
 The live engine is three functions; country recipes materialize their immutable input:
 
 ```ts
-export function init(params: CountryParams, seed: Seed, rules?: GameMode | Partial<GameRules>): TrueState
+export function init(params: CountryParams, seed: Seed, rules?: GameMode | Partial<GameRules>, appointedAt?: Qtr): TrueState
 export function applyActions(s: TrueState, actions: Action[]): TrueState
 export function step(s: TrueState): TrueState          // one quarter
 export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams
 export function generateCountryParams(seed: Seed, options?): CountryParams
+export function runInterregnum(params, seed, rules, appointedAt): { state, actionLog }
 ```
 
 All pure. A game is:
 
 ```ts
-let s = init(params, seed, mode)
+let s = init(params, seed, rules, appointedAt)
 for (const turn of actionLog) s = step(applyActions(s, turn.actions))
 ```
 
-The save file is literally `{version, params, seed, mode, actionLog, tick}` — state is *derived*,
-never stored (ADR-0001). `mode` is immutable for the run (`standard` or the testing-oriented
-`god` mode). `replay(save, untilTick?)` reconstructs any point in the run; pre-v21 saves omit
-`mode` and load as `standard` (ADR-0015).
+The save file is literally `{version, params, seed, rules, appointedAt, actionLog, tick}` — state
+is *derived*, never stored (ADR-0001). `rules` and `appointedAt` are immutable for the run, and
+both are replay inputs for the same reason: the same country, seed and log produce a different
+century without them. `replay(save, untilTick?)` reconstructs any point in the run; pre-v27 saves
+carry a `mode` scalar instead of `rules` (ADR-0015/0020) and pre-v28 saves omit `appointedAt`,
+which means 1946 (ADR-0021).
+
+`runInterregnum` is the fourth function, and it is only `init` plus that loop: on a later
+appointment a caretaker administration governs the quarters before the player arrives, and it
+returns both the state handed over and the orders that produced it, which the save then carries
+in its own `actionLog`.
 
 ---
 
@@ -151,7 +159,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 
 ```ts
 interface TrueState {
-  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules }
+  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules; appointedAt: Qtr }
   params: CountryParams        // immutable after init
   demography: DemographyState  // the age pyramid; cohort sizes derive from it
   tech: TechState              // global frontier + domestic attainment; research moves both
@@ -189,6 +197,7 @@ downstream tables typed as total `Record<Id, …>` **fail the build** until a ne
 ```ts
 interface PublishedState {
   tick: Qtr
+  appointedAt: Qtr            // the quarter the player took office (0 = the 1946 posting)
   country: string
   rules: GameRules            // exact immutable safeties chosen at the posting
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>  // only FUNDED ones appear,
@@ -259,7 +268,7 @@ introduced it:
   files.
 - Immutability: return a new state, never mutate the input.
 
-Migration is a relative outside-option flow (ADR-0021), not an authored population target.
+Migration is a relative outside-option flow (ADR-0022), not an authored population target.
 Domestic mean log consumption progress is compared with a frontier-linked alternative and the
 current labor-market gap. `immigrationLimit` clips attractive-country arrivals as an annual share
 of population; it never clips emigration. The realized flow moves young-adult age bands, is
@@ -416,8 +425,9 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 
 ## 8. Persistence (no backend)
 
-- **Saves:** `{version: {engine, schema}, params, seed, actionLog, tick}` in IndexedDB. A few
-  KB per save regardless of run length, because state is derived (ADR-0001).
+- **Saves:** `{version: {engine, schema}, params, seed, rules, appointedAt, actionLog, tick}` in
+  IndexedDB. A few KB per save regardless of run length, because state is derived (ADR-0001) —
+  a later appointment adds only the caretaker's own orders to the log (about 30 turns by 2005).
 - **Autosave** = append the turn's actions to the open save every tick. Crash recovery is free
   replay.
 - **Export/import** as a JSON blob — doubles as the bug-report format: a report is a save file

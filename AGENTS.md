@@ -169,6 +169,52 @@ one row — but three things are load-bearing:
   already had. `RULE_COPY` in `ui/src/gameRules.ts` is a total `Record`, so a new rule fails the
   build until the posting room can explain it.
 
+### The year you take office (ADR-0021)
+
+`meta.appointedAt` is the quarter the PLAYER takes office — a replay input sealed into the save
+beside `meta.rules`, zero on every ordinary 1946 posting and on every save written before v28.
+The posting room offers 1946 / 1973 / 1995 / 2005 (`APPOINTMENTS`), each a `FRONTIER_ERAS`
+boundary; any quarter is legal to the engine.
+
+The quarters before it are an **interregnum** governed by a caretaker in the ordinary
+`applyActions → step` loop, and **its orders go into the save's action log** — so a later
+posting replays with no policy code at load time, and a retune of `CARETAKER_*` cannot rewrite
+the country an existing save inherited (ADR-0011's argument). Four things are load-bearing:
+
+- **A passive interregnum is not neutral, it is broken.** It arrives at the 1946 statistical
+  office and puts 3 of 29 instruments on the wall. The caretaker exists to build the ministries;
+  everything else it does (holding the opening appropriations at their GDP share) is there so
+  the fiscal inheritance is not identically empty. It sets no rate and moves no tax.
+- **Inert at zero, and the golden diff is the proof** — `pnpm diff-state --moved-only` reported
+  `meta.schemaVersion` and nothing else, and the passive century re-measured at 2.68 %/yr,
+  11.85 % unemployment. Every condition reads `tick < appointedAt` or `tick >= appointedAt`,
+  which at zero is the expression that was already there.
+- **The record opens when the player does.** Welfare, corridor and governed quarters accumulate
+  from `appointedAt`, so `baselineWelfare` is the standard of living they inherited and
+  `quartersGoverned` is their own tenure. A card that graded the caretaker's twenty-seven years
+  would be discounted so heavily the player's own century barely registered.
+- **The political clock is stopped during the interregnum**, and the caretaker is not charged
+  political capital — charging a stock that cannot refill would make the inheritance a function
+  of how the opening twenty points fell rather than of the country. Orders are still quoted and
+  the blocs still spend favour, so the politics handed over is the one its programme earned.
+  Which is why the two bounds on an appointment are load-bearing rather than defensive:
+  `appointmentTick` clamps to `LAST_APPOINTMENT_TICK` (one short of the close, or the run banks
+  no baseline and can never end), and `replayWindow` refuses a save that stopped *before* its own
+  appointment (or the interregnum is handed over as a playable game with free orders).
+
+What each appointment actually hands over is MEASURED — `pnpm inheritance`, tabulated in
+`docs/country-scenarios.md`. Re-measure before changing `CARETAKER_CAPACITY_SPEND` or `_EVERY`.
+
+**The invariant that keeps all of it honest: the appointment decides who is SCORED for a
+quarter, never what the country did in it.** `tests/properties/interregnum.test.ts` replays the
+caretaker's own orders from a 1946 appointment and demands the same demography, the same GDP and
+the same capacities. It exists because the first version of this gated `livingStandard` on
+`score.baselineWelfare` — which is the report card's anchor, not the vital rates' — so a 1973
+interregnum ran its entire 27 years at a constant income level: no demographic transition, births
+at 35.3 per 1000 against 26.0, populations up to 7% too large, and a measured table that looked
+entirely plausible. That is the "don't conflate the two anchors" rule in the tuning lessons
+below, and a scoring gate is a new way to break it.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
@@ -216,6 +262,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   until the business cycle stopped resonating with the 16-quarter election period.
 - Bond coupons are household income; redemptions go to household savings. Money paid to
   bondholders must not vanish, or every tax rise becomes an austerity bomb.
+- **A sentinel is not a semantics.** `livingStandard` bootstrapped on
+  `score.baselineWelfare === null`, which meant "no quarter has booked yet" only because scoring
+  began at tick zero. ADR-0021 moved scoring to the appointment and the proxy silently became
+  "the player has not arrived", switching the income channel off for a whole interregnum. When a
+  field is read as a proxy for something else, say which, and gate on the real thing (here, the
+  tick). Vital rates and the report card read the same consumption for different reasons.
 - Growth needs both valves: Lewis investment (`INVESTMENT_SLACK_GAIN`) and the subsistence
   valve (`SUBSISTENCE_ABSORPTION_Q`, capped by the rural labor force — uncapped it recreates
   the Malthusian trap). Vital rates read the income LEVEL (`LIVING_STANDARD_1946`), the report
@@ -250,10 +302,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   political response the same way and **measure the resting value** before picking the constant.
 - **Migration is an outside-option flow, not a population target.** Compare domestic welfare
   progress from the inherited 1946 anchor with a frontier-linked alternative; an absolute income
-  threshold makes rich recipes win before the first turn and poor ones lose forever. The border
-  ceiling clips arrivals only — scaling negative flows by it lets a closed border imprison a
-  failing country. Calibrate the sign and the cap under passive, developmental, random, and
-  all-country runs; aggregate growth is not enough once labor supply itself can move.
+  threshold makes rich recipes win before the first turn and poor ones lose forever. That anchor
+  is not `score.baselineWelfare`: ADR-0021 moves the score baseline with the appointment, while
+  migration must keep the 1946 comparison or the same caretaker orders produce a different
+  population. The border ceiling clips arrivals only — scaling negative flows by it lets a closed
+  border imprison a failing country. Calibrate the sign and the cap under passive, developmental,
+  random, and all-country runs; pin per-capita as well as aggregate growth once labor supply moves.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
   distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
   mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the

@@ -264,6 +264,10 @@ export interface DemographyState {
   mortalityIndex: number
   /** net migration this quarter, millions (+ = immigration) */
   netMigrationQ: number
+  /** mean log consumption inherited in 1946. Migration keeps this country
+   * baseline even when the player's report-card baseline opens at a later
+   * appointment (ADR-0021, ADR-0022). */
+  migrationBaselineWelfare: number | null
   /** crude birth/death rates this quarter, annualized per 1000 — engine
    * truth; only PUBLISHED once civil registration is funded (§8 fog) */
   crudeBirthRate: number
@@ -747,6 +751,12 @@ export interface TrueState {
     seed: Seed
     /** part of the replay contract: a protected run must reload protected */
     rules: GameRules
+    /** The quarter the PLAYER takes office. Zero is the ordinary 1946 posting;
+     * a later appointment means the quarters before it were governed by a
+     * caretaker administration and belong to somebody else's record (ADR-0021).
+     * A replay input like `rules`, sealed into the save, because the same
+     * country, seed, and action log produce a different century without it. */
+    appointedAt: Qtr
   }
   params: CountryParams
   demography: DemographyState
@@ -768,7 +778,7 @@ export interface TrueState {
     /** Σ β^t · (population-weighted mean log real consumption per capita) */
     discountedWelfare: number
     discountWeight: number // Σ β^t, for normalizing to an average
-    /** quarter-zero welfare (mean log), the "vs 1946" yardstick */
+    /** welfare inherited at the appointment (mean log), the report-card yardstick */
     baselineWelfare: number | null
     /** §3.3 Position: quarters of your tenure spent inside the corridor, and
      * the tenure they are counted against. Accumulated as the run happens for
@@ -781,7 +791,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 28 // v28: performance-relative migration + immigration policy
+export const SCHEMA_VERSION = 29 // v29: performance-relative migration + immigration policy
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
@@ -789,6 +799,40 @@ export const ELECTION_PERIOD = 16 // quarters
 export const CAMPAIGN_WINDOW = 2
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */
 export const END_OF_HISTORY_TICK = 416
+/** Quarter zero. The engine counts quarters, not dates — this is the one place
+ * that knows which year quarter zero is, and the only reason it needs to is the
+ * frontier's growth schedule (`FRONTIER_ERAS`), which is written in calendar
+ * years because the history it imitates was. */
+export const FIRST_YEAR = 1946
+
+export const yearOfTick = (tick: Qtr): number => FIRST_YEAR + Math.floor(tick / 4)
+
+/** The first quarter of a calendar year. Unclamped: callers that take a year
+ * from a player or a save clamp it themselves (`appointmentTick`). */
+export const tickForYear = (year: number): Qtr => (Math.floor(year) - FIRST_YEAR) * 4
+
+/** The last quarter a government can be appointed in and still have a tenure:
+ * the book closes at `END_OF_HISTORY_TICK`, and a run needs at least one
+ * quarter on the near side of it to bank a welfare baseline and be graded. */
+export const LAST_APPOINTMENT_TICK = END_OF_HISTORY_TICK - 1
+
+/** Bring an arbitrary quarter back into the playable century. Anything the
+ * engine is handed becomes a legal appointment or it becomes 1946 — a save
+ * naming quarter 900, or NaN, must not open a game whose player never arrives.
+ * Lives here rather than beside the interregnum so `init` and its callers
+ * cannot disagree about what a legal appointment is.
+ *
+ * It clamps to `LAST_APPOINTMENT_TICK`, not to the end of history, and the
+ * distinction is the whole point of the function: an appointment ON the closing
+ * quarter arrives to a ledger that has already shut, so nothing accumulates,
+ * `baselineWelfare` stays null, `reportCardOf` can never return a verdict — and
+ * the government stays in power, advancing quarters past 2050 in a run that
+ * cannot end. Arriving one quarter early is a one-quarter tenure, which is a
+ * bad posting rather than a broken one. */
+export function appointmentTick(tick: number): Qtr {
+  if (!Number.isFinite(tick)) return 0
+  return Math.max(0, Math.min(LAST_APPOINTMENT_TICK, Math.floor(tick)))
+}
 
 export function sectorIndex(id: SectorId): number {
   return SECTOR_IDS.indexOf(id)
