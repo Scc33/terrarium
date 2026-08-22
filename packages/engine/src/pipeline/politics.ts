@@ -121,6 +121,7 @@ export const politics: PipelineStep = {
         tick: state.meta.tick,
         text: 'Revolution: the crowds take the ministries and the government flees.',
         tone: 'bad',
+        kind: 'revolt',
       })
       next = { ...next, inPower: false, quartersToElection: 0, deposedAt: state.meta.tick, deposedBy: 'revolt' }
     } else if (!protectedTenure && roll < revoltP + coupP) {
@@ -128,6 +129,7 @@ export const politics: PipelineStep = {
         tick: state.meta.tick,
         text: 'The men who own the country have decided they no longer own the government.',
         tone: 'bad',
+        kind: 'coup',
       })
       next = { ...next, inPower: false, quartersToElection: 0, deposedAt: state.meta.tick, deposedBy: 'coup' }
     } else if (next.quartersToElection <= 0) {
@@ -169,6 +171,7 @@ export const politics: PipelineStep = {
               ? 'The government is defeated at the polls. GOD MODE keeps the simulation running.'
               : 'The government has fallen at the polls.',
         tone: won ? 'good' : 'bad',
+        kind: 'election',
       })
     }
 

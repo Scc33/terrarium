@@ -72,8 +72,11 @@ because its event windows and driver decompositions consume them. Re-measure rat
 these — they drift, and a stale baseline is worse than none because it invites you to "fix" an
 engine that was fine.
 
-**Healthy passive century:** growth ≈ 2.70%/yr · inflation ≈ 0.11% · unemployment ≈ 11.90% ·
-**7% deposed** by 400q (median quarter 352).
+**Healthy passive century:** growth ≈ 2.81%/yr · inflation ≈ 0.11% · unemployment ≈ 12.23% ·
+**6% deposed** by 400q (median quarter 368). *Re-measured 2026-08-22 at schema 31; the previous
+row here (2.70 / 11.90 / 7% / q352) was the schema 24 measurement and had drifted across v25–v30.
+Confirmed by running the same 1000×400q batch on the unmodified tree and getting these figures
+to every digit — which is also the cheapest way to prove a schema bump is inert.*
 
 That elevated unemployment is **designed**, not a bug: it is the youth-bulge bomb an
 unschooled do-nothing government earns. Do not "fix" it.

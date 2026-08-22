@@ -284,6 +284,22 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     },
     baseSd: 4,
   },
+  {
+    // the leverage LEVEL, in points of annual GDP. Relative noise: a
+    // supervisor's count of loan books is proportionally uncertain, and an
+    // absolute band wide enough for a 110%-of-GDP boom would swamp the 37%
+    // a poor 1946 economy starts at.
+    id: 'credit_to_gdp',
+    trueValue: (h, q) => h[q].creditToGdp * 100,
+    baseSd: 0.06,
+    relativeSd: true,
+  },
+  {
+    id: 'bank_capital_ratio',
+    trueValue: (h, q) => h[q].bankCapitalRatio * 100,
+    baseSd: 0.06,
+    relativeSd: true,
+  },
 ]
 
 const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
@@ -343,6 +359,7 @@ function recordOf(state: TrueState): StatRecord {
     termsOfTrade: termsOfTrade(state),
     assetPrice: finance.assetPrice,
     creditToGdp: finance.creditToGdp,
+    bankCapitalRatio: finance.bankCapital / Math.max(finance.creditOutstanding, 1e-9),
     unrest: inst.unrest,
     statePower: inst.statePower,
     societalPower: inst.societalPower,
@@ -528,6 +545,7 @@ function rumorFor(snap: StatRecord, seed: Seed): NewsItem | null {
         tick: snap.tick,
         text: rule.texts[Math.floor(rng.next() * rule.texts.length)],
         tone: rule.tone,
+        kind: 'rumor',
       }
     }
   }

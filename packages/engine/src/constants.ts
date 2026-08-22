@@ -200,7 +200,16 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   death_rate: 0.3,
   terms_of_trade: 0.4,
   asset_prices: 0.45,
+  // The bank supervisor's two returns. The LEVEL of leverage is the cheaper
+  // of the pair — it is a sum over bank ledgers against a GDP the accounts
+  // already publish — so it lands a rung below the growth rate, which needs
+  // two consecutive levels reconciled against a revised denominator before
+  // anyone can honestly state a rate of change. The capital ratio needs the
+  // same ledgers plus a supervisor willing to audit what the banks call
+  // equity, and sits with the growth print.
+  credit_to_gdp: 0.5,
   credit_growth: 0.55,
+  bank_capital_ratio: 0.55,
   // the provincial governors always write in; somebody has to read the
   // reports, collate them, and dare to put a number on the result
   unrest: 0.4,
