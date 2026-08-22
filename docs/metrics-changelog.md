@@ -212,8 +212,11 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
   log that produced it. `caretakerActions(state)` is the policy — pure, RNG-free, two kinds of
   order (`setSpendingRule`, `investCapacity`) and nothing else.
 - **Inputs +**: `APPOINTMENTS` — the quarters the posting room offers (1946, 1973, 1995, 2005,
-  each a `FRONTIER_ERAS` boundary). Any quarter in `[0, END_OF_HISTORY_TICK]` is legal to the
-  engine; `appointmentTick` clamps anything else, and unreadable input falls back to 1946.
+  each a `FRONTIER_ERAS` boundary). Any quarter in `[0, LAST_APPOINTMENT_TICK]` is legal to the
+  engine; `appointmentTick` clamps anything else, and unreadable input falls back to 1946. The
+  bound stops one quarter short of the end of history on purpose: an appointment ON the closing
+  quarter banks no welfare baseline, so `reportCardOf` could never return a verdict and the run
+  could never end.
 - **Outputs +**: `PublishedState.appointedAt`, published exactly — the baseline every "since you
   arrived" reading is measured from.
 - **Outputs ±**: `ReportCard.quartersGoverned` counts from the appointment rather than from

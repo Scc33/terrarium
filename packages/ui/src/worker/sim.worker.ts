@@ -28,7 +28,7 @@ import {
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
-import { unreadableSaveMessage } from '../saveFile'
+import { replayWindow, unreadableSaveMessage } from '../saveFile'
 import { runTrial } from './trial'
 import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
 
@@ -133,15 +133,15 @@ function load(save: {
 }): void {
   // a save written before the rule set names only its tenure rule
   const saveRules = gameRules(save.rules ?? save.mode ?? 'standard')
-  // …and one from before the appointment year began in 1946, like all of them
-  const saveAppointedAt = appointmentTick(save.appointedAt ?? 0)
+  // …and one from before the appointment year began in 1946, like all of them.
+  // `replayWindow` also says whether the two replay inputs can both be true —
+  // a save that stopped before its own government took office cannot.
+  const { until, appointedAt: saveAppointedAt, conflict } = replayWindow(save)
   let next: TrueState
   try {
+    if (conflict) throw new Error(conflict)
     next = init(save.params, save.seed, saveRules, saveAppointedAt)
     const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
-    // a tick past the end of history can only be corruption or a hand edit, and
-    // an unbounded `while` on it is a hung tab. History ends at 416 either way.
-    const until = Math.min(save.tick, END_OF_HISTORY_TICK)
     while (next.meta.tick < until) {
       const acts = byTick.get(next.meta.tick)
       if (acts) {

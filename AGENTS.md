@@ -197,6 +197,10 @@ the country an existing save inherited (ADR-0011's argument). Four things are lo
   political capital — charging a stock that cannot refill would make the inheritance a function
   of how the opening twenty points fell rather than of the country. Orders are still quoted and
   the blocs still spend favour, so the politics handed over is the one its programme earned.
+  Which is why the two bounds on an appointment are load-bearing rather than defensive:
+  `appointmentTick` clamps to `LAST_APPOINTMENT_TICK` (one short of the close, or the run banks
+  no baseline and can never end), and `replayWindow` refuses a save that stopped *before* its own
+  appointment (or the interregnum is handed over as a playable game with free orders).
 
 What each appointment actually hands over is MEASURED — `pnpm inheritance`, tabulated in
 `docs/country-scenarios.md`. Re-measure before changing `CARETAKER_CAPACITY_SPEND` or `_EVERY`.

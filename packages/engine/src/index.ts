@@ -154,6 +154,7 @@ export {
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
   FIRST_YEAR,
+  LAST_APPOINTMENT_TICK,
   appointmentTick,
   tickForYear,
   yearOfTick,

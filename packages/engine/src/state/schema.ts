@@ -799,14 +799,27 @@ export const yearOfTick = (tick: Qtr): number => FIRST_YEAR + Math.floor(tick / 
  * from a player or a save clamp it themselves (`appointmentTick`). */
 export const tickForYear = (year: number): Qtr => (Math.floor(year) - FIRST_YEAR) * 4
 
+/** The last quarter a government can be appointed in and still have a tenure:
+ * the book closes at `END_OF_HISTORY_TICK`, and a run needs at least one
+ * quarter on the near side of it to bank a welfare baseline and be graded. */
+export const LAST_APPOINTMENT_TICK = END_OF_HISTORY_TICK - 1
+
 /** Bring an arbitrary quarter back into the playable century. Anything the
  * engine is handed becomes a legal appointment or it becomes 1946 — a save
  * naming quarter 900, or NaN, must not open a game whose player never arrives.
  * Lives here rather than beside the interregnum so `init` and its callers
- * cannot disagree about what a legal appointment is. */
+ * cannot disagree about what a legal appointment is.
+ *
+ * It clamps to `LAST_APPOINTMENT_TICK`, not to the end of history, and the
+ * distinction is the whole point of the function: an appointment ON the closing
+ * quarter arrives to a ledger that has already shut, so nothing accumulates,
+ * `baselineWelfare` stays null, `reportCardOf` can never return a verdict — and
+ * the government stays in power, advancing quarters past 2050 in a run that
+ * cannot end. Arriving one quarter early is a one-quarter tenure, which is a
+ * bad posting rather than a broken one. */
 export function appointmentTick(tick: number): Qtr {
   if (!Number.isFinite(tick)) return 0
-  return Math.max(0, Math.min(END_OF_HISTORY_TICK, Math.floor(tick)))
+  return Math.max(0, Math.min(LAST_APPOINTMENT_TICK, Math.floor(tick)))
 }
 
 export function sectorIndex(id: SectorId): number {

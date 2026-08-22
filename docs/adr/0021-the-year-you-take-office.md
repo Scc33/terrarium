@@ -62,7 +62,16 @@ Three consequences follow, and each is one condition in one place:
   living they actually inherited, and `quartersGoverned` their own tenure.
 - **A later appointment is a shorter game.** History still ends in 2050. Prosperity is already
   graded as a *rate* over a discounted tenure (§3.3), so a 2005 posting is comparable with a
-  1946 one without any further arithmetic.
+  1946 one without any further arithmetic. It must still be a game: `appointmentTick` clamps to
+  `LAST_APPOINTMENT_TICK`, one quarter short of the close, because an appointment ON the closing
+  quarter arrives to a ledger that has already shut — nothing accumulates, no baseline is banked,
+  no verdict can ever be returned, and the government advances past 2050 in a run with no end.
+- **A save's two replay inputs have to agree.** A run cannot have stopped before its own
+  government took office; `replayWindow` in `ui/src/saveFile.ts` refuses one that says it did,
+  because replaying it hands back an *interregnum* as a playable game — orders quoted at their
+  real price and charged nothing, the political clock frozen, for as many quarters as the gap.
+  Refused rather than repaired, for that file's usual reason: moving either number opens *a*
+  run, not *the* one that was saved.
 
 ADR-0020's two constraints carry over unchanged and are the proof obligation:
 

@@ -23,6 +23,7 @@ import {
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
   hashState,
+  LAST_APPOINTMENT_TICK,
   init,
   PC_START,
   replay,
@@ -159,7 +160,7 @@ describe('a quarter the engine is handed', () => {
   it('is clamped into the playable century, whatever a save says', () => {
     // a hand-edited save naming quarter 900 must not open a game whose player
     // never arrives, and neither must one naming NaN
-    expect(appointmentTick(900)).toBe(END_OF_HISTORY_TICK)
+    expect(appointmentTick(900)).toBe(LAST_APPOINTMENT_TICK)
     expect(appointmentTick(-12)).toBe(0)
     expect(appointmentTick(Number.NaN)).toBe(0)
     // unreadable is not "as late as possible": it falls back to the posting
@@ -168,8 +169,23 @@ describe('a quarter the engine is handed', () => {
     expect(appointmentTick(37.9)).toBe(37)
     // …and init refuses it the same way, because the save is not the only door
     expect(init(standardCountry, 'clamped', 'standard', 900).meta.appointedAt).toBe(
-      END_OF_HISTORY_TICK,
+      LAST_APPOINTMENT_TICK,
     )
+  })
+
+  it('always leaves a quarter to govern, so the run can still end', () => {
+    // an appointment ON the closing quarter arrives to a ledger that has already
+    // shut: nothing accumulates, no baseline is banked, and `reportCardOf`
+    // refuses forever while the government stays in power advancing past 2050.
+    // The clamp stops one quarter short for exactly this reason.
+    expect(LAST_APPOINTMENT_TICK).toBeLessThan(END_OF_HISTORY_TICK)
+    for (const asked of [END_OF_HISTORY_TICK, END_OF_HISTORY_TICK + 4, 900]) {
+      const { state } = posting('meridia', 'closing', appointmentTick(asked), 4)
+      expect(state.score.baselineWelfare, `appointment asked at ${asked}`).not.toBeNull()
+      const card = observe(state).reportCard
+      expect(card, `appointment asked at ${asked}`).toBeDefined()
+      expect(card!.quartersGoverned).toBeGreaterThan(0)
+    }
   })
 })
 
