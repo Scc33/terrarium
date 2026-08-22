@@ -87,9 +87,11 @@ describe('the study as an instrument', () => {
     const costona = createCountryParams('costona', 'unused')
     const report = runTrial(costona, { seeds: 3, ticks: 200, baseSeed: 'apart' })
     expect(report.candidate.country).toBe('Costona')
-    // Costona's large rural labour reserve is the point of the recipe; if the
-    // study cannot see a difference this size it cannot inform any draft
-    expect(report.candidate.unemployment.p50).toBeGreaterThan(report.reference.unemployment.p50 + 1)
+    // Migration is now a pressure valve on Costona's rural labour reserve, so
+    // unemployment alone no longer owns the distinction. The study must still
+    // expose the materially different output path rather than silently reading
+    // the two recipes as alike.
+    expect(report.reference.growth.p50 - report.candidate.growth.p50).toBeGreaterThan(0.5)
   })
 
   it('reports a band, not a single century', () => {

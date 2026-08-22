@@ -10,6 +10,7 @@ import {
   CAPACITY_IDS,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  IMMIGRATION_LIMIT_MAX,
   SECTOR_IDS,
   type CapacityId,
   type DialPath,
@@ -115,6 +116,23 @@ const DIALS: DialGroup[] = [
     ],
   },
   {
+    group: 'MIGRATION',
+    tab: 'BORDERS',
+    brief: 'Set the annual ceiling on arrivals as a share of the resident population. Jobs and relative living standards decide how many people want to come or leave; this order limits immigration only.',
+    question: 'How many arrivals will the country admit?',
+    dials: [
+      {
+        path: 'immigrationLimit',
+        label: 'Immigration ceiling',
+        get: (p) => p.dials.immigrationLimit,
+        min: 0,
+        max: () => IMMIGRATION_LIMIT_MAX,
+        step: 0.001,
+        fmt: pct1,
+      },
+    ],
+  },
+  {
     group: 'SUBSIDIES',
     tab: 'INDUSTRY',
     brief: 'Direct quarterly support to particular sectors. Subsidies can relieve a bottleneck, but they are recurring claims on the budget.',
@@ -140,6 +158,7 @@ const DIAL_TIPS: Partial<Record<DialPath, string>> = {
   'spending.procurement': 'The state buys goods and services from the economy.',
   'spending.investment': 'Public works: buys construction and adds to the capital stock.',
   'spending.research': 'Public R&D. Behind the frontier it adapts known techniques; near the frontier it funds slower original work. Weak administration leaks grants, and schools limit how much useful research the country can staff.',
+  immigrationLimit: 'Maximum annual immigration as a share of the population. Zero closes the country to arrivals. It does not create migrants when the country is unattractive, and it cannot prevent emigration.',
   policyRate: 'The central bank rate. Investment responds to the REAL rate — the number here minus expected inflation.',
   assetPurchaseRate: 'Quantitative easing: the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate hits zero, but also feeds credit and asset-price risk. It is an asset swap, not fiscal deficit printing.',
   capitalRequirement: 'Bank equity required per unit of credit. Raising the floor leans against a boom and gives banks a larger shock absorber; cutting it frees credit now and leaves less room for losses.',
@@ -197,6 +216,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
   const delta = value - current
   const percentagePoints =
     def.path.startsWith('taxRates.') ||
+    def.path === 'immigrationLimit' ||
     def.path === 'policyRate' ||
     def.path === 'assetPurchaseRate' ||
     def.path === 'capitalRequirement'

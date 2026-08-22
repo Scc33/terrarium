@@ -182,6 +182,9 @@ export const INDICATOR_IDS = [
   'approval',
   'gini',
   'income_real',
+  /** registered net migration, annualized per 1,000 residents. Positive is
+   * immigration; negative is emigration. */
+  'net_migration',
   'birth_rate',
   'death_rate',
   'terms_of_trade',
@@ -327,6 +330,9 @@ export interface MarketState {
 export interface DialState {
   taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
+  /** maximum annual immigration as a share of the resident population. This
+   * clips arrivals only: a government cannot keep people in by closing it. */
+  immigrationLimit: Ratio
   policyRate: number // annualized
   /** annualized central-bank asset purchases, as a share of annual GDP */
   assetPurchaseRate: Ratio
@@ -625,6 +631,8 @@ export interface StatRecord {
   /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
   birthRate: number
   deathRate: number
+  /** registered net migration, annualized per 1,000 residents */
+  netMigrationRate: number
   /** the exact head count and age pyramid this quarter — census-grade, no
    * fog: you can always count people, even when you can't survey them */
   population: number
@@ -773,7 +781,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 27 // v27: the game mode became a set of independent rules
+export const SCHEMA_VERSION = 28 // v28: performance-relative migration + immigration policy
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

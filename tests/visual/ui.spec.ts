@@ -114,6 +114,11 @@ test('dashboard with empty instruments', async ({ page }) => {
 })
 
 test('dense desktop rack fits every instrument name on one screen', async ({ page }) => {
+  const browserErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') browserErrors.push(message.text())
+  })
+  page.on('pageerror', (error) => browserErrors.push(error.message))
   await openGame(page)
   // This project typechecks Playwright under the Node libs, so keep browser
   // globals inside the evaluated source string rather than adding DOM types to
@@ -143,6 +148,7 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
     clippedLabels: [],
     rackBelowFold: false,
   })
+  expect(browserErrors).toEqual([])
 })
 
 test('cabinet draft review', async ({ page }) => {
@@ -159,6 +165,17 @@ test('central bank exposes conventional, QE, and macroprudential controls', asyn
   await expect(page.getByRole('slider', { name: 'Asset purchases' })).toHaveValue('0')
   await expect(page.getByRole('slider', { name: 'Bank capital floor' })).toHaveValue('0.06')
   await expect(page).toHaveScreenshot('central-bank-controls.png')
+})
+
+test('migration desk exposes the annual immigration ceiling', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'BORDERS 1 CONTROL' }).click()
+  const ceiling = page.getByRole('slider', { name: 'Immigration ceiling' })
+  await expect(ceiling).toHaveValue('0.012')
+  await expect(ceiling).toHaveAttribute('max', '0.03')
+  await page.getByRole('button', { name: 'Decrease Immigration ceiling' }).click()
+  await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
+  await expect(page).toHaveScreenshot('migration-controls.png')
 })
 
 test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {

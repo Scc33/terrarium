@@ -248,6 +248,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   fix*: absolute thresholds made a do-nothing government inherit a capital strike, and pinned
   unrest so flat that reform windows and revolts were both unreachable. Centre any new
   political response the same way and **measure the resting value** before picking the constant.
+- **Migration is an outside-option flow, not a population target.** Compare domestic welfare
+  progress from the inherited 1946 anchor with a frontier-linked alternative; an absolute income
+  threshold makes rich recipes win before the first turn and poor ones lose forever. The border
+  ceiling clips arrivals only — scaling negative flows by it lets a closed border imprison a
+  failing country. Calibrate the sign and the cap under passive, developmental, random, and
+  all-country runs; aggregate growth is not enough once labor supply itself can move.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
   distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
   mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the

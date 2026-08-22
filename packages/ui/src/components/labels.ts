@@ -58,6 +58,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   approval: { dossier: 'APPROVAL POLL · %', terminal: 'APPROVAL %', plate: 'APPROVAL POLL', short: 'APPROVAL', needs: 'FIELD POLLING' },
   gini: { dossier: 'INEQUALITY · GINI PTS', terminal: 'GINI PTS', plate: 'INCOME INEQUALITY', short: 'INEQUALITY', needs: 'HOUSEHOLD SURVEY' },
   income_real: { dossier: 'HOUSEHOLD INCOME · IDX', terminal: 'INC.REAL IDX', plate: 'HOUSEHOLD INCOME', short: 'INCOME', needs: 'NATIONAL ACCOUNTS' },
+  net_migration: { dossier: 'NET MIGRATION · /1000', terminal: 'NET.MIG /1K', plate: 'NET MIGRATION', short: 'NET MIG.', needs: 'CIVIL REGISTRATION', note: 'Arrivals minus departures, annualized per 1,000 residents. Positive means immigration; negative means emigration. The cabinet ceiling can clip arrivals but cannot stop residents leaving.' },
   birth_rate: { dossier: 'BIRTH RATE · /1000', terminal: 'BIRTH.RATE /1K', plate: 'BIRTH RATE', short: 'BIRTH RATE', needs: 'CIVIL REGISTRATION' },
   death_rate: { dossier: 'DEATH RATE · /1000', terminal: 'DEATH.RATE /1K', plate: 'DEATH RATE', short: 'DEATH RATE', needs: 'CIVIL REGISTRATION' },
   terms_of_trade: { dossier: 'TERMS OF TRADE · IDX', terminal: 'TERMS.TRADE IDX', plate: 'TERMS OF TRADE', short: 'TERMS TRD.', needs: 'TRADE STATISTICS' },

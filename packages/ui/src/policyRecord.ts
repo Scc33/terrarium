@@ -30,10 +30,10 @@ import {
   type SpendingRuleMode,
 } from '@terrarium/observation'
 
-/** Which desk in the cabinet an entry belongs to — the same four groups the
+/** Which desk in the cabinet an entry belongs to — the same five groups the
  * control rail sets them on, so the record reads back in the order it was
  * written. */
-export type PolicyGroup = 'TAXATION' | 'CENTRAL BANK' | 'SPENDING' | 'SUBSIDIES'
+export type PolicyGroup = 'TAXATION' | 'CENTRAL BANK' | 'MIGRATION' | 'SPENDING' | 'SUBSIDIES'
 
 /** A rate is a percentage and comparable across a century; an appropriation
  * is money, and 4.0 in 1946 is not 4.0 in 2040. The distinction decides how a
@@ -73,33 +73,46 @@ const SECTOR_FACE: Record<SectorId, string> = {
 }
 
 /** The dials that are a bare number on the record rather than a table — every
- * `PolicyRecord` field that is not one of the four groups below. Derived from
+ * `PolicyRecord` field that is not one of the four table-valued groups below. Derived from
  * the type, so a lever added to the cabinet lands here on its own and the
  * total face record beneath refuses to compile until it has been named.
- * `assetPurchaseRate` and `capitalRequirement` arrived exactly that way. */
-type CentralBankDialId = Exclude<
+ * `assetPurchaseRate`, `capitalRequirement`, and `immigrationLimit` arrived
+ * exactly that way. The face carries its desk because not every scalar dial
+ * belongs to the central bank. */
+type ScalarDialId = Exclude<
   keyof PolicyPoint,
   'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules'
 >
 
-const CENTRAL_BANK_FACE: Record<CentralBankDialId, { label: string; note: string }> = {
+const SCALAR_DIAL_FACE: Record<
+  ScalarDialId,
+  { label: string; note: string; group: 'CENTRAL BANK' | 'MIGRATION' }
+> = {
   policyRate: {
     label: 'POLICY RATE',
     note: 'The annualized rate the central bank lends at. It prices credit, and through the real rate it decides whether cheap money inflates a bubble.',
+    group: 'CENTRAL BANK',
   },
   assetPurchaseRate: {
     label: 'ASSET PURCHASES',
     note: 'Quantitative easing — the annual purchase pace as a share of GDP. It lowers private funding costs when the policy rate has no room left, and feeds credit and asset prices while it does.',
+    group: 'CENTRAL BANK',
   },
   capitalRequirement: {
     label: 'CAPITAL REQUIREMENT',
     note: 'Bank equity required per unit of credit outstanding. Raising the floor leans against a boom; cutting it frees credit now and leaves less room for losses.',
+    group: 'CENTRAL BANK',
+  },
+  immigrationLimit: {
+    label: 'IMMIGRATION CEILING',
+    note: 'Maximum annual arrivals as a share of the resident population. It limits immigration, never emigration.',
+    group: 'MIGRATION',
   },
 }
 
 /** Insertion order of the face record — which is the order the cabinet's
- * central-bank desk reads in. */
-const CENTRAL_BANK_DIAL_IDS = Object.keys(CENTRAL_BANK_FACE) as CentralBankDialId[]
+ * scalar-dial desks read in. */
+const SCALAR_DIAL_IDS = Object.keys(SCALAR_DIAL_FACE) as ScalarDialId[]
 
 export const RULE_MODE_LABEL: Record<SpendingRuleMode, string> = {
   fixed: 'FIXED',
@@ -120,12 +133,12 @@ export const POLICY_LINES: readonly PolicyLine[] = [
     note: TAX_FACE[id].note,
     read: (p) => 100 * p.taxRates[id],
   })),
-  ...CENTRAL_BANK_DIAL_IDS.map((id): PolicyLine => ({
+  ...SCALAR_DIAL_IDS.map((id): PolicyLine => ({
     key: id,
-    label: CENTRAL_BANK_FACE[id].label,
-    group: 'CENTRAL BANK',
+    label: SCALAR_DIAL_FACE[id].label,
+    group: SCALAR_DIAL_FACE[id].group,
     unit: 'rate',
-    note: CENTRAL_BANK_FACE[id].note,
+    note: SCALAR_DIAL_FACE[id].note,
     read: (p) => 100 * p[id],
   })),
   ...SPENDING_PROGRAM_IDS.map((id): PolicyLine => ({
@@ -149,6 +162,7 @@ export const POLICY_LINES: readonly PolicyLine[] = [
 export const POLICY_LINES_BY_GROUP: Record<PolicyGroup, readonly PolicyLine[]> = {
   TAXATION: POLICY_LINES.filter((l) => l.group === 'TAXATION'),
   'CENTRAL BANK': POLICY_LINES.filter((l) => l.group === 'CENTRAL BANK'),
+  MIGRATION: POLICY_LINES.filter((l) => l.group === 'MIGRATION'),
   SPENDING: POLICY_LINES.filter((l) => l.group === 'SPENDING'),
   SUBSIDIES: POLICY_LINES.filter((l) => l.group === 'SUBSIDIES'),
 }

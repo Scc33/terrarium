@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 24. Companion to the design doc
+*How the code is actually arranged, as of schema 28. Companion to the design doc
 (`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -160,7 +160,7 @@ interface TrueState {
   sectors: Sector[]            // 5: agri, manuf, energy, services, transport
   io: IOTable                  // Leontief coefficients
   market: MarketState
-  gov: GovernmentState         // dials, spending rules, capacities, itemised budget, debt
+  gov: GovernmentState         // dials, migration ceiling, spending rules, capacities, books
   external: ExternalState      // partners, prices, reserves, FX, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
@@ -228,7 +228,7 @@ introduced it:
 | # | step | what it does |
 |---|------|--------------|
 | 1 | `shocks` | the crisis clock: ruptures land before anyone works |
-| 2 | `demography` | the pyramid ages; cohort sizes are derived from it |
+| 2 | `demography` | births, deaths, and performance-relative migration move the pyramid; cohort sizes derive from it |
 | 3 | `technology` | the frontier advances; attainment chases it; research splits by position |
 | 4 | `world` | partner cycles set export demand and world prices |
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
@@ -258,6 +258,13 @@ introduced it:
 - Adding a feature = adding a step (or a field a step reads), not edits scattered across five
   files.
 - Immutability: return a new state, never mutate the input.
+
+Migration is a relative outside-option flow (ADR-0021), not an authored population target.
+Domestic mean log consumption progress is compared with a frontier-linked alternative and the
+current labor-market gap. `immigrationLimit` clips attractive-country arrivals as an annual share
+of population; it never clips emigration. The realized flow moves young-adult age bands, is
+published through the statistical fog as `net_migration`, and later in the same tick changes bloc
+favor and high-inflow unrest in `institutions`.
 
 Technology is deliberately a gap rather than a tree (ADR-0012). The historical world frontier
 advances without player input. `spending.research` becomes effective only after administrative

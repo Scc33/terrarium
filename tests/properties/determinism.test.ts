@@ -24,6 +24,19 @@ describe('replay determinism', () => {
     expect(hashState(replayed)).toBe(hashState(fresh))
   })
 
+  it('seals immigration policy into the action log and replay', () => {
+    const save = createSave(
+      standardCountry,
+      'replay-immigration',
+      [{ tick: 4, actions: [{ kind: 'setDial', path: 'immigrationLimit', value: 0.004 }] }],
+      20,
+    )
+    const replayed = replay(save)
+    expect(replayed.gov.dials.immigrationLimit).toBe(0.004)
+    expect(replayed.stats.record.at(-1)?.policy.immigrationLimit).toBe(0.004)
+    expect(hashState(replayed)).toBe(hashState(replay(save)))
+  })
+
   it('persists the run rules in new saves and reads the legacy mode on old ones', () => {
     const sandboxSave = createSave(standardCountry, 'replay-sandbox', [], 0, {
       fullInstrumentation: true,

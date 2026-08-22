@@ -1,6 +1,13 @@
 /** Named runner policies. These are sampling strategies, not engine rules. */
 
-import { CAPACITY_IDS, SECTOR_IDS, type Action, type Rng, type TrueState } from '@terrarium/engine'
+import {
+  CAPACITY_IDS,
+  IMMIGRATION_LIMIT_MAX,
+  SECTOR_IDS,
+  type Action,
+  type Rng,
+  type TrueState,
+} from '@terrarium/engine'
 
 export const POLICY_IDS = ['passive', 'developmental', 'random'] as const
 export type PolicyId = (typeof POLICY_IDS)[number]
@@ -19,7 +26,14 @@ export const developmentalPolicy: RunnerPolicy = (_state, _rng, tick) =>
 /** Adversarial exploration, not a model of expert play. Useful for reaching
  * unusual states quickly; long-horizon reports must truncate at deposition. */
 export const randomPolicy: RunnerPolicy = (state, rng) => {
-  if (rng.next() > 0.15) return [] // most quarters: leave the dials alone
+  if (rng.next() > 0.15) {
+    // Preserve the established mix of economic orders below. Border policy
+    // explores a small share of what were previously no-op quarters, rather
+    // than silently making subsidies or state-building rarer.
+    return rng.next() < 0.02
+      ? [{ kind: 'setDial', path: 'immigrationLimit', value: rng.range(0, IMMIGRATION_LIMIT_MAX) }]
+      : []
+  }
   const gdp = state.flows.nominalGdp
   const roll = rng.next()
   const pick = <T>(xs: readonly T[]): T => xs[Math.floor(rng.next() * xs.length)]

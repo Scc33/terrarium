@@ -84,15 +84,16 @@ describe('the playable economy through 2050', () => {
     // silently lowering century trend growth or ending more governments.
     const passiveSurvivors = policyRuns.passive.filter((run) => run.deposedAt === null)
     const developmentalSurvivors = policyRuns.developmental.filter((run) => run.deposedAt === null)
-    // Productive foreign capital improves survival in this fixed cohort,
-    // especially under the developmental policy whose administrative build
-    // makes more projects usable. Pin the intended political consequence as
-    // firmly as the prior baseline rather than treating it as test noise.
-    expect(passiveSurvivors).toHaveLength(25)
+    // Productive foreign capital and v28 migration both reach this fixed
+    // cohort. Relative outperformance gives developmental runs more workers,
+    // so aggregate GDP now grows faster than per-capita welfare alone; pin the
+    // intended political and population consequence rather than treating it
+    // as test noise.
+    expect(passiveSurvivors).toHaveLength(26)
     expect(developmentalSurvivors).toHaveLength(21)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeGreaterThan(2.3)
     expect(summarize(passiveSurvivors.map(cagr)).p50).toBeLessThan(2.8)
-    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeGreaterThan(1.9)
-    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeLessThan(2.5)
+    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeGreaterThan(2.5)
+    expect(summarize(developmentalSurvivors.map(cagr)).p50).toBeLessThan(3.1)
   })
 })
