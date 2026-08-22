@@ -2,7 +2,7 @@
  * How often the REVISED stamp fires.
  *
  * The design makes revision marks load-bearing: political capital is banked
- * when a headline prints and never clawed back when it moves (§3.4), so the
+ * when a headline prints and never clawed back when it moves, so the
  * player MUST notice they bet on a number the office later changed. The mark
  * is supposed to be loud.
  *

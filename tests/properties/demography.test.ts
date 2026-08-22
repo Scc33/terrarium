@@ -1,5 +1,5 @@
 /**
- * M4 §8 — the century IS the demographic transition window, and none of it
+ * The century IS the demographic transition window, and none of it
  * is scripted: fertility falls because incomes rise and children survive;
  * the pyramid ages because fertility fell; the dividend opens and then the
  * pension arithmetic arrives. These are the engine's demographic exit
@@ -34,7 +34,7 @@ const pop = (s: TrueState) => s.demography.pyramid.reduce((a, b) => a + b, 0)
 const share = (s: TrueState, from: number, to: number) =>
   s.demography.pyramid.slice(from, to + 1).reduce((a, b) => a + b, 0) / pop(s)
 
-describe('the demographic transition (§8)', () => {
+describe('the demographic transition', () => {
   const states = century('demo-test-1')
   const at = (year: number) => states[(year - 1946) * 4 - 1]
 

@@ -1,7 +1,7 @@
 /**
  * Step 4 — trade. Books the external flows production decided on, moves
  * reserves, and depreciates the currency when they run out. World prices and
- * export demand are set upstream by the `world` step (§10); this step just
+ * export demand are set upstream by the `world` step; this step just
  * settles the balance of payments at them.
  */
 

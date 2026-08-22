@@ -94,7 +94,7 @@ describe('the fog', () => {
   })
 })
 
-describe('salience (§3.4)', () => {
+describe('headline salience', () => {
   it('political capital follows the published number, not the truth', () => {
     const s0 = play('salience-1', 8)
     const politics = TICK_ORDER.find((st) => st.name === 'politics')!

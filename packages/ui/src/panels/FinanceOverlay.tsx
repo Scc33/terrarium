@@ -1,5 +1,5 @@
 /**
- * The financial system — drill-down paperwork (design doc §3.2), and a fog
+ * The financial system — drill-down paperwork, and a fog
  * lesson with a twist. A banking crisis ALWAYS makes the papers (onset is on
  * the wire, unfogged — a bank run is not a thing you can hide), so even an
  * unfunded government sees, in oxblood, that the crash happened. But the

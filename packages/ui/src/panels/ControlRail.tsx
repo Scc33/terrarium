@@ -398,7 +398,7 @@ function CapacityRow({ id, pub }: { id: CapacityId; pub: PublishedState }) {
 }
 
 /**
- * Layer 3 (§4.3): generational, ratcheting, contested. The price on each button
+ * Institutional reforms are generational, ratcheting, and contested. The price on each button
  * is what the engine will actually charge — veto premium and reform-window
  * discount already in it — so the room's objection is legible before you pay.
  */
@@ -451,7 +451,7 @@ function ReformRow({ id, pub }: { id: (typeof INSTITUTION_IDS)[number]; pub: Pub
 }
 
 /**
- * The whip count (§4.3). Bloc power is read off the economy each quarter, so
+ * The whip count. Bloc power is read off the economy each quarter, so
  * this is a live picture of who is actually in the room — and the bar shows
  * EFFECTIVE power, i.e. after an organised society's check, because that is
  * the number that actually prices your levers. Alerts here use terminal-alert,
@@ -613,7 +613,7 @@ export function ControlRail({
             </span>
           </button>
         </Tooltip>
-        {/* Layer 3 and the veto players who price it (§4.3) */}
+        {/* Institutional reforms and the veto players who price them */}
         {(['INSTITUTIONS', 'THE ROOM'] as const).map((group) => {
           const selected = openGroup === group
           const drafted = group === 'INSTITUTIONS' ? draftedIn('INSTITUTIONS') : 0

@@ -1,7 +1,7 @@
 # Terrarium — working notes
 
 Economic policy game. Read `docs/tech-architecture.md` before touching structure.
-pnpm monorepo; built through M6.
+pnpm monorepo.
 
 The **economy** and the **politics** are separate machines meeting in two places: `institutions`
 reads the economy to decide who has power, and the veto players price every action in
@@ -11,8 +11,8 @@ if a politics change moves it, the seam has leaked (`pnpm batch --policy passive
 Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
 with the alternatives it beat and the costs it carries); `docs/investigations/` is **what we
 measured and don't yet believe** (open questions with evidence attached — read before
-re-deriving one); `proposal-1.md` is the design doc whose § numbers ~65 code comments cite —
-don't renumber it. `docs/archive/` is unmaintained.
+re-deriving one); `docs/game-description.md` is the short current design pitch; proposed work
+lives in GitHub issues. `docs/archive/` is provenance, not current guidance.
 
 ## Skills
 
@@ -43,7 +43,7 @@ before starting one of these tasks** rather than working from this file's summar
   schema-version event.
 - The fog is MADE in the engine (`pipeline/statistics.ts`: prints, revisions, rumor news, via
   `obs:*` substreams orthogonal to the economic RNG) because politics reads the published
-  headline, not the truth (§3.4). `packages/observation` is presentation-only — never grow
+  headline, not the truth (ADR-0003). `packages/observation` is presentation-only — never grow
   measurement logic back into it.
 - Every behavioral constant lives in `engine/src/constants.ts` — tune there, nowhere else.
 
@@ -137,7 +137,7 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
   pipeline-order changes).
-- The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
+- The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 - `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
   branch). It's a floor to prevent regression — raise it, never lower it to green a build.
@@ -268,7 +268,7 @@ publishes. The dev server at 1280×720 is the only thing that sees layout.
 
 → **`add-bloc-or-institution` skill.** The id lists are total `Record`s and the build walks you
 through most of it — but `Stance` is a **`Partial`** over `BlocId`, so a new bloc compiles
-perfectly with no opinion about anything in the game. That is what M6 got wrong first time.
+perfectly with no opinion about anything in the game. The first politics implementation missed it.
 
 ## Hard-won tuning lessons (violate at your peril)
 
@@ -329,7 +329,7 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   border imprison a failing country. Calibrate the sign and the cap under passive, developmental,
   random, and all-country runs; pin per-capita as well as aggregate growth once labor supply moves.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
-  distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
+  distribution of the thing it gates under passive, random AND deliberately bad play. Two early
   mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the
   hardship households *experienced* (cohort approval already aggregates it) — rebuilt from
   unemployment it was wrong-signed, because the subsistence valve keeps the impoverished
@@ -340,7 +340,7 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
 - **Bloc power is DERIVED, never authored** — that is what makes "a crisis is a political
   opening" fall out for free. What is authored is only what each bloc *wants*: a preference,
   the same primitive as a consumption weight. And blocs make levers expensive, never
-  impossible — a hard veto would silently break the M1 exit-criteria scripts.
+  impossible — a hard veto would silently break the load-bearing mechanism scripts.
 - **`politicalCostOfAction` is the single source of truth for what an order costs.** Quote and
   charge must never be computed twice; `observe.ts` publishes reform prices straight from it.
 - **`pnpm diff-state --moved-only` on any schema-adding change.** New fields sort as infinite

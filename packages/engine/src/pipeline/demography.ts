@@ -1,5 +1,5 @@
 /**
- * Step 1.5 — demography (§8). The century IS the transition window: a young
+ * Step 1.5 — demography. The century IS the transition window: a young
  * 1946 pyramid ages quarter by quarter under endogenous fertility (falls
  * with income, cities, surviving children, and a slow norms drift),
  * income-driven mortality, and migration as a pressure valve. Cohort sizes

@@ -45,7 +45,7 @@ export const production: PipelineStep = {
   run(state) {
     const { io, market, gov, external, flows } = state
 
-    // technology now arrives via the tech step (§9) — production just works
+    // Technology now arrives via the tech step — production just works
     // with the tfp it was handed
     const sectors = state.sectors.map((s) => ({ ...s }))
     const qPot = sectors.map(potentialOutput)
@@ -93,7 +93,7 @@ export const production: PipelineStep = {
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)
     const fin = state.finance
-    // §4.3: capital that has decided against the government simply declines to
+    // Capital that has decided against the government simply declines to
     // build. An investment strike is the most ordinary thing in the world —
     // nobody announces it, the order book just thins.
     const investmentStrike =
@@ -107,7 +107,7 @@ export const production: PipelineStep = {
         CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
         // surplus labor is an investment opportunity, not just a tragedy
         INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) +
-        // Tobin's q (§12): dear assets pull investment; a credit crunch freezes it
+        // Tobin's q: dear assets pull investment; a credit crunch freezes it
         FIN_INVEST_Q_GAIN * (fin.assetPrice - 1) -
         (fin.crisisQtrsLeft > 0 ? FIN_CRUNCH_DRAG * fin.crisisSeverity : 0) -
         investmentStrike,
@@ -139,7 +139,7 @@ export const production: PipelineStep = {
     const exportsReal = sectorRecord((sid, i) => {
       const worldP = external.worldPrices[sid] * fx
       const ratio = worldP / market.prices[sid]
-      // partner demand (§10): a foreign recession buys less, whatever the price
+      // Partner demand: a foreign recession buys less, whatever the price
       const foreignDemand = external.world.exportDemand[sid]
       return Math.min(
         EXPORT_BASE_SHARE[sid] *

@@ -33,9 +33,9 @@ option was genuinely live at the time. A technique that simply worked is neither
 Calibration knowledge belongs beside the constants it governs, not in `docs/adr/`. The README
 in `docs/adr/` says this explicitly.
 
-If none fit, it probably belongs in a code comment next to the thing it explains — that is
-where most of this repo's knowledge already lives, and ~65 comments cite `proposal-1.md`
-section numbers for the rest.
+If none fit, it probably belongs in a code comment next to the thing it explains. Keep that
+comment self-contained; when durable context is needed, link a maintained ADR, investigation,
+or architecture section rather than an archived planning document.
 
 ## Writing an ADR
 
@@ -88,6 +88,6 @@ outcome, not a failure — and it stops the next person from building it again.
 - `docs/metrics-changelog.md` is not one of these three registers — it is the engine's
   **data contract**, and every `SCHEMA_VERSION` bump owes it an entry. See the
   **`add-indicator`** and **`economics-review`** skills.
-- `proposal-1.md` is the design doc whose § numbers ~65 code comments cite. **Don't renumber
-  it.**
-- `docs/archive/` is unmaintained. Don't add to it, and don't cite it as current.
+- Proposed product work belongs in GitHub issues, not in an ADR or a living roadmap document.
+- `docs/archive/` preserves superseded documents. Add to it only when deliberately retiring a
+  maintained document, and never cite archived material as current guidance.

@@ -1,5 +1,5 @@
 /**
- * observe() — a pure projection of what the government can see (§6.1). The
+ * observe() — a pure projection of what the government can see (ADR-0003). The
  * fog itself (lag, noise, revisions, funding gates) lives in the engine's
  * statistics step, because politics now reads the prints too; this function
  * only attaches presentation and assembles the desk: published series, the
@@ -94,7 +94,7 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
   const prosperityGrade: Grade =
     PROSPERITY_GRADE_CUTS.find((c) => prosperityRate >= c.atLeast)?.grade ?? 'F'
 
-  // §3.3 legitimacy is CONSENT, so a mandate taken by force cannot buy it.
+  // Legitimacy is CONSENT, so a mandate taken by force cannot buy it.
   // Suppressed elections are never netted against won ones — both numbers go
   // on the card — but they do cap the grade, and enough of them make the
   // question of how many elections you "won" beside the point.
@@ -107,7 +107,7 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
   const legitimacyGrade: Grade =
     ORDER.indexOf(earned) >= ORDER.indexOf(cap) ? earned : cap
 
-  // §3.3 Position: the share of the tenure spent inside the corridor
+  // Position: the share of the tenure spent inside the corridor
   const corridorShare =
     score.governedQuarters > 0 ? score.corridorQuarters / score.governedQuarters : 0
   const positionGrade: Grade =

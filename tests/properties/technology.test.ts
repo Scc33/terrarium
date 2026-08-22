@@ -1,5 +1,5 @@
 /**
- * M4 §9 — two trees and the gap. The frontier is history; what you attain
+ * Two trees and the gap. The frontier is history; what you attain
  * is absorption, and absorption is schools. These claims are the reason
  * "just buy the machines" fails and the reason education is a dial worth
  * a decade of budget.
@@ -61,7 +61,7 @@ function runResearch(
   return s
 }
 
-describe('two trees and the gap (§9)', () => {
+describe('two trees and the gap', () => {
   it('the frontier follows history: golden age, 1973 slowdown, ICT bump', () => {
     expect(frontierGrowthAt(40)).toBeGreaterThan(frontierGrowthAt(160)) // 1956 > 1986
     expect(frontierGrowthAt(210)).toBeGreaterThan(frontierGrowthAt(160)) // 1998 > 1986
@@ -95,7 +95,7 @@ describe('two trees and the gap (§9)', () => {
       passive.demography.humanCapital + 0.1,
     )
     expect(invested.tech.attained.manuf).toBeGreaterThan(passive.tech.attained.manuf)
-    // and schooling pulls fertility down beyond the income channel (§8)
+    // and schooling pulls fertility down beyond the income channel
     expect(invested.demography.tfr).toBeLessThan(passive.demography.tfr)
   })
 
@@ -235,7 +235,7 @@ describe('two trees and the gap (§9)', () => {
     expect(s.tech.researchStock).toBeLessThan(0.35 * built)
   })
 
-  it('entrenched incumbents veto invention, not just imitation (§4.3)', () => {
+  it('entrenched incumbents veto invention, not just imitation', () => {
     // The gate this closes: absorption was already priced by creative
     // destruction, so a captured economy could not absorb what others had
     // invented — but could still buy original innovation with money. That is

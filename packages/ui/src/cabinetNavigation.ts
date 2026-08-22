@@ -5,7 +5,7 @@ export const CABINET_GROUPS = [
   'MIGRATION',
   'SUBSIDIES',
   'STATE CAPACITY',
-  // Layer 3 (§4.3) and the veto players who price it. These sit last because
+  // Institutional reforms and the veto players who price them. These sit last because
   // they are the slowest things on the desk — a reform is generational, and
   // the whip count is read, not set.
   'INSTITUTIONS',

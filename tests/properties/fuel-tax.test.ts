@@ -1,5 +1,5 @@
 /**
- * M1 exit criterion (a): "a fuel tax raises bread prices without anyone
+ * Load-bearing mechanism claim: "a fuel tax raises bread prices without anyone
  * scripting it." The causal chain is energy → transport (30% energy inputs)
  * → agriculture (10% transport inputs), propagating through the I/O table
  * and the cost anchor — no hand-authored arrow exists.

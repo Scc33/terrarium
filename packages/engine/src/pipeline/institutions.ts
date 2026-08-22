@@ -1,10 +1,10 @@
 /**
- * Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the
+ * Step 8 — institutions and the Narrow Corridor. The half of the
  * game that isn't the economy.
  *
  * Three things live here, and they are one mechanism:
  *
- *   SOCIETAL POWER is the corridor's y-axis, and from M6 it is alive. It is
+ *   SOCIETAL POWER is the corridor's y-axis, and it is alive. It is
  *   not a dial and nobody sets it: it is what a society's capacity to organize
  *   adds up to — who holds a ballot, whether they may print and meet and sue,
  *   whether they can read, whether they live close enough together to act
@@ -24,7 +24,7 @@
  *
  *   REVOLUTIONARY PRESSURE is hardship, exclusion and inequality, minus
  *   whatever repression is currently suppressing. It prises open reform
- *   windows (§4.3: never let a good crisis go to waste) and, past a threshold,
+ *   windows (never let a good crisis go to waste) and, past a threshold,
  *   it ends governments — which is what makes leaving the corridor cost
  *   something rather than merely look bad on a chart.
  *
@@ -100,8 +100,8 @@ import {
 
 /** The franchise a cohort actually holds. `params.enfranchisement` is the 1946
  * settlement; suffrage reform closes the distance from there to one person one
- * vote. This function is the §4.3 headline in three lines: it rewrites the
- * weights the §3.4 scoring formula uses, so extending the vote literally edits
+ * vote. This function is the institutional headline in three lines: it rewrites the
+ * weights the approval formula uses, so extending the vote literally edits
  * the objective function the player is being graded on. */
 export function franchiseOf(base: number, suffrage: number): number {
   return clamp(base + suffrage * (1 - base), 0, 1)
@@ -420,7 +420,7 @@ export const institutions: PipelineStep = {
       })
     }
 
-    // --- §3.3 Position: the path, banked as it happens, like welfare
+    // --- Position: the path, banked as it happens, like welfare
     const governing =
       state.politics.inPower &&
       state.politics.deposedAt === null &&

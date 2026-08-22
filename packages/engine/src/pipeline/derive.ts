@@ -156,7 +156,7 @@ export function approvalIndex(state: TrueState): number {
 }
 
 /** Population-weighted mean log real consumption per capita this quarter —
- * the §3.3 welfare integrand, shared with demography (fertility and
+ * the welfare integrand, shared with demography (fertility and
  * mortality respond to the same lived standard the historians grade). */
 export function meanLogConsumption(state: TrueState): number {
   let logSum = 0
@@ -314,11 +314,11 @@ export function termsOfTrade(state: TrueState): number {
   return (100 * (exp / imp)) / (exp0 / imp0)
 }
 
-// ---------- §6.3 the Narrow Corridor, §4.3 the veto players ----------
+// ---------- the Narrow Corridor and the veto players ----------
 
 /** Population-weighted share of the country that holds a ballot. Suffrage
  * reform moves the cohort weights, so this is also the number that decides
- * WHOSE approval the §3.4 formula is scoring — the objective function the
+ * WHOSE approval the political-capital formula is scoring — the objective function the
  * player can edit. */
 export function enfranchisementIndex(state: TrueState): number {
   let people = 0
@@ -339,7 +339,7 @@ export function enfranchisementIndex(state: TrueState): number {
  * of it held by people with no ballot, and it is the one that matters most for
  * revolutionary pressure: a citizen who can vote you out does that instead.
  * That asymmetry is what makes extending the franchise genuinely double-edged
- * (§4.3) — it converts revolutionary pressure into electoral pressure, which
+ * — it converts revolutionary pressure into electoral pressure, which
  * is precisely the historical bargain suffrage extension was.
  */
 export function discontentIndex(state: TrueState): { discontent: number; voiceless: number } {
@@ -420,7 +420,7 @@ export function eliteHostility(state: TrueState): number {
   return weight > 1e-9 ? hostile / weight : 0
 }
 
-/** §4.3 the extractive ceiling. The strongest incumbent, unchecked, is the one
+/** The extractive ceiling. The strongest incumbent, unchecked, is the one
  * who vetoes creative destruction — so this reads the MAX, not the mean: it
  * only takes one entrenched interest to keep the newcomers out. */
 export function eliteCapture(state: TrueState): number {

@@ -1,7 +1,7 @@
 /**
  * Shares of a whole — the geometry behind every composition view.
  *
- * The wall's lesson (M5.5) was that anything you want a test to hold has to
+ * The wall's lesson was that anything you want a test to hold has to
  * leave the component, because layout and path arithmetic are exactly what a
  * jsdom render test cannot see. So the maths of a pie and of a stacked band
  * live here, as data, and `InkPie` / `InkStack` do nothing but paint what this

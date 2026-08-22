@@ -138,7 +138,7 @@ export const FACE_MARK: Partial<Record<IndicatorId, { at: number; label: string 
   inflation: { at: 0, label: 'STABLE' },
   net_migration: { at: 0, label: 'BALANCED' },
   credit_growth: { at: 0, label: 'FLAT' },
-  // where revolutionary pressure prises the reform window open (§4.3). A rule,
+  // where revolutionary pressure prises the reform window open. A rule,
   // not a reading — the government knows the threshold exactly and only its
   // own position against it is fogged. That gap is the game.
   unrest: { at: REFORM_WINDOW_AT * 100, label: 'THE WINDOW' },

@@ -1,5 +1,5 @@
 /**
- * M6 §4.3 / §6.3 — politics as a game.
+ * Politics as a game.
  *
  * The claims this milestone makes, as executable statements. Not "the code
  * runs" but "the design works": the corridor dot moves and moving it costs
@@ -67,9 +67,9 @@ function century(
 
 const last = <T>(xs: T[]): T => xs[xs.length - 1]
 
-describe('societal power is alive (§6.3)', () => {
+describe('societal power is alive', () => {
   it('the dot MOVES — the whole point of the milestone', () => {
-    // before M6 y came from the country's fixed setup, so the corridor plot
+    // An earlier y coordinate came from the country's fixed setup, so the corridor plot
     // drew a dot that never left its starting point
     const run = century('inst-move')
     const y = run.map((s) => s.institutions.societalPower)
@@ -131,7 +131,7 @@ describe('leaving the corridor means something', () => {
     )
   })
 
-  it('unchecked incumbents slow catch-up — the extractive ceiling (§4.3)', () => {
+  it('unchecked incumbents slow catch-up — the extractive ceiling', () => {
     const boot = century('inst-x', { ticks: 320, fundCapacity: true, reform: 'repression' })
     const open = century('inst-x', { ticks: 320, fundCapacity: true, reform: 'suffrage' })
     const tfp = (s: TrueState) =>
@@ -258,7 +258,7 @@ describe('God mode keeps a test run alive', () => {
   })
 })
 
-describe('the veto players gate the levers (§4.3)', () => {
+describe('the veto players gate the levers', () => {
   const s0 = last(century('inst-v', { ticks: 24 }))
 
   it('a lever the room objects to costs more than one it does not', () => {
@@ -357,7 +357,7 @@ describe('realized immigration reaches the political machine', () => {
   })
 })
 
-describe('reform windows (§4.3: never let a good crisis go to waste)', () => {
+describe('reform windows: never let a good crisis go to waste', () => {
   it('pressure past the line opens the window and discounts reform', () => {
     const calm = { ...last(century('inst-w', { ticks: 24 })) }
     const quiet = {
@@ -380,7 +380,7 @@ describe('reform windows (§4.3: never let a good crisis go to waste)', () => {
   })
 })
 
-describe('the franchise edits your own objective function (§4.3)', () => {
+describe('the franchise edits your own objective function', () => {
   it('suffrage closes the distance from the 1946 settlement to one-person-one-vote', () => {
     expect(franchiseOf(0.6, 0)).toBeCloseTo(0.6)
     expect(franchiseOf(0.6, 1)).toBeCloseTo(1)
@@ -409,7 +409,7 @@ describe('the franchise edits your own objective function (§4.3)', () => {
   })
 })
 
-describe('the election is a scene (§3.1)', () => {
+describe('the election is a scene', () => {
   /** wind a run forward to the quarter the campaign opens */
   function toCampaign(seed: string): TrueState {
     let s = init(standardCountry, seed)
@@ -496,7 +496,7 @@ describe('the election is a scene (§3.1)', () => {
   })
 })
 
-describe('the published desk (§3.1 contract)', () => {
+describe('the published desk contract', () => {
   it('the campaign scene only exists inside the window', () => {
     const early = observe(init(standardCountry, 'inst-o'))
     expect(early.campaign).toBeNull()

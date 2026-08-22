@@ -1,5 +1,5 @@
 /**
- * Step 2.5 — the rest of world (§10). Four abstract trading partners, each an
+ * Step 2.5 — the rest of world. Four abstract trading partners, each an
  * economy with its own business cycle, advance one quarter. Their strength
  * sets two things the domestic economy then lives inside:
  *   • how much of your exports they buy (a partner in recession buys less);

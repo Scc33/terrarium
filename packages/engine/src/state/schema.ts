@@ -72,7 +72,7 @@ export type CapacityId = (typeof CAPACITY_IDS)[number]
 
 /** The two sides of the budget, disaggregated. Headline revenue and outlays
  * hide the only fiscal question that matters — *which* tax, *which* programme —
- * so both are kept as a split the treasury books exactly (§6.1: a government
+ * so both are kept as a split the treasury books exactly (a government
  * never needs a survey to know what it collected and what it voted). */
 export const REVENUE_SOURCE_IDS = ['income', 'corporate', 'tariff', 'fuel'] as const
 export type RevenueSourceId = (typeof REVENUE_SOURCE_IDS)[number]
@@ -115,20 +115,20 @@ export type SpendingRule =
 export type SpendingRuleMode = SpendingRule['kind']
 export type SpendingRules = Record<SpendingProgramId, SpendingRule>
 
-/** Layer 3 (§4.3) — generational, ratcheting, contested. These are the stocks
+/** Institutional reforms are generational, ratcheting, and contested. These are the stocks
  * that edit your own objective function: `suffrage` rewrites the ballot
  * weights the PC formula scores you on, `repression` buys the state's coercive
  * arm at society's expense. Reform moves them a step at a time. */
 export const INSTITUTION_IDS = ['suffrage', 'press', 'labor_rights', 'courts', 'repression'] as const
 export type InstitutionId = (typeof INSTITUTION_IDS)[number]
 
-/** the veto players (§4.3). Not a scripted faction system: each bloc's POWER
+/** The veto players. Not a scripted faction system: each bloc's POWER
  * is read off the economy it owns, so a crisis that guts a bloc's base is a
  * political opening — and the elites' hold on the levers loosens for free. */
 export const BLOC_IDS = ['landowners', 'industrialists', 'financiers', 'unions'] as const
 export type BlocId = (typeof BLOC_IDS)[number]
 
-/** how you fight the election (§3.1: hold a coalition together). Each is a
+/** How you fight the election and hold a coalition together. Each is a
  * real fork with a real bill: largesse mortgages the budget, coalition
  * mortgages the levers, suppression mortgages the corridor, franchise
  * mortgages your own scoring rubric. */
@@ -141,7 +141,7 @@ export const INDICATOR_IDS = [
   'debt_to_gdp',
   'consumption_per_capita',
   'household_saving_rate',
-  // The expenditure accounts (§2.2): who the economy's output is FOR. A
+  // The expenditure accounts: who the economy's output is FOR. A
   // country turning itself into an exporter, or eating its own capital
   // formation, shows up here as composition rather than as a headline that
   // happens to be growing. Each is surveyed separately, so the prints do NOT
@@ -197,7 +197,7 @@ export const INDICATOR_IDS = [
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
-/** the rest of world: a handful of abstract trading partners (§10) */
+/** The rest of world: a handful of abstract trading partners. */
 export const PARTNER_IDS = ['commodity', 'manufacturing', 'financial', 'regional'] as const
 export type PartnerId = (typeof PARTNER_IDS)[number]
 
@@ -215,7 +215,7 @@ export interface CountryParams {
   /** starting enfranchisement weights */
   enfranchisement: Record<CohortId, Ratio>
   /** 1946 age pyramid, persons (millions) per 5-year band, 0–4 first.
-   * Optional for saves from before M4 — init synthesizes one to match
+   * Optional for older saves — init synthesizes one to match
    * cohortSizes when absent. */
   pyramid?: number[]
   /** Optional structural opening conditions. Saves from before schema 13 omit
@@ -248,7 +248,7 @@ export interface CountryStructure {
   institutions: Record<InstitutionId, Ratio>
 }
 
-// ---------- demography (§8: the century IS the transition window) ----------
+// ---------- demography: the century is the transition window ----------
 export const AGE_BANDS = 17 // 0–4, 5–9, …, 80+
 /** band index at which people leave the labor force (60+: period-realistic,
  * and it makes the pension arithmetic bite when the pyramid inverts) */
@@ -272,7 +272,7 @@ export interface DemographyState {
    * appointment (ADR-0021, ADR-0022). */
   migrationBaselineWelfare: number | null
   /** crude birth/death rates this quarter, annualized per 1000 — engine
-   * truth; only PUBLISHED once civil registration is funded (§8 fog) */
+   * truth; only PUBLISHED once civil registration is funded */
   crudeBirthRate: number
   crudeDeathRate: number
   /** (working-age / non-retired) relative to the 1946 baseline — scales
@@ -290,7 +290,7 @@ export interface DemographyState {
 // ---------- population ----------
 export interface Cohort {
   id: CohortId
-  size: number // persons (millions); static in M1
+  size: number // persons (millions)
   employedIn: Partial<Record<SectorId, number>> // millions
   wageIncome: Money
   transferIncome: Money
@@ -315,7 +315,7 @@ export interface Sector {
   capacityUtilization: Ratio
   inventory: Money
   /** credit outstanding to this sector's firms — the aggregate is allocated
-   * by capital share (§12 M5); it levers investment and sours in a crisis */
+   * by capital share; it levers investment and sours in a crisis */
   credit: Money
 }
 
@@ -401,7 +401,7 @@ export interface GovernmentState {
 }
 
 // ---------- external ----------
-/** one abstract foreign economy (§10) — a coarse model: an activity level
+/** One abstract foreign economy — a coarse model: an activity level
  * (output gap, 1.0 neutral) evolving on its own business cycle. */
 export interface WorldPartner {
   id: PartnerId
@@ -425,7 +425,7 @@ export interface ExternalState {
   foreignOwnedCapital: Money
   /** the rest of world: partner cycles that drive prices and export demand */
   world: WorldState
-  /** the crisis clock's live wires (Pillar 4) */
+  /** the crisis clock's live wires */
   shocks: {
     /** quarters of failed harvest still to run; 0 = no drought */
     droughtQtrsLeft: Qtr
@@ -434,7 +434,7 @@ export interface ExternalState {
   }
 }
 
-// ---------- technology (§9: two trees and the gap) ----------
+// ---------- technology: two trees and the gap ----------
 export interface TechState {
   /** the global frontier — advancing on a roughly historical schedule,
    * mostly indifferent to you (index, 1946 = 1) */
@@ -453,7 +453,7 @@ export interface TechState {
   researchStock: number
 }
 
-// ---------- the financial sector (§12 M5: fragility) ----------
+// ---------- the financial sector: fragility ----------
 export interface FinanceState {
   /** asset valuation per unit of capital — a Tobin's q, 1946 = 1. The bubble
    * variable: departs from its profitability/rate fundamental on credit and
@@ -475,7 +475,7 @@ export interface FinanceState {
   crisisSeverity: number
 }
 
-// ---------- institutions (§4.3 Layer 3, §6.3 the corridor) ----------
+// ---------- institutions and the Narrow Corridor ----------
 /** One veto player. `power` is DERIVED from the economy each quarter — the
  * share of the country a bloc owns — so nothing about it is hand-authored;
  * `favor` is how it feels about the government right now, and it is the thing
@@ -490,14 +490,14 @@ export interface Bloc {
 export interface InstitutionState {
   /** Layer-3 stocks, 0..1. Generational: reforms move them a step at a time */
   stocks: Record<InstitutionId, Ratio>
-  /** §6.3 y-axis — society's capacity to organize and constrain the state.
+  /** Corridor y-axis — society's capacity to organize and constrain the state.
    * Slow: it tracks a target set by franchise, organization, education,
    * urbanization, inequality and the boot, at a generation's pace. */
   societalPower: Ratio
-  /** §6.3 x-axis — the Leviathan: the ministries you built, plus the
+  /** Corridor x-axis — the Leviathan: the ministries you built, plus the
    * coercive arm repression buys */
   statePower: Ratio
-  /** §4.3 revolutionary pressure, 0..1. High pressure prises open reforms
+  /** Revolutionary pressure, 0..1. High pressure prises open reforms
    * elites would otherwise veto — and can end you outright. */
   unrest: Ratio
   blocs: Record<BlocId, Bloc>
@@ -530,7 +530,7 @@ export interface PoliticalState {
   quartersToElection: number
   inPower: boolean
   electionsWon: number
-  /** mandates taken by force rather than consent — graded separately (§3.3) */
+  /** mandates taken by force rather than consent — graded separately */
   electionsSuppressed: number
   /** the quarter the government fell; null while it stands */
   deposedAt: Qtr | null
@@ -546,13 +546,13 @@ export interface PoliticalState {
 
 // ---------- fragility ----------
 export interface FragilityLedger {
-  inflationExpectations: number // annualized, adaptive in M1
+  inflationExpectations: number // annualized and adaptive
   debtToGdp: number // cached
   /** animal spirits, 0..1 with 0.55 neutral — surveyed only if you fund it */
   confidence: { consumer: Ratio; business: Ratio }
 }
 
-// ---------- the statistics office (lives INSIDE the state: §3.4 salience) ----------
+// ---------- the statistics office (lives INSIDE the state so politics reads the fog) ----------
 export interface StatPrint {
   forQtr: Qtr // period measured
   publishedAt: Qtr // period released (lag = publishedAt − forQtr)
@@ -658,10 +658,10 @@ export interface StatRecord {
   /** credit outstanding / annual GDP — what a bank supervisor would tabulate */
   creditToGdp: number
   /** revolutionary pressure, 0..1 — what the provincial governors' reports
-   * would add up to if anyone collated them (§4.3). Fogged like everything
+   * would add up to if anyone collated them. Fogged like everything
    * else: a state that cannot survey its own people cannot see the street. */
   unrest: Ratio
-  /** the corridor's two coordinates (§6.3). Exact, not fogged: a government
+  /** The corridor's two coordinates. Exact, not fogged: a government
    * knows which ministries it built and which liberties it granted — the
    * uncertainty in this game is about the economy, not about the constitution */
   statePower: Ratio
@@ -781,7 +781,7 @@ export interface TrueState {
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice
-  /** §3.3 Prosperity: cumulative discounted welfare, accumulated as the run
+  /** Prosperity: cumulative discounted welfare, accumulated as the run
    * happens — a scorched-earth sprint to 2049 must not score */
   score: {
     /** Σ β^t · (population-weighted mean log real consumption per capita) */
@@ -789,7 +789,7 @@ export interface TrueState {
     discountWeight: number // Σ β^t, for normalizing to an average
     /** welfare inherited at the appointment (mean log), the report-card yardstick */
     baselineWelfare: number | null
-    /** §3.3 Position: quarters of your tenure spent inside the corridor, and
+    /** Position: quarters of your tenure spent inside the corridor, and
      * the tenure they are counted against. Accumulated as the run happens for
      * the same reason welfare is — the path is the grade, not the endpoint. */
     corridorQuarters: number

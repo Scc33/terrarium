@@ -1,5 +1,5 @@
 /**
- * Step 2.5 — technology (§9). Two trees: the global frontier advances on a
+ * Step 2.5 — technology. Two trees: the global frontier advances on a
  * roughly historical schedule whether you exist or not; what you have
  * ATTAINED chases each sector's slice of it at a speed set by absorptive
  * capacity — schools first, openness second. Poor countries close the gap
@@ -45,8 +45,8 @@ export function frontierGrowthAt(tick: number): number {
 /**
  * How fast this country can drink from the frontier, 0..1.
  *
- * Schools first, openness second — and from M6, whether the incumbents will
- * allow it (§4.3). Absorbing the frontier means new firms displacing old ones;
+ * Schools first, openness second — and whether the incumbents will
+ * allow it. Absorbing the frontier means new firms displacing old ones;
  * an entrenched interest that faces no organized society vetoes exactly that,
  * so the same schools buy less catch-up in a captured economy. Note what this
  * does NOT touch: capital widening. Forced industrialization still works. What
@@ -154,7 +154,7 @@ function outputWeighted(state: TrueState, f: (sid: SectorId) => number): number 
  * world's technique outward, one at best practice in its barbershops does not,
  * and the exposure table already says which is which. Then the whole thing is
  * gated on `creativeDestruction` — the incumbents who veto absorbing somebody
- * else's invention veto financing your own at least as hard (§4.3). That gate
+ * else's invention veto financing your own at least as hard. That gate
  * is the fix for a real inconsistency: before it, a captured economy could not
  * absorb what others had invented but could still buy original innovation with
  * money, which is backwards on this model's own logic.

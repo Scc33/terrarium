@@ -17,7 +17,7 @@ function century(seed: string, ticks = 400): TrueState[] {
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(xs.length, 1)
 
-describe('the crisis clock (Pillar 4)', () => {
+describe('the crisis clock', () => {
   const states = century('crisis-2')
   const news = states[states.length - 1].stats.news
 
@@ -56,7 +56,7 @@ describe('the crisis clock (Pillar 4)', () => {
   })
 })
 
-describe('the report card (§3.3)', () => {
+describe('the report card', () => {
   const states = century('card-1', 100)
   const live = states[states.length - 1]
 

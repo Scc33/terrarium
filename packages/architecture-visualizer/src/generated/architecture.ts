@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "2b8785e",
+  "revision": "6cc1772",
   "repoRoot": "../..",
   "packages": [
     {
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 76,
-      "lines": 12208
+      "moduleCount": 81,
+      "lines": 13829
     }
   ],
   "modules": [
@@ -146,7 +146,7 @@ export const architecture = {
       "label": "constants",
       "packageId": "engine",
       "category": "Engine core",
-      "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the M1 exit criterion (c)).",
+      "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
       "lines": 909,
       "exports": [
         {
@@ -2073,6 +2073,8 @@ export const architecture = {
         "packages/ui/src/domains.ts",
         "packages/ui/src/gameRules.ts",
         "packages/ui/src/incidence.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
@@ -2239,7 +2241,7 @@ export const architecture = {
       "label": "demography",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 1.5 — demography (§8). The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort…",
+      "summary": "Step 1.5 — demography. The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort size…",
       "lines": 256,
       "exports": [
         {
@@ -2512,7 +2514,7 @@ export const architecture = {
       "label": "finance",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 3.5 — the financial sector (§12 M5: fragility). The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it;…",
+      "summary": "Step 3.5 — the financial sector. The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it; • asset prices (a To…",
       "lines": 200,
       "exports": [
         {
@@ -2595,7 +2597,7 @@ export const architecture = {
       "label": "institutions",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the game that isn't the economy.",
+      "summary": "Step 8 — institutions and the Narrow Corridor. The half of the game that isn't the economy.",
       "lines": 443,
       "exports": [
         {
@@ -2761,7 +2763,7 @@ export const architecture = {
       "label": "politics",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (§3.4): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a later re…",
+      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (ADR-0003): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a late…",
       "lines": 182,
       "exports": [
         {
@@ -2852,7 +2854,7 @@ export const architecture = {
       "label": "shocks",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 0 — shocks. The crisis clock (Pillar 4). Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do th…",
+      "summary": "Step 0 — shocks. The crisis clock. Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do the rest, thr…",
       "lines": 73,
       "exports": [
         {
@@ -2912,7 +2914,7 @@ export const architecture = {
       "label": "technology",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 2.5 — technology (§9). Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close t…",
+      "summary": "Step 2.5 — technology. Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close the ga…",
       "lines": 258,
       "exports": [
         {
@@ -2978,7 +2980,7 @@ export const architecture = {
       "label": "trade",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step (§10); this step just settles the balance of payments at them.",
+      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step; this step just settles the balance of payments at them.",
       "lines": 47,
       "exports": [
         {
@@ -3004,7 +3006,7 @@ export const architecture = {
       "label": "world",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 2.5 — the rest of world (§10). Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less);…",
+      "summary": "Step 2.5 — the rest of world. Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less); • the…",
       "lines": 125,
       "exports": [
         {
@@ -3072,7 +3074,7 @@ export const architecture = {
       "label": "init",
       "packageId": "engine",
       "category": "State",
-      "summary": "Country generation. A country is a parameter vector (§10 of the design doc); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
+      "summary": "Country generation. A country is a parameter vector (ADR-0011); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
       "lines": 458,
       "exports": [
         {
@@ -3837,6 +3839,7 @@ export const architecture = {
         "packages/ui/src/domains.ts",
         "packages/ui/src/gameRules.ts",
         "packages/ui/src/incidence.ts",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
@@ -3872,7 +3875,7 @@ export const architecture = {
       "label": "observe",
       "packageId": "observation",
       "category": "Published projection",
-      "summary": "observe() — a pure projection of what the government can see (§6.1). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: publish…",
+      "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
       "lines": 257,
       "exports": [
         {
@@ -4640,13 +4643,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 332,
+      "lines": 385,
       "exports": [
         {
           "name": "App",
           "kind": "function",
           "path": "packages/ui/src/App.tsx",
-          "line": 48
+          "line": 53
         }
       ],
       "imports": [
@@ -4654,6 +4657,7 @@ export const architecture = {
         "packages/ui/src/cabinetNavigation.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/countryDraft.ts",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
@@ -4666,13 +4670,16 @@ export const architecture = {
         "packages/ui/src/panels/HeaderBar.tsx",
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/ManualOverlay.tsx",
         "packages/ui/src/panels/NewsWire.tsx",
         "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/Walkthrough.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
-        "packages/ui/src/store/gameStore.ts"
+        "packages/ui/src/store/gameStore.ts",
+        "packages/ui/src/walkthrough.ts"
       ],
       "importedBy": [
         "packages/ui/src/main.tsx"
@@ -4776,6 +4783,7 @@ export const architecture = {
       "imports": [],
       "importedBy": [
         "packages/ui/src/App.tsx",
+        "packages/ui/src/levers.ts",
         "packages/ui/src/panels/ControlRail.tsx"
       ],
       "path": "packages/ui/src/cabinetNavigation.ts",
@@ -4899,7 +4907,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Every name an instrument goes by, in one place.",
-      "lines": 219,
+      "lines": 232,
       "exports": [
         {
           "name": "IndicatorNames",
@@ -4926,52 +4934,58 @@ export const architecture = {
           "line": 91
         },
         {
+          "name": "SECTOR_NAMES",
+          "kind": "constant",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 101
+        },
+        {
           "name": "COHORT_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 99
+          "line": 112
         },
         {
           "name": "COHORT_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 116
+          "line": 129
         },
         {
           "name": "BLOC_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 131
+          "line": 144
         },
         {
           "name": "BLOC_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 139
+          "line": 152
         },
         {
           "name": "INSTITUTION_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 150
+          "line": 163
         },
         {
           "name": "PLATFORM_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 173
+          "line": 186
         },
         {
           "name": "PLATFORM_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 189
+          "line": 202
         },
         {
           "name": "COUNT_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 211
+          "line": 224
         }
       ],
       "imports": [
@@ -4983,7 +4997,10 @@ export const architecture = {
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/countryDraft.ts",
         "packages/ui/src/dev/ComponentGallery.tsx",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/ElectionOverlay.tsx",
         "packages/ui/src/panels/ElectionResultOverlay.tsx"
@@ -5112,13 +5129,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Terminal-era instrument: dense phosphor line on near-black, tight bands, live-feeling readout. Superseded first prints stay on screen with a strikethrough beside the reprint — the machine remembers what it told you. No shadows, no gradients, no rounding: hairlines only.",
-      "lines": 282,
+      "lines": 290,
       "exports": [
         {
           "name": "TerminalTicker",
           "kind": "function",
           "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-          "line": 93
+          "line": 96
         }
       ],
       "imports": [
@@ -5340,12 +5357,14 @@ export const architecture = {
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/panels/ManualOverlay.tsx",
         "packages/ui/src/panels/NewsWire.tsx",
         "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/StudyReport.tsx",
+        "packages/ui/src/panels/Walkthrough.tsx",
         "packages/ui/src/panels/WireOverlay.tsx"
       ],
       "path": "packages/ui/src/components/ui/index.ts",
@@ -5676,41 +5695,40 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The one time-series painter. Every line, area and ribbon in the game goes through it — the wall's terminal ticker, the treasury ledger, the expenditure accounts, the finance overlay, the census.",
-      "lines": 419,
+      "lines": 642,
       "exports": [
         {
           "name": "ChartRegister",
           "kind": "type",
           "path": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-          "line": 44
+          "line": 50
         },
         {
           "name": "ChartTrace",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-          "line": 46
+          "line": 52
         },
         {
           "name": "ChartRule",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-          "line": 63
+          "line": 69
         },
         {
           "name": "TimeSeriesChartProps",
           "kind": "interface",
           "path": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-          "line": 74
+          "line": 80
         },
         {
           "name": "TimeSeriesChart",
           "kind": "function",
           "path": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-          "line": 165
+          "line": 174
         }
       ],
       "imports": [
-        "packages/ui/src/domains.ts",
         "packages/ui/src/plot.ts"
       ],
       "importedBy": [
@@ -5851,143 +5869,144 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The drafting room's arithmetic — what a country's fields are, what they are allowed to be, and how a draft becomes a document somebody else can open.",
-      "lines": 447,
+      "lines": 440,
       "exports": [
         {
           "name": "DRAFT_GROUP_IDS",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 37
+          "line": 38
         },
         {
           "name": "DraftGroupId",
           "kind": "type",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 38
+          "line": 39
         },
         {
           "name": "DRAFT_GROUPS",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 42
+          "line": 43
         },
         {
           "name": "FieldFormat",
           "kind": "type",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 70
+          "line": 71
         },
         {
           "name": "DraftField",
           "kind": "interface",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 72
+          "line": 73
         },
         {
           "name": "DRAFT_FIELDS",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 124
+          "line": 117
         },
         {
           "name": "fieldsInGroup",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 232
+          "line": 225
         },
         {
           "name": "formatFieldValue",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 235
+          "line": 228
         },
         {
           "name": "readField",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 258
+          "line": 251
         },
         {
           "name": "writeField",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 277
+          "line": 270
         },
         {
           "name": "AGE_SHAPE_LABELS",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 300
+          "line": 293
         },
         {
           "name": "draftFrom",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 325
+          "line": 318
         },
         {
           "name": "reviseDraft",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 337
+          "line": 330
         },
         {
           "name": "draftChanges",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 362
+          "line": 355
         },
         {
           "name": "draftPopulation",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 375
+          "line": 368
         },
         {
           "name": "draftKey",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 381
+          "line": 374
         },
         {
           "name": "SHARE_FRAGMENT_KEY",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 390
+          "line": 383
         },
         {
           "name": "encodeShare",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 406
+          "line": 399
         },
         {
           "name": "decodeShare",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 412
+          "line": 405
         },
         {
           "name": "sharedCountryFromUrl",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 430
+          "line": 423
         },
         {
           "name": "shareUrl",
           "kind": "function",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 436
+          "line": 429
         },
         {
           "name": "shareFilename",
           "kind": "constant",
           "path": "packages/ui/src/countryDraft.ts",
-          "line": 442
+          "line": 435
         }
       ],
       "imports": [
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/ui/src/components/labels.ts"
       ],
       "importedBy": [
         "packages/ui/src/App.tsx",
@@ -6194,9 +6213,7 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
-        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-        "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-        "packages/ui/src/plot.ts"
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx"
       ],
       "path": "packages/ui/src/domains.ts",
       "line": 1
@@ -6258,6 +6275,7 @@ export const architecture = {
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
+        "packages/ui/src/manual.ts",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/HeaderBar.tsx"
@@ -6309,6 +6327,87 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/levers.ts",
+      "label": "levers",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "What every lever on the desk actually does, in one place.",
+      "lines": 295,
+      "exports": [
+        {
+          "name": "LeverCopy",
+          "kind": "interface",
+          "path": "packages/ui/src/levers.ts",
+          "line": 33
+        },
+        {
+          "name": "LEVER_COPY",
+          "kind": "constant",
+          "path": "packages/ui/src/levers.ts",
+          "line": 77
+        },
+        {
+          "name": "CapacityCopy",
+          "kind": "interface",
+          "path": "packages/ui/src/levers.ts",
+          "line": 170
+        },
+        {
+          "name": "CAPACITY_COPY",
+          "kind": "constant",
+          "path": "packages/ui/src/levers.ts",
+          "line": 181
+        },
+        {
+          "name": "LeverGroupId",
+          "kind": "type",
+          "path": "packages/ui/src/levers.ts",
+          "line": 222
+        },
+        {
+          "name": "DrawerCopy",
+          "kind": "interface",
+          "path": "packages/ui/src/levers.ts",
+          "line": 224
+        },
+        {
+          "name": "LeverGroup",
+          "kind": "interface",
+          "path": "packages/ui/src/levers.ts",
+          "line": 266
+        },
+        {
+          "name": "LEVER_PATHS",
+          "kind": "constant",
+          "path": "packages/ui/src/levers.ts",
+          "line": 272
+        },
+        {
+          "name": "LEVER_GROUPS",
+          "kind": "constant",
+          "path": "packages/ui/src/levers.ts",
+          "line": 283
+        },
+        {
+          "name": "leverGroup",
+          "kind": "function",
+          "path": "packages/ui/src/levers.ts",
+          "line": 292
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/ui/src/cabinetNavigation.ts",
+        "packages/ui/src/components/labels.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/manual.ts",
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/levers.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/main.tsx",
       "label": "main",
       "packageId": "ui",
@@ -6322,6 +6421,91 @@ export const architecture = {
       ],
       "importedBy": [],
       "path": "packages/ui/src/main.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/manual.ts",
+      "label": "manual",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The ministry handbook: everything the game knows how to explain about itself, as data rather than as markup.",
+      "lines": 539,
+      "exports": [
+        {
+          "name": "ManualEntry",
+          "kind": "interface",
+          "path": "packages/ui/src/manual.ts",
+          "line": 70
+        },
+        {
+          "name": "ManualSection",
+          "kind": "interface",
+          "path": "packages/ui/src/manual.ts",
+          "line": 77
+        },
+        {
+          "name": "MANUAL_CHAPTER_IDS",
+          "kind": "constant",
+          "path": "packages/ui/src/manual.ts",
+          "line": 85
+        },
+        {
+          "name": "ManualChapterId",
+          "kind": "type",
+          "path": "packages/ui/src/manual.ts",
+          "line": 95
+        },
+        {
+          "name": "ManualChapter",
+          "kind": "interface",
+          "path": "packages/ui/src/manual.ts",
+          "line": 97
+        },
+        {
+          "name": "MANUAL_CHAPTERS",
+          "kind": "constant",
+          "path": "packages/ui/src/manual.ts",
+          "line": 467
+        },
+        {
+          "name": "manualChapter",
+          "kind": "function",
+          "path": "packages/ui/src/manual.ts",
+          "line": 471
+        },
+        {
+          "name": "sectionAnchor",
+          "kind": "function",
+          "path": "packages/ui/src/manual.ts",
+          "line": 485
+        },
+        {
+          "name": "ManualHit",
+          "kind": "interface",
+          "path": "packages/ui/src/manual.ts",
+          "line": 493
+        },
+        {
+          "name": "searchManual",
+          "kind": "function",
+          "path": "packages/ui/src/manual.ts",
+          "line": 513
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/gameRules.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/wallPlan.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/panels/ManualOverlay.tsx"
+      ],
+      "path": "packages/ui/src/manual.ts",
       "line": 1
     },
     {
@@ -6408,6 +6592,7 @@ export const architecture = {
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
         "packages/ui/src/components/Gauge/Gauge.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/Instruments.tsx"
       ],
@@ -6446,14 +6631,14 @@ export const architecture = {
       "label": "CensusOverlay",
       "packageId": "ui",
       "category": "Panels",
-      "summary": "The national census — drill-down paperwork, not a home view (design doc §3.2). Two registers of knowledge sit side by side, and the difference is the whole fog mechanic: • the head count and the age pyramid are EXACT — census-grade, always yours, scrubbable across the whole ce…",
-      "lines": 285,
+      "summary": "The national census — drill-down paperwork, not a home view. Two registers of knowledge sit side by side, and the difference is the whole fog mechanic: • the head count and the age pyramid are EXACT — census-grade, always yours, scrubbable across the whole century; • birth, de…",
+      "lines": 291,
       "exports": [
         {
           "name": "CensusOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/CensusOverlay.tsx",
-          "line": 201
+          "line": 206
         }
       ],
       "imports": [
@@ -6473,13 +6658,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 833,
+      "lines": 772,
       "exports": [
         {
           "name": "ControlRail",
           "kind": "function",
           "path": "packages/ui/src/panels/ControlRail.tsx",
-          "line": 553
+          "line": 492
         }
       ],
       "imports": [
@@ -6490,6 +6675,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/gameRules.ts",
         "packages/ui/src/incidence.ts",
+        "packages/ui/src/levers.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/spendingRules.ts",
         "packages/ui/src/store/gameStore.ts"
@@ -6587,7 +6773,7 @@ export const architecture = {
       "label": "ElectionOverlay",
       "packageId": "ui",
       "category": "Panels",
-      "summary": "The election, as a scene (§3.1).",
+      "summary": "The election, as a scene.",
       "lines": 277,
       "exports": [
         {
@@ -6640,7 +6826,7 @@ export const architecture = {
       "label": "FinanceOverlay",
       "packageId": "ui",
       "category": "Panels",
-      "summary": "The financial system — drill-down paperwork (design doc §3.2), and a fog lesson with a twist. A banking crisis ALWAYS makes the papers (onset is on the wire, unfogged — a bank run is not a thing you can hide), so even an unfunded government sees, in oxblood, that the crash hap…",
+      "summary": "The financial system — drill-down paperwork, and a fog lesson with a twist. A banking crisis ALWAYS makes the papers (onset is on the wire, unfogged — a bank run is not a thing you can hide), so even an unfunded government sees, in oxblood, that the crash happened. But the bui…",
       "lines": 183,
       "exports": [
         {
@@ -6667,7 +6853,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
-      "lines": 121,
+      "lines": 125,
       "exports": [
         {
           "name": "HeaderBar",
@@ -6754,7 +6940,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The treasury ledger, docked in the instrument wall. Exact — these are the government's own books, the one part of the world it can see clearly. Two lines and three totals is all the bay affords; the composition of each side lives one click away in `LedgerOverlay`.",
-      "lines": 54,
+      "lines": 60,
       "exports": [
         {
           "name": "LedgerPanel",
@@ -6772,6 +6958,31 @@ export const architecture = {
         "packages/ui/src/panels/Instruments.tsx"
       ],
       "path": "packages/ui/src/panels/LedgerPanel.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/ManualOverlay.tsx",
+      "label": "ManualOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The ministry handbook — the in-game manual (#80), the place the methodology is written down (#32), and where the opening walkthrough hands the player when it runs out of cards (#33).",
+      "lines": 218,
+      "exports": [
+        {
+          "name": "ManualOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/ManualOverlay.tsx",
+          "line": 80
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/manual.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/ManualOverlay.tsx",
       "line": 1
     },
     {
@@ -6831,7 +7042,7 @@ export const architecture = {
       "label": "ReportCardOverlay",
       "packageId": "ui",
       "category": "Panels",
-      "summary": "§3.3 — the historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
+      "summary": "The historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
       "lines": 211,
       "exports": [
         {
@@ -6857,8 +7068,8 @@ export const architecture = {
       "label": "SettingsOverlay",
       "packageId": "ui",
       "category": "Panels",
-      "summary": "Records office: saves in, saves out, and the drastic drawer.",
-      "lines": 77,
+      "summary": "Records office: saves in, saves out, the methodology, and the drastic drawer.",
+      "lines": 91,
       "exports": [
         {
           "name": "SettingsOverlay",
@@ -6940,6 +7151,31 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/panels/Walkthrough.tsx",
+      "label": "Walkthrough",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The opening walkthrough (#33), as a card in the corner rather than a modal.",
+      "lines": 130,
+      "exports": [
+        {
+          "name": "Walkthrough",
+          "kind": "function",
+          "path": "packages/ui/src/panels/Walkthrough.tsx",
+          "line": 44
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/walkthrough.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/panels/Walkthrough.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/panels/WireOverlay.tsx",
       "label": "WireOverlay",
       "packageId": "ui",
@@ -6970,83 +7206,94 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "Time-series geometry — scales, ticks and paths for every line, area and ribbon in the game.",
-      "lines": 331,
+      "lines": 339,
       "exports": [
         {
           "name": "PlotPoint",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 39
+          "line": 37
         },
         {
           "name": "BandPoint",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 45
+          "line": 43
         },
         {
           "name": "PlotBox",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 49
+          "line": 47
         },
         {
           "name": "YAxisSpec",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 62
+          "line": 60
         },
         {
           "name": "Axis",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 77
+          "line": 72
+        },
+        {
+          "name": "PlotRange",
+          "kind": "interface",
+          "path": "packages/ui/src/plot.ts",
+          "line": 81
         },
         {
           "name": "TimePlot",
           "kind": "interface",
           "path": "packages/ui/src/plot.ts",
-          "line": 88
+          "line": 90
         },
         {
           "name": "tickStep",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 124
+          "line": 126
         },
         {
           "name": "niceTicks",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 144
+          "line": 146
         },
         {
           "name": "yAxis",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 171
+          "line": 168
         },
         {
           "name": "timePlot",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 226
+          "line": 204
         },
         {
           "name": "axisDecimals",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 305
+          "line": 283
         },
         {
           "name": "nearestPoint",
           "kind": "function",
           "path": "packages/ui/src/plot.ts",
-          "line": 316
+          "line": 294
+        },
+        {
+          "name": "rangeBetween",
+          "kind": "function",
+          "path": "packages/ui/src/plot.ts",
+          "line": 315
         }
       ],
       "imports": [
-        "packages/ui/src/domains.ts",
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
@@ -7389,6 +7636,95 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/walkthrough.ts",
+      "label": "walkthrough",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The first-quarter walkthrough: a short tour of the war room, given once.",
+      "lines": 172,
+      "exports": [
+        {
+          "name": "TourTarget",
+          "kind": "type",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 30
+        },
+        {
+          "name": "TourPlace",
+          "kind": "type",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 35
+        },
+        {
+          "name": "WalkthroughStep",
+          "kind": "interface",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 37
+        },
+        {
+          "name": "WALKTHROUGH_STEPS",
+          "kind": "constant",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 46
+        },
+        {
+          "name": "placeSide",
+          "kind": "constant",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 111
+        },
+        {
+          "name": "targetSide",
+          "kind": "constant",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 126
+        },
+        {
+          "name": "stepAt",
+          "kind": "function",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 135
+        },
+        {
+          "name": "isLastStep",
+          "kind": "constant",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 139
+        },
+        {
+          "name": "BRIEFED_KEY",
+          "kind": "constant",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 145
+        },
+        {
+          "name": "hasBeenBriefed",
+          "kind": "function",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 147
+        },
+        {
+          "name": "markBriefed",
+          "kind": "function",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 157
+        },
+        {
+          "name": "forgetBriefing",
+          "kind": "function",
+          "path": "packages/ui/src/walkthrough.ts",
+          "line": 165
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/App.tsx",
+        "packages/ui/src/panels/Walkthrough.tsx"
+      ],
+      "path": "packages/ui/src/walkthrough.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/wallPlan.ts",
       "label": "wallPlan",
       "packageId": "ui",
@@ -7510,6 +7846,7 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/manual.ts",
         "packages/ui/src/panels/Instruments.tsx",
         "packages/ui/src/store/gameStore.ts"
       ],
@@ -7562,7 +7899,7 @@ export const architecture = {
       "label": "sim.worker",
       "packageId": "ui",
       "category": "Worker boundary",
-      "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (§6.1 of the design doc).",
+      "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (ADR-0003 and ADR-0004).",
       "lines": 342,
       "exports": [],
       "imports": [
@@ -8640,6 +8977,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/manual.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/AccountsOverlay.tsx",
       "typeOnly": false
     },
@@ -8700,6 +9042,11 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/ManualOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/NewsWire.tsx",
       "typeOnly": false
     },
@@ -8725,12 +9072,22 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/panels/Walkthrough.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/WireOverlay.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/walkthrough.ts",
       "typeOnly": false
     },
     {
@@ -9080,11 +9437,6 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
-      "target": "packages/ui/src/domains.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx",
       "target": "packages/ui/src/plot.ts",
       "typeOnly": false
     },
@@ -9106,6 +9458,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/countryDraft.ts",
       "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/countryDraft.ts",
+      "target": "packages/ui/src/components/labels.ts",
       "typeOnly": false
     },
     {
@@ -9184,6 +9541,21 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/levers.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/levers.ts",
+      "target": "packages/ui/src/cabinetNavigation.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/levers.ts",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/main.tsx",
       "target": "packages/ui/src/App.tsx",
       "typeOnly": false
@@ -9191,6 +9563,41 @@ export const architecture = {
     {
       "source": "packages/ui/src/main.tsx",
       "target": "packages/ui/src/dev/ComponentGallery.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/ui/src/gameRules.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/ui/src/levers.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/manual.ts",
+      "target": "packages/ui/src/wallPlan.ts",
       "typeOnly": false
     },
     {
@@ -9276,6 +9683,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
       "target": "packages/ui/src/incidence.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/levers.ts",
       "typeOnly": false
     },
     {
@@ -9514,6 +9926,16 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/panels/ManualOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ManualOverlay.tsx",
+      "target": "packages/ui/src/manual.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/NewsWire.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -9619,6 +10041,16 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/panels/Walkthrough.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Walkthrough.tsx",
+      "target": "packages/ui/src/walkthrough.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/WireOverlay.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -9627,11 +10059,6 @@ export const architecture = {
       "source": "packages/ui/src/panels/WireOverlay.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
       "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/plot.ts",
-      "target": "packages/ui/src/domains.ts",
-      "typeOnly": true
     },
     {
       "source": "packages/ui/src/plot.ts",
@@ -9801,13 +10228,13 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 24,
+      "count": 26,
       "typeOnlyCount": 6
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 40,
+      "count": 41,
       "typeOnlyCount": 33
     }
   ],
@@ -9817,7 +10244,7 @@ export const architecture = {
       "name": "shocks",
       "description": "the crisis clock: ruptures land before anyone works — schema v4",
       "moduleId": "packages/engine/src/pipeline/shocks.ts",
-      "summary": "Step 0 — shocks. The crisis clock (Pillar 4). Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do th…",
+      "summary": "Step 0 — shocks. The crisis clock. Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do the rest, thr…",
       "stateAreas": [
         "external",
         "meta",
@@ -9844,7 +10271,7 @@ export const architecture = {
       "name": "demography",
       "description": "the pyramid ages; cohort sizes are derived from it — schema v6",
       "moduleId": "packages/engine/src/pipeline/demography.ts",
-      "summary": "Step 1.5 — demography (§8). The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort…",
+      "summary": "Step 1.5 — demography. The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort size…",
       "stateAreas": [
         "cohorts",
         "demography",
@@ -9899,7 +10326,7 @@ export const architecture = {
       "name": "technology",
       "description": "the frontier advances; attainment chases it — schema v7",
       "moduleId": "packages/engine/src/pipeline/technology.ts",
-      "summary": "Step 2.5 — technology (§9). Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close t…",
+      "summary": "Step 2.5 — technology. Two trees: the global frontier advances on a roughly historical schedule whether you exist or not; what you have ATTAINED chases each sector's slice of it at a speed set by absorptive capacity — schools first, openness second. Poor countries close the ga…",
       "stateAreas": [
         "meta",
         "sectors",
@@ -9964,7 +10391,7 @@ export const architecture = {
       "name": "world",
       "description": "partner cycles set export demand and world prices — schema v9",
       "moduleId": "packages/engine/src/pipeline/world.ts",
-      "summary": "Step 2.5 — the rest of world (§10). Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less);…",
+      "summary": "Step 2.5 — the rest of world. Four abstract trading partners, each an economy with its own business cycle, advance one quarter. Their strength sets two things the domestic economy then lives inside: • how much of your exports they buy (a partner in recession buys less); • the…",
       "stateAreas": [
         "external",
         "meta",
@@ -9991,7 +10418,7 @@ export const architecture = {
       "name": "finance",
       "description": "credit, asset prices, banking crises — the fragility clock — schema v10",
       "moduleId": "packages/engine/src/pipeline/finance.ts",
-      "summary": "Step 3.5 — the financial sector (§12 M5: fragility). The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it;…",
+      "summary": "Step 3.5 — the financial sector. The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it; • asset prices (a To…",
       "stateAreas": [
         "external",
         "finance",
@@ -10094,7 +10521,7 @@ export const architecture = {
       "name": "trade",
       "description": "books external flows, reserves, exchange rate",
       "moduleId": "packages/engine/src/pipeline/trade.ts",
-      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step (§10); this step just settles the balance of payments at them.",
+      "summary": "Step 4 — trade. Books the external flows production decided on, moves reserves, and depreciates the currency when they run out. World prices and export demand are set upstream by the `world` step; this step just settles the balance of payments at them.",
       "stateAreas": [
         "external",
         "flows",
@@ -10273,7 +10700,7 @@ export const architecture = {
       "name": "institutions",
       "description": "societal power, the veto players, revolutionary pressure — schema v11",
       "moduleId": "packages/engine/src/pipeline/institutions.ts",
-      "summary": "Step 8 — institutions (§4.3 Layer 3, §6.3 the corridor). The half of the game that isn't the economy.",
+      "summary": "Step 8 — institutions and the Narrow Corridor. The half of the game that isn't the economy.",
       "stateAreas": [
         "cohorts",
         "institutions",
@@ -10350,7 +10777,7 @@ export const architecture = {
       "name": "politics",
       "description": "PC accrual from PUBLISHED numbers, elections, revolt and coup",
       "moduleId": "packages/engine/src/pipeline/politics.ts",
-      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (§3.4): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a later re…",
+      "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (ADR-0003): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a late…",
       "stateAreas": [
         "institutions",
         "meta",

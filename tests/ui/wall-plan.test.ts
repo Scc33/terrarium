@@ -1,7 +1,7 @@
 /**
  * The war room fits on one screen.
  *
- * This is the test that would have caught M5.5's headline bug. The old wall
+ * This is the test that would have caught the old wall's headline bug. The wall
  * put all sixteen instruments in one uniform auto-row grid and simply hoped;
  * every fitted gauge was handed ~174 px for ~250 px of content and painted
  * its figure, vintage line and history strip outside the card, underneath
