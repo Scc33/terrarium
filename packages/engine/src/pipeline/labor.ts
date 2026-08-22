@@ -63,7 +63,7 @@ export const labor: PipelineStep = {
     const tfpTerm =
       Math.max(0, state.tech.tfpGrowthQ) * clamp(1 - 5 * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
     const slackTerm = WAGE_SLACK_GAIN * (NATURAL_UNEMPLOYMENT - uLast)
-    // §4.3: an aggrieved and legally organized labor movement does not petition,
+    // An aggrieved and legally organized labor movement does not petition,
     // it bargains — and the wage push then runs through costs into prices like
     // any other wage. Weak unions can be as angry as they like for nothing.
     const wagePush =

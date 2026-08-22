@@ -56,7 +56,7 @@ export interface IndicatorSeries {
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
-/** §3.3: the historians' verdict. Axes are graded separately, never summed.
+/** The historians' verdict. Axes are graded separately, never summed.
  * Only exists once the run is over — no mid-run truth leak. */
 export interface ReportCard {
   endedBy: 'deposition' | 'history' // history = the book closes at 2050
@@ -73,9 +73,9 @@ export interface ReportCard {
   /** consent: survival to 2050 or mandates won before the fall */
   legitimacyGrade: Grade
   /** mandates taken rather than won — shown beside the count, never netted
-   * into it (§3.3: elections won vs elections suppressed is visible) */
+   * into it (elections won vs elections suppressed is visible) */
   electionsSuppressed: number
-  /** §3.3 Position: the share of your tenure spent inside the corridor, and
+  /** Position: the share of your tenure spent inside the corridor, and
    * where the dot finished. The path, not the endpoint. */
   corridorShare: number
   finalStatePower: number
@@ -97,7 +97,7 @@ export interface PublishedBloc {
   effectivePower: Ratio
 }
 
-/** §6.3 — the corridor, live. Exact: a government knows which ministries it
+/** The Narrow Corridor, live. Exact: a government knows which ministries it
  * built and which liberties it granted. */
 export interface PublishedCorridor {
   statePower: number
@@ -110,7 +110,7 @@ export interface PublishedCorridor {
   trail: Array<{ tick: Qtr; x: number; y: number }>
 }
 
-/** The campaign now open, if one is (§3.1: the election is a scene). */
+/** The campaign now open, if one is. */
 export interface PublishedCampaign {
   quartersToElection: Qtr
   /** what the platform already committed to is, once it is announced */
@@ -168,7 +168,7 @@ export interface PublishedState {
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit
   }>
-  /** census-grade facts — live from M4 on: the transition is the century */
+  /** Census-grade facts: the transition is the century. */
   population: { total: number; laborForce: number; pyramid: number[] }
   /** the census over time — exact head counts and age pyramids, one per
    * quarter, no fog (heads are countable even when surveys aren't funded) */
@@ -187,7 +187,7 @@ export interface PublishedState {
   electionsWon: number
   electionsSuppressed: number
   news: NewsItem[]
-  /** §4.3 Layer 3 — the stocks you can reform, and what reform costs today */
+  /** Institutional stocks you can reform, and what reform costs today. */
   institutions: Record<InstitutionId, Ratio>
   /** revolutionary pressure as the government judges it. Note this is the
    * TRUE value: the fogged, published version is the `unrest` indicator, and
@@ -201,7 +201,7 @@ export interface PublishedState {
   /** a bloc courted at the last election still has its claim on you */
   pledge: { bloc: BlocId; quartersLeft: Qtr } | null
   corridor: PublishedCorridor
-  /** non-null only while a campaign is open (§3.1) */
+  /** Non-null only while a campaign is open. */
   campaign: PublishedCampaign | null
   /** the last election, for the results scene */
   lastElection: ElectionResult | null

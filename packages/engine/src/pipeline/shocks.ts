@@ -1,5 +1,5 @@
 /**
- * Step 0 — shocks. The crisis clock (Pillar 4). Rare exogenous ruptures land
+ * Step 0 — shocks. The crisis clock. Rare exogenous ruptures land
  * here, at the head of the tick, so every later step lives in the shocked
  * world: an oil crisis is a jump in the world energy price (imports dear,
  * exports tempting — the tâtonnement and the I/O table do the rest, through

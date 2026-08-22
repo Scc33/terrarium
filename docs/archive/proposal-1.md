@@ -1,4 +1,10 @@
 # Terrarium — Working Design Doc v0.1
+
+> **Archived 2026-08-22.** This was the working design and milestone plan through the first
+> implementation. It is retained for provenance, not as current documentation. Read
+> [the game description](../game-description.md), [the technical architecture](../tech-architecture.md),
+> and [the accepted decisions](../adr/README.md) for the maintained design. Unimplemented ideas
+> worth retaining were moved to [issue #119](https://github.com/Scc33/terrarium/issues/119).
  
 *Successor to the brainstorm notes. Decisions are stated as decisions; proposals for previously-open questions are marked **[PROPOSAL]**. Working title: "Terrarium" (from the core principle) until something better arrives.*
  

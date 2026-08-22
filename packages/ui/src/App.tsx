@@ -169,7 +169,7 @@ export default function App() {
     hadCard.current = has
   }, [published])
 
-  // §3.1 the election is a scene, so it comes to the player rather than
+  // The election is a scene, so it comes to the player rather than
   // waiting to be found: the campaign opens itself the quarter it becomes
   // available, and the count presents itself once when the votes are in.
   // Each fires once per election — reopening on every advance would make the

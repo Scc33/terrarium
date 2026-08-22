@@ -22,7 +22,7 @@ export {
   type ReportCard,
   type RevenueSourceId,
   type RevenueSplit,
-  // §4.3 / §6.3 — the political half of the desk
+  // The political half of the desk
   type BlocId,
   type InstitutionId,
   type PlatformId,

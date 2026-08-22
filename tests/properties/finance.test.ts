@@ -1,5 +1,5 @@
 /**
- * M5 §12 — the financial sector. Credit and asset prices are the amplifier and
+ * The financial sector. Credit and asset prices are the amplifier and
  * the fragility clock. None of it is scripted: cheap money inflates a bubble,
  * leverage above prudence with assets overvalued fuels a Minsky moment, and the
  * crash transmits through the ordinary investment/employment channels. The
@@ -40,7 +40,7 @@ function century(seed: string, rate: number | null, ticks = 320): TrueState[] {
 
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(xs.length, 1)
 
-describe('the credit cycle (§12)', () => {
+describe('the credit cycle', () => {
   const passive = century('fin-p', null)
 
   it('asset prices are a cycle, not a runaway: they hover near fundamental', () => {
@@ -157,7 +157,7 @@ describe('sovereign funding pressure', () => {
   })
 })
 
-describe('the Minsky clock (§12)', () => {
+describe('the Minsky clock', () => {
   const base = century('fin-m', null)[60]
 
   /** how often the finance step fires a fresh crisis against a doctored state,
@@ -224,7 +224,7 @@ describe('the Minsky clock (§12)', () => {
   })
 })
 
-describe('the transmission and the instruments (§12)', () => {
+describe('the transmission and the instruments', () => {
   const base = century('fin-t', null)[40]
 
   it('quantitative easing works past the rate floor through the common private rate', () => {

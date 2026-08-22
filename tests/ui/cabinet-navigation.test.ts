@@ -11,7 +11,7 @@ describe('cabinet navigation', () => {
     expect(cabinetGroupForKey('SPENDING', 'ArrowDown')).toBe('MONEY')
     expect(cabinetGroupForKey('MONEY', 'ArrowRight')).toBe('MIGRATION')
     expect(cabinetGroupForKey('STATE CAPACITY', 'ArrowRight')).toBe('INSTITUTIONS')
-    // the cabinet wraps, so the ends meet — M6 added the last two groups
+    // the cabinet wraps, so the ends meet — the last two groups are adjacent
     expect(cabinetGroupForKey('TAXATION', 'ArrowLeft')).toBe('THE ROOM')
     expect(cabinetGroupForKey('THE ROOM', 'ArrowRight')).toBe('TAXATION')
   })

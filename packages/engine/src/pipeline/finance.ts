@@ -1,5 +1,5 @@
 /**
- * Step 3.5 — the financial sector (§12 M5: fragility). The credit cycle is the
+ * Step 3.5 — the financial sector. The credit cycle is the
  * amplifier and the crisis clock in one. Each quarter:
  *   • banks set a credit target from the real rate, collateral (asset prices),
  *     and animal spirits — capped by their capital; credit adjusts toward it;
@@ -8,7 +8,7 @@
  *     production then reads as the price of investing;
  *   • the boom levers the banks up, and leverage above prudence WITH assets
  *     overvalued is the fuel a Minsky moment burns. Crises also import from the
- *     financial partner's sudden stop (§10).
+ *     financial partner's sudden stop.
  * A crisis crashes asset prices, writes down bank capital, crunches credit, and
  * panics confidence — the recession then runs through the ordinary investment,
  * employment, and approval channels. Onset always makes the wire: a bank run is

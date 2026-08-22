@@ -137,7 +137,7 @@ export const MATERIAL_REVISION_FACE_FRACTION = 0.06
  *
  * This gate is load-bearing in both directions. The design makes revision
  * marks carry the political-capital mechanic — the player must notice they
- * bet on a number that later moved (§3.4). But the first version stamped on
+ * bet on a number that later moved. But the first version stamped on
  * ANY revision within six quarters, which fired on essentially every gauge
  * every quarter; a warning that never turns off carries exactly zero bits.
  *

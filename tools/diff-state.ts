@@ -7,7 +7,7 @@
  * working on the milestones that matter most. A schema-ADDING milestone breaks
  * it by default: every new field diffs as "didn't exist → has a value", which
  * sorts as an infinite relative change and crowds the genuinely moved economy
- * out of the top of the list. M6 added ~2 300 such fields and the entire
+ * out of the top of the list. The first politics schema added ~2 300 such fields and the entire
  * visible diff was new-field noise.
  *
  * So `--moved-only` hides fields that are new, showing just the variables that

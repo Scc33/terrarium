@@ -1,14 +1,14 @@
 /**
- * §3.3 — the historians' verdict. A run ends (deposition or 2050) with a
+ * The historians' verdict. A run ends (deposition or 2050) with a
  * report card whose axes are graded separately and never summed: one number
  * would secretly author a "correct" ideology.
  *
- * From M6 all three axes the design named are here. Position is the one that
+ * All three axes are here. Position is the one that
  * makes the corridor mean something after the fact: it grades the share of the
  * tenure spent inside the band, so the extractive path can score well on
  * Legitimacy (you kept winning) and still be shown, in its own column, as a
  * century spent outside the corridor. And Legitimacy now distinguishes
- * mandates won from mandates taken, exactly as §3.3 asks — the two counts sit
+ * mandates won from mandates taken — the two counts sit
  * side by side and are never netted.
  */
 
@@ -193,7 +193,7 @@ export function ReportCardOverlay({
             {card.finalSocietalPower.toFixed(2)}
           </div>
           <p className="mt-2 font-dossier text-[12px] leading-snug text-dossier-ink/70">
-            Where the dot sat, and the path it traced (§6.3). A state that outruns its society
+            Where the dot sat, and the path it traced. A state that outruns its society
             ends in despotism and a society that outruns its state ends in anarchy; the narrow
             band between them is the only place both stay honest. This axis grades the path, not
             the destination — a century that ended well after eighty years outside the corridor

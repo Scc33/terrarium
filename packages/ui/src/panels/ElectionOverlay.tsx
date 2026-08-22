@@ -1,7 +1,7 @@
 /**
- * The election, as a scene (§3.1).
+ * The election, as a scene.
  *
- * Before M6 an election was one line on the wire that told you, after the
+ * An earlier election UI was one line on the wire that told you, after the
  * fact, whether you still had a job. The forcing function the whole design
  * rests on — "optimize the economy *while holding a coalition together*" —
  * had no moment where the player did anything about it.
@@ -9,7 +9,7 @@
  * So the campaign gets a turn of its own. Two quarters out the ministry puts
  * this on the desk: the record you are running on, drawn from the published
  * numbers only (an election is fought on the figures in the newspaper, not on
- * the truth — §3.4), the arithmetic of the ballot box, and four ways to fight
+ * the truth — ADR-0003), the arithmetic of the ballot box, and four ways to fight
  * it besides standing on your record. Each is a real fork with a real bill,
  * priced in the engine, and each is a different thing to mortgage:
  *

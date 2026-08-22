@@ -1,6 +1,6 @@
 /**
- * The national census — drill-down paperwork, not a home view (design doc
- * §3.2). Two registers of knowledge sit side by side, and the difference is
+ * The national census — drill-down paperwork, not a home view. Two registers
+ * of knowledge sit side by side, and the difference is
  * the whole fog mechanic:
  *   • the head count and the age pyramid are EXACT — census-grade, always
  *     yours, scrubbable across the whole century;

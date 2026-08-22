@@ -31,10 +31,10 @@ export type Action =
    * fixed/indexed rules and a 0..1 share for GDP rules. */
   | { kind: 'setSpendingRule'; programme: SpendingProgramId; mode: SpendingRuleMode; value: number }
   | { kind: 'investCapacity'; target: CapacityId; amount: Money } // Layer 2
-  // Layer 3 (§4.3): generational, ratcheting, contested — and cheap only when
+  // Institutional reforms: generational, ratcheting, contested — and cheap only when
   // a crisis has prised the reform window open
   | { kind: 'reform'; institution: InstitutionId; direction: 1 | -1 }
-  // how you fight the election now approaching (§3.1)
+  // how you fight the election now approaching
   | { kind: 'campaign'; platform: PlatformId; bloc?: BlocId }
 
 export interface TurnActions {

@@ -28,7 +28,7 @@ export const fiscal: PipelineStep = {
   name: 'fiscal',
   run(state) {
     const { gov, flows, market, io } = state
-    // §4.3 the veto players reach the budget through two channels a treasury
+    // The veto players reach the budget through two channels a treasury
     // would recognize: an aggrieved landed interest whose harvest stops being
     // reported, and a money interest that stops turning up to the auction
     const landAnger =

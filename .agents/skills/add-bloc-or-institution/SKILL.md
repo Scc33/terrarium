@@ -1,6 +1,6 @@
 ---
 name: add-bloc-or-institution
-description: Add a power bloc or a reformable institution to Terrarium's politics layer, or change an existing one's power, favour, or veto pricing. Use when touching pipeline/institutions.ts, BLOC_FAVOR_BASE, the stance tables in actions/apply.ts, or the BLOC_IDS / INSTITUTION_IDS lists. Covers the parts the compiler does NOT enforce — which is where M6 went wrong first time.
+description: Add a power bloc or a reformable institution to Terrarium's politics layer, or change an existing one's power, favour, or veto pricing. Use when touching pipeline/institutions.ts, BLOC_FAVOR_BASE, the stance tables in actions/apply.ts, or the BLOC_IDS / INSTITUTION_IDS lists. Covers the parts the compiler does not enforce, especially partial stance tables.
 ---
 
 # Adding a bloc or an institution
@@ -69,8 +69,8 @@ A bloc needs **one** channel for its hostility, through machinery that already e
 premium, an investment factor, a wage move. **A bloc that only taxes political capital is set
 dressing.** One channel, not three: it has to be legible to a player reading instruments.
 
-And blocs make levers *expensive*, never impossible. A hard veto would silently break the M1
-exit-criteria scripts (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`), which drive
+And blocs make levers *expensive*, never impossible. A hard veto would silently break the
+load-bearing mechanism scripts (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`), which drive
 levers directly and are the design's load-bearing claims.
 
 ## 5. `politicalCostOfAction` is the single source of truth
@@ -92,7 +92,7 @@ cabinet group also needs an entry in `CABINET_GROUPS` in `cabinetNavigation.ts`.
   ever ran — a politics change that moves it has leaked across the seam. See the
   **`economics-review` skill**.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
-  distribution of whatever it gates under passive, random, *and* deliberately bad play. Two M6
+  distribution of whatever it gates under passive, random, *and* deliberately bad play. Two early
   mechanics were dead on arrival at entirely plausible-looking numbers.
 - **Suppression must cost something the boot cannot pay.** Repression damps grievance
   *multiplicatively* (never to zero) and corridor strain is added *outside* that damping.

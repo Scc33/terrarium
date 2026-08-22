@@ -5,7 +5,7 @@
  * (indicator, measured quarter, revision) — orthogonal to the economic RNG,
  * so the fog never perturbs the economy, only what anyone believes about it.
  * The office lives inside TrueState because its output is now causal:
- * politics reads these prints, not the truth (§3.4).
+ * politics reads these prints, not the truth (ADR-0003).
  */
 
 import { rngFor, type Seed } from '../rng/rng'
@@ -401,7 +401,7 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
  * noised by `noiseScale(cap)`, and still revised, because the rule is about
  * which instruments exist, not about how well a poor office measures. A
  * sandbox that also handed over exact figures would be the truth inspector
- * with extra steps, and the fog is what politics reads (§3.4). */
+ * with extra steps, and the fog is what politics reads. */
 function printsDue(
   spec: IndicatorSpec,
   record: StatRecord[],

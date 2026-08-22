@@ -75,7 +75,7 @@ engine that was fine.
 **Healthy passive century:** growth ≈ 2.70%/yr · inflation ≈ 0.11% · unemployment ≈ 11.90% ·
 **7% deposed** by 400q (median quarter 352).
 
-That elevated unemployment is **designed**, not a bug: it is the §8 youth-bulge bomb an
+That elevated unemployment is **designed**, not a bug: it is the youth-bulge bomb an
 unschooled do-nothing government earns. Do not "fix" it.
 
 Building the four state capacities (`--policy developmental`) does absorb it — **11.90% → 9.30%**
@@ -131,7 +131,7 @@ price actions in `actions/apply.ts`.
 
 **If a politics-only change moved the passive baseline, the seam has leaked.** Passive means
 no actions, so no veto pricing ever ran — a politics change cannot legitimately reach it.
-`pnpm batch --policy passive` is the check. M6 deliberately left the passive baseline
+`pnpm batch --policy passive` is the check. The politics implementation deliberately left the passive baseline
 untouched; keep it that way.
 
 ## Tuning a constant
@@ -145,7 +145,7 @@ else. Before picking a number:
   for an absolute threshold. Centre anything new the same way, and measure where it rests
   before choosing the constant.
 - **A mechanic you cannot reach is not a mechanic.** Measure the distribution of whatever a
-  threshold gates under passive, random, *and* deliberately bad play. Two M6 mechanics were
+  threshold gates under passive, random, *and* deliberately bad play. Two early mechanics were
   dead on arrival at numbers that looked entirely plausible on the page.
 - **Player-facing constants get calibrated, not guessed** — pinned as a rate against a
   measured century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). Those
@@ -160,7 +160,7 @@ spontaneously bubbles.
 
 ## What must not break
 
-`tests/properties/fuel-tax.test.ts` and `subsidy.test.ts` are the M1 exit criteria — the
+`tests/properties/fuel-tax.test.ts` and `subsidy.test.ts` are the
 design's load-bearing claims. **If a change breaks them, the change is wrong, not the test.**
 
 `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90% branch).
