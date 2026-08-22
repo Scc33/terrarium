@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 31)
+## Current contract (schema 32)
 
 ### Inputs
 
@@ -159,7 +159,9 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `gini` | Gini pts | 0.55 | v5 | income Gini across cohorts |
 | `terms_of_trade` | 1946=100 | 0.40 | v9 | export basket price ÷ import basket (world) |
 | `asset_prices` | 1946=100 | 0.45 | v10 | Tobin's q — asset value per unit of capital |
+| `credit_to_gdp` | % of GDP | 0.50 | v31 | credit outstanding ÷ annual GDP — the leverage LEVEL |
 | `credit_growth` | % / yr | 0.55 | v10 | growth of credit / annual GDP (leverage) |
+| `bank_capital_ratio` | % of credit | 0.55 | v31 | bank equity ÷ credit outstanding — the shock absorber, against the `capitalRequirement` floor |
 | `unrest` | idx | 0.40 | v12 | revolutionary pressure ×100 — what collated provincial reports would show |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
@@ -219,7 +221,7 @@ two shares side by side in a table, which is the only place the dual economy rea
 | `population` | v6 | current total, labour force, age pyramid |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
 | `policy[]` | v25 | per-quarter exact dials — every `DialState` lever (tax rates, policy rate, asset purchases, capital requirement) plus resolved appropriations, every sector subsidy as a total, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
-| `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always) |
+| `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always). Each item carries a `kind` from `NEWS_KINDS` (v31) so a consumer filters on the event rather than on its prose |
 | `reportCard` | v4 | present **only** once the run ends — see below |
 
 ### Outputs — the report card (§3.3, run-end only)
@@ -243,6 +245,31 @@ two shares side by side in a table, which is the only place the dual economy rea
 
 ## Version history — what each release added to the contract
 
+### schema 32 — The leverage level, the banks' buffer, and typed wire items
+
+- **Outputs +**: two fogged instruments completing the banking-crisis picture.
+  `credit_to_gdp` / **Private credit** (% of GDP, unlocks at 0.50) is the leverage LEVEL, and it
+  is not a substitute for the `credit_growth` rate beside it: the crisis hazard reads
+  `max(0, credit/GDP − CRISIS_LEVERAGE_SAFE) × max(0, q − CRISIS_ASSET_SAFE)`, a PRODUCT of two
+  excesses, and publishing only the rate of change left one of its two terms unobservable.
+  `bank_capital_ratio` / **Bank capital** (% of credit, unlocks at 0.55) is bank equity over
+  credit outstanding — the only published quantity comparable to the `capitalRequirement` floor,
+  so a government that raises the floor can now tell whether it binds. Both are relative-noise
+  prints, lagged and revisable like every other survey. Faces measured over the funded century:
+  leverage p01–p99 40.3–65.9 (extrema 29.3–82.4), capital ratio 15.7–26.0 (extrema 8.3–30.9).
+- **Outputs ±**: `NewsItem` gains a required `kind` from the new `NEWS_KINDS` list, naming what
+  an item IS independently of how it is worded. The finance overlay previously found banking
+  crises by matching `/banking crisis|sudden stop/i` against the prose, which put every crisis
+  marker one copy-edit away from silently disappearing — and a chart with no markers looks
+  exactly like a century with no crises. `text` and `tone` are unchanged.
+- **State +**: `StatRecord.bankCapitalRatio`, filed as the ratio rather than the level because
+  the ratio is what a supervisor publishes and the only form directly comparable to the floor.
+- **Pipeline ±**: unchanged — no step moved, and no step's behaviour changed. Each indicator
+  draws its noise from its own `obs:{id}` substream (ADR-0002), so two new specs perturb no
+  existing draw. `pnpm diff-state --moved-only` over both golden replays reported
+  `meta.schemaVersion` and nothing else; the 1000×400q passive baseline is unmoved.
+- **Compatibility**: statistical worksheets and indicator ids changed, so schema 32 has new
+  golden replays. Saves remain replay logs and need no repair.
 ### schema 31 — The industrial census
 
 - **Outputs +**: `PublishedState.industry` — value added and employment by sector, fogged,

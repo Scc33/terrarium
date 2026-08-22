@@ -172,6 +172,7 @@ export {
   gameRules,
   INDICATOR_IDS,
   INDUSTRY_TABLE_IDS,
+  NEWS_KINDS,
   INSTITUTION_IDS,
   BLOC_IDS,
   PLATFORM_IDS,
@@ -208,6 +209,7 @@ export type {
   InstitutionState,
   Money,
   NewsItem,
+  NewsKind,
   PlatformId,
   PoliticalState,
   PolicyRecord,
@@ -270,11 +272,20 @@ export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
   adminEffectiveness,
+  ASSET_BUBBLE_AT,
   ASSET_PURCHASE_RATE_MAX,
+  CAPITAL_REQUIREMENT_DEFAULT,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
   CORRIDOR_HALF_WIDTH,
+  // the two rails of the banking-crisis hazard. The wall marks them and the
+  // finance overlay shades the quadrant they bound, so they are read by the
+  // UI for the same reason `DEBT_RISK_PREMIUM_AT` is: a threshold the
+  // government knows exactly, against a position it can only estimate.
+  CRISIS_ASSET_SAFE,
+  CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
+  NATURAL_REAL_RATE,
   ELECTION_WIN_THRESHOLD,
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,

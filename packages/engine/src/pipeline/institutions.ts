@@ -404,12 +404,14 @@ export const institutions: PipelineStep = {
             ? 'The state has outgrown every check upon it; the ministries answer to no one.'
             : 'The writ of the government no longer runs in the provinces.',
         tone: 'bad',
+        kind: 'corridor_exit',
       })
     } else if (!wasInCorridor && nowInCorridor) {
       news.push({
         tick: state.meta.tick,
         text: 'State and society find their balance again; the constitution holds.',
         tone: 'good',
+        kind: 'corridor_return',
       })
     }
     if (prev.unrest < REFORM_WINDOW_AT && next.unrest >= REFORM_WINDOW_AT) {
@@ -417,6 +419,7 @@ export const institutions: PipelineStep = {
         tick: state.meta.tick,
         text: 'The country is in ferment. Things impossible last year are suddenly negotiable.',
         tone: 'neutral',
+        kind: 'reform_window',
       })
     }
 

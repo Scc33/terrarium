@@ -108,6 +108,19 @@ can be tested — anything pushed into a component becomes untestable:
   error, and dividing one by the other imports a fog it never had. `SECTOR_FACE` is a total
   `Record` over `SECTOR_IDS`, so a sixth sector fails the build until named and inked.
 
+- **`ui/src/finance.ts`** — why a banking crisis happens, made legible. The hazard is a
+  PRODUCT of two excesses (`max(0, leverage − CRISIS_LEVERAGE_SAFE) × max(0, q −
+  CRISIS_ASSET_SAFE)`), so EITHER ONE ALONE IS HARMLESS — measured, a century of maximum asset
+  purchases under a prudent bank-capital floor sits at a median valuation of 1.43 and never
+  becomes fragile, because the floor keeps leverage down. Two time charts side by side cannot
+  say that, which is why `PhaseChart` plots the two against each other with the corner shaded
+  (ADR-0026). Both rails are imported from the engine, never copied. The module returns `null`
+  rather than `0` for an unfunded survey throughout: a fragility reading that quietly returns
+  zero because nobody built a bank supervisor is indistinguishable, in review, from a country
+  that is genuinely safe. Crisis episodes are read off `NewsItem.kind` — matching the wire's
+  PROSE put every crisis marker one copy-edit from vanishing, and a chart with no markers looks
+  exactly like a century with no crises.
+
 - **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
   chapter that LISTS something the game has is generated from the engine's id lists — levers
   from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by

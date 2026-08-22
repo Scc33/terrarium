@@ -65,6 +65,8 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   terms_of_trade: { dossier: 'TERMS OF TRADE · IDX', terminal: 'TERMS.TRADE IDX', plate: 'TERMS OF TRADE', short: 'TERMS TRD.', needs: 'TRADE STATISTICS', note: 'Export prices compared with import prices. Higher means the same exports can buy more imports.' },
   asset_prices: { dossier: 'ASSET PRICES · 1946=100', terminal: 'ASSET.PX IDX', plate: 'ASSET PRICES', short: 'ASSET PX.', needs: 'EXCHANGE BOARD', note: 'Share and property values compared with 1946. Fast gains can signal a bubble.' },
   credit_growth: { dossier: 'CREDIT GROWTH · %/YR', terminal: 'CREDIT.GRW %/YR', plate: 'CREDIT GROWTH', short: 'CREDIT GRW', needs: 'BANK SUPERVISION', note: 'How quickly total lending is growing. Very fast growth can make a banking crisis more likely.' },
+  credit_to_gdp: { dossier: 'PRIVATE CREDIT · % GDP', terminal: 'CREDIT %GDP', plate: 'PRIVATE CREDIT', short: 'CREDIT/GDP', needs: 'BANK LEDGER RETURNS', note: 'Everything banks have lent, compared with one year of output. It is the level of borrowing, not its speed — and a high level with expensive assets is what makes a banking crisis likely.' },
+  bank_capital_ratio: { dossier: 'BANK CAPITAL · % CREDIT', terminal: 'BANK.CAP %CR', plate: 'BANK CAPITAL', short: 'BANK CAP.', needs: 'BANK SUPERVISION', note: 'The banks’ own money set against what they have lent. It absorbs losses, and lending stops growing when it falls to the floor you set.' },
   unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS', note: 'Pressure from public anger and hardship. Higher numbers mean greater risk of disorder or revolt.' },
 }
 

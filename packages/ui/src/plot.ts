@@ -336,3 +336,98 @@ export function rangeBetween<T extends PlotPoint>(
     quarters: end.tick - start.tick,
   }
 }
+
+// ---------- phase geometry: one series against another ----------
+
+/**
+ * A quarter as a POSITION rather than as a moment — two measured coordinates
+ * and the tick that stamps them.
+ *
+ * The finance overlay needs this because the banking-crisis hazard is a
+ * product of two excesses, `max(0, leverage − rail) × max(0, valuation − rail)`,
+ * and a product is the one shape two time series cannot show. Drawn against
+ * time, a country with cheap assets and enormous debt and a country with
+ * dear assets and no debt look equally alarming on one chart each; drawn
+ * against each other, they sit in different corners and only one corner is
+ * dangerous. ADR-0026.
+ */
+export interface PhasePoint {
+  tick: number
+  x: number
+  y: number
+}
+
+export interface PhasePlot {
+  x: Axis
+  y: Axis
+  sx(value: number): number
+  sy(value: number): number
+  /** the trail through the points in tick order; `null` under two points */
+  path(points: readonly PhasePoint[]): string | null
+  /** the rectangle above and right of both thresholds, clipped to the axes —
+   * `null` when the danger corner is entirely off the drawn face */
+  corner(xAt: number, yAt: number): { x: number; y: number; w: number; h: number } | null
+}
+
+const finitePhase = (p: PhasePoint) =>
+  Number.isFinite(p.tick) && Number.isFinite(p.x) && Number.isFinite(p.y)
+
+/**
+ * Scales for two measured axes.
+ *
+ * Both axes follow ADR-0025 exactly as the time charts do: they come from the
+ * displayed record plus explicit semantic anchors, and nothing is ever
+ * clamped into them. The thresholds are passed through `include` by the
+ * caller rather than read here, because this module does not know what a
+ * banking crisis is — the same reason `timePlot` does not know what an
+ * indicator is.
+ */
+export function phasePlot(
+  points: readonly PhasePoint[],
+  box: PlotBox,
+  xSpec: YAxisSpec = {},
+  ySpec: YAxisSpec = {},
+): PhasePlot {
+  const ps = points.filter(finitePhase)
+  const x = yAxis(ps.map((p) => p.x), xSpec)
+  const y = yAxis(ps.map((p) => p.y), ySpec)
+
+  const innerW = box.w - box.padL - box.padR
+  const innerH = box.h - box.padT - box.padB
+  const sx = (v: number) => box.padL + ((v - x.lo) / (x.hi - x.lo)) * innerW
+  const sy = (v: number) => box.padT + ((y.hi - v) / (y.hi - y.lo)) * innerH
+
+  return {
+    x,
+    y,
+    sx,
+    sy,
+    path(input) {
+      // Thinned like a trace, and for the same reason: a century is 400
+      // quarters against a few hundred pixels. Sorted first — a trail drawn
+      // in publication order rather than tick order zig-zags backwards
+      // through its own history, which reads as volatility that never happened.
+      const sorted = [...input.filter(finitePhase)].sort((a, b) => a.tick - b.tick)
+      const drawn = thin(
+        sorted.map((p) => ({ tick: p.tick, value: p.y, x: p.x })),
+        Math.ceil(innerW),
+      ) as Array<{ tick: number; value: number; x: number }>
+      if (drawn.length < 2) return null
+      return `M${drawn.map((p) => `${n1(sx(p.x))},${n1(sy(p.value))}`).join('L')}`
+    },
+    corner(xAt, yAt) {
+      // The corner is clipped to the face rather than hidden when it starts
+      // off-scale: a danger zone that silently disappears once the player is
+      // deep inside it is the failure this whole overlay exists to fix.
+      const left = Math.max(xAt, x.lo)
+      const bottom = Math.max(yAt, y.lo)
+      if (left >= x.hi || bottom >= y.hi) return null
+      return {
+        x: sx(left),
+        y: sy(y.hi),
+        w: sx(x.hi) - sx(left),
+        h: sy(bottom) - sy(y.hi),
+      }
+    },
+  }
+}
