@@ -25,6 +25,7 @@ export function HeaderBar({
   onCensus,
   onFinance,
   onAccounts,
+  onIndustry,
   onVerdict,
 }: {
   pub: PublishedState
@@ -34,6 +35,7 @@ export function HeaderBar({
   onCensus: () => void
   onFinance: () => void
   onAccounts: () => void
+  onIndustry: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
 }) {
@@ -100,6 +102,7 @@ export function HeaderBar({
 
       <nav data-tour="offices" className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
         {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+        <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output and where people work.">INDUSTRY</Button>
         <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output: households, investors, government or other countries.">ACCOUNTS</Button>
         <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices, including signs of a bubble or crisis.">FINANCE</Button>
         <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures before playing it.">STUDY</Button>
@@ -112,6 +115,7 @@ export function HeaderBar({
         </summary>
         <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
           {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+          <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output.">INDUSTRY</Button>
           <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output.">ACCOUNTS</Button>
           <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
           <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
