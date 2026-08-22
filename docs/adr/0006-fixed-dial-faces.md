@@ -1,9 +1,10 @@
 # ADR-0006 — Instrument dial faces are fixed, never derived from data
 
 **Status:** Accepted · **Date:** M5.5 · **Refined by:**
-[ADR-0016](0016-a-chart-frames-a-dial-face.md) — this ADR governs the DIAL. A chart frames
-against the same face but extends past it rather than clamping, because a clamped trace erases
-the shape of an excursion where a pegged needle only defers one number.
+[ADR-0016](0016-a-chart-frames-a-dial-face.md), superseded by
+[ADR-0025](0025-charts-own-their-analytical-scale.md) — this ADR governs the DIAL. The chart
+owns a separate analytical scale because a clamped trace erases the shape of an excursion
+where a pegged needle only defers one number.
 
 ## Context
 

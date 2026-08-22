@@ -5,13 +5,13 @@
  *
  * x = state power: the ministries you built, plus the coercive arm repression
  *     buys. y = societal power: what a society's capacity to organize adds up
- *     to. From M6 BOTH are live engine state and the dot genuinely moves —
- *     before M6 y came from the country's fixed setup and the dot never left
+ *     to. BOTH are live engine state and the dot genuinely moves — an earlier
+ *     version took y from the country's fixed setup and the dot never left
  *     its starting point, which made the game's signature visual a decoration.
  *
  * Leaving the band is not cosmetic either: outside it, revolutionary pressure
  * builds on the despotic side and the state cannot collect or deliver on the
- * anarchic one, and the share of your tenure spent inside is the §3.3 Position
+ * anarchic one, and the share of your tenure spent inside is the Position
  * grade. So the tile says plainly where you are and which way you are drifting.
  */
 

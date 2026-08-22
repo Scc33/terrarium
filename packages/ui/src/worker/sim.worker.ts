@@ -1,6 +1,6 @@
 /**
  * The engine host. Owns trueState; emits PublishedState only — the fog is
- * architecturally mandatory, not a UI courtesy (§6.1 of the design doc).
+ * architecturally mandatory, not a UI courtesy (ADR-0003 and ADR-0004).
  */
 
 import {

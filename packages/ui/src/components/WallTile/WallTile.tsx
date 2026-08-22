@@ -28,7 +28,7 @@
  *
  * All four are invisible in review and invisible in jsdom — they only show
  * up as content painted outside the card, underneath the tile below, which
- * is exactly how the wall spent M3–M5 hiding every figure it published. So
+ * is exactly how earlier wall layouts hid every figure they published. So
  * the fix is structural: use this component, get definite rows and columns,
  * `min-h-0` on the body, and `overflow-hidden` on the root, for free.
  *

@@ -9,7 +9,7 @@
  * until it has been named at every maturity and its survey has been named too.
  */
 
-import type { CohortId } from '@terrarium/engine'
+import type { CohortId, SectorId } from '@terrarium/engine'
 import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/observation'
 
 export interface IndicatorNames {
@@ -91,6 +91,19 @@ export const readingDigits = (value: number): number => (Math.abs(value) >= 100 
 export function complementReading(indicator: IndicatorId, value: number, digits = 1): string | null {
   const label = NAMES[indicator].complement
   return label ? `${label} ${(100 - value).toFixed(digits)}` : null
+}
+
+/** The five industries the economy is made of, by the name a ministry would
+ * print. Total over SectorId for the usual reason, and shared rather than
+ * re-typed: the drafting room, the subsidy rows and the handbook all name the
+ * same five things, and a sector called `manuf` on one screen and
+ * `Manufacturing` on the next reads as two different lines of the books. */
+export const SECTOR_NAMES: Record<SectorId, string> = {
+  agri: 'Agriculture',
+  manuf: 'Manufacturing',
+  energy: 'Energy',
+  services: 'Services',
+  transport: 'Transport',
 }
 
 /** The classes the country is made of, as a ministry's paperwork would list

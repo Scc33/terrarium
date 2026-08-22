@@ -1,7 +1,7 @@
 # Terrarium — working notes
 
 Economic policy game. Read `docs/tech-architecture.md` before touching structure.
-pnpm monorepo; built through M6.
+pnpm monorepo.
 
 The **economy** and the **politics** are separate machines meeting in two places: `institutions`
 reads the economy to decide who has power, and the veto players price every action in
@@ -11,8 +11,8 @@ if a politics change moves it, the seam has leaked (`pnpm batch --policy passive
 Docs: `tech-architecture.md` is **what** the code is; `docs/adr/` is **why** (each decision
 with the alternatives it beat and the costs it carries); `docs/investigations/` is **what we
 measured and don't yet believe** (open questions with evidence attached — read before
-re-deriving one); `proposal-1.md` is the design doc whose § numbers ~65 code comments cite —
-don't renumber it. `docs/archive/` is unmaintained.
+re-deriving one); `docs/game-description.md` is the short current design pitch; proposed work
+lives in GitHub issues. `docs/archive/` is provenance, not current guidance.
 
 ## Skills
 
@@ -43,7 +43,7 @@ before starting one of these tasks** rather than working from this file's summar
   schema-version event.
 - The fog is MADE in the engine (`pipeline/statistics.ts`: prints, revisions, rumor news, via
   `obs:*` substreams orthogonal to the economic RNG) because politics reads the published
-  headline, not the truth (§3.4). `packages/observation` is presentation-only — never grow
+  headline, not the truth (ADR-0003). `packages/observation` is presentation-only — never grow
   measurement logic back into it.
 - Every behavioral constant lives in `engine/src/constants.ts` — tune there, nowhere else.
 
@@ -73,7 +73,9 @@ can be tested — anything pushed into a component becomes untestable:
   paths), pinned by `tests/ui/plot.test.ts`. **`TimeSeriesChart` in `components/ui` is the one
   painter**: the wall's terminal ticker, the ledger, the accounts, finance and census all go
   through it, and a new figure over time reuses it rather than hand-rolling `sx`/`sy` again.
-  A chart FRAMES the dial face and extends past it — it never clamps (ADR-0016).
+  A chart scales the record it displays and never accepts a gauge face; semantic anchors such
+  as zero come through `include`. Point inspection and snapped drag/keyboard range comparison
+  belong here too, so every chart gets them together (ADR-0025).
 - **`ui/src/policyRecord.ts`** — the minute book's rule: a change log over `pub.policy` files
   DECISIONS, never consequences. Rates are diffed; appropriations are not, because an indexed
   or GDP-share rule moves its own money every quarter — so they are filed against the engine's
@@ -106,6 +108,24 @@ can be tested — anything pushed into a component becomes untestable:
   error, and dividing one by the other imports a fog it never had. `SECTOR_FACE` is a total
   `Record` over `SECTOR_IDS`, so a sixth sector fails the build until named and inked.
 
+- **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
+  chapter that LISTS something the game has is generated from the engine's id lists — levers
+  from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
+  `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
+  is documented the quarter it ships, and cannot ship unnamed. Only prose about MECHANISM is
+  authored. `levers.ts` is where a dial's WORDS live; `ControlRail` keeps only the slider's
+  arithmetic — and a lever names its own cabinet drawer there, so the drawers are ASSEMBLED and
+  a new `DialPath` cannot compile without a home. The one list the manual copies by hand is the
+  tick order (`TICK_ORDER` is across the import boundary); `tests/ui/manual.test.ts` crosses it
+  and fails by name when a pipeline step moves.
+- **`ui/src/walkthrough.ts`** — the opening tour's six cards. A card must never sit on the side
+  of the screen its own subject is on (pinned by `tests/ui/walkthrough.test.ts`, and again in
+  the browser by the `walkthrough-wall` visual test) — a tour card covering the thing it points
+  at is invisible in review AND in jsdom. The highlight is a stylesheet rule keyed off
+  `data-tour-active` on `<body>`; that attribute is deliberately named differently from the
+  regions' `data-tour`, because one name for both makes `[data-tour="wall"]` select the body too
+  and every measurement of the region silently becomes a measurement of the document.
+
 Import shared primitives from `components/ui`, never by reaching into a folder.
 
 Layout bugs here are invisible in review AND in jsdom, and Tailwind scans source *text* — so a
@@ -122,7 +142,7 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
   pipeline-order changes).
-- The M1 exit-criteria tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
+- The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
 - `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
   branch). It's a floor to prevent regression — raise it, never lower it to green a build.
@@ -269,7 +289,7 @@ publishes. The dev server at 1280×720 is the only thing that sees layout.
 
 → **`add-bloc-or-institution` skill.** The id lists are total `Record`s and the build walks you
 through most of it — but `Stance` is a **`Partial`** over `BlocId`, so a new bloc compiles
-perfectly with no opinion about anything in the game. That is what M6 got wrong first time.
+perfectly with no opinion about anything in the game. The first politics implementation missed it.
 
 ## Hard-won tuning lessons (violate at your peril)
 
@@ -330,7 +350,7 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   border imprison a failing country. Calibrate the sign and the cap under passive, developmental,
   random, and all-country runs; pin per-capita as well as aggregate growth once labor supply moves.
 - **A mechanic you cannot reach is not a mechanic.** Before shipping a threshold, measure the
-  distribution of the thing it gates under passive, random AND deliberately bad play. Two M6
+  distribution of the thing it gates under passive, random AND deliberately bad play. Two early
   mechanics were dead on arrival at plausible-looking numbers. Unrest also has to read the
   hardship households *experienced* (cohort approval already aggregates it) — rebuilt from
   unemployment it was wrong-signed, because the subsistence valve keeps the impoverished
@@ -341,7 +361,7 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
 - **Bloc power is DERIVED, never authored** — that is what makes "a crisis is a political
   opening" fall out for free. What is authored is only what each bloc *wants*: a preference,
   the same primitive as a consumption weight. And blocs make levers expensive, never
-  impossible — a hard veto would silently break the M1 exit-criteria scripts.
+  impossible — a hard veto would silently break the load-bearing mechanism scripts.
 - **`politicalCostOfAction` is the single source of truth for what an order costs.** Quote and
   charge must never be computed twice; `observe.ts` publishes reform prices straight from it.
 - **`pnpm diff-state --moved-only` on any schema-adding change.** New fields sort as infinite
@@ -388,14 +408,14 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   `tech.researchStock` and decays; gains read the stock, not the cheque. A steady programme is
   arithmetically identical to the old flow model — only the transients moved — which is how a
   behavioural change ships without a recalibration.
-- **A dial pegs; a chart must not.** Pegging costs a needle one number for one quarter and says
-  so with a chevron. The same rule applied to a TRACE erases a whole episode silently — the
-  terminal chart clamped into the dial face, so a hyperinflation and a calm plateau drew as the
-  same flat line along the rail, and most indicators leave their face in the tails (`price_fuel`
-  reaches 152 against a 130 face). A chart has printed axis numbers, so it can describe its own
-  scale: frame against the face, extend outward where the data leaves it, rule the face's bound
-  (ADR-0016). Before reusing an instrument's constraint on a different instrument, ask what that
-  constraint COSTS in the new register.
+- **A dial pegs; a chart owns an analytical scale.** Pegging costs a needle one number for one
+  quarter and says so with a chevron. The same rule applied to a TRACE erases a whole episode
+  silently — the terminal chart clamped into the dial face, so a hyperinflation and a calm
+  plateau drew as the same flat line along the rail. Framing the trace against that face fixed
+  the clamp but added a DIAL LIMIT that looked like a chart constraint and flattened quiet
+  windows. A chart has printed axis numbers, so scale the displayed record, include only real
+  semantic anchors such as zero, and never import `INDICATOR_FACE` (ADR-0025). Range comparison
+  snaps to published points and reports gaps as elapsed time rather than inventing observations.
 - **Precision belongs to the scale, not the value.** `v => v.toFixed(v < 10 ? 1 : 0)` prints an
   axis reading `0.0, 20, 40`, which looks like three different quantities. Decide decimals once
   per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range

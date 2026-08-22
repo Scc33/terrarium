@@ -1,5 +1,5 @@
 /**
- * M4 §10 — the rest of world. Four abstract partners run their own business
+ * The rest of world. Four abstract partners run their own business
  * cycles; the domestic economy lives inside the export demand and world
  * prices those cycles produce. None of it is scripted — four AR(1)s make the
  * terms-of-trade swings, the export booms, and the sudden stops.
@@ -36,7 +36,7 @@ function runStep(name: string, s: TrueState): TrueState {
   return st.run(s, rngFor(s.meta.seed, name, s.meta.tick))
 }
 
-describe('the rest of world (§10)', () => {
+describe('the rest of world', () => {
   const states = century('world-1')
 
   it('partners run real cycles: autocorrelated, mean-reverting, never runaway', () => {
@@ -111,7 +111,7 @@ describe('the rest of world (§10)', () => {
   })
 })
 
-describe('terms of trade (§10, a fundable output)', () => {
+describe('terms of trade as a fundable output', () => {
   it('is an instrument you buy: no series until trade statistics are funded', () => {
     const play = (statistical: number) => {
       const params = { ...standardCountry, capacities: { ...standardCountry.capacities, statistical } }

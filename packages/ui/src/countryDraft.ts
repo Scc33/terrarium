@@ -30,6 +30,7 @@ import {
   type CountryParams,
   type CuratedCountryId,
 } from '@terrarium/engine'
+import { SECTOR_NAMES } from './components/labels'
 
 /** The five groups a 1946 settlement reads as, in the order an author meets
  * them: who is here, what they make, what the last government left behind,
@@ -99,14 +100,6 @@ const COHORT_LABELS: Record<(typeof COHORT_IDS)[number], string> = {
   retirees: 'Retirees',
 }
 
-const SECTOR_LABELS: Record<(typeof SECTOR_IDS)[number], string> = {
-  agri: 'Agriculture',
-  manuf: 'Manufacturing',
-  energy: 'Energy',
-  services: 'Services',
-  transport: 'Transport',
-}
-
 const INSTITUTION_LABELS: Record<(typeof INSTITUTION_IDS)[number], string> = {
   suffrage: 'Suffrage',
   press: 'Free press',
@@ -155,13 +148,13 @@ export const DRAFT_FIELDS: readonly DraftField[] = [
   ...MIX_FIELDS.flatMap((mix) =>
     SECTOR_IDS.map<DraftField>((id) => ({
       path: `structure.${mix.key}.${id}`,
-      label: `${SECTOR_LABELS[id]} — ${mix.label}`,
+      label: `${SECTOR_NAMES[id]} — ${mix.label}`,
       group: 'production',
       min: 0.3,
       max: 4,
       step: 0.01,
       format: 'multiplier',
-      hint: `${SECTOR_LABELS[id]}'s ${mix.hint}, against the standard 1946 mix.`,
+      hint: `${SECTOR_NAMES[id]}'s ${mix.hint}, against the standard 1946 mix.`,
     })),
   ),
   {

@@ -1,7 +1,7 @@
 /**
  * Tuning knobs. Every behavioral constant in the sim lives here so balance
  * work happens in one file. Values target a stable passive run for a mid-poor
- * 1946 economy (the M1 exit criterion (c)).
+ * 1946 economy (the long-run stability criterion).
  */
 
 import type {
@@ -221,8 +221,9 @@ export const INDUSTRY_CENSUS_FUNDED_AT = 0.3
  * zero statistical capacity. Larger than the accounts' own error (0.035 on
  * GDP per head): allocating output between industries is a harder job than
  * totalling it, and the errors partly cancel in the total. Relative rather
- * than absolute for the §6.1 reason — services can be ten times energy, and
- * one band honest about the big one prints the small one negative. */
+ * than absolute for the reason the expenditure accounts are — services can be
+ * ten times energy, and one band honest about the big one prints the small one
+ * negative. */
 export const INDUSTRY_VALUE_ADDED_SD = 0.06
 /** …and on the head count beside it, which an enumerator can actually count. */
 export const INDUSTRY_EMPLOYMENT_SD = 0.04
@@ -249,7 +250,7 @@ export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investme
 export const NATURAL_REAL_RATE = 0.02
 /** Lewis-model capital widening: surplus labor (cheap hands, fat margins)
  * pulls investment beyond replacement. Without this, a growing labor force
- * outruns the capital stock and unemployment ratchets — the M4 lesson. */
+ * outruns the capital stock and unemployment ratchets. */
 export const INVESTMENT_SLACK_GAIN = 3.0
 export const INVESTMENT_FACTOR_MAX = 1.7 // was 1.3 when the labor force was static
 
@@ -314,7 +315,7 @@ export function fdiStructuralAttraction(
   return size * access * catchUp
 }
 
-// ---------- the crisis clock (Pillar 4: it always ticks) ----------
+// ---------- the crisis clock ----------
 /** per-quarter odds of a world energy rupture (~3 per century) */
 export const ENERGY_SHOCK_P = 0.008
 export const ENERGY_SHOCK_JUMP: [number, number] = [1.5, 2.2]
@@ -326,7 +327,7 @@ export const DROUGHT_EXTRA_QTRS: [number, number] = [1, 3] // beyond the onset q
  * crisis instead of a new normal (half-life ≈ 5–6 years) */
 export const WORLD_PRICE_REVERT = 0.03
 
-// ---------- technology (§9) ----------
+// ---------- technology: two trees and the gap ----------
 /** The frontier's roughly historical schedule: golden age, the 1973
  * slowdown, the ICT bump, secular stagnation. Annual growth by start year;
  * the tech step interpolates nothing — eras switch on the quarter. */
@@ -409,8 +410,8 @@ export const RESEARCH_STOCK_DECAY_Q = 0.05
 export const BREAKTHROUGH_SIZE = 0.012
 export const BREAKTHROUGH_HAZARD_MAX = 0.5
 
-// ---------- demography (§8) ----------
-/** schooling suppresses fertility beyond the income channel (§8: female
+// ---------- demography ----------
+/** schooling suppresses fertility beyond the income channel (female
  * education) — TFR drop per unit of human capital above the 1946 base */
 export const FERT_EDU_GAIN = 1.2
 export const EDUCATION_1946 = 0.2 // default education capacity for old saves
@@ -494,7 +495,7 @@ export const URBANIZATION_GAIN = 0.004
  * pyramid — normalizes workerShareMult to 1 at init */
 export const BASE_WORKER_SHARE = 0.608
 
-// ---------- §3.3 prosperity ----------
+// ---------- prosperity score ----------
 /** quarterly discount on lived welfare (≈2%/yr) */
 export const WELFARE_DISCOUNT_Q = 0.995
 
@@ -502,7 +503,7 @@ export const WELFARE_DISCOUNT_Q = 0.995
  * growth over the tenure's discounted effective duration (%/yr) — tenure-
  * independent, so a short brilliant government isn't double-punished on an
  * axis that isn't survival. Calibrated 2026-07 on 150 passive + 150 random
- * centuries under full M4 (demography + two-tree technology): passive sits
+ * centuries under full demography + two-tree technology: passive sits
  * in a 0.91–1.41 band (C — safe but mediocre, by design; the unschooled
  * century leaves catch-up on the table), random median 2.11, p95 3.22. */
 export const PROSPERITY_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
@@ -550,7 +551,7 @@ export const WORLD_PRICE_VOL: Record<SectorId, number> = {
   transport: 0.008,
 }
 
-// ---------- the rest of world (§10: 5–8 abstract partners, coarse models) ----------
+// ---------- the rest of world: abstract partners with coarse models ----------
 // Each partner is a foreign economy with its own business cycle. Its activity
 // (an output gap, 1.0 neutral) drives its DEMAND for your exports and, where
 // it's a supplier to world markets, the world PRICE of what it sells. The
@@ -597,13 +598,13 @@ export const WORLD_SUPPLY_WEIGHTS: Record<SectorId, Partial<Record<PartnerId, nu
  * offset ≈ GAIN·Δactivity·share / WORLD_PRICE_REVERT — kept gentle) */
 export const WORLD_SUPPLY_PRICE_GAIN = 0.02
 
-// ---------- the financial sector (§12 M5: fragility) ----------
+// ---------- the financial sector: fragility ----------
 // Credit and asset prices are the amplifier and the fragility clock. A boom
 // runs on credit: cheap money and rising collateral pull investment beyond
 // retained earnings (production reads asset prices as Tobin's q). The boom
 // quietly levers up the banking system, and leverage above prudence WITH
 // assets overvalued is the fuel a Minsky moment burns. Crises also arrive
-// from abroad — the financial partner's sudden stop (§10) freezes credit at
+// from abroad — the financial partner's sudden stop freezes credit at
 // home. None of it is scripted: the cycle emerges from reversion racing a
 // collateral feedback loop, and the crash transmits through the same
 // confidence/investment/employment channels every other shock does.
@@ -680,7 +681,7 @@ export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
 export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
-/** §3.4 salience: PC per point of PUBLISHED annualized GDP growth — noisy
+/** Salience: PC per point of PUBLISHED annualized GDP growth — noisy
  * statistics make this noisy, which is the point of funding the office */
 export const PC_HEADLINE_SALIENCE = 0.1
 export const PC_HEADLINE_CAP = 0.5 // the papers only care so much either way
@@ -689,7 +690,7 @@ export const PC_START = 20
 export const PC_MAX = 100
 
 /** a state that does not have to ask can act: repression buys freedom of
- * manoeuvre, which is exactly why the extractive path is tempting (§4.3) */
+ * manoeuvre, which is exactly why the extractive path is tempting */
 export const PC_REPRESSION_GAIN = 0.8
 /** …and a country in ferment eats a government's whole week */
 export const PC_UNREST_DRAG = 0.5
@@ -699,12 +700,12 @@ export const PC_COST_DIAL_BASE = 1
 export const PC_COST_DIAL_SLOPE = 12 // × relative magnitude of the change
 export const PC_COST_CAPACITY = 2
 /** Layer 3 is generational and contested: a reform costs more than a decade
- * of ordinary policy — unless a crisis has prised the window open (§4.3) */
+ * of ordinary policy — unless a crisis has prised the window open */
 export const PC_COST_REFORM = 26
 export const PC_COST_CAMPAIGN = 4
 
-// ---------- §4.3 institutions, §6.3 the corridor ----------
-// Societal power is the y-axis of the Narrow Corridor and, from M6, a live
+// ---------- institutions and the Narrow Corridor ----------
+// Societal power is the y-axis of the Narrow Corridor and a live
 // state variable. It is not a dial: it is what a society's capacity to
 // organize adds up to — who holds the ballot, whether they may print, meet,
 // and sue, whether they can read, whether they live close enough together to
@@ -736,7 +737,7 @@ export const CORRIDOR_HALF_WIDTH = 0.16
 export const REPRESSION_DECAY_Q = 0.01
 export const INSTITUTION_EROSION_Q = 0.02 // × repression, on press and labor rights
 export const REFORM_STEP = 0.12 // how far one act of reform moves a stock
-/** §4.3 reform windows: revolutionary pressure is the only thing that prises
+/** Reform windows: revolutionary pressure is the only thing that prises
  * open reforms elites would otherwise veto. Never let a good crisis go to waste. */
 export const REFORM_WINDOW_AT = 0.35 // unrest above which the window is open
 export const REFORM_WINDOW_DISCOUNT = 0.35 // × PC cost while it is
@@ -755,7 +756,7 @@ export const INSTITUTIONS_1946: Record<InstitutionId, { base: number; devGain: n
 // ---------- revolutionary pressure ----------
 /**
  * Anger arrives faster than it fades. The asymmetry is not decoration: it is
- * what makes a crisis a WINDOW (§4.3) rather than a plateau — pressure spikes
+ * what makes a crisis a WINDOW rather than a plateau — pressure spikes
  * inside a year or two, prises the reform window open, and then takes most of
  * a decade to bleed back down, which is exactly how long a government has to
  * use it.
@@ -804,7 +805,7 @@ export const REVOLT_P = 0.025 // per quarter per unit of unrest above the line
 export const COUP_AT = 0.35 // elite hostility above which the whispering starts
 export const COUP_P = 0.12
 
-// ---------- the veto players (§4.3) ----------
+// ---------- the veto players ----------
 /** Bloc POWER is read off the economy each quarter, never authored. A bloc
  * whose base the cycle has just destroyed is a bloc that cannot veto — which
  * is why a crisis is a political opening and not merely a disaster. */
@@ -850,7 +851,7 @@ export const IND_FAVOR_INVEST = 0.5 // investment strike: off the investment fac
 export const UNION_FAVOR_WAGE = 0.02 // wage push: added to the quarterly wage move
 export const LAND_FAVOR_TAX = 0.5 // the harvest goes unreported: off tax efficiency
 
-/** §4.3 the extractive ceiling, and it is NOT a cap you bump into: incumbents
+/** The extractive ceiling is NOT a cap you bump into: incumbents
  * who face no organized society veto the creative destruction that would
  * displace their rents, so the country cannot drink from the frontier as fast.
  * Forced industrialization still works — capital widening is untouched. What
@@ -867,7 +868,7 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * spending). Capital widening is untouched, so forced industrialization still
  * works and the extractive path stays genuinely tempting.
  *
- * It does NOT reproduce the full §4.3 story of "new sectors cannot displace
+ * It does NOT reproduce the full story of "new sectors cannot displace
  * incumbents' rents", and a weighted-by-sector version was tried and removed:
  * the engine's consumption weights are FIXED per cohort (no Engel shift), so
  * the services share of output is pinned by demand and cannot move in response
@@ -875,7 +876,7 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * blockable needs endogenous demand composition, which is a separate change.
  */
 
-// ---------- the election as a scene (§3.1) ----------
+// ---------- the election as a scene ----------
 /** the swing each platform is worth, in approval points at the ballot box */
 export const PLATFORM_SWING: Record<PlatformId, number> = {
   record: 0,
@@ -905,8 +906,8 @@ export const PLATFORM_BLOC_COST: Record<PlatformId, Partial<Record<BlocId, numbe
 export const COALITION_FAVOR_GAIN = 0.4
 export const COALITION_FAVOR_SNUB = -0.1
 
-/** §3.3 Position: the third axis, graded on the share of your tenure spent
- * inside the corridor — the path, not the endpoint. Calibrated in M6 against
+/** Position: the third axis, graded on the share of your tenure spent
+ * inside the corridor — the path, not the endpoint. Calibrated against
  * measured centuries; see docs/metrics-changelog.md. */
 export const POSITION_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C' | 'D' }> = [
   { atLeast: 0.85, grade: 'A' },

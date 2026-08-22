@@ -143,7 +143,7 @@ export const cohorts: PipelineStep = {
     const migrationBaselineWelfare =
       state.demography.migrationBaselineWelfare ?? meanLogConsumption(state)
 
-    // --- §3.3 prosperity: what it was actually like to live here this
+    // --- prosperity: what it was actually like to live here this
     // quarter. Log consumption per head, population-weighted: diminishing
     // returns mean a unit of bread to the poor scores more than a unit of
     // services to the rich, and no terminal-GDP sprint can buy back a

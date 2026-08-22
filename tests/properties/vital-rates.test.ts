@@ -1,5 +1,5 @@
 /**
- * Vital registration (§8 fog): the demographic transition is engine truth,
+ * Vital registration: the demographic transition is engine truth,
  * but a government only *knows* its birth and death rates once it funds the
  * registrar. Heads, by contrast, are always countable — the census carries
  * an exact population and pyramid with no fog at all.
@@ -24,7 +24,7 @@ function settledAt(pts: { forQtr: number; value: number; revision: number }[], q
   return here[0].value
 }
 
-describe('vital registration is a fundable instrument (§8)', () => {
+describe('vital registration is a fundable instrument', () => {
   it('no birth/death/migration series until civil registration is funded', () => {
     const poor = observe(play('vr-1', 16, 0.15)).indicators
     expect(poor.birth_rate).toBeUndefined()

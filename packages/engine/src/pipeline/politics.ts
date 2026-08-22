@@ -1,14 +1,14 @@
 /**
  * Step 10 — politics. Political capital accrues from enfranchisement-weighted
  * approval; elections every 16 quarters are the forcing function. Salience
- * (§3.4): the growth term reads the statistics office's CURRENT headline —
+ * (ADR-0003): the growth term reads the statistics office's CURRENT headline —
  * credit is banked when the number prints, and a later revision never claws
  * it back. A weak office makes elite opinion a coin flip; funding it makes
  * your mandate track reality. Approval, meanwhile, always drifts toward what
  * households actually experienced — the bread line is the bread line.
  *
- * From M6 the election is a scene rather than a line on the wire. Two quarters
- * out the campaign opens and the government commits to a platform (§3.1: hold
+ * The election is a scene rather than a line on the wire. Two quarters
+ * out the campaign opens and the government commits to a platform: hold
  * a coalition together, not merely optimize). Each platform is a real fork
  * with a real bill — largesse mortgages the budget, coalition mortgages the
  * levers, suppression mortgages the corridor, franchise mortgages the scoring

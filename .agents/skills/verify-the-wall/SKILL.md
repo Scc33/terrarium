@@ -7,7 +7,7 @@ description: Prove a Terrarium UI change actually fits on screen. Run after any 
 
 `tests/ui/` tests **pure modules, not rendered components** — deliberately. jsdom has no layout
 engine, so a render test passes happily while the wall clips every figure it publishes. That is
-how the wall spent M3–M5 hiding its own output.
+how earlier wall layouts hid their own output.
 
 The browser check is the only thing that sees layout. It is not optional after a wall change.
 

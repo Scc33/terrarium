@@ -6,20 +6,15 @@
  * value outside the face drew as a flat line along the rail. Over a surveyed
  * century that is not a rare event — `price_fuel` reaches 152 against a 130
  * face, `gdp_growth` spans −33 to +54 against ±15 — so the chart failed
- * silently at exactly the moments worth looking at.
- *
- * The first three describes hold the axis policy that replaced it, and they
- * matter in both directions: the frame must EXTEND to fit the data (or the
- * clamp is back), and it must NOT shrink inside the face (or the trace's
- * height stops being comparable with the dial beside it, which is the thing
- * ADR-0006 exists to protect).
+ * silently at exactly the moments worth looking at. ADR-0025 now keeps dial
+ * faces out of charts entirely: the plotted record owns the analytical scale.
  */
 
 import { describe, expect, it } from 'vitest'
-import { INDICATOR_FACE } from '../../packages/ui/src/domains'
 import {
   nearestPoint,
   niceTicks,
+  rangeBetween,
   tickStep,
   timePlot,
   yAxis,
@@ -29,93 +24,19 @@ import {
 const BOX = { w: 300, h: 150, padL: 30, padR: 10, padT: 10, padB: 15 }
 const at = (tick: number, value: number): PlotPoint => ({ tick, value })
 
-describe('the axis frames a face without obeying it', () => {
-  const face = { lo: 40, hi: 130 }
-
-  it('is exactly the face while the data stays inside it', () => {
-    const y = yAxis([55, 90, 128, 41], { face })
-    expect(y.lo).toBe(40)
-    expect(y.hi).toBe(130)
-    expect(y.faceLo).toBeNull()
-    expect(y.faceHi).toBeNull()
-  })
-
-  it('extends past the face rather than clamping to it', () => {
-    // the measured price_fuel excursion: a 130 face, a 152.1 print
-    const y = yAxis([60, 95, 152.1], { face })
-    expect(y.hi).toBeGreaterThanOrEqual(152.1)
-    expect(y.lo).toBe(40)
-  })
-
-  it('reports the rail it crossed so the painter can rule it', () => {
-    expect(yAxis([60, 152.1], { face }).faceHi).toBe(130)
-    expect(yAxis([60, 152.1], { face }).faceLo).toBeNull()
-    expect(yAxis([12, 60], { face }).faceLo).toBe(40)
-    expect(yAxis([12, 60], { face }).faceHi).toBeNull()
-
-    // an economy that left the dial in both directions says so twice
-    const both = yAxis([12, 152.1], { face })
-    expect(both.faceLo).toBe(40)
-    expect(both.faceHi).toBe(130)
-  })
-
-  it('never shrinks inside the face, however quiet the century', () => {
-    // a flat, boring series must still be drawn against the whole face —
-    // auto-scaling a calm decade is how a needle's height stops meaning
-    // anything between two quarters
-    const y = yAxis([88, 88.1, 87.9], { face })
-    expect(y.lo).toBe(40)
-    expect(y.hi).toBe(130)
-  })
-
-  it('rounds an extended rail onto the gridline step, not the raw extremum', () => {
-    const y = yAxis([60, 152.1], { face })
-    expect(y.ticks).toContain(y.hi)
-    expect(Number.isInteger(y.hi * 10)).toBe(true)
-  })
-})
-
-describe('every real dial face survives its own measured century', () => {
-  /**
-   * The measured p01–max of each indicator over 12 seeds × 6 countries, from
-   * `pnpm ranges`. Held here as the excursions the chart has to be able to
-   * draw: if a retune widens one of these and the axis policy regresses to
-   * clamping, this fails by name rather than in a player's hands.
-   */
-  const MEASURED_EXTREMES: Partial<Record<keyof typeof INDICATOR_FACE, [number, number]>> = {
-    price_fuel: [38.6, 152.1],
-    price_food: [45.1, 189.2],
-    gdp_growth: [-33.3, 53.7],
-    inflation: [-18.5, 41.9],
-    unrest: [-12.5, 75.9],
-    asset_prices: [58.5, 158.2],
-    gdp_per_capita: [5.0, 156.8],
-    consumption_per_capita: [3.5, 122.9],
-  }
-
-  it('draws the whole excursion, and marks where the dial ended', () => {
-    for (const [id, [min, max]] of Object.entries(MEASURED_EXTREMES)) {
-      const face = INDICATOR_FACE[id as keyof typeof INDICATOR_FACE]
-      if (face === 'ratchet') continue
-      const y = yAxis([min, max], { face })
-
-      expect(y.lo, `${id} clipped its measured minimum`).toBeLessThanOrEqual(min)
-      expect(y.hi, `${id} clipped its measured maximum`).toBeGreaterThanOrEqual(max)
-      // and the face is still the reference: one of the rails must be ruled,
-      // because every one of these indicators does leave its dial
-      expect(
-        y.faceLo !== null || y.faceHi !== null,
-        `${id} left its face but no dial limit was reported`,
-      ).toBe(true)
-    }
-  })
-})
-
-describe('the axis without a face', () => {
+describe('the chart owns its analytical scale', () => {
   it('is the data, padded outward', () => {
     const y = yAxis([10, 20], { pad: 0.1 })
     expect(y.lo).toBeCloseTo(9)
     expect(y.hi).toBeCloseTo(21)
+  })
+
+  it('draws the whole measured excursion without importing a dial limit', () => {
+    const y = yAxis([60, 95, 152.1], { pad: 0.08 })
+    expect(y.lo).toBeLessThan(60)
+    expect(y.hi).toBeGreaterThan(152.1)
+    expect(y).not.toHaveProperty('faceLo')
+    expect(y).not.toHaveProperty('faceHi')
   })
 
   it('contains the values it was told to include', () => {
@@ -272,5 +193,32 @@ describe('nearestPoint', () => {
 
   it('returns null rather than a fabricated point', () => {
     expect(nearestPoint([], 3)).toBeNull()
+  })
+})
+
+describe('rangeBetween', () => {
+  const points = [at(0, 10), at(4, 18), at(12, 14), at(16, 25)]
+
+  it('snaps, orders a reverse drag, and reports the change and observed range', () => {
+    expect(rangeBetween(points, 15, 3)).toEqual({
+      start: at(4, 18),
+      end: at(16, 25),
+      change: 7,
+      low: 14,
+      high: 25,
+      quarters: 12,
+    })
+  })
+
+  it('keeps missing survey quarters as elapsed time rather than inventing observations', () => {
+    const selected = rangeBetween(points, 4, 12)
+    expect(selected?.quarters).toBe(8)
+    expect(selected?.low).toBe(14)
+    expect(selected?.high).toBe(18)
+  })
+
+  it('returns null when there is no published point to select', () => {
+    expect(rangeBetween([], 0, 12)).toBeNull()
+    expect(rangeBetween([{ tick: 0, value: NaN }], 0, 12)).toBeNull()
   })
 })

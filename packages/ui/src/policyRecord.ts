@@ -10,7 +10,7 @@
  *
  * So the change log never diffs a resolved appropriation. It reads the
  * engine's `votedAt` stamp, which moves only when a rule is actually written
- * (§4.1). Diffing the money instead would file four hundred entries for a
+ * decision. Diffing the money instead would file four hundred entries for a
  * cabinet that met once — the failure mode AGENTS.md calls a warning that
  * never turns off, and here it would be the whole feature.
  *

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { PublishedCorridor } from '@terrarium/observation'
 import { CorridorPlot } from './CorridorPlot'
 
-/** From M6 both coordinates are live engine state and the plot is handed the
+/** Both coordinates are live engine state and the plot is handed the
  * whole published corridor, not a store-local trail of points. */
 const corridor = (over: Partial<PublishedCorridor> = {}): PublishedCorridor => ({
   statePower: 0.4,

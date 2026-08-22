@@ -74,7 +74,7 @@ describe('fullInstrumentation fits every survey (#59)', () => {
   })
 
   it('does not touch the economy: measurement rides its own RNG substreams', () => {
-    // §3.4 the `obs:*` streams are orthogonal to the economic ones, so fitting
+    // ADR-0002: the `obs:*` streams are orthogonal to the economic ones, so fitting
     // more instruments must not move a single real quantity. (The one legitimate
     // coupling is an INDEXED appropriation, which follows published CPI — the
     // 1946 settlement votes fixed cash, so nothing here reads a print.)

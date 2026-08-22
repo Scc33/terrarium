@@ -1,7 +1,7 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 31. Companion to the design doc
-(`proposal-1.md`), which owns the §-numbered design rationale that code comments cite.*
+*How the code is actually arranged, as of schema 31. The short player-facing design is in
+`game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
 
@@ -173,7 +173,7 @@ interface TrueState {
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice           // prints, revision history, industrial census — the fog's own state
-  score: { discountedWelfare; discountWeight }   // §3.3, accumulated as the run happens
+  score: { discountedWelfare; discountWeight }   // accumulated as the run happens
 }
 ```
 
@@ -230,7 +230,7 @@ countries that open anywhere between 5% and 60% agricultural.
 Two properties follow and both are load-bearing:
 
 - **Each figure is drawn independently**, with noise *relative* to it, so the published parts do
-  not sum to the published GDP — the same §6.1 confession the expenditure accounts make. The
+  not sum to the published GDP — the same confession the expenditure accounts make. The
   worksheet behind them does sum exactly: `sectorValueAdded` is `output × (1 − Σᵢ coeff[i][j])`,
   the arithmetic `production` already runs for the headline, at **base** prices.
 - **One band per table**, because the two are surveyed to different accuracy. `errorBand` is a
@@ -287,7 +287,7 @@ introduced it:
   published nominal level carried by `gdp_growth`. Neither reads the hidden live denominator, and
   this preparation does not add or reorder a pipeline step.
 - `statistics` runs *before* `politics` on purpose: politics reads the published headline, not
-  the truth (§3.4). That ordering is the whole point of ADR-0003.
+  the truth. That ordering is the whole point of ADR-0003.
 - Adding a feature = adding a step (or a field a step reads), not edits scattered across five
   files.
 - Immutability: return a new state, never mutate the input.
@@ -305,7 +305,7 @@ delivery and skilled staffing, then accumulates into a decaying research stock r
 becoming technique the same quarter (ADR-0013) — so a programme coasts through a bad budget year
 and takes years to strangle. Behind the frontier it raises the existing catch-up rate; near it
 the same budget funds original work, which lands as a stochastic breakthrough rather than a drip,
-and which the incumbents can veto exactly as they veto absorption (§4.3). The split is derived
+and which the incumbents can veto exactly as they veto absorption. The split is derived
 per sector, so one economy can imitate in the fields and invent in the machine shops.
 
 The player sees two fogged instruments and never the frontier, sector attainment, or TFP:
@@ -385,8 +385,8 @@ milliseconds. `pnpm diff-state` shows exactly which variables moved and by how m
 
 ### 7.2 Property suites (`tests/properties/`)
 
-Statistical claims over many seeds. `fuel-tax.test.ts` and `subsidy.test.ts` are the M1
-exit criteria — the design's load-bearing claims. *If a change breaks them, the change is
+Statistical claims over many seeds. `fuel-tax.test.ts` and `subsidy.test.ts` are the
+design's load-bearing mechanism claims. *If a change breaks them, the change is
 wrong, not the test.* Standing invariants: no NaN/Infinity, prices within per-tick caps,
 budget identity holds, replay determinism (run twice, hash-compare).
 
@@ -507,15 +507,14 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 
 ## 10. Where the design lives
 
-- `proposal-1.md` — the working design doc. **Its § numbers are cited from ~65 code comments**
-  (`§3.4` political capital, `§8` demographics, `§9` technology, `§10` the world, `§12`
-  fragility). Renumbering it orphans them.
+- `game-description.md` — the short current pitch and player fantasy.
 - `metrics-changelog.md` — the engine's inputs/outputs contract, updated on every
   `SCHEMA_VERSION` bump.
 - `docs/adr/` — architectural decisions with their alternatives and consequences.
 - `docs/investigations/` — open questions about the model, with the measurements that raised
   them. Evidence, not decisions.
-- `docs/archive/` — superseded documents, kept for provenance. Not maintained.
+- GitHub issues — proposed features and prioritizable future work.
+- `docs/archive/` — superseded documents, kept for provenance. Do not cite them as current.
 - `AGENTS.md` — the operating notes: hard rules, workflows, and hard-won tuning lessons.
 - The `terrarium-ui` and `verify-the-wall` skills — the implementation and browser-verification
   procedures for `packages/ui` work.

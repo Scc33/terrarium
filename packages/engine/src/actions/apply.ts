@@ -3,7 +3,7 @@
  * and rejects loudly — an illegal action in a replay means a bug or a
  * version mismatch, never a silent skip (§5).
  *
- * From M6 every lever is also priced by the room (§4.3). A bloc that is
+ * Every lever is also priced by the room. A bloc that is
  * powerful, unchecked by an organized society, and opposed to what you are
  * about to do makes it cost multiples of what it costs a government the
  * elites are indifferent to. It never makes it *impossible*: the game does not
@@ -105,7 +105,7 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   ) as Record<`subsidies.${SectorId}`, Stance>),
 }
 
-/** §4.3 Layer 3, and the reason reform is hard: the people who would lose by
+/** Institutional reform, and the reason it is hard: the people who would lose by
  * it are, by construction, the people currently holding the veto. */
 const REFORM_STANCE: Record<InstitutionId, Stance> = {
   suffrage: { landowners: 0.9, industrialists: 0.4, financiers: 0.2, unions: -0.8 },
@@ -115,7 +115,7 @@ const REFORM_STANCE: Record<InstitutionId, Stance> = {
   repression: { unions: 0.9, landowners: -0.5, industrialists: -0.2, financiers: -0.1 },
 }
 
-/** §4.3 reform windows: revolutionary pressure is the only thing that prises
+/** Reform windows: revolutionary pressure is the only thing that prises
  * open reforms elites would otherwise veto. */
 export function reformWindowOpen(state: TrueState): boolean {
   return state.institutions.unrest >= REFORM_WINDOW_AT
@@ -384,7 +384,7 @@ export function politicalCostOfAction(state: TrueState, action: Action): number 
         )
       }
       const relChange = Math.abs(value - spec.get(state)) / spec.scale(state)
-      // …and then the room prices it (§4.3)
+      // …and then the room prices it
       return (
         (PC_COST_DIAL_BASE + PC_COST_DIAL_SLOPE * relChange) *
         vetoMultiplier(state, dialObjections(state, action.path, action.value))
@@ -577,7 +577,7 @@ export function applyAction(state: TrueState, action: Action): TrueState {
           }
           break
         case 'franchise':
-          // §4.3: you are rewriting the rubric you will be scored against.
+          // You are rewriting the rubric you will be scored against.
           // The swing above is only the enthusiasm of a first vote — the real
           // effect is that different people's approval now counts.
           s = {

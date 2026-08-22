@@ -4,22 +4,13 @@
  * strikethrough beside the reprint — the machine remembers what it told you.
  * No shadows, no gradients, no rounding: hairlines only.
  *
- * Shares the dossier gauge's two structural rules: it fits its box by
- * construction (fixed header row, flexing `overflow-hidden` chart row, SVG
- * scaled with `preserveAspectRatio`), and it reads the same fixed face from
- * `../domains`. That second one matters more than it looks — an indicator
- * graduating from brass to phosphor should be the same quantity better
- * measured, not a different-shaped chart the player has to relearn.
- *
- * The face FRAMES the chart; it does not bound it. This component used to
- * clamp every value into the dial's face, which drew a hyperinflation and a
- * calm plateau as the same flat line pinned along the rail — and over a
- * measured century that is not rare (`price_fuel` reaches 152 against a 130
- * face, `gdp_growth` spans −33 to +54 against ±15). A dial PEGS, with a
- * chevron, and that is correct for a needle whose position must mean
- * magnitude. A chart has printed axis numbers and can simply show the
- * excursion, so it extends the axis and rules the face's own bound instead.
- * See the y-axis note in `../../plot`.
+ * It shares the dossier gauge's fitted-box construction (fixed header row,
+ * flexing `overflow-hidden` chart row, SVG scaled with
+ * `preserveAspectRatio`), but not its fixed face. A dial's position must keep
+ * the same meaning forever; this chart prints its own axis and scales the
+ * record on screen. Borrowing the dial face produced the orange DIAL LIMIT
+ * rail players quite reasonably read as a chart constraint. ADR-0025 keeps
+ * the two instruments separate while retaining the no-clamp guarantee.
  *
  * The geometry and the painting both live one level down now — `../../plot`
  * for the scales, `../ui/TimeSeriesChart` for the ink. What stays here is
@@ -49,7 +40,7 @@
 
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import { gaugeDomain } from '../../domains'
+import { FACE_MARK } from '../../domains'
 import { complementReading, NAMES, readingDigits } from '../labels'
 import {
   qtrLabel,
@@ -74,6 +65,18 @@ const H = 300
 /** the plot's own points, carrying the shaped print they came from so the
  * hover readout can speak about revisions rather than just a number */
 type TickerPoint = ShapedPoint & { tick: number }
+
+/** Base-year references that are part of the quantity, not the gauge face.
+ * FACE_MARK supplies rule/threshold references such as zero or the frontier;
+ * these six series additionally define 100 as their inherited 1946 level. */
+const INDEX_BASELINE: Partial<Record<IndicatorId, { at: number; label: string }>> = {
+  price_food: { at: 100, label: '1946 BASE' },
+  price_fuel: { at: 100, label: '1946 BASE' },
+  productivity: { at: 100, label: '1946 BASE' },
+  income_real: { at: 100, label: '1946 BASE' },
+  terms_of_trade: { at: 100, label: '1946 BASE' },
+  asset_prices: { at: 100, label: '1946 BASE' },
+}
 
 type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12'
 
@@ -123,17 +126,20 @@ export function TerminalTicker({
   const complement = complementReading(indicator, latest.value, digits)
 
   const plotted: TickerPoint[] = points.map((p) => ({ ...p, tick: p.forQtr }))
-  // The dossier gauge's own face — the frame is the same instrument, so the
-  // trace sits at the height the needle points to. It FRAMES rather than
-  // clamps: this chart used to pin values into the face, which drew a
-  // hyperinflation and a calm plateau as the same flat line along the rail.
-  // See the y-axis note in `../../plot`.
-  const face = gaugeDomain(
-    indicator,
-    series.points.map((p) => p.value),
-  )
+  // A known baseline or threshold is subject-matter context, not a borrowed
+  // dial rail. Keep it on the analytical scale even when the displayed record
+  // lies wholly to one side: 100 for a base-year index or frontier, zero for a
+  // signed rate, and the rule line for the remaining marked instruments.
+  const reference = FACE_MARK[indicator] ?? INDEX_BASELINE[indicator] ?? null
+  // Superseded first prints are still painted as strike marks. They therefore
+  // belong to the scale just as much as the current trace and its error band;
+  // otherwise an unusually large revision can be clipped outside the SVG.
+  const scaleAnchors = [
+    ...(reference === null ? [] : [reference.at]),
+    ...plotted.filter((point) => point.visiblyRevised).map((point) => point.firstPrint),
+  ]
   const banded = plotted.filter((p) => p.errorBand > 0).map((p) => ({ ...p, band: p.errorBand }))
-  const chartSummary = `${NAMES[indicator].plate}. ${view.title}. The readout below remains the latest raw published figure.`
+  const chartSummary = `${NAMES[indicator].plate}. ${view.title}. Drag across the chart to compare two releases. The readout below remains the latest raw published figure.`
 
   // Both bands: `minmax(0,1fr)` for the half that may truncate, `auto` for the
   // half that must not. Spelled out as literals — Tailwind scans source text,
@@ -205,9 +211,11 @@ export function TerminalTicker({
         fill
         traces={[{ key: indicator, points: plotted, width: 1.6, lead: true }]}
         ribbon={banded.length >= 2 ? { points: banded } : undefined}
-        face={face}
-        rules={face.lo < 0 && face.hi > 0 ? [{ axis: 'y', at: 0 }] : []}
+        include={scaleAnchors}
+        pad={0.08}
+        rules={reference === null ? [] : [{ axis: 'y', at: reference.at, label: reference.label }]}
         formatReading={(v) => v.toFixed(digits)}
+        formatRange={(v) => v.toFixed(digits)}
         formatTick={qtrLabel}
         summary={chartSummary}
         emptyLabel={

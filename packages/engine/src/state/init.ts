@@ -1,6 +1,6 @@
 /**
- * Country generation. A country is a parameter vector (§10 of the design
- * doc); init() calibrates a TrueState from it so the economy starts near
+ * Country generation. A country is a parameter vector (ADR-0011);
+ * init() calibrates a TrueState from it so the economy starts near
  * equilibrium — tfp is solved from target outputs rather than guessed, so
  * tick 1 doesn't open with a shock.
  */
@@ -87,7 +87,7 @@ const PYRAMID_1946 = [
 /** Synthesize a 1946-shaped pyramid consistent with class sizes: the
  * standard shape, rescaled so the non-retired bands sum to the working
  * classes and the 60+ bands to the retiree class. Also the lenient path for
- * pre-M4 saves whose params carry no pyramid. */
+ * older saves whose params carry no pyramid. */
 export function synthPyramid(cohortSizes: CountryParams['cohortSizes']): number[] {
   const retired = cohortSizes.retirees
   const nonRetired =
@@ -392,7 +392,7 @@ export function init(
         investment: { kind: 'fixed', amount: spendingDials.investment, votedAt: 0 },
         research: { kind: 'fixed', amount: spendingDials.research, votedAt: 0 },
       },
-      // pre-M4 saves carry no education capacity — backfill the 1946 default
+      // Older saves carry no education capacity — backfill the 1946 default.
       capacity: {
         ...params.capacities,
         education: (params.capacities.education as number | undefined) ?? EDUCATION_1946,

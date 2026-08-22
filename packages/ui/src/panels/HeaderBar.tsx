@@ -20,6 +20,7 @@ function HeaderGroup({ label, children }: { label: string; children: React.React
 export function HeaderBar({
   pub,
   onStudy,
+  onManual,
   onSettings,
   onCensus,
   onFinance,
@@ -29,6 +30,7 @@ export function HeaderBar({
 }: {
   pub: PublishedState
   onStudy: () => void
+  onManual: () => void
   onSettings: () => void
   onCensus: () => void
   onFinance: () => void
@@ -98,15 +100,16 @@ export function HeaderBar({
         </HeaderGroup>
       </div>
 
-      <nav className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
+      <nav data-tour="offices" className="hidden items-center justify-end gap-1 xl:flex" aria-label="Ministry offices">
         {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
         <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output and where people work.">INDUSTRY</Button>
         <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output: households, investors, government or other countries.">ACCOUNTS</Button>
         <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices, including signs of a bubble or crisis.">FINANCE</Button>
         <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures before playing it.">STUDY</Button>
         <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
+        <Button onClick={onManual} variant="secondary" size="compact" title="The manual: every lever, every instrument, how the published figures are made, and what happens when you advance a quarter.">HANDBOOK</Button>
       </nav>
-      <details className="relative justify-self-end xl:hidden">
+      <details data-tour="offices" className="relative justify-self-end xl:hidden">
         <summary className="flex min-h-8 list-none items-center border border-dossier-paper/30 px-2.5 font-mono text-[9px] font-medium tracking-[0.15em] text-dossier-paper marker:hidden hover:border-dossier-brass hover:text-dossier-brass">
           OFFICES <span className="ml-2 text-dossier-brass" aria-hidden="true">▾</span>
         </summary>
@@ -117,6 +120,7 @@ export function HeaderBar({
           <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
           <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
           <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
+          <Button onClick={onManual} variant="secondary" size="compact" title="The manual: every lever, every instrument, and how the figures are made.">HANDBOOK</Button>
         </nav>
       </details>
     </header>

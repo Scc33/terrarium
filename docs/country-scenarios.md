@@ -16,7 +16,7 @@ the materialized vector, so a later recipe retune cannot rewrite an old game's h
 | `procedural` | one of five bounded archetypes | seed-reproducible jitter over the same structural terrain |
 
 The scenario catalogue is in `packages/engine/src/countries.ts`. `generateParams(seed)` remains
-the schema-12 baseline sampling frame for the load-bearing M1 properties and historical dial
+the schema-12 baseline sampling frame for the load-bearing mechanism properties and historical dial
 comparisons. `createCountryParams('procedural', seed)` is the wider player-facing generator.
 
 ## Stress and calibration
@@ -176,7 +176,7 @@ other on identical inputs; if it goes, the study stops being comparable with the
    mix, so composition changes without stealing population/development's ownership of scale.
 3. Give the pyramid and cohort vector the same total; `validateCountryParams` rejects a mismatch
    before the first tick.
-4. Run the random and passive `--country all` matrices, the load-bearing M1 properties, and
+4. Run the random and passive `--country all` matrices, the load-bearing mechanism properties, and
    `pnpm ranges`.
 5. Verify the selector and the resulting wall at 1280×720. A country that permanently pegs an
    instrument has found either a bad recipe or an obsolete face; review which before changing it.

@@ -5,7 +5,7 @@ import type { ActionLog } from '@terrarium/engine'
 
 export const passive: ActionLog = []
 
-/** the M1 exit-criterion (a) probe: one fuel tax, quarter 8 */
+/** Load-bearing fuel-tax mechanism probe: one fuel tax, quarter 8. */
 export const fuelTaxAtQ8: ActionLog = [
   { tick: 8, actions: [{ kind: 'setDial', path: 'taxRates.fuel', value: 0.5 }] },
 ]

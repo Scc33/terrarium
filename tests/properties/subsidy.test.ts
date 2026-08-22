@@ -1,5 +1,5 @@
 /**
- * M1 exit criterion (b): "a subsidy in a low-capacity state does more harm
+ * Load-bearing mechanism claim: "a subsidy in a low-capacity state does more harm
  * than good." The mechanism: with administrative capacity ~0.3, most of the
  * subsidy leaks before reaching the sector, but the full amount hits the
  * budget — deficit, debt service, and (if markets balk) the printing press,

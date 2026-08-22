@@ -5,7 +5,7 @@
  * (indicator, measured quarter, revision) — orthogonal to the economic RNG,
  * so the fog never perturbs the economy, only what anyone believes about it.
  * The office lives inside TrueState because its output is now causal:
- * politics reads these prints, not the truth (§3.4).
+ * politics reads these prints, not the truth (ADR-0003).
  */
 
 import { rngFor, type Seed } from '../rng/rng'
@@ -421,7 +421,7 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
  * noised by `noiseScale(cap)`, and still revised, because the rule is about
  * which instruments exist, not about how well a poor office measures. A
  * sandbox that also handed over exact figures would be the truth inspector
- * with extra steps, and the fog is what politics reads (§3.4). */
+ * with extra steps, and the fog is what politics reads. */
 function printsDue(
   spec: IndicatorSpec,
   record: StatRecord[],
@@ -486,7 +486,8 @@ const INDUSTRY_SD: Record<IndustryTableId, number> = {
  * neither (see `IndustryPrint`).
  *
  * Each industry gets an INDEPENDENT draw, which is why the published parts do
- * not sum to the published GDP. That is the §6.1 confession, not a bug: the
+ * not sum to the published GDP. That is the office confessing its method, not
+ * a bug: the
  * office is estimating five things, not dividing one thing five ways. The
  * two tables draw from separate substreams so that adding a third column
  * later cannot shift the census a century of saves already published.

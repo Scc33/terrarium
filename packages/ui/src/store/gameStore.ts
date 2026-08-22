@@ -125,7 +125,7 @@ export const useGame = create<GameState>((set, get) => {
   const worker = new SimWorker()
 
   // the corridor trail is no longer assembled here. Both coordinates are live
-  // engine state from M6, and the traced path rides along in PublishedState
+  // live engine state, and the traced path rides along in PublishedState
   // (built from the statistics office's own worksheets), so it survives a
   // save/reload instead of restarting empty the way a store-local trail did.
 

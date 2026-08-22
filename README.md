@@ -33,13 +33,14 @@ never disappears by itself.
 ## Read the design
 
 - [Game description](docs/game-description.md) — the short pitch and design pillars.
-- [Working design](docs/proposal-1.md) — the mechanics and rationale referenced by the code.
 - [Technical architecture](docs/tech-architecture.md) — packages, state, pipeline, tests, and
   persistence as they exist now.
 - [Country scenarios](docs/country-scenarios.md) — authored and procedural countries, later
   appointments, and calibration evidence.
 - [Architecture decisions](docs/adr/README.md) — accepted decisions, alternatives, and costs.
 - [Metrics changelog](docs/metrics-changelog.md) — the versioned engine input/output contract.
+- [GitHub issues](https://github.com/Scc33/terrarium/issues) — proposed features and the
+  prioritizable product backlog.
 
 Superseded planning documents are retained for provenance in
 [docs/archive/](docs/archive/README.md) and are not maintained as current documentation.

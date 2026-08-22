@@ -12,7 +12,7 @@
  *     lagged, noised per industry, and revised — so no figure the UI can reach
  *     is ever the truth. A census that quietly published exact numbers would
  *     be the truth inspector with extra steps, and the fog is what the whole
- *     capacity mechanic is made of (§3.4, §6.1).
+ *     capacity mechanic is made of (ADR-0003).
  *
  * The third claim — that the mix actually MOVES over a century — is what makes
  * the view worth building at all. A composition that never changes is a pie

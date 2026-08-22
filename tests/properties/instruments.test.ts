@@ -1,6 +1,6 @@
 /**
  * The earned instruments of schema v5: the price bureau (food & fuel boards,
- * §6.1 disaggregation) and the household survey (Gini). The M1 exit tests
+ * disaggregation) and the household survey (Gini). The load-bearing mechanism tests
  * prove the fuel-tax→bread chain in TRUE prices; here the claim is about the
  * apparatus — the boards exist only when funded, publish fast, and carry the
  * player's own excise into their own published data.
@@ -52,7 +52,7 @@ function printAt(s: TrueState, id: IndicatorId, q: number): number {
   return pts.sort((a, b) => a.revision - b.revision)[pts.length - 1].value
 }
 
-describe('the price bureau (§6.1 disaggregation)', () => {
+describe('the price bureau disaggregation', () => {
   it('boards exist only once the bureau is funded', () => {
     const poor = observe(play('px-1', 12, 0.1)).indicators
     expect(poor.price_food).toBeUndefined()
