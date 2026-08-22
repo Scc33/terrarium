@@ -28,18 +28,25 @@
 
 import { SECTOR_IDS, type CapacityId, type DialPath, type SectorId } from '@terrarium/engine'
 import { SECTOR_NAMES } from './components/labels'
-import type { CabinetGroup } from './cabinetNavigation'
+import { CABINET_GROUPS, type CabinetGroup } from './cabinetNavigation'
 
 export interface LeverCopy {
   /** the cabinet's own label for the row */
   label: string
+  /** which drawer of the cabinet this lever sits in. It lives on the lever
+   * rather than in a list of drawers so that the COMPILER asks the question: a
+   * new `DialPath` cannot exist without an answer, and therefore cannot be
+   * absent from the cabinet or the handbook. Ordering within a drawer follows
+   * declaration order in this table, so the table reads top to bottom the way
+   * the rail does. */
+  group: LeverGroupId
   /** the hint under the slider: what this lever is, in plain words */
   hint: string
   /** the handbook's second sentence: what raising it costs, and who minds */
   resists: string
 }
 
-const SUBSIDY_COPY: Record<SectorId, Omit<LeverCopy, 'label'>> = {
+const SUBSIDY_COPY: Record<SectorId, Pick<LeverCopy, 'hint' | 'resists'>> = {
   agri: {
     hint: 'A quarterly payment to farms. It holds food prices down, which reaches the poorest households first.',
     resists:
@@ -70,72 +77,84 @@ const SUBSIDY_COPY: Record<SectorId, Omit<LeverCopy, 'label'>> = {
 export const LEVER_COPY: Record<DialPath, LeverCopy> = {
   'taxRates.income': {
     label: 'Income',
+    group: 'TAXATION',
     hint: 'A tax on workers’ pay. A weak tax office collects less than the posted rate.',
     resists:
       'Almost everybody minds a rise, the landed and the unions most. It is the broadest base you have, so it is also the rate that raises real money in a poor country.',
   },
   'taxRates.corporate': {
     label: 'Corporate',
+    group: 'TAXATION',
     hint: 'A tax on company profits. A weak tax office collects less than the posted rate.',
     resists:
       'Industry minds this more than any other rate, and finance is close behind. Labour is the one bloc that is pleased by it.',
   },
   'taxRates.tariff': {
     label: 'Tariff',
+    group: 'TAXATION',
     hint: 'A tax on imported goods, collected at the border. It raises import prices.',
     resists:
       'The easiest tax to collect when the tax office is weak, because it is collected at a port rather than a ledger. Industry and the landed interest want it HIGHER — a tariff is protection before it is revenue — so the objection comes from finance and from labour, who pay it in the price of everything imported.',
   },
   'taxRates.fuel': {
     label: 'Fuel excise',
+    group: 'TAXATION',
     hint: 'A tax on fuel. It raises transport costs, which can raise food and other prices.',
     resists:
       'It is the clearest example of the model having no scripted rules: nothing connects fuel to bread except transport being an input to agriculture. Industry, labour and the landed all mind it.',
   },
   'spending.transfers': {
     label: 'Transfers',
+    group: 'SPENDING',
     hint: 'Cash paid to households, including pensions and relief. A weak civil service loses part before it arrives.',
     resists:
       'Labour is pleased and finance is not. Retirees and rural workers spend essentially all of what they receive, so this is the budget line that does most to lift demand — and the hardest to walk back, because a cut is itself a policy.',
   },
   'spending.procurement': {
     label: 'Procurement',
+    group: 'SPENDING',
     hint: 'Goods and services bought by the government. It raises demand now and adds to spending.',
     resists:
       'Industry is pleased to sell to you. It buys output this quarter and nothing at all in the next one.',
   },
   'spending.investment': {
     label: 'Public works',
+    group: 'SPENDING',
     hint: 'Roads, power and other useful assets. It raises demand now and productive capacity later.',
     resists:
       'The same money as procurement, spent so that it is still there in twenty years. Industry and labour both gain; the money interest prices the borrowing.',
   },
   'spending.research': {
     label: 'Research grants',
+    group: 'SPENDING',
     hint: 'Grants for better production methods. Schools provide researchers; a weak civil service loses part of the money.',
     resists:
       'Money enters a research stock and decays, so gains follow the stock rather than the cheque — a steady programme is worth far more than a large one-off. Far from the frontier it adapts what already exists; close to it, progress slows to original work.',
   },
   immigrationLimit: {
     label: 'Immigration ceiling',
+    group: 'MIGRATION',
     hint: 'The most people the country will admit each year, as a share of the population. Zero closes the border to arrivals, but cannot stop residents leaving.',
     resists:
       'It is a ceiling, not a target: how many people actually want to come is decided by jobs here and living standards relative to everywhere else. Arrivals are working-age, so they widen the labour force before they widen the pyramid — and above ordinary churn they move bloc favour and unrest.',
   },
   policyRate: {
     label: 'Policy rate',
+    group: 'MONEY',
     hint: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
     resists:
       'Finance is pleased by a rise, industry and labour are not. Cheap money is also how a bubble is paid for: the crisis a player gets is the one their own rate cut earned.',
   },
   assetPurchaseRate: {
     label: 'Asset purchases',
+    group: 'MONEY',
     hint: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
     resists:
       'Industry and labour want it; the money interest is the one that minds, because it is the state setting the price of the assets they hold. It works on the same channel a rate cut does, so the two stack — and so does the bubble they pay for.',
   },
   capitalRequirement: {
     label: 'Bank capital floor',
+    group: 'MONEY',
     hint: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
     resists:
       'Finance minds this more than anything else on the desk. At the inherited floor the requirement is slack in a boom and bites only after a crisis has written capital down — raise it in the good years or it is not a macroprudential lever at all.',
@@ -143,7 +162,7 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [
       `subsidies.${sid}`,
-      { label: SECTOR_NAMES[sid], ...SUBSIDY_COPY[sid] },
+      { label: SECTOR_NAMES[sid], group: 'SUBSIDIES' as const, ...SUBSIDY_COPY[sid] },
     ]),
   ) as Record<`subsidies.${SectorId}`, LeverCopy>),
 }
@@ -191,59 +210,83 @@ export const CAPACITY_COPY: Record<CapacityId, CapacityCopy> = {
   },
 }
 
-export interface LeverGroup {
-  group: Exclude<CabinetGroup, 'STATE CAPACITY' | 'INSTITUTIONS' | 'THE ROOM'>
+/**
+ * The drawers of the cabinet that hold levers.
+ *
+ * Derived from `CabinetGroup` by subtraction rather than listed, so the three
+ * drawers the rail paints itself — capacity, institutions, the whip count —
+ * are the only exceptions, and a NEW cabinet group is a lever drawer until
+ * somebody says otherwise. That makes `DRAWERS` below a total `Record`, so the
+ * group cannot reach the cabinet without a brief and a question.
+ */
+export type LeverGroupId = Exclude<CabinetGroup, 'STATE CAPACITY' | 'INSTITUTIONS' | 'THE ROOM'>
+
+export interface DrawerCopy {
   /** the cabinet tab's short name */
   tab: string
   /** what this drawer is for */
   brief: string
   /** the question the drawer is an answer to */
   question: string
-  paths: readonly DialPath[]
 }
 
-export const LEVER_GROUPS: readonly LeverGroup[] = [
-  {
-    group: 'TAXATION',
+const DRAWERS: Record<LeverGroupId, DrawerCopy> = {
+  TAXATION: {
     tab: 'REVENUE',
     brief:
       'Choose who finances the state. Collection strength decides how much of each posted rate reaches the treasury.',
     question: 'Who carries the tax burden?',
-    paths: ['taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel'],
   },
-  {
-    group: 'SPENDING',
+  SPENDING: {
     tab: 'SPENDING',
     brief:
       'Choose whether each programme stays fixed, rises with prices, or stays a share of the latest official output figure.',
     question: 'What should each programme follow?',
-    paths: ['spending.transfers', 'spending.procurement', 'spending.investment', 'spending.research'],
   },
-  {
-    group: 'MONEY',
+  MONEY: {
     tab: 'CENTRAL BANK',
     brief:
       'Set interest rates, support lending when rates hit zero, and decide how much of their own money banks must put at risk.',
     question: 'How much financial risk should the state carry?',
-    paths: ['policyRate', 'assetPurchaseRate', 'capitalRequirement'],
   },
-  {
-    group: 'MIGRATION',
+  MIGRATION: {
     tab: 'BORDERS',
     brief:
       'Set the annual ceiling on arrivals as a share of the resident population. Jobs and relative living standards decide how many people want to come or leave; this order limits immigration only.',
     question: 'How many arrivals will the country admit?',
-    paths: ['immigrationLimit'],
   },
-  {
-    group: 'SUBSIDIES',
+  SUBSIDIES: {
     tab: 'INDUSTRY',
     brief:
       'Direct quarterly support to particular sectors. Subsidies can relieve a bottleneck, but they are recurring claims on the budget.',
     question: 'Which industries get support?',
-    paths: SECTOR_IDS.map((sid) => `subsidies.${sid}` as DialPath),
   },
-]
+}
+
+export interface LeverGroup extends DrawerCopy {
+  group: LeverGroupId
+  paths: readonly DialPath[]
+}
+
+/** Every lever the engine defines, in the order this file declares them. */
+export const LEVER_PATHS = Object.keys(LEVER_COPY) as DialPath[]
+
+/**
+ * The cabinet's drawers, assembled rather than authored.
+ *
+ * Drawer order follows `CABINET_GROUPS`, which is the one place tab order is
+ * decided; membership follows each lever's own `group`. Nothing here is a
+ * second list that can disagree with a first, which is the whole point: the
+ * earlier version of this file WAS a hand-written array, and a lever missing
+ * from it compiled perfectly and simply never appeared on either screen.
+ */
+export const LEVER_GROUPS: readonly LeverGroup[] = CABINET_GROUPS.filter(
+  (group): group is LeverGroupId => group in DRAWERS,
+).map((group) => ({
+  group,
+  ...DRAWERS[group],
+  paths: LEVER_PATHS.filter((path) => LEVER_COPY[path].group === group),
+}))
 
 /** The drawer metadata the cabinet prints above its sliders, by group. */
 export function leverGroup(group: CabinetGroup): LeverGroup | undefined {

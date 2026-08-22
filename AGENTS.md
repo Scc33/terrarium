@@ -107,8 +107,10 @@ can be tested — anything pushed into a component becomes untestable:
   `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
   is documented the quarter it ships, and cannot ship unnamed. Only prose about MECHANISM is
   authored. `levers.ts` is where a dial's WORDS live; `ControlRail` keeps only the slider's
-  arithmetic. `LEVER_GROUPS` is an array, so `tests/ui/levers.test.ts` is what checks it covers
-  every `DialPath` — same hole as `INDICATOR_SPECS`.
+  arithmetic — and a lever names its own cabinet drawer there, so the drawers are ASSEMBLED and
+  a new `DialPath` cannot compile without a home. The one list the manual copies by hand is the
+  tick order (`TICK_ORDER` is across the import boundary); `tests/ui/manual.test.ts` crosses it
+  and fails by name when a pipeline step moves.
 - **`ui/src/walkthrough.ts`** — the opening tour's six cards. A card must never sit on the side
   of the screen its own subject is on (pinned by `tests/ui/walkthrough.test.ts`, and again in
   the browser by the `walkthrough-wall` visual test) — a tour card covering the thing it points

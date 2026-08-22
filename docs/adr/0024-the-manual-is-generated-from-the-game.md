@@ -78,9 +78,18 @@ would fail when a lever changed.
 - `tests/ui/manual.test.ts` asserts the generation is still wired to the id lists — every
   instrument by its plate, every bloc and class by its name, every rule by its label. A
   hand-typed copy that once matched them fails there.
-- `LEVER_GROUPS` is an ARRAY, so the compiler cannot check it covers every `DialPath`;
-  `tests/ui/levers.test.ts` does. This is the same shape of hole `INDICATOR_SPECS` has, and it
-  is worth knowing it is there.
+- Where the copy tables can be made *load-bearing* rather than parallel, they are. A lever
+  names its own cabinet drawer in `LEVER_COPY`, and the drawers are assembled from that — so a
+  new `DialPath` cannot compile without saying where it belongs, and cannot be absent from the
+  cabinet or the handbook. The drawer table is total over the lever-bearing `CabinetGroup`s,
+  derived by subtraction, so a new cabinet group needs a brief and a question to compile too.
+  What is left for a test is only what the compiler cannot see: that no drawer is empty, and
+  that the emergent layout is still the one somebody meant.
+- The order of a quarter is the one list the manual copies by hand, because `TICK_ORDER` is on
+  the far side of the import boundary. `tests/ui/manual.test.ts` crosses that boundary — a test
+  may, where production code may not — and fails by name when a pipeline step is added, renamed
+  or reordered. So the schema-version event that changes the tick order also asks somebody to
+  write the sentence explaining it.
 - The prose about mechanism CAN go stale — a retune of a channel the manual describes in words
   will not fail anything. That is accepted: the alternative is not describing mechanism, and
   mechanism is the thing the issues were actually asking for.

@@ -24,6 +24,7 @@ import {
   SECTOR_IDS,
 } from '@terrarium/engine'
 import { INDICATOR_IDS } from '@terrarium/observation'
+import { TICK_ORDER } from '../../packages/engine/src/pipeline/pipeline'
 import { BLOC_NAMES, COHORT_NAMES, INSTITUTION_NAMES, NAMES } from '../../packages/ui/src/components/labels'
 import { RULE_COPY } from '../../packages/ui/src/gameRules'
 import { CAPACITY_COPY, LEVER_COPY, LEVER_GROUPS } from '../../packages/ui/src/levers'
@@ -198,6 +199,68 @@ describe('jumping to a search result', () => {
           `${query} → ${hit.chapter}/${hit.heading}`,
         ).toBe(true)
       }
+    }
+  })
+})
+
+/**
+ * The one chapter that copies a list out of the engine by hand.
+ *
+ * Everything else the manual enumerates is generated from an id list, so it
+ * cannot drift. The order of a quarter cannot be: `TICK_ORDER` lives behind the
+ * import boundary — only the worker may touch the engine's pipeline — so the
+ * chapter describes sixteen steps in prose the UI cannot derive.
+ *
+ * A test can cross that boundary where production code may not, which is the
+ * same trick `tests/unit/indicator-specs.test.ts` uses one layer down. Adding,
+ * removing, renaming or reordering a pipeline step now fails here BY NAME, so
+ * the schema-version event that changes the tick order also asks somebody to
+ * write the sentence explaining it.
+ */
+describe('the order of a quarter still matches the engine', () => {
+  const TERMS: Record<string, string> = {
+    shocks: 'Shocks',
+    demography: 'Demography',
+    technology: 'Technology',
+    world: 'The world',
+    finance: 'Finance',
+    foreignInvestment: 'Foreign investment',
+    production: 'Production',
+    trade: 'Trade',
+    fiscal: 'Fiscal',
+    monetary: 'Monetary',
+    prices: 'Prices',
+    labor: 'Labour',
+    cohorts: 'Classes',
+    institutions: 'Institutions',
+    statistics: 'Statistics',
+    politics: 'Politics',
+  }
+
+  const section = manualChapter('economy').sections.find(
+    (s) => s.heading === 'THE ORDER OF A QUARTER',
+  )!
+  const entries = section.entries ?? []
+
+  it('names every pipeline step, in the engine’s own order', () => {
+    const expected = TICK_ORDER.map((step) => {
+      const term = TERMS[step.name]
+      expect(term, `pipeline step '${step.name}' has no entry in the handbook`).toBeDefined()
+      return term
+    })
+    expect(entries.map((entry) => entry.term)).toEqual(expected)
+  })
+
+  it('numbers them 1..n so the reader can follow the sequence', () => {
+    expect(entries.map((entry) => entry.meta)).toEqual(
+      TICK_ORDER.map((_, index) => String(index + 1)),
+    )
+  })
+
+  it('describes each one rather than restating its name', () => {
+    for (const entry of entries) {
+      expect(entry.detail.length, entry.term).toBeGreaterThan(40)
+      expect(entry.detail, entry.term).not.toBe(entry.term)
     }
   })
 })
