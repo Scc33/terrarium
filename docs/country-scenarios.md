@@ -53,6 +53,58 @@ above the reform-window line. The position and legitimacy grades price that appa
 inequality, and unrest faces were widened to the measured cross-country envelope; the browser
 still pegs genuine extremes at the rails.
 
+## The year you take office
+
+A posting names a country **and a quarter** (ADR-0021). Every year on offer is a `FRONTIER_ERAS`
+boundary, because the frontier's growth schedule is the only calendar the engine keeps:
+
+| appointment | quarter | the world that quarter | left on the clock |
+|---|---:|---|---:|
+| 1946 · the settlement | 0 | frontier 2.0 %/yr | 104 years |
+| 1973 · the slowdown | 108 | frontier drops to 1.1 %/yr | 77 years |
+| 1995 · the new economy | 196 | frontier rises to 1.6 %/yr | 55 years |
+| 2005 · the long stagnation | 236 | frontier settles at 1.1 %/yr | 45 years |
+
+The years before the appointment are governed by a **caretaker administration** in the ordinary
+loop, and its orders are written into the save's action log, so a later posting is an ordinary
+replayable save. The caretaker holds the opening appropriations at their share of the economy
+and builds the four state capacities; it touches no other lever.
+
+What that produces is measured, not authored. Median over 48 seeds per cell, schema 28,
+2026-08-21 — re-measure with `pnpm inheritance` rather than trusting this, exactly as with the
+matrices above.
+
+| appointment | country | GDP × | GDP/head × | pop × | statistical | reporting | unemployment | debt/GDP |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 1973 | Meridia | 3.21 | 2.01 | 1.60 | 0.48 | 27/29 | 14.6 % | 0 % |
+| 1973 | Costona | 2.36 | 1.35 | 1.75 | 0.42 | 21/29 | 17.1 % | 0 % |
+| 1973 | Veltravia | 2.91 | 2.43 | 1.20 | 0.65 | 29/29 | 9.4 % | 38 % |
+| 1973 | Oranga | 3.56 | 2.63 | 1.35 | 0.70 | 29/29 | 9.3 % | 38 % |
+| 1973 | Kestrel | 3.31 | 2.07 | 1.60 | 0.47 | 27/29 | 13.4 % | 24 % |
+| 1995 | Meridia | 9.02 | 4.03 | 2.24 | 0.65 | 29/29 | 12.0 % | 0 % |
+| 1995 | Costona | 7.09 | 2.80 | 2.53 | 0.61 | 29/29 | 15.8 % | 0 % |
+| 1995 | Veltravia | 6.68 | 4.30 | 1.55 | 0.77 | 29/29 | 9.4 % | 0 % |
+| 1995 | Oranga | 8.70 | 4.75 | 1.82 | 0.80 | 29/29 | 9.4 % | 0 % |
+| 1995 | Kestrel | 10.17 | 4.42 | 2.30 | 0.64 | 29/29 | 11.4 % | 0 % |
+| 2005 | Meridia | 13.45 | 5.23 | 2.57 | 0.70 | 29/29 | 10.9 % | 0 % |
+| 2005 | Costona | 11.59 | 3.99 | 2.90 | 0.67 | 29/29 | 14.4 % | 0 % |
+| 2005 | Veltravia | 9.35 | 5.35 | 1.74 | 0.81 | 29/29 | 8.9 % | 0 % |
+| 2005 | Oranga | 12.25 | 5.93 | 2.07 | 0.84 | 29/29 | 9.4 % | 0 % |
+| 2005 | Kestrel | 15.70 | 5.94 | 2.65 | 0.70 | 29/29 | 10.4 % | 0 % |
+
+Three things to read out of it, none of them tuned for:
+
+- **1973 is the appointment with a fiscal inheritance.** Veltravia and Oranga still carry real
+  debt; everyone is debt-free by 1995, because the caretaker's tax collection outgrows even
+  GDP-share appropriations (investigation 0008 explains the mechanism at greater length). If a
+  later posting should hand over a balance sheet, that is a debt-model question, not an
+  appointment one.
+- **The elevated unemployment is the §8 youth bulge, on schedule.** It peaks around 1973 and is
+  worked off by 2005 — the same mechanism the passive century earns, and the reason a 1973
+  Costona is a harder game than a 1946 one despite being twice as rich.
+- **Aggregate growth is mostly demography in the poor countries.** Costona's output is 2.36×
+  by 1973 on 1.75× the people. Read the per-head column beside it (investigation 0007).
+
 ## Countries players write
 
 A country the player authored is the same thing as a curated one — an immutable `CountryParams`

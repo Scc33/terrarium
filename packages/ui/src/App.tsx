@@ -53,6 +53,10 @@ export default function App() {
   /** the draft currently open in the drafting room, and the country it was
    * opened from — the origin is what the DRAFTED marks are measured against */
   const [editing, setEditing] = useState<{ draft: CountryDocument; origin: CountryDocument } | null>(null)
+  /** the quarter the player takes office (ADR-0021). It lives here rather than
+   * in the posting room because the drafting room's own ACCEPT starts a game
+   * too, and a year chosen next door is still the year that player means. */
+  const [appointedAt, setAppointedAt] = useState(0)
   const [cabinetOpen, setCabinetOpen] = useState(false)
   const [devOpen, setDevOpen] = useState(false)
   const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
@@ -166,6 +170,8 @@ export default function App() {
     setEditing({ draft: doc, origin: doc })
   }
   const postingRoom = {
+    appointedAt,
+    onAppointedAt: setAppointedAt,
     drafts,
     onNewDraft: (from: CuratedCountryId) => openDraft(draftFrom(from)),
     onEditDraft: openDraft,
@@ -185,7 +191,7 @@ export default function App() {
         setEditing(null)
         setOverlay(null)
         setStartup('loading')
-        newDraftedGame(doc)
+        newDraftedGame(doc, undefined, undefined, appointedAt)
       }}
     />
   )
@@ -203,11 +209,11 @@ export default function App() {
             notice={loadError}
             onStart={(country, seed, rules) => {
               setStartup('loading')
-              newGame(country, seed, rules)
+              newGame(country, seed, rules, appointedAt)
             }}
             onStartDraft={(doc, seed, rules) => {
               setStartup('loading')
-              newDraftedGame(doc, seed, rules)
+              newDraftedGame(doc, seed, rules, appointedAt)
             }}
           />
           {draftingRoom}
@@ -309,11 +315,11 @@ export default function App() {
           {...postingRoom}
           onCancel={() => setOverlay(null)}
           onStart={(country, seed, rules) => {
-            newGame(country, seed, rules)
+            newGame(country, seed, rules, appointedAt)
             setOverlay(null)
           }}
           onStartDraft={(doc, seed, rules) => {
-            newDraftedGame(doc, seed, rules)
+            newDraftedGame(doc, seed, rules, appointedAt)
             setOverlay(null)
           }}
         />

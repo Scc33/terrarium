@@ -270,6 +270,13 @@ const DIALS: Record<DialPath, DialSpec> = {
  * constraint is lifted. */
 function spendPc(s: TrueState, cost: number, what: string): TrueState {
   if (s.meta.rules.unlimitedCapital) return s
+  // The caretaker's bill is not the player's (ADR-0021). Before the
+  // appointment the political clock is stopped — no accrual, no ballot, no
+  // deposition — so charging a stock that cannot refill would make the
+  // inheritance a function of how the first twenty capital points happened to
+  // fall rather than of the country. Everything else about the order stands:
+  // it is quoted at its veto-loaded price and the blocs spend favour on it.
+  if (s.meta.tick < s.meta.appointedAt) return s
   if (s.politics.politicalCapital < cost) {
     throw new IllegalActionError(
       `not enough political capital for ${what}: need ${cost.toFixed(1)}, have ${s.politics.politicalCapital.toFixed(1)}`,

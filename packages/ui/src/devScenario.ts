@@ -13,10 +13,10 @@
  * and arithmetic pushed into a component is arithmetic nobody can test.
  */
 
-import type { CapacityId, CountryParams, CountryScenarioId } from '@terrarium/engine'
+import { FIRST_YEAR, type CapacityId, type CountryParams, type CountryScenarioId } from '@terrarium/engine'
 
 /** quarters since 1946Q1 is the engine's clock; this is its human face */
-export const YEAR_ZERO = 1946
+export const YEAR_ZERO = FIRST_YEAR
 
 export const yearOfTick = (tick: number): number => YEAR_ZERO + Math.floor(tick / 4)
 

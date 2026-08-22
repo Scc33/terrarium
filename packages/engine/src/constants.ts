@@ -859,3 +859,16 @@ export const POSITION_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C
   { atLeast: 0.35, grade: 'C' },
   { atLeast: 0.12, grade: 'D' },
 ] // below: F — the country spent your whole tenure outside the corridor
+
+// ---------- the caretaker administration (ADR-0021) ----------
+/** How the years before a later appointment are governed. Deliberately the
+ * same numbers as the runner's `developmental` policy, so the interregnum is a
+ * measured baseline rather than a second model of government behaviour — but
+ * NOT shared with it: the runner's baselines are a published measurement of the
+ * engine, and coupling them to a game-facing constant would let a retune here
+ * silently invalidate the tables in `economics-review`. Retuning either number
+ * rewrites what every later posting inherits, and old saves are immune only
+ * because the caretaker's orders are written into them. Measure with
+ * `pnpm inheritance` before touching them. */
+export const CARETAKER_CAPACITY_EVERY = 8 // quarters between ministry programmes
+export const CARETAKER_CAPACITY_SPEND = 2 // money per programme, per ministry

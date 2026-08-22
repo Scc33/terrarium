@@ -739,6 +739,12 @@ export interface TrueState {
     seed: Seed
     /** part of the replay contract: a protected run must reload protected */
     rules: GameRules
+    /** The quarter the PLAYER takes office. Zero is the ordinary 1946 posting;
+     * a later appointment means the quarters before it were governed by a
+     * caretaker administration and belong to somebody else's record (ADR-0021).
+     * A replay input like `rules`, sealed into the save, because the same
+     * country, seed, and action log produce a different century without it. */
+    appointedAt: Qtr
   }
   params: CountryParams
   demography: DemographyState
@@ -773,7 +779,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 27 // v27: the game mode became a set of independent rules
+export const SCHEMA_VERSION = 28 // v28: the year you take office became a replay input
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
@@ -781,6 +787,27 @@ export const ELECTION_PERIOD = 16 // quarters
 export const CAMPAIGN_WINDOW = 2
 /** 1946Q1 + 416 quarters = 2050: the historians close the book */
 export const END_OF_HISTORY_TICK = 416
+/** Quarter zero. The engine counts quarters, not dates — this is the one place
+ * that knows which year quarter zero is, and the only reason it needs to is the
+ * frontier's growth schedule (`FRONTIER_ERAS`), which is written in calendar
+ * years because the history it imitates was. */
+export const FIRST_YEAR = 1946
+
+export const yearOfTick = (tick: Qtr): number => FIRST_YEAR + Math.floor(tick / 4)
+
+/** The first quarter of a calendar year. Unclamped: callers that take a year
+ * from a player or a save clamp it themselves (`appointmentTick`). */
+export const tickForYear = (year: number): Qtr => (Math.floor(year) - FIRST_YEAR) * 4
+
+/** Bring an arbitrary quarter back into the playable century. Anything the
+ * engine is handed becomes a legal appointment or it becomes 1946 — a save
+ * naming quarter 900, or NaN, must not open a game whose player never arrives.
+ * Lives here rather than beside the interregnum so `init` and its callers
+ * cannot disagree about what a legal appointment is. */
+export function appointmentTick(tick: number): Qtr {
+  if (!Number.isFinite(tick)) return 0
+  return Math.max(0, Math.min(END_OF_HISTORY_TICK, Math.floor(tick)))
+}
 
 export function sectorIndex(id: SectorId): number {
   return SECTOR_IDS.indexOf(id)

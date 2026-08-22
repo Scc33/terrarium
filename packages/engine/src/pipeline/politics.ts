@@ -80,6 +80,17 @@ export const politics: PipelineStep = {
 
     if (!pol.inPower) return state // deposed: the clock stops, the economy keeps breathing
 
+    // ADR-0021 the interregnum: on a later appointment the quarters before the
+    // player arrives are governed by a caretaker, and the political clock does
+    // not run for it. No ballot (nobody elected it), no deposition (the record
+    // says the country reached your appointment), and no accrual — so the
+    // capital the player inherits is the opening stock a 1946 government gets,
+    // not a quarter-century saturated at PC_MAX. The caretaker's orders are
+    // still quoted and the blocs still spend favour on every one, so the
+    // politics you take over is the one its programme earned. Inert at
+    // `appointedAt: 0`, where this is never true.
+    if (state.meta.tick < state.meta.appointedAt) return state
+
     const news: NewsItem[] = []
     const headline = headlineGdp(stats.series.gdp_growth)
     const salience = headline

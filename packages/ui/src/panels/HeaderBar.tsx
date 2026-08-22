@@ -1,11 +1,12 @@
 /** Thin ministry letterhead: who you are, when it is, what you can spend —
  * and the treasury's exact books inline (the only numbers you get raw). */
 
+import { FIRST_YEAR } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { Button, Metric, Tooltip, TooltipLabel } from '../components/ui'
 import { activeRuleMarks, capitalReading } from '../gameRules'
 
-const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
+const qtrLabel = (q: number) => `${FIRST_YEAR + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
 function HeaderGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (

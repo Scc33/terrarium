@@ -30,13 +30,13 @@ import {
   TECH_EXPOSURE,
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
-import { SECTOR_IDS, type NewsItem, type SectorId, type TrueState } from '../state/schema'
+import { FIRST_YEAR, SECTOR_IDS, type NewsItem, type SectorId, type TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { creativeDestruction } from './derive'
 
 /** annual frontier growth in force at a given quarter */
 export function frontierGrowthAt(tick: number): number {
-  const year = 1946 + tick / 4
+  const year = FIRST_YEAR + tick / 4
   let g = FRONTIER_ERAS[0].growthPerYear
   for (const era of FRONTIER_ERAS) if (year >= era.fromYear) g = era.growthPerYear
   return g

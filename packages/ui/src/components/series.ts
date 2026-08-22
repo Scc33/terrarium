@@ -6,6 +6,7 @@
  * from whatever happens to be in the current window.
  */
 
+import { FIRST_YEAR } from '@terrarium/engine'
 import type { IndicatorSeries } from '@terrarium/observation'
 
 export interface ShapedPoint {
@@ -173,4 +174,4 @@ export function quarterDelta(points: readonly ShapedPoint[]): number | null {
   return points[points.length - 1].value - points[points.length - 2].value
 }
 
-export const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
+export const qtrLabel = (q: number) => `${FIRST_YEAR + Math.floor(q / 4)} Q${(q % 4) + 1}`
