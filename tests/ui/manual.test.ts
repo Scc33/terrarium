@@ -32,6 +32,7 @@ import {
   MANUAL_CHAPTER_IDS,
   manualChapter,
   searchManual,
+  sectionAnchor,
   type ManualChapterId,
 } from '../../packages/ui/src/manual'
 
@@ -159,6 +160,44 @@ describe('search', () => {
       expect(MANUAL_CHAPTER_IDS).toContain(hit.chapter)
       expect(hit.heading).not.toBe('')
       expect(hit.text.length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('jumping to a search result', () => {
+  it('gives every section an id that is unique across the whole manual', () => {
+    // both ends build this string, so a collision sends a result to the wrong
+    // passage and an unstable slug sends it nowhere — both read as "the search
+    // opened the chapter cover"
+    const anchors = MANUAL_CHAPTERS.flatMap((chapter) =>
+      chapter.sections.map((section) => sectionAnchor(chapter.id, section.heading)),
+    )
+    expect(new Set(anchors).size).toBe(anchors.length)
+  })
+
+  it('emits ids a browser will accept, from headings full of punctuation', () => {
+    // real headings carry em dashes, middots and slashes
+    expect(sectionAnchor('cabinet', 'TAXATION — REVENUE')).toBe('manual-cabinet-taxation-revenue')
+    expect(sectionAnchor('figures', 'THE THREE THINGS A PRINT IS NOT')).toBe(
+      'manual-figures-the-three-things-a-print-is-not',
+    )
+    for (const anchor of MANUAL_CHAPTERS.flatMap((c) =>
+      c.sections.map((s) => sectionAnchor(c.id, s.heading)),
+    )) {
+      expect(anchor, anchor).toMatch(/^manual-[a-z0-9-]+$/)
+      expect(anchor.endsWith('-'), anchor).toBe(false)
+    }
+  })
+
+  it('lands every search hit on a section that exists', () => {
+    for (const query of ['immigration', 'revision', 'corridor', 'tariff']) {
+      for (const hit of searchManual(query)) {
+        const chapter = manualChapter(hit.chapter)
+        expect(
+          chapter.sections.some((section) => section.heading === hit.heading),
+          `${query} → ${hit.chapter}/${hit.heading}`,
+        ).toBe(true)
+      }
     }
   })
 })

@@ -137,10 +137,15 @@ export default function App() {
         setDevOpen((o) => !o)
         return
       }
+      // the tour keeps its own focus on NEXT, so Space belongs to that button
+      // rather than to the quarter. Returning BEFORE preventDefault is the
+      // whole point: swallowing the key here left the tour advancing on Enter
+      // only, with Space doing nothing at all.
+      if (tourStep !== null) return
       if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault()
         const s = useGame.getState()
-        if (overlay === null && !devOpen && tourStep === null && !s.advancing && s.published?.inPower) s.advance()
+        if (overlay === null && !devOpen && !s.advancing && s.published?.inPower) s.advance()
       }
     }
     window.addEventListener('keydown', onKey)

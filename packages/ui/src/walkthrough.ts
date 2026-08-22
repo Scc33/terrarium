@@ -80,7 +80,7 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     place: 'bottom-left',
     title: 'DRAFT, PRICE, ENACT',
     body: [
-      'Political capital is the budget for CHANGING things. It accrues from approval and from published growth, and every order is priced by how much the powerful blocs mind it.',
+      'Political capital is the budget for CHANGING things. It accrues from approval and from published growth, and rates, appropriations and reforms are each priced by how much the powerful blocs mind them. Building a ministry is not — that one is a flat price, however hostile the room.',
       'They can make a change expensive. They can never make it impossible — and the price you are quoted is the price you are charged.',
     ],
   },
@@ -90,7 +90,7 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     place: 'top-left',
     title: 'THE WIRE — RUMOUR, NOT STATISTICS',
     body: [
-      'Dispatches along the bottom. Some of them are wrong, on purpose: the wire is a lead worth investigating, never a reading worth acting on.',
+      'Dispatches along the bottom, of two kinds it does not distinguish. Events are reported straight — a drought, a crisis, an election. The rumours are not: they surface real conditions about three times in five, so a rumour is a lead worth investigating, never a reading worth acting on.',
     ],
   },
   {
@@ -111,7 +111,18 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
 export const placeSide = (place: TourPlace): 'left' | 'right' =>
   place.endsWith('right') ? 'right' : 'left'
 
-/** and which side of the screen each region occupies in the war room */
+/**
+ * Which side of the screen each region occupies **in the desktop war room** —
+ * the two-column layout at `xl` and up, which is the reference viewport this
+ * project pins everything against (1280×720).
+ *
+ * Below `xl` the cabinet collapses into a drawer and the wall spans the full
+ * width, so there is no corner of the screen that is not the wall and the
+ * invariant below cannot be satisfied by any placement. That is a real
+ * limitation of a corner card on a small screen rather than a bug to fix by
+ * moving it: the small-screen page scrolls, the card is dismissible, and the
+ * alternative — a modal — covers the wall completely instead of partly.
+ */
 export const targetSide = (target: TourTarget): 'left' | 'right' | 'full' =>
   target === 'cabinet' || target === 'enact' ? 'right' : target === 'wall' ? 'left' : 'full'
 

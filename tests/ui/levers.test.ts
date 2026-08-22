@@ -12,27 +12,33 @@ import { describe, expect, it } from 'vitest'
 import { CAPACITY_IDS, SECTOR_IDS, type DialPath } from '@terrarium/engine'
 import { CAPACITY_COPY, LEVER_COPY, LEVER_GROUPS, leverGroup } from '../../packages/ui/src/levers'
 
-const ALL_PATHS: DialPath[] = [
-  'taxRates.income',
-  'taxRates.corporate',
-  'taxRates.tariff',
-  'taxRates.fuel',
-  'spending.transfers',
-  'spending.procurement',
-  'spending.investment',
-  'spending.research',
-  'immigrationLimit',
-  'policyRate',
-  'assetPurchaseRate',
-  'capitalRequirement',
-  ...SECTOR_IDS.map((sid) => `subsidies.${sid}` as DialPath),
-]
+/**
+ * Every lever the engine has, taken from the runtime keys of the total copy
+ * table rather than typed out here.
+ *
+ * A hand-written list looks equivalent and is not. `LEVER_COPY` is a `Record`
+ * over `DialPath`, so a new lever forces an entry there — but nothing forces a
+ * literal array in a test file to grow. If a new path were then also missed in
+ * `LEVER_GROUPS`, which is the exact omission this file exists to catch, BOTH
+ * sides of the comparison would be missing it and the test would pass while
+ * the lever was absent from the cabinet and the handbook alike.
+ */
+const ALL_PATHS = Object.keys(LEVER_COPY) as DialPath[]
 
 describe('the cabinet drawers', () => {
   it('reach every lever the engine has, exactly once', () => {
     const grouped = LEVER_GROUPS.flatMap((group) => group.paths)
     expect(new Set(grouped).size).toBe(grouped.length)
     expect([...grouped].sort()).toEqual([...ALL_PATHS].sort())
+  })
+
+  it('is checking against a list that cannot silently shrink', () => {
+    // the guard on the guard: ALL_PATHS is derived, so this pins that the
+    // derivation still sees every family of lever the engine defines
+    expect(ALL_PATHS).toContain('taxRates.income')
+    expect(ALL_PATHS).toContain('policyRate')
+    for (const sid of SECTOR_IDS) expect(ALL_PATHS).toContain(`subsidies.${sid}`)
+    expect(ALL_PATHS.length).toBeGreaterThanOrEqual(11 + SECTOR_IDS.length)
   })
 
   it('finds a drawer by the name the cabinet navigates by', () => {

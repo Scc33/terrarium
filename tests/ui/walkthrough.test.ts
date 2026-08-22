@@ -39,7 +39,9 @@ describe('the tour', () => {
     }
   })
 
-  it('never puts a card on top of the thing it is pointing at', () => {
+  it('never puts a card on top of the thing it is pointing at, at desktop widths', () => {
+    // scoped to the two-column layout on purpose: below `xl` the wall spans
+    // the full width and no placement can satisfy this. See `targetSide`.
     for (const step of WALKTHROUGH_STEPS) {
       if (!step.target) continue
       const region = targetSide(step.target)

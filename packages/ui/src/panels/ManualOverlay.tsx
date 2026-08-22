@@ -14,12 +14,13 @@
  * rather than on the first one.
  */
 
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Button, SectionHeading } from '../components/ui'
 import {
   MANUAL_CHAPTERS,
   manualChapter,
   searchManual,
+  sectionAnchor,
   type ManualChapterId,
   type ManualEntry,
   type ManualSection,
@@ -43,9 +44,22 @@ function EntryRow({ entry }: { entry: ManualEntry }) {
   )
 }
 
-function SectionBlock({ section }: { section: ManualSection }) {
+function SectionBlock({
+  section,
+  anchor,
+  landed,
+}: {
+  section: ManualSection
+  anchor: string
+  /** arrived here from a search result — marked so the eye can find the
+   * passage the result promised, which a bare scroll position does not do */
+  landed: boolean
+}) {
   return (
-    <section className="mb-5">
+    <section
+      id={anchor}
+      className={`mb-5 scroll-mt-2 ${landed ? 'border-l-2 border-dossier-brass bg-dossier-brass/8 pl-2.5' : ''}`}
+    >
       <SectionHeading>{section.heading}</SectionHeading>
       {section.body?.map((paragraph) => (
         <p key={paragraph.slice(0, 40)} className="mb-2 font-dossier text-[13px] leading-relaxed text-dossier-ink/85">
@@ -74,8 +88,20 @@ export function ManualOverlay({
 }) {
   const [openId, setOpenId] = useState<ManualChapterId>(initialChapter)
   const [query, setQuery] = useState('')
+  /** the section a search result asked for, so the chapter opens AT the
+   * passage. A 29-instrument chapter scrolled to the top is a result that
+   * pointed at an answer and delivered a cover page. */
+  const [landing, setLanding] = useState<string | null>(null)
   const searchId = useId()
   const hits = useMemo(() => searchManual(query), [query])
+
+  // the chapter has to be on screen before the section can be scrolled to, so
+  // this runs after the render that switched chapters rather than in the click
+  useEffect(() => {
+    if (!landing) return
+    const target = document.getElementById(landing)
+    target?.scrollIntoView({ block: 'start', behavior: 'auto' })
+  }, [landing, openId])
   const searching = query.trim().length >= 2
   const open = manualChapter(openId)
 
@@ -108,6 +134,7 @@ export function ManualOverlay({
                 onClick={() => {
                   setQuery('')
                   setOpenId(chapter.id)
+                  setLanding(null)
                 }}
                 className={`border px-2 py-1.5 text-left font-mono text-[9px] font-semibold tracking-[0.16em] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dossier-brass ${
                   selected
@@ -148,6 +175,7 @@ export function ManualOverlay({
                       onClick={() => {
                         setQuery('')
                         setOpenId(hit.chapter)
+                        setLanding(sectionAnchor(hit.chapter, hit.heading))
                       }}
                       className="w-full border border-dossier-ink/15 px-2.5 py-1.5 text-left hover:border-dossier-brass focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dossier-brass"
                     >
@@ -170,9 +198,17 @@ export function ManualOverlay({
               <h2 className="font-mono text-[12px] font-semibold tracking-[0.24em] text-dossier-ink">{open.title}</h2>
               <p className="mt-1 font-dossier text-[12px] italic text-dossier-ink/60">{open.blurb}</p>
             </header>
-            {open.sections.map((section) => (
-              <SectionBlock key={section.heading} section={section} />
-            ))}
+            {open.sections.map((section) => {
+              const anchor = sectionAnchor(open.id, section.heading)
+              return (
+                <SectionBlock
+                  key={section.heading}
+                  section={section}
+                  anchor={anchor}
+                  landed={landing === anchor}
+                />
+              )
+            })}
           </article>
         )}
       </div>

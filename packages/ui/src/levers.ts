@@ -15,7 +15,12 @@
  * is the one thing the compiler cannot check about an array.
  *
  * The `resists` line is read off `DIAL_STANCE` in `engine/src/actions/apply.ts`
- * and describes a RISE in the dial — a cut reverses it. It is prose rather
+ * and describes a RISE in the dial — a cut reverses it. Mind the sign: in that
+ * table POSITIVE means the bloc minds an increase and NEGATIVE means they want
+ * it higher, so a tariff (`industrialists: -0.5`) is a lever industry is
+ * pushing FOR. Reading it the other way is how the first draft of this file
+ * told players that finance welcomes asset purchases and industry resents
+ * protection, both exactly backwards. It is prose rather
  * than a derived number on purpose: the price the room actually quotes is
  * published per action by `politicalCostOfAction`, and a second computed
  * quote would be a second source of truth for what an order costs.
@@ -38,27 +43,27 @@ const SUBSIDY_COPY: Record<SectorId, Omit<LeverCopy, 'label'>> = {
   agri: {
     hint: 'A quarterly payment to farms. It holds food prices down, which reaches the poorest households first.',
     resists:
-      'Cheap food is a subsidy to every wage in the country, so industry rather likes it — but it is a standing claim on the budget, and the money interest counts it in the deficit.',
+      'The landed interest wants this one more than it wants anything else on the desk. The money interest is the objection: it is a standing claim on the budget, and they count it in the deficit.',
   },
   manuf: {
     hint: 'A quarterly payment to factories and mills. It cuts their costs, which shows up in output and in industrial jobs.',
     resists:
-      'Industry and the unions both welcome it. Lenders do not: it is recurring spending, and they price your deficit accordingly.',
+      'Industry wants it, and wants it strongly. Lenders do not: it is recurring spending, and they price your deficit accordingly.',
   },
   energy: {
     hint: 'A quarterly payment to power and fuel producers. It holds fuel prices down, which reaches transport and then everything transport carries.',
     resists:
-      'Broadly welcomed, and broadly expensive — fuel is an input to every other sector, so this is the subsidy that most quietly grows.',
+      'Industry wants it and finance minds it, like every subsidy — but this is the one that most quietly grows, because fuel is an input to every other sector.',
   },
   services: {
     hint: 'A quarterly payment to the service trades. It is the least mechanical of the five: services are furthest from their technical frontier, so relief here mostly shows up as prices rather than output.',
     resists:
-      'Few enemies and few effects. Read the sector prices before treating it as growth policy.',
+      'The weakest opinions on the board in both directions, and the weakest effects. Read the sector prices before treating it as growth policy.',
   },
   transport: {
     hint: 'A quarterly payment to haulage and rail. It lowers the cost of moving everything else, so it reaches food and manufactured prices second-hand.',
     resists:
-      'Industry welcomes cheaper freight. As with every subsidy, all of it hits the budget and only part of it survives delivery.',
+      'Industry wants cheaper freight; finance minds the standing cost. As with every subsidy, all of it hits the budget and only part of it survives delivery.',
   },
 }
 
@@ -79,7 +84,7 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
     label: 'Tariff',
     hint: 'A tax on imported goods, collected at the border. It raises import prices.',
     resists:
-      'The easiest tax to collect when the tax office is weak, because it is collected at a port rather than a ledger. Industry and the landed interest both lose by it; finance does not mind.',
+      'The easiest tax to collect when the tax office is weak, because it is collected at a port rather than a ledger. Industry and the landed interest want it HIGHER — a tariff is protection before it is revenue — so the objection comes from finance and from labour, who pay it in the price of everything imported.',
   },
   'taxRates.fuel': {
     label: 'Fuel excise',
@@ -127,7 +132,7 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
     label: 'Asset purchases',
     hint: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
     resists:
-      'Finance welcomes it; industry and labour see the asset prices before they see the lending. It works on the same channel a rate cut does, so the two stack.',
+      'Industry and labour want it; the money interest is the one that minds, because it is the state setting the price of the assets they hold. It works on the same channel a rate cut does, so the two stack — and so does the bubble they pay for.',
   },
   capitalRequirement: {
     label: 'Bank capital floor',
