@@ -226,6 +226,10 @@ rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a term
 - **Fog**: unchanged in kind. A later appointment inherits the statistical office the caretaker
   built — 21–29 of 29 instruments reporting by 1973, all 29 by 1995 — which is the point of
   having a caretaker at all rather than a passive fast-forward.
+- **Internal**: `livingStandard` now bootstraps on `meta.tick === 0` rather than on
+  `score.baselineWelfare === null`. Bit-identical for every 1946 run (the two agreed exactly
+  while scoring began at tick zero), and load-bearing for a later one: the vital rates' income
+  LEVEL and the report card's yardstick are the two anchors that must not be conflated.
 - Economy bit-identical to v27 at `appointedAt: 0` (`pnpm diff-state --moved-only` reports
   `meta.schemaVersion` and nothing else; passive century re-measured at 2.68 %/yr growth,
   0.11 % inflation, 11.85 % unemployment, 8 % deposed over 200×400q). What each appointment

@@ -12,8 +12,10 @@ import type { Action, ActionLog } from './actions/types'
 import { runTick } from './pipeline/pipeline'
 import { init as initState } from './state/init'
 import {
+  END_OF_HISTORY_TICK,
   ENGINE_VERSION,
   SCHEMA_VERSION,
+  appointmentTick,
   gameRules,
   type CountryParams,
   type GameMode,
@@ -41,6 +43,16 @@ export function step(s: TrueState): TrueState {
 }
 
 // ---------- saves ----------
+/** A save whose own replay inputs contradict each other. Distinct from
+ * `InvalidCountryError` (a vector this build refuses) because nothing is wrong
+ * with the country — the file's two numbers cannot both be true. */
+export class InvalidSaveError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'InvalidSaveError'
+  }
+}
+
 export interface SaveFile {
   version: { engine: string; schema: number }
   params: CountryParams
@@ -81,9 +93,24 @@ export function createSave(
 
 /** Replay a save to its current state. Deterministic by construction — the
  * caretaker's quarters replay from the log like every other quarter, which is
- * why the interregnum writes its orders down (ADR-0021). */
+ * why the interregnum writes its orders down (ADR-0021).
+ *
+ * A save cannot have stopped before its own government took office: replaying
+ * one hands back an INTERREGNUM as though it were a playable position, with the
+ * political clock frozen and every order quoted and then not charged. The
+ * worker refuses that at the door (`replayWindow` in `ui/src/saveFile.ts`), but
+ * this is the engine's own public API and tools and tests call it directly, so
+ * the invariant belongs on the save contract rather than on one caller.
+ * `untilTick` is unaffected — inspecting an earlier quarter of a legal run,
+ * including one inside its interregnum, is exactly what it is for. */
 export function replay(save: SaveFile, untilTick?: number): TrueState {
-  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard', save.appointedAt ?? 0)
+  const appointedAt = appointmentTick(save.appointedAt ?? 0)
+  if (appointedAt > Math.min(save.tick, END_OF_HISTORY_TICK)) {
+    throw new InvalidSaveError(
+      `the run was saved at quarter ${save.tick} but its government does not take office until ${appointedAt}`,
+    )
+  }
+  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard', appointedAt)
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
   const end = untilTick ?? save.tick
   while (s.meta.tick < end) {

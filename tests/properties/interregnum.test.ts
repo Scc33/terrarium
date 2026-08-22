@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 import {
   APPOINTMENTS,
   applyAction,
+  applyActions,
   appointmentTick,
   caretakerActions,
   createCountryParams,
@@ -24,7 +25,9 @@ import {
   END_OF_HISTORY_TICK,
   hashState,
   LAST_APPOINTMENT_TICK,
+  livingStandard,
   init,
+  InvalidSaveError,
   PC_START,
   replay,
   runInterregnum,
@@ -80,6 +83,21 @@ describe('a later posting is a real run', () => {
     },
   )
 
+  it('refuses a save that stopped before its own government took office', () => {
+    // the engine's own public API, not just the worker's door: replaying one
+    // hands back an interregnum as a playable position, with the political
+    // clock frozen and every order quoted and then not charged
+    const params = createCountryParams('meridia', 'contradiction')
+    const save = createSave(params, 'contradiction', [], 100, 'standard', tickForYear(2005))
+    expect(() => replay(save)).toThrow(InvalidSaveError)
+    expect(() => replay(save)).toThrow(/does not take office until/)
+    // …while inspecting an earlier quarter of a LEGAL run stays exactly what
+    // `untilTick` is for, interregnum quarters included
+    const legal = posting('meridia', 'contradiction', tickForYear(1973), 4)
+    const good = createSave(params, 'contradiction', legal.actionLog, legal.state.meta.tick, 'standard', tickForYear(1973))
+    expect(replay(good, 40).meta.tick).toBe(40)
+  })
+
   it('every offered appointment lands on the quarter it names', () => {
     for (const appointment of APPOINTMENTS) {
       expect(appointment.tick).toBe(tickForYear(appointment.year))
@@ -101,6 +119,42 @@ describe('a later posting is a real run', () => {
       }
     }
   })
+})
+
+describe('the appointment changes who is scored, never what happened', () => {
+  // The load-bearing invariant, and the one that catches a scoring gate
+  // reaching into the economy. `appointedAt` decides whose record the quarters
+  // belong to; it must not decide what the country DID in them.
+  it.each(CURATED_COUNTRY_IDS.map((id) => [id]))(
+    'gives %s the same century the same orders give a 1946 posting',
+    (country) => {
+      const appointedAt = tickForYear(1973)
+      const params = createCountryParams(country as never, 'same-century')
+      const { state, actionLog } = runInterregnum(params, 'same-century', 'standard', appointedAt)
+
+      // the caretaker's own orders, replayed from a 1946 appointment
+      let ordinary = init(params, 'same-century', 'standard', 0)
+      const byTick = new Map(actionLog.map((turn) => [turn.tick, turn.actions]))
+      while (ordinary.meta.tick < appointedAt) {
+        const acts = byTick.get(ordinary.meta.tick)
+        if (acts) ordinary = applyActions(ordinary, acts)
+        ordinary = step(ordinary)
+      }
+
+      // The demography is the sharp end: `livingStandard` bootstraps on the
+      // TICK, and when it read `score.baselineWelfare` instead, a whole
+      // interregnum ran at living = 1 — births 35.3 per 1000 against 26.0, no
+      // demographic transition, and a population 7.4% too large at handover.
+      expect(state.demography.pyramid).toEqual(ordinary.demography.pyramid)
+      expect(state.demography.tfr).toBe(ordinary.demography.tfr)
+      expect(state.demography.crudeBirthRate).toBe(ordinary.demography.crudeBirthRate)
+      expect(state.demography.mortalityIndex).toBe(ordinary.demography.mortalityIndex)
+      expect(state.flows.realGdp).toBe(ordinary.flows.realGdp)
+      expect(state.flows.unemployment).toBe(ordinary.flows.unemployment)
+      expect(state.gov.capacity).toEqual(ordinary.gov.capacity)
+      expect(livingStandard(state)).toBe(livingStandard(ordinary))
+    },
+  )
 })
 
 describe('the handover', () => {

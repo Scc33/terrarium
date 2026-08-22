@@ -77,6 +77,32 @@ describe('saveSchema', () => {
   })
 })
 
+describe('the appointment a save carries', () => {
+  const withAppointment = (appointedAt: unknown) => ({
+    ...createSave(createCountryParams('meridia', 'a'), 'a', [], 200, 'standard', 108),
+    appointedAt,
+  })
+
+  it('accepts a save that omits it, because that is what 1946 looks like', () => {
+    const preV28 = createSave(createCountryParams('meridia', 'a'), 'a', [], 40)
+    delete preV28.appointedAt
+    expect(looksLikeSave(preV28)).toBe(true)
+  })
+
+  it.each([
+    ['a stringified quarter', '108'],
+    ['null', null],
+    ['a fraction', 108.5],
+    ['a negative quarter', -4],
+    ['NaN', Number.NaN],
+  ])('refuses %s rather than quietly opening a 1946 posting', (_label, value) => {
+    // `appointmentTick` turns anything it cannot read into quarter zero, so
+    // without this gate a file naming 1973 opens 1946 — a different century
+    // from the same country, seed and log, with nothing said about it
+    expect(looksLikeSave(withAppointment(value))).toBe(false)
+  })
+})
+
 describe('the replay window a save asks for', () => {
   const at = (tick: number, appointedAt?: number) => replayWindow({ tick, appointedAt })
 

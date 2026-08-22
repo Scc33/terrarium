@@ -205,6 +205,16 @@ the country an existing save inherited (ADR-0011's argument). Four things are lo
 What each appointment actually hands over is MEASURED — `pnpm inheritance`, tabulated in
 `docs/country-scenarios.md`. Re-measure before changing `CARETAKER_CAPACITY_SPEND` or `_EVERY`.
 
+**The invariant that keeps all of it honest: the appointment decides who is SCORED for a
+quarter, never what the country did in it.** `tests/properties/interregnum.test.ts` replays the
+caretaker's own orders from a 1946 appointment and demands the same demography, the same GDP and
+the same capacities. It exists because the first version of this gated `livingStandard` on
+`score.baselineWelfare` — which is the report card's anchor, not the vital rates' — so a 1973
+interregnum ran its entire 27 years at a constant income level: no demographic transition, births
+at 35.3 per 1000 against 26.0, populations up to 7% too large, and a measured table that looked
+entirely plausible. That is the "don't conflate the two anchors" rule in the tuning lessons
+below, and a scoring gate is a new way to break it.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
@@ -252,6 +262,12 @@ perfectly with no opinion about anything in the game. That is what M6 got wrong 
   until the business cycle stopped resonating with the 16-quarter election period.
 - Bond coupons are household income; redemptions go to household savings. Money paid to
   bondholders must not vanish, or every tax rise becomes an austerity bomb.
+- **A sentinel is not a semantics.** `livingStandard` bootstrapped on
+  `score.baselineWelfare === null`, which meant "no quarter has booked yet" only because scoring
+  began at tick zero. ADR-0021 moved scoring to the appointment and the proxy silently became
+  "the player has not arrived", switching the income channel off for a whole interregnum. When a
+  field is read as a proxy for something else, say which, and gate on the real thing (here, the
+  tick). Vital rates and the report card read the same consumption for different reasons.
 - Growth needs both valves: Lewis investment (`INVESTMENT_SLACK_GAIN`) and the subsistence
   valve (`SUBSISTENCE_ABSORPTION_Q`, capped by the rural labor force — uncapped it recreates
   the Malthusian trap). Vital rates read the income LEVEL (`LIVING_STANDARD_1946`), the report

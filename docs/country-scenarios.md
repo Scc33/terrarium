@@ -76,34 +76,43 @@ matrices above.
 
 | appointment | country | GDP × | GDP/head × | pop × | statistical | reporting | unemployment | debt/GDP |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| 1973 | Meridia | 3.21 | 2.01 | 1.60 | 0.48 | 27/29 | 14.6 % | 0 % |
-| 1973 | Costona | 2.36 | 1.35 | 1.75 | 0.42 | 21/29 | 17.1 % | 0 % |
-| 1973 | Veltravia | 2.91 | 2.43 | 1.20 | 0.65 | 29/29 | 9.4 % | 38 % |
-| 1973 | Oranga | 3.56 | 2.63 | 1.35 | 0.70 | 29/29 | 9.3 % | 38 % |
-| 1973 | Kestrel | 3.31 | 2.07 | 1.60 | 0.47 | 27/29 | 13.4 % | 24 % |
-| 1995 | Meridia | 9.02 | 4.03 | 2.24 | 0.65 | 29/29 | 12.0 % | 0 % |
-| 1995 | Costona | 7.09 | 2.80 | 2.53 | 0.61 | 29/29 | 15.8 % | 0 % |
-| 1995 | Veltravia | 6.68 | 4.30 | 1.55 | 0.77 | 29/29 | 9.4 % | 0 % |
-| 1995 | Oranga | 8.70 | 4.75 | 1.82 | 0.80 | 29/29 | 9.4 % | 0 % |
-| 1995 | Kestrel | 10.17 | 4.42 | 2.30 | 0.64 | 29/29 | 11.4 % | 0 % |
-| 2005 | Meridia | 13.45 | 5.23 | 2.57 | 0.70 | 29/29 | 10.9 % | 0 % |
-| 2005 | Costona | 11.59 | 3.99 | 2.90 | 0.67 | 29/29 | 14.4 % | 0 % |
-| 2005 | Veltravia | 9.35 | 5.35 | 1.74 | 0.81 | 29/29 | 8.9 % | 0 % |
-| 2005 | Oranga | 12.25 | 5.93 | 2.07 | 0.84 | 29/29 | 9.4 % | 0 % |
-| 2005 | Kestrel | 15.70 | 5.94 | 2.65 | 0.70 | 29/29 | 10.4 % | 0 % |
+| 1973 | Meridia | 3.19 | 2.14 | 1.49 | 0.48 | 27/29 | 14.1 % | 0 % |
+| 1973 | Costona | 2.34 | 1.35 | 1.73 | 0.42 | 21/29 | 17.0 % | 0 % |
+| 1973 | Veltravia | 2.77 | 2.81 | 0.99 | 0.65 | 29/29 | 7.0 % | 40 % |
+| 1973 | Oranga | 3.42 | 3.08 | 1.11 | 0.70 | 29/29 | 7.1 % | 40 % |
+| 1973 | Kestrel | 3.30 | 2.18 | 1.52 | 0.47 | 27/29 | 13.2 % | 24 % |
+| 1995 | Meridia | 7.88 | 4.94 | 1.60 | 0.65 | 29/29 | 8.2 % | 0 % |
+| 1995 | Costona | 7.06 | 2.90 | 2.44 | 0.61 | 29/29 | 15.8 % | 0 % |
+| 1995 | Veltravia | 5.04 | 5.30 | 0.95 | 0.77 | 29/29 | 3.4 % | 0 % |
+| 1995 | Oranga | 6.61 | 5.95 | 1.11 | 0.80 | 29/29 | 3.7 % | 0 % |
+| 1995 | Kestrel | 9.12 | 5.39 | 1.70 | 0.64 | 29/29 | 8.1 % | 0 % |
+| 2005 | Meridia | 10.39 | 6.51 | 1.60 | 0.70 | 29/29 | 5.1 % | 0 % |
+| 2005 | Costona | 11.42 | 4.38 | 2.61 | 0.67 | 29/29 | 13.7 % | 0 % |
+| 2005 | Veltravia | 6.03 | 6.56 | 0.92 | 0.81 | 29/29 | 3.0 % | 0 % |
+| 2005 | Oranga | 7.99 | 7.37 | 1.09 | 0.84 | 29/29 | 3.0 % | 0 % |
+| 2005 | Kestrel | 12.65 | 7.38 | 1.71 | 0.70 | 29/29 | 4.9 % | 0 % |
 
-Three things to read out of it, none of them tuned for:
+Four things to read out of it, none of them tuned for:
 
 - **1973 is the appointment with a fiscal inheritance.** Veltravia and Oranga still carry real
   debt; everyone is debt-free by 1995, because the caretaker's tax collection outgrows even
   GDP-share appropriations (investigation 0008 explains the mechanism at greater length). If a
   later posting should hand over a balance sheet, that is a debt-model question, not an
   appointment one.
-- **The elevated unemployment is the §8 youth bulge, on schedule.** It peaks around 1973 and is
-  worked off by 2005 — the same mechanism the passive century earns, and the reason a 1973
-  Costona is a harder game than a 1946 one despite being twice as rich.
-- **Aggregate growth is mostly demography in the poor countries.** Costona's output is 2.36×
-  by 1973 on 1.75× the people. Read the per-head column beside it (investigation 0007).
+- **The countries split on the demographic transition, and it is the income channel doing it.**
+  Veltravia and Oranga get rich, stop growing, and are *shrinking* by 2005 (pop ×0.92, ×1.09)
+  with unemployment at 3 %. Costona stays poor, stays young, and is still 2.6× its 1946
+  population with 13.7 % unemployed. That is the §8 youth-bulge bomb tracking living standards
+  exactly as designed — nothing here is scripted per country.
+- **Aggregate growth is mostly demography in the poor countries.** Costona's output is 11.4× by
+  2005 on 2.6× the people, which is 4.4× per head. Read the per-head column beside it
+  (investigation 0007).
+- **These numbers are load-bearing evidence, not decoration.** An earlier revision of ADR-0021
+  gated `livingStandard` on the scoring baseline, which left the whole interregnum at a constant
+  income level: the transition never fired, births ran at 35.3 per 1000 against 26.0, and every
+  population above was up to 7 % too large. The table looked entirely plausible. `pnpm inheritance`
+  beside a same-orders 1946 replay is what caught it, and
+  `tests/properties/interregnum.test.ts` now pins the two against each other.
 
 ## Countries players write
 

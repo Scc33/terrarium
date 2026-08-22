@@ -45,8 +45,20 @@ export function looksLikeSave(value: unknown): value is SaveFile {
     Array.isArray(save.actionLog) &&
     typeof save.tick === 'number' &&
     Number.isInteger(save.tick) &&
-    save.tick >= 0
+    save.tick >= 0 &&
+    quarterOrAbsent(save.appointedAt)
   )
+}
+
+/** A quarter field that a save may legally omit. Absent means zero everywhere
+ * `appointedAt` is read, so `undefined` passes — but `"108"` or `null` must
+ * NOT, because `appointmentTick` turns anything it cannot read into quarter
+ * zero, and quietly opening a 1946 posting from a file that named 1973 is the
+ * silent repair this module exists to refuse. The appointment is a replay
+ * input: getting it wrong changes the century from the first quarter on, with
+ * the same country, seed and log. */
+function quarterOrAbsent(value: unknown): boolean {
+  return value === undefined || (typeof value === 'number' && Number.isInteger(value) && value >= 0)
 }
 
 /**
