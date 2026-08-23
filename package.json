@@ -26,6 +26,7 @@
     "export-feedback": "pnpm --filter @terrarium/runner export-feedback",
     "export-share": "tsx tools/measure-export-share.ts",
     "neutral-rate": "tsx tools/measure-neutral-rate.ts",
+    "capital-returns": "tsx tools/measure-capital-returns.ts",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "debt-baselines": "tsx tools/measure-debt-baselines.ts",
