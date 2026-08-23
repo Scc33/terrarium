@@ -615,6 +615,7 @@ export function ControlRail({
   focusRequest,
   onOpenRecord,
   onClose,
+  onCollapse,
 }: {
   pub: PublishedState
   openGroup: CabinetGroup
@@ -626,6 +627,9 @@ export function ControlRail({
    * strip is already wider than 1280 can show. */
   onOpenRecord: () => void
   onClose?: () => void
+  /** Desktop gives the wall the cabinet's width; smaller screens keep using
+   * the existing modal drawer and therefore hide this control. */
+  onCollapse: () => void
 }) {
   const { advance, advancing, staged, clearStaged, stagedCost, stagedAffordable, previewError, rejection } = useGame()
   const finiteCost = stagedCost !== null && Number.isFinite(stagedCost) ? stagedCost : null
@@ -686,6 +690,18 @@ export function ControlRail({
               CLOSE <span aria-hidden="true">×</span>
             </Button>
           )}
+          <Button
+            onClick={onCollapse}
+            variant="secondary"
+            size="compact"
+            className="hidden w-7 px-0 xl:inline-flex"
+            aria-label="Collapse cabinet controls"
+            aria-expanded="true"
+            aria-controls="cabinet-controls"
+            title="Hide the policy cabinet and give the instrument wall more room."
+          >
+            <span className="text-base leading-none" aria-hidden="true">›</span>
+          </Button>
         </div>
       </div>
       <div className="grid shrink-0 grid-cols-3 border-b border-dossier-paper/15" role="tablist" aria-label="Cabinet decision areas" aria-orientation="horizontal">

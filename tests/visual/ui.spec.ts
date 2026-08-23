@@ -368,7 +368,9 @@ test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
 
 test('unfitted instrument routes to its capacity investment', async ({ page }) => {
   await openGame(page)
+  await page.getByRole('button', { name: 'Collapse cabinet controls' }).click()
   await page.getByRole('button', { name: 'Open Institutions to fund LABOUR FORCE SURVEY' }).click()
+  await expect(page.getByRole('button', { name: 'Expand cabinet controls' })).toBeHidden()
   await expect(page.getByRole('tabpanel')).toContainText('BUILD THE STATE THAT DELIVERS THE POLICY')
   await expect(page.getByRole('button', { name: 'ADVANCE QUARTER' })).toBeVisible()
   await expect(page).toHaveScreenshot('instrument-capacity-route.png')
@@ -460,6 +462,28 @@ test('smaller laptop cabinet drawer', async ({ page }) => {
   await page.getByRole('button', { name: /OPEN CABINET/ }).click()
   await expect(page.getByRole('complementary', { name: 'Cabinet controls' })).toBeVisible()
   await expect(page).toHaveScreenshot('cabinet-drawer-1024.png')
+})
+
+test('desktop cabinet collapses into a persistent reading rail', async ({ page }) => {
+  await openGame(page)
+  const wall = page.locator('main[data-tour="wall"]')
+  const openWidth = (await wall.boundingBox())?.width ?? 0
+
+  await page.getByRole('button', { name: 'Increase Income' }).click()
+  await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
+  await page.getByRole('button', { name: 'Collapse cabinet controls' }).click()
+  const expand = page.getByRole('button', { name: 'Expand cabinet controls' })
+  await expect(expand).toBeVisible()
+  await expect(expand).toBeFocused()
+  await expect(page.getByRole('status', { name: /1 order drafted, .* PC, will enact when the quarter advances/ })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })).toBeHidden()
+  expect((await wall.boundingBox())?.width ?? 0).toBeGreaterThan(openWidth + 300)
+  await expect(page).toHaveScreenshot('cabinet-collapsed-1280.png')
+
+  await page.reload()
+  await expect(expand).toBeVisible()
+  await expand.click()
+  await expect(page.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })).toBeFocused()
 })
 
 test('cabinet drawer tabs support keyboard navigation and focus return', async ({ page }) => {
