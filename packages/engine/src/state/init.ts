@@ -6,6 +6,7 @@
  */
 
 import type { Seed } from '../rng/rng'
+import { emissionsPerHead } from '../pipeline/environment'
 import {
   adminEffectiveness,
   taxEfficiency,
@@ -423,6 +424,8 @@ export function init(
       },
       shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
+    // seeded at equilibrium two lines below, once the sectors exist to emit
+    environment: { pollution: 0, emissionsQ: 0 },
     institutions: {
       stocks: { suffrage: 0, press: 0, labor_rights: 0, courts: 0, repression: 0 },
       societalPower: 0,
@@ -463,5 +466,17 @@ export function init(
     flows,
   }
 
-  return { ...provisional, institutions: initialInstitutions(provisional) }
+  // The burden opens AT its equilibrium, not at zero, and this is the whole
+  // reason `emissionsPerHead` is a shared function rather than arithmetic
+  // inside the step: a country seeded at zero would spend its first two
+  // decades on a rising trend nobody chose, and every early-century
+  // measurement would be reading that ramp instead of the economy. Countries
+  // differ here because their industrial structures differ, which is the
+  // correct reason to differ (ADR-0028).
+  const opening = emissionsPerHead(provisional)
+  const seeded: TrueState = {
+    ...provisional,
+    environment: { pollution: opening, emissionsQ: opening },
+  }
+  return { ...seeded, institutions: initialInstitutions(seeded) }
 }

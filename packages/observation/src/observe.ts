@@ -75,6 +75,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   credit_growth: { label: 'Credit growth', unit: '% / yr' },
   credit_to_gdp: { label: 'Private credit', unit: '% of GDP' },
   bank_capital_ratio: { label: 'Bank capital', unit: '% of credit' },
+  pollution: { label: 'Pollution burden', unit: '1946 = 100' },
   unrest: { label: 'Public order', unit: 'idx' },
 }
 

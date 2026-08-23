@@ -39,6 +39,7 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
       minimum_wage: { level: 0, enactedAt: 0 },
       compulsory_schooling: { level: 0, enactedAt: 0 },
       competition: { level: 0, enactedAt: 0 },
+      emissions_standard: { level: 0, enactedAt: 0 },
     },
     ...over,
   }
@@ -218,7 +219,7 @@ describe('reading the dials back', () => {
     // 5 sector subsidies. The scalar count is derived from `PolicyRecord`, so a lever added
     // to the cabinet fails the build here until it has been named and faced —
     // which is how `assetPurchaseRate` and `capitalRequirement` arrived.
-    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5 + 3)
+    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5 + 4)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
   })
 
@@ -273,6 +274,7 @@ describe('reading the dials back', () => {
           minimum_wage: { level: t >= 10 ? 2 : 0, enactedAt: t >= 10 ? 10 : 0 },
           compulsory_schooling: { level: 0, enactedAt: 0 },
           competition: { level: 0, enactedAt: 0 },
+      emissions_standard: { level: 0, enactedAt: 0 },
         },
       }),
     )

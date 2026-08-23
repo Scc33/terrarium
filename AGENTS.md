@@ -292,6 +292,30 @@ Adding a statute is a `SCHEMA_VERSION` event (a `meta`-only diff, cheap to bless
 batches — and never pre-declare an id for a statute wired to nothing, which puts a lever on the
 desk that does not work.
 
+### The environment (ADR-0028)
+
+`environment.pollution` is a per-head burden index, standard 1946 country = 1, produced by the
+`environment` step after `production` and seeded by `init` at its opening equilibrium. Four rules:
+
+- **Nothing reads the burden where it is made.** Damage arrives through the mortality schedule in
+  `demography` and the drought hazard in `shocks` — the latter reusing the ENTIRE drought response
+  rather than modelling harm twice. There is no term anywhere subtracting pollution from output,
+  and adding one is the effect arrow the engine exists to refuse.
+- **Both damage terms read `max(0, burden − 1)`**, so a country that has not industrialised past
+  its 1946 inheritance pays exactly nothing. That is what keeps the passive century unmoved
+  (2.81 → 2.82 %/yr) while the developmental cohort loses three of twenty-two survivors. **The
+  passive/developmental split is the calibration test** — if a retune moves passive, the burden has
+  become a tax on existence rather than a cost of development.
+- **Per head, not absolute.** Land is not modelled, so a tonnage would make a big country dirtier
+  by being big, and mortality responds to what people breathe. Per head it follows income and
+  industrial structure, which is the Kuznets shape arrived at rather than authored.
+- **The goldens cannot see this.** They moved 3540 values and every one by 0.00 %, because 40
+  quarters cannot see a stock with a seventeen-year half-life. Use `pnpm batch`, not `pnpm bless`,
+  as the evidence for anything you change here.
+
+The damage channels run EARLIER in the tick than the step that produces emissions, which is
+correct rather than a bug: they read the burden accumulated up to the start of the quarter.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler

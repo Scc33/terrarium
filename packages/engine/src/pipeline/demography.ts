@@ -37,6 +37,7 @@ import {
   NATURAL_UNEMPLOYMENT,
   URBANIZATION_GAIN,
   SCHOOLING_ATTAINMENT_GAIN,
+  POLLUTION_MORTALITY_GAIN,
 } from '../constants'
 import { clamp } from '../math'
 import {
@@ -169,8 +170,17 @@ export const demography: PipelineStep = {
     )
 
     // --- vital rates respond to how life actually is ---
+    // …including the air. This is the local, immediate half of the pollution
+    // externality (ADR-0028): dirty air kills people in your own country now,
+    // and it reaches welfare and the report card through the mortality
+    // schedule that was already here rather than through a drag on output.
+    // Measured against the 1946 burden, so a country that has not industrialised
+    // past its inheritance pays nothing.
+    const pollutionHarm =
+      POLLUTION_MORTALITY_GAIN * Math.max(0, state.environment.pollution - 1)
     const mortalityIndex = clamp(
-      Math.exp(-MORT_SECULAR_Q * state.meta.tick) * (1 - MORT_INCOME_GAIN * lnLiving),
+      Math.exp(-MORT_SECULAR_Q * state.meta.tick) *
+        (1 - MORT_INCOME_GAIN * lnLiving + pollutionHarm),
       MORT_FLOOR,
       1.3,
     )

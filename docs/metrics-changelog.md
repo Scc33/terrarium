@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 33)
+## Current contract (schema 34)
 
 ### Inputs
 
@@ -90,6 +90,7 @@ stood.
 | `minimum_wage` | none · subsistence floor · living wage | a floor under `market.wages`, at a fraction of the employment-weighted average wage. From there it is an ordinary wage: unit labour cost → the price step's cost anchor → every price. No disemployment term exists; jobs are lost only through the demand that survives. |
 | `compulsory_schooling` | none · to 14 · to 16 | one fact, two readers on different clocks — `schoolingWithdrawal` takes the youngest working band out of the labour force now, and the human-capital target rises so the same school system yields more over a seventeen-year half-life. The bite is sized off the pyramid; the return is a multiplier on `capacity.education`, so a state with no schools gets the cost and none of the benefit. |
 | `competition` | none · merger review · trust-busting | `eliteCapture`, the extractive ceiling, which `creativeDestruction` already turns into a multiplier on frontier absorption and research yield. `effectiveBlocPower` is deliberately untouched. |
+| `emissions_standard` | none · smokestack rules · clean air act | abatement — one fact with two readers. Emissions fall in the `environment` step, and the equipment that catches them raises unit cost through the price step's cost anchor, scaled by each sector's own emission intensity so the dirtiest industries pay most. |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
 | Stock | What it does |
@@ -264,6 +265,34 @@ two shares side by side in a table, which is the only place the dual economy rea
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 34 — The environment: what production costs outside the market
+
+- **State +**: `environment: { pollution, emissionsQ }` (ADR-0028). One slow burden index,
+  standard 1946 country = 1, seeded by `init` at exactly its opening equilibrium so no run begins
+  on a ramp nobody chose. Countries open apart because their industrial structures differ —
+  Costona 0.62 agrarian, Meridia 1.00, Veltravia 1.57 industrial.
+- **Pipeline ±**: a new `environment` step directly after `production`, so **step order changed**
+  (ADR-0005) and `statistics` moves from 15 to 16. RNG substreams are keyed by step name
+  (ADR-0002), so no existing step's draw sequence moved. Emissions are per head, not absolute:
+  land is not modelled, and an absolute tonnage would make a big country dirtier purely by being
+  big. Better technique emits less, so research buys a cleaner economy without being told to.
+- **Outputs +**: `pollution` / **Pollution** (1946 = 100, unlocks at 0.40 behind environmental
+  monitoring) — a relative-noise print like every other survey. Face measured with `pnpm ranges`
+  at 50–450 against a p01–p99 of 66.8–418.2. A state that has not funded monitors cannot see what
+  its own industry is doing, which is the historical fact rather than a flourish.
+- **Inputs +**: `emissions_standard` joins `STATUTE_IDS` — the statute the register was built for,
+  and it cost an id, a ladder, a stance row and one `statuteForce` read.
+- **Damage reaches the economy through two channels that already existed and no others**: the
+  mortality schedule in `demography`, and the drought hazard in `shocks` (which reuses the entire
+  drought response — severity, duration, the agricultural tfp cut, the wire item, the recovery).
+  There is no term anywhere subtracting pollution from output.
+- **This one moves the baseline, and that is the mechanic.** A country at its 1946 burden pays
+  exactly nothing, so the 1000×400q passive century is unmoved at 2.82 %/yr, 0.12 % inflation,
+  12.27 % unemployment, 7 % deposed. The developmental cohort, which industrialises and never
+  legislates, loses three of twenty-two survivors and deposes 10 % against 8 %. The golden
+  replays moved 3540 values and **every one of them by 0.00 %** — 40 quarters cannot see a
+  century-scale stock, so the batches are this feature's evidence, not the goldens.
 
 ### schema 33 — The statute book: rules the government writes
 

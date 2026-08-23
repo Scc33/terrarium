@@ -93,8 +93,19 @@ describe('the playable economy through 2050', () => {
     // so aggregate GDP can grow faster than output per resident. Pin both
     // sides of that identity: migration must not buy aggregate acceleration
     // by making the population poorer per head.
+    //
+    // v34 (pollution, ADR-0028) costs the DEVELOPMENTAL cohort three of its
+    // twenty-two survivors and leaves the passive cohort untouched at
+    // twenty-six. That split is the mechanic rather than a regression, and it
+    // is the reason to pin both numbers rather than one: a burden that taxed
+    // everybody would have moved the passive figure too, and a burden nobody
+    // felt would have moved neither. Only countries that industrialise past
+    // their 1946 inheritance carry it, and the developmental policy
+    // industrialises without ever legislating — the emissions standard is the
+    // answer it does not use. Measured beside it, the `regulated` policy,
+    // which does legislate, deposes 7% against developmental's 10%.
     expect(passiveTrend.survivors).toBe(26)
-    expect(developmentalTrend.survivors).toBe(22)
+    expect(developmentalTrend.survivors).toBe(19)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,
     // lifting this fixed passive sample from 2.79% to 2.81% without changing

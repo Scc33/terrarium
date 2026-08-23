@@ -40,3 +40,4 @@ the old one and update the Status line of both.
 | [0025](0025-charts-own-their-analytical-scale.md) | Charts own their analytical scale and shared range inspection | Accepted |
 | [0026](0026-a-product-of-two-excesses-needs-a-phase-plot.md) | A product of two excesses is drawn as a phase plot, not two time charts | Accepted |
 | [0027](0027-a-statute-is-a-posted-rule.md) | A statute is a posted rule; compliance is what the state can enforce | Accepted |
+| [0028](0028-pollution-is-a-stock-that-damages-through-existing-channels.md) | Pollution is a stock the economy produces, and it damages through channels that already exist | Accepted |

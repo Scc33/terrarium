@@ -5,11 +5,22 @@
  * refinery through the trucking industry into bread.
  */
 
-import { LABOR_SHARE, NORMAL_UTILIZATION, SLACK_GAIN_RATIO } from '../constants'
+import {
+  ABATEMENT_COST_GAIN,
+  EMISSION_INTENSITY,
+  LABOR_SHARE,
+  NORMAL_UTILIZATION,
+  SLACK_GAIN_RATIO,
+} from '../constants'
 import { clamp, sectorRecord } from '../math'
 import { SECTOR_IDS } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { effectivePrice, potentialOutput } from './derive'
+import { effectivePrice, potentialOutput, statuteForce } from './derive'
+
+/** the cost the abatement surcharge is a share OF — everything the firm was
+ * already paying to make a unit */
+const unitCost0 = (inter: number, labor: number, capital: number): number =>
+  inter + labor + capital
 
 export const prices: PipelineStep = {
   name: 'prices',
@@ -17,6 +28,8 @@ export const prices: PipelineStep = {
     const { market, io, flows, ledger } = state
     const { demandGain, costGain, markup, maxMovePerTick } = market.tatonnement
 
+    // one read per quarter, not one per sector
+    const abatement = statuteForce(state, 'emissions_standard')
     const newPrices = sectorRecord((sid, j) => {
       const sector = state.sectors[j]
       const p = market.prices[sid]
@@ -36,7 +49,17 @@ export const prices: PipelineStep = {
       // shares (VA splits LABOR_SHARE / 1−LABOR_SHARE), so full unit cost
       // covers intermediates, labor, and capital
       const unitCapital = unitLabor * ((1 - LABOR_SHARE) / LABOR_SHARE)
-      const unitCost = Math.max(0.01, unitInterCost + unitLabor + unitCapital - unitSubsidy)
+      // The emissions standard's second reader (ADR-0028): the equipment that
+      // catches the dirt is not free, and it is dearest where the dirt is.
+      // Scaling by the sector's own emission intensity means a clean air act
+      // is nearly free for the service trades and expensive for power
+      // generation — nobody had to write that difference down separately.
+      const unitAbatement =
+        ABATEMENT_COST_GAIN * abatement * EMISSION_INTENSITY[sid] * unitCost0(unitInterCost, unitLabor, unitCapital)
+      const unitCost = Math.max(
+        0.01,
+        unitInterCost + unitLabor + unitCapital + unitAbatement - unitSubsidy,
+      )
       const targetPrice = unitCost * (1 + markup)
 
       // pressure is measured against normal utilization, not full capacity —

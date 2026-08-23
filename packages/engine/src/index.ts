@@ -276,6 +276,8 @@ export {
 } from './pipeline/derive'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
 export { migrationFlow, vitalRates } from './pipeline/demography'
+export { droughtHazardMultiplier } from './pipeline/shocks'
+export { emissionsPerHead } from './pipeline/environment'
 export type { MigrationFlow } from './pipeline/demography'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'

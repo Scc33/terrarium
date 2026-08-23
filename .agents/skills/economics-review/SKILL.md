@@ -109,6 +109,30 @@ unemployment ≈ 12.12% · **29% deposed** (median quarter 77) · no NaN · no p
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
 
+### The environment (schema 34, ADR-0028)
+
+Pollution is the first mechanic here that **moves the baseline on purpose**, so it does not get
+the inert treatment the statute book and the rules of a run got. What to check instead:
+
+| 1000 × 400q | before v34 | after |
+|---|---|---|
+| passive growth %/yr | 2.81 | **2.82** |
+| passive unemployment % | 12.23 | **12.27** |
+| passive deposed | 6% | **7%** |
+| developmental deposed (400×400q) | 8% | **10%** |
+| developmental survivors (`future-stability`) | 22 | **19** |
+
+**The passive/developmental split IS the calibration test.** A country at its 1946 burden pays
+exactly nothing — the damage terms read `max(0, burden − 1)` — so passive must stay put while the
+industrialising cohort pays. If a retune moves the passive figures, the burden has stopped being
+a cost of development and become a tax on existence, which is a different mechanic and a worse one.
+
+The golden replays are NOT evidence here: they moved 3540 values and every one by 0.00 %, because
+40 quarters cannot see a stock with a seventeen-year half-life. Use the 400-quarter batches.
+
+Measured cost of doing nothing, capacity-building century on Meridia: real GDP −6.8 %, consumption
+per head −5.7 %, death rate +4.8 % by 2046 against the same run with a clean air act.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a

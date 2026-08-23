@@ -52,6 +52,14 @@ export const STATUTE_COPY: Record<StatuteId, StatuteCopy> = {
     resists:
       'The landed interest most, because child labour is agricultural before it is industrial. Labour is in favour.',
   },
+  emissions_standard: {
+    label: 'Emissions standard',
+    hint: 'Rules on what industry may put into the air, and the equipment it must fit to comply.',
+    effect:
+      'It catches dirt before it leaves the chimney, and the equipment that catches it costs money — dearest exactly where the dirt is, so it is nearly free for the service trades and expensive for power generation. The burden it lowers is not a number on a chart: a dirtier country buries more of its people and sees the harvest fail more often, and both of those arrive years after the industry that caused them.',
+    resists:
+      'Industry minds this more than anything else in the book, because the chimneys are theirs and the equipment comes out of profits. Labour is mildly in favour — they live downwind — but only mildly, because the jobs are in the same factories.',
+  },
   competition: {
     label: 'Competition law',
     hint: 'Review of mergers, and the power to break up the firms that dominate a market.',

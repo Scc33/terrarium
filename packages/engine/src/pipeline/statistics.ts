@@ -287,6 +287,17 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 12,
   },
   {
+    // Indexed against the standard 1946 country, so 100 is "as dirty as a
+    // 1946 economy" and the needle means the same thing in every country and
+    // every decade. Relative noise: a monitoring service estimates a burden
+    // proportionally, and an absolute band honest about a filthy century would
+    // print a clean one negative.
+    id: 'pollution',
+    trueValue: (h, q) => h[q].pollution * 100,
+    baseSd: 0.07,
+    relativeSd: true,
+  },
+  {
     id: 'credit_growth',
     trueValue: (h, q) => {
       const prev = q > 0 ? h[q - 1].creditToGdp : h[q].creditToGdp
@@ -381,6 +392,7 @@ function recordOf(state: TrueState): StatRecord {
     assetPrice: finance.assetPrice,
     creditToGdp: finance.creditToGdp,
     bankCapitalRatio: finance.bankCapital / Math.max(finance.creditOutstanding, 1e-9),
+    pollution: state.environment.pollution,
     unrest: inst.unrest,
     statePower: inst.statePower,
     societalPower: inst.societalPower,

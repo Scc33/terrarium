@@ -97,6 +97,10 @@ const STATUTE_FACE: Record<(typeof STATUTE_IDS)[number], { label: string; note: 
     label: 'SCHOOL AGE',
     note: 'The age below which children must be in a classroom. Costs labour now and returns workforce skills over a generation.',
   },
+  emissions_standard: {
+    label: 'EMISSIONS',
+    note: 'Rules on what industry may put into the air. It lowers the pollution burden and raises costs where the dirt is.',
+  },
   competition: {
     label: 'COMPETITION',
     note: 'Merger review and the power to break up dominant firms. It speeds up how fast the country adopts techniques the world already has.',

@@ -213,6 +213,11 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   bank_capital_ratio: 0.55,
   // the provincial governors always write in; somebody has to read the
   // reports, collate them, and dare to put a number on the result
+  // Systematic air monitoring is a mid-century institution: smoke inspectors
+  // are old, but a service that can tell you the burden across a whole country
+  // is not. Behind the labour force survey and roughly with the trade
+  // statistics.
+  pollution: 0.4,
   unrest: 0.4,
 }
 
@@ -324,6 +329,59 @@ export function fdiStructuralAttraction(
   const catchUp = clampLocal(1.25 - 0.75 * development, 0.5, 1.2)
   return size * access * catchUp
 }
+
+// ---------- the environment: what production costs outside the market (ADR-0028) ----------
+/**
+ * How dirty a unit of each sector's output is. A total `Record`, so a sixth
+ * sector cannot ship without somebody deciding how dirty it is.
+ *
+ * Energy first by a wide margin, then transport and heavy manufacturing;
+ * agriculture is middling (land clearing, livestock, later fertiliser) and
+ * services are nearly clean. These are RELATIVE weights — the absolute level
+ * is set by `POLLUTION_REFERENCE` below, so only the ratios matter here.
+ */
+export const EMISSION_INTENSITY: Record<SectorId, number> = {
+  agri: 0.35,
+  manuf: 0.8,
+  energy: 2.4,
+  services: 0.08,
+  transport: 1.1,
+}
+
+/** Better techniques are cleaner ones: emissions per unit of output fall as a
+ * sector's attainment rises. The exponent is what makes a country that funds
+ * research get a cleaner economy without ever being told it would. */
+export const EMISSION_TECH_GAIN = 0.7
+
+/** Emissions per head that reads as a burden of 1.0. MEASURED, not chosen:
+ * the standard 1946 country's opening emissions, so Meridia opens at 1.00 and
+ * the rest of the catalogue spreads around it by how dirty their inherited
+ * industry actually is — Costona 0.62 (agrarian), Veltravia 1.57 (industrial).
+ * That spread is the index earning its keep; a per-country normalisation would
+ * have thrown it away. */
+export const POLLUTION_REFERENCE = 3.665
+
+/** How fast the burden chases current emissions. Slow on purpose: a country
+ * that industrialises hard carries it for decades after it stops, and cleaning
+ * up is a generation's work. Half-life ≈ 17 years, the same order as the
+ * human-capital stock, because both are things a country lives with rather
+ * than switches. */
+export const POLLUTION_ADJUST = 0.01
+
+/** What the burden does to people, through the mortality schedule that already
+ * exists — the local, immediate, personal half of the damage. Added to the
+ * mortality index per unit of burden above the 1946 baseline. */
+export const POLLUTION_MORTALITY_GAIN = 0.05
+
+/** …and what it does to the climate, through the drought hazard that already
+ * exists — the delayed, stochastic half. `DROUGHT_P` is multiplied by
+ * `1 + this × max(0, burden − 1)`, so a country at its 1946 burden faces
+ * exactly the hazard it always did and the whole drought response (severity,
+ * duration, the agricultural tfp cut, the wire item, the recovery) is reused
+ * rather than re-modelled. */
+export const POLLUTION_DROUGHT_GAIN = 0.22
+/** and a ceiling, so a filthy century cannot make drought a certainty */
+export const POLLUTION_DROUGHT_MAX = 2
 
 // ---------- the crisis clock ----------
 /** per-quarter odds of a world energy rupture (~3 per century) */
@@ -924,6 +982,11 @@ export const STATUTE_LEVELS: Record<StatuteId, readonly StatuteLevel[]> = {
     { name: 'Merger review', strength: 0.5 },
     { name: 'Trust-busting', strength: 1 },
   ],
+  emissions_standard: [
+    { name: 'No emissions rules', strength: 0 },
+    { name: 'Smokestack rules', strength: 0.45 },
+    { name: 'Clean air act', strength: 0.85 },
+  ],
 }
 
 /**
@@ -943,6 +1006,10 @@ export const STATUTE_STANCE: Record<StatuteId, Partial<Record<BlocId, number>>> 
   compulsory_schooling: { landowners: 0.8, industrialists: 0.4, unions: -0.5 },
   // whoever is currently biggest has the most to lose, but incumbency is shared
   competition: { industrialists: 0.7, financiers: 0.6, landowners: 0.4, unions: -0.2 },
+  // the chimneys are industry's, and the equipment is bought out of profits.
+  // Labour is mildly for it — they live downwind — but mildly, because the
+  // jobs are in the same factories.
+  emissions_standard: { industrialists: 0.85, financiers: 0.3, landowners: 0.2, unions: -0.25 },
 }
 
 /** A statute arrives; it does not switch on. Two years from signature to full
@@ -992,6 +1059,20 @@ export const COMPETITION_CAPTURE_RELIEF = 0.35
  * an ageing industrial one.
  */
 export const SCHOOLING_LABOR_WITHDRAWAL = 0.25
+/**
+ * EMISSIONS STANDARD is one fact — how much dirt is caught before it leaves
+ * the chimney — with two readers, like compulsory schooling. Emissions fall in
+ * `pipeline/environment.ts`, and the equipment that catches them raises unit
+ * cost in the sectors that must fit it, through the price step's existing cost
+ * anchor. Which way that trade goes is a measurement, not a design intent.
+ *
+ * The cost is scaled by each sector's emission intensity, so the industries
+ * that pollute most are the ones that pay to stop: a clean air act is nearly
+ * free for the service trades and expensive for power generation, and nobody
+ * had to write that down separately.
+ */
+export const ABATEMENT_COST_GAIN = 0.11
+
 /** …and what the same school system yields once the children stay in it.
  * Read as a multiplier on `capacity.education`, so a country with no schools
  * gains nothing by making attendance compulsory — there is nothing to attend. */
