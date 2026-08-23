@@ -1,4 +1,4 @@
-# 0012 — Why does a larger capital stock not permanently raise growth?
+# 0014 — Why does a larger capital stock not permanently raise growth?
 
 **Status:** Resolved as a level-versus-rate effect in the current model; research into
 shortage-based infrastructure services is tracked by [issue #142](https://github.com/Scc33/terrarium/issues/142),

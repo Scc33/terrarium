@@ -1,5 +1,5 @@
 /**
- * Reproduce investigation 0012 with paired public-works and research paths:
+ * Reproduce investigation 0014 with paired public-works and research paths:
  *
  *   pnpm capital-returns -- --runs 12 --ticks 400
  *
