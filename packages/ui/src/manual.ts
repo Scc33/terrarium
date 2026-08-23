@@ -431,7 +431,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
           { term: 'Demography', detail: 'The population pyramid ages by one quarter. Births and deaths respond to the income level households are actually living at.', meta: '2' },
           { term: 'Technology', detail: 'The world frontier advances on its own schedule; your attainment chases it, at a speed your schools and research stock decide.', meta: '3' },
           { term: 'The world', detail: 'Trading partners run their own cycles, setting export demand and world prices. You do not control this and it does not care about you.', meta: '4' },
-          { term: 'Finance', detail: 'Credit, asset prices and bank capital. This is the loop that wants to ratchet — assets up, collateral up, credit up — and the one that produces crises.', meta: '5' },
+          { term: 'Finance', detail: 'Credit, asset valuation and bank capital. This is the loop that wants to ratchet — valuation up, collateral up, credit up — and the one that produces crises.', meta: '5' },
           { term: 'Foreign investment', detail: 'Inward productive capital, and the foreign ownership of output that comes with it. Money arrives now; profits leave later.', meta: '6' },
           { term: 'Production', detail: 'Output, given prices, capital, labour and the input-output table that connects every sector to every other.', meta: '7' },
           { term: 'The environment', detail: 'What that output cost outside the market: emissions, and the pollution burden they add to. Nothing reads the burden here — it is spent later, on the mortality schedule and on how often the harvest fails.', meta: '8' },
@@ -465,7 +465,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
       {
         heading: 'FINANCE, BUBBLES AND CRISES',
         body: [
-          'The financial loop wants to ratchet: rising assets raise collateral, which raises credit, which raises assets. Two things keep it a cycle rather than a spiral. Asset prices revert toward fundamentals hard enough to out-muscle the collateral feedback at the margin, so a passive economy does not spontaneously bubble. And the separation between a calm decade and a boom is carried by the real interest rate — which means a bubble is something a policy rate cut or a genuine profit surge inflates. The crisis you get is the one your own cheap money earned.',
+          'The asset figure is a valuation ratio, not the country’s total wealth: market value divided by the cost of replacing its productive assets. At 100 the two are equal, so population, output and the capital stock can all grow while the ratio stays flat. The financial loop wants to ratchet: rising valuation raises collateral, which raises credit, which raises valuation. Two things keep it a cycle rather than a spiral. Valuation reverts toward fundamentals hard enough to out-muscle the collateral feedback at the margin, and the separation between a calm decade and a boom is carried by the real interest rate — so a policy rate cut or a genuine profit surge can inflate a bubble. The crisis you get is the one your own cheap money earned.',
           'The bank capital floor is deliberately slack in a boom at the level you inherit, and bites only after a crisis has written capital down. That is the forced deleveraging. You can raise the floor until it binds before the crash, and doing so in time is one of the harder good decisions in the game.',
         ],
       },

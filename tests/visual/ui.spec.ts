@@ -240,6 +240,17 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
   })
   page.on('pageerror', (error) => browserErrors.push(error.message))
   await openGame(page)
+  // The pending-state rack is the easy case: every strip ends in the short
+  // word PENDING. Fill the office and let real values, deltas and release ages
+  // arrive — those are the tracks that can squeeze a ten-character name out
+  // of the six-column desktop roster.
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (let i = 0; i < 12; i++) await advance.click()
+  await expect(page.getByText('1949 Q1', { exact: true })).toBeVisible()
   // This project typechecks Playwright under the Node libs, so keep browser
   // globals inside the evaluated source string rather than adding DOM types to
   // the entire test suite.
@@ -251,7 +262,11 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
       pageScroll: (doc?.scrollHeight ?? 0) > (doc?.clientHeight ?? 0),
       clippedLabels: labels
         .filter((label) => label.scrollWidth > label.clientWidth)
-        .map((label) => label.textContent),
+        .map((label) => ({
+          text: label.textContent,
+          scrollWidth: label.scrollWidth,
+          clientWidth: label.clientWidth,
+        })),
       rackBelowFold:
         (document.querySelector('.instrument-rack')?.getBoundingClientRect().bottom ?? 0) >
         window.innerHeight,
@@ -259,7 +274,7 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
   })()`)) as {
     horizontalScroll: boolean
     pageScroll: boolean
-    clippedLabels: Array<string | null>
+    clippedLabels: Array<{ text: string | null; scrollWidth: number; clientWidth: number }>
     rackBelowFold: boolean
   }
   expect(fit).toEqual({

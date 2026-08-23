@@ -853,7 +853,7 @@ export interface StatRecord {
   /** terms of trade: world price of your export basket ÷ your import basket,
    * indexed to 1946=100 — what the customs statisticians would compile */
   termsOfTrade: number
-  /** asset price index (1946=100) — what a stock/property board would quote */
+  /** Tobin's q × 100: market valuation per unit of replacement-cost capital */
   assetPrice: number
   /** credit outstanding / annual GDP — what a bank supervisor would tabulate */
   creditToGdp: number

@@ -58,7 +58,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
     : null
 
   // one row, one height, whatever is inside it
-  const frame = 'group flex w-full items-center gap-1 overflow-hidden border pr-1 text-left'
+  const frame = 'group flex w-full items-center overflow-hidden border text-left'
   const skin =
     maturity === 'terminal'
       ? 'border-terminal-grid bg-terminal-bg text-terminal-primary hover:border-terminal-primary/60'
@@ -77,12 +77,16 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
         type="button"
         onClick={onPin}
         style={{ height: RACK_ROW_H }}
-        className={`${frame} ${skin} ${pinned ? 'ring-1 ring-inset ring-current' : ''}`}
+        className={`${frame} ${latest ? 'gap-[3px] pr-[3px]' : 'gap-1 pr-1'} ${skin} ${pinned ? 'ring-1 ring-inset ring-current' : ''}`}
         aria-label={help}
         aria-pressed={pinned}
       >
+        {/* A few pixels are load-bearing in the populated six-column roster:
+            w-5 leaves ten-character names only 57px once value, direction and
+            release age arrive. w-3.5 still holds “04”; the literal 3px gaps and
+            right padding return the remaining width without shrinking type. */}
         <span
-          className={`flex h-full w-5 shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${
+          className={`flex h-full shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${latest ? 'w-3.5' : 'w-5'} ${
             pinned
               ? 'border-current bg-current/10'
               : 'border-current/20 opacity-35 group-hover:opacity-70'

@@ -294,6 +294,8 @@ describe('the transmission and the instruments', () => {
     expect(play(0.2).indicators.asset_prices).toBeUndefined()
     const funded = play(0.6).indicators.asset_prices
     expect(funded).toBeDefined()
+    expect(funded!.label).toBe('Asset valuation')
+    expect(funded!.unit).toBe('replacement cost=100')
     for (const p of funded!.points) {
       expect(p.value).toBeGreaterThan(30) // an index around 100, not garbage
       expect(p.value).toBeLessThan(400)

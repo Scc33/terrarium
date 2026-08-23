@@ -71,7 +71,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
   death_rate: { label: 'Death rate', unit: 'per 1000/yr' },
   terms_of_trade: { label: 'Terms of trade', unit: '1946=100' },
-  asset_prices: { label: 'Asset prices', unit: '1946=100' },
+  asset_prices: { label: 'Asset valuation', unit: 'replacement cost=100' },
   credit_growth: { label: 'Credit growth', unit: '% / yr' },
   credit_to_gdp: { label: 'Private credit', unit: '% of GDP' },
   bank_capital_ratio: { label: 'Bank capital', unit: '% of credit' },
