@@ -9,15 +9,25 @@
  *     and even then it lags and wobbles like any published series.
  * You can always count how many people there are. Knowing why the number
  * moves is a thing you buy.
+ *
+ * The growth rate sits on the exact side, and which side it sits on is the
+ * decision worth guarding: it is a ratio of two head counts, so giving it a
+ * lag and a band would be inventing fog for a figure that has none. The
+ * arithmetic is in `../census`; see that module for why it is not an
+ * indicator.
  */
 
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
+import { ageStructure, medianAge, populationGrowth } from '../census'
+import type { PlotPoint } from '../plot'
 import { ChartFrame, Modal, OverlayLayout, TimeSeriesChart, Tooltip, TooltipLabel } from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
+/** a growth rate reads as a direction first, so the sign is always printed */
+const signed = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}`
 
 /** latest revision per measured quarter, oldest first — the office's best
  * current word on each period */
@@ -115,32 +125,66 @@ function TransitionChart({
   )
 }
 
-// ---- the exact population strip, sharing the X axis ----
+// ---- the exact register: the count, and how fast it is moving ----
+//
+// ONE figure, not two, and the reason is the page's own argument. The
+// overlay sets what a state can COUNT beside what it must SURVEY; drawing the
+// counted half as two separate frames while the surveyed half is one made the
+// layout say something the census does not. A level and its own slope are a
+// single subject, they are read together, and they share an x axis with the
+// flows above — so they share a caption too. The saving is not incidental:
+// a `ChartFrame` caption measures 53px against a strip's 54px of plot, so a
+// second frame costs nearly as much in chrome as the figure it adds.
 const PW = 470
 const PH = 54
 
-function PopulationStrip({
+function CountAndGrowth({
   census,
+  growth,
   xMin,
   xMax,
   markTick,
 }: {
   census: PublishedState['census']
+  growth: PlotPoint[]
   xMin: number
   xMax: number
   markTick: number
 }) {
   const latest = census[census.length - 1]
-  const summary = `Exact population count from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest count ${latest.population.toFixed(1)} million.`
+  const latestGrowth = growth[growth.length - 1]
+  const countSummary = `Exact population count from ${yearOf(xMin)} to ${yearOf(xMax)}. Latest count ${latest.population.toFixed(1)} million.`
+  const growthSummary = latestGrowth
+    ? `Exact year-on-year growth of that count from ${yearOf(growth[0].tick)} to ${yearOf(latestGrowth.tick)}. Latest ${signed(latestGrowth.value)} per cent per year.`
+    : 'Year-on-year growth needs a year of census record before it can be measured.'
+  // the scrub line and the shared timeline are the same on both plots, so the
+  // two read as one figure rather than two that happen to be stacked
+  const shared = {
+    width: PW,
+    xDomain: { x0: xMin, x1: xMax },
+    rules: [{ axis: 'x' as const, at: markTick, color: 'var(--color-dossier-brass)', opacity: 0.8 }],
+    formatTick: (t: number) => String(yearOf(t)),
+    hover: true,
+  }
+
   return (
     <ChartFrame
       title="HEAD COUNT"
-      detail="MILLIONS · EXACT"
-      value={`${latest.population.toFixed(1)}M`}
-      summary={summary}
+      detail="MILLIONS, AND ITS YEAR-ON-YEAR GROWTH · EXACT"
+      value={(
+        <span className="flex items-baseline gap-2">
+          <span>{latest.population.toFixed(1)}M</span>
+          {latestGrowth && (
+            <span className={latestGrowth.value < 0 ? 'text-dossier-warn' : 'opacity-70'}>
+              {signed(latestGrowth.value)}%/YR
+            </span>
+          )}
+        </span>
+      )}
+      summary={`${countSummary} ${growthSummary}`}
     >
       <TimeSeriesChart
-        width={PW}
+        {...shared}
         height={PH}
         traces={[
           {
@@ -153,12 +197,29 @@ function PopulationStrip({
         // a head count is read against zero, and shares the vital rates' axis
         // above it so the two figures line up quarter for quarter
         include={[0]}
-        xDomain={{ x0: xMin, x1: xMax }}
-        rules={[{ axis: 'x', at: markTick, color: 'var(--color-dossier-brass)', opacity: 0.8 }]}
-        formatTick={(t) => String(yearOf(t))}
+        // the two plots in this frame carry different units, so each axis
+        // names its own — the one case the painter's default is meant to yield
+        format={(v) => `${v.toFixed(0)}M`}
         formatReading={(v) => `${v.toFixed(1)}M`}
-        summary={summary}
-        hover
+        summary={countSummary}
+      />
+      <div className="border-t border-dossier-ink/15" />
+      <TimeSeriesChart
+        {...shared}
+        height={PH}
+        traces={[{ key: 'growth', points: growth, fillTo: 0, lead: true }]}
+        // Measured across the catalogue, growth runs −0.84 to +2.11 %/yr, so
+        // zero is INSIDE the range rather than a floor under it: without it on
+        // the axis a shrinking country and a stagnant one draw identically.
+        include={[0]}
+        format={(v) => `${v.toFixed(1)}%`}
+        // two decimals in the readout because the whole series spans about
+        // three PERCENTAGE points end to end; one would round a decade flat
+        formatReading={(v) => `${signed(v)} %/YR`}
+        summary={growthSummary}
+        // two different reasons, and saying the first one when the second is
+        // true contradicts the rate already printed in this frame's caption
+        emptyLabel={growth.length === 0 ? 'GROWTH NEEDS A YEAR OF RECORD' : 'GROWTH: ONE READING SO FAR'}
       />
     </ChartFrame>
   )
@@ -216,23 +277,34 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const xMax = census[census.length - 1]?.tick ?? pub.tick
 
   const p = shown.pyramid
-  const sum = (from: number, to: number) => p.slice(from, to + 1).reduce((a, b) => a + b, 0)
-  const children = sum(0, WORKING_BANDS[0] - 1)
-  const working = sum(WORKING_BANDS[0], WORKING_BANDS[1])
-  const retired = sum(RETIREMENT_BAND, AGE_BANDS - 1)
-  const support = retired > 1e-9 ? working / retired : Infinity
+  const { children, working, retired, support } = ageStructure(p)
+  const median = medianAge(p)
   const hasHistory = census.length >= 2
+  // the exact half of the story, computed from the exact register
+  const growth = populationGrowth(census)
+  const latestGrowth = growth[growth.length - 1]?.value
 
   return (
     <Modal title="THE NATIONAL CENSUS" onClose={onClose} size="wide">
       <OverlayLayout
         summary={(
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <span className="font-mono text-2xl font-semibold tabular-nums text-dossier-ink">{pub.population.total.toFixed(1)}M</span>
+            <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-mono text-2xl font-semibold tabular-nums text-dossier-ink">{pub.population.total.toFixed(1)}M</span>
+              {latestGrowth !== undefined && (
+                <TooltipLabel
+                  label="Population growth"
+                  content="How much the head count has changed over the last four quarters, as a percentage per year. Counted, not surveyed — so unlike the birth and death rates it never lags or revises."
+                  className={`font-mono text-[11px] font-semibold tabular-nums tracking-[0.1em] ${latestGrowth < 0 ? 'text-dossier-warn' : 'text-dossier-ink/75'}`}
+                >
+                  {signed(latestGrowth)}%/YR
+                </TooltipLabel>
+              )}
+            </span>
             <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
           </div>
         )}
-        note="The census counts heads exactly. Births, deaths and net migration are published estimates, so they can lag and revise. Net migration is arrivals minus departures: positive means more people arrived; negative means more left. Scrub the age pyramid to see the population structure that today’s headline total conceals."
+        note="Heads are counted, so the count and its growth rate never lag or revise. The three flows behind that growth — births, minus deaths, plus net migration — are surveyed, so they do. Net migration is arrivals minus departures: positive means more people arrived."
         footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -241,7 +313,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           {hasHistory ? (
             <>
               <TransitionChart birth={birth} death={death} migration={migration} xMin={xMin} xMax={xMax} markTick={shown.tick} />
-              <PopulationStrip census={census} xMin={xMin} xMax={xMax} markTick={shown.tick} />
+              <CountAndGrowth census={census} growth={growth} xMin={xMin} xMax={xMax} markTick={shown.tick} />
             </>
           ) : (
             <div className="border border-dossier-ink/25 p-6 text-center font-mono text-[10px] tracking-[0.2em] text-dossier-ink/50">
@@ -280,6 +352,9 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             <TooltipLabel label="Older population" content="People aged 60 and over as a share of the population.">A {((100 * retired) / shown.population).toFixed(0)}%</TooltipLabel>
             <TooltipLabel label="Workers per pensioner" content="Working-age people for every older person. Lower numbers make pensions harder to support.">
               {Number.isFinite(support) ? support.toFixed(1) : '—'}:1
+            </TooltipLabel>
+            <TooltipLabel label="Median age" content="Half the country is younger than this and half is older. Counted from the pyramid, so it is exact — and it is the demographic transition in one number: it falls while a birth surge arrives, then climbs for the rest of the century.">
+              MED {median === null ? '—' : median.toFixed(0)}
             </TooltipLabel>
           </div>
         </div>
