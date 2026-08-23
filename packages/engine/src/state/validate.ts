@@ -3,12 +3,13 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
-import { IMMIGRATION_LIMIT_MAX } from '../constants'
+import { IMMIGRATION_LIMIT_MAX, STATUTE_LEVELS } from '../constants'
 import {
   BLOC_IDS,
   INSTITUTION_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
+  STATUTE_IDS,
   type TrueState,
 } from './schema'
 
@@ -114,6 +115,21 @@ export function validate(state: TrueState): void {
   for (const [cid, v] of Object.entries(state.gov.capacity)) {
     finite(v, `capacity[${cid}]`)
     if (v < 0 || v > 1) throw new InvariantError(`capacity[${cid}] out of [0,1]`)
+  }
+  // The statute book. A level off the end of its own ladder is the failure
+  // worth catching here: `STATUTE_LEVELS[id][level]` would be undefined, and
+  // `statuteForce` would quietly read a strength of 0 — a statute the player
+  // enacted and paid for, doing nothing, with no error anywhere.
+  for (const id of STATUTE_IDS) {
+    const statute = state.gov.statutes[id]
+    const { level, enactedAt } = statute
+    if (!Number.isInteger(level) || level < 0 || level >= STATUTE_LEVELS[id].length) {
+      throw new InvariantError(`statutes[${id}].level = ${level} is off its ladder`)
+    }
+    finite(enactedAt, `statutes[${id}].enactedAt`)
+    if (enactedAt < 0 || enactedAt > state.meta.tick) {
+      throw new InvariantError(`statutes[${id}].enactedAt = ${enactedAt} is not a past quarter`)
+    }
   }
   const inst = state.institutions
   for (const id of INSTITUTION_IDS) {

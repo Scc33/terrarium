@@ -97,11 +97,77 @@ for a regression they caused. Nobody has ruled on whether it is correct (capacit
 schooling→fertility→labour-force channel both plausibly explain it, and per-head growth is not
 what this table measures) — so measure it, do not reason from it.
 
-**Healthy random policy, 120q:** growth ≈ 4.04%/yr · inflation ≈ 0.46% ·
-unemployment ≈ 11.92% · **26% deposed** (median quarter 77) · no NaN · no price explosions.
+**Healthy random policy, 120q:** growth ≈ 3.91%/yr · inflation ≈ 0.46% ·
+unemployment ≈ 12.12% · **29% deposed** (median quarter 77) · no NaN · no price explosions.
+
+> Re-baselined when the statute book landed (schema 33). `randomPolicy` now spends about a tenth
+> of its orders enacting and repealing statutes, which it must — a mechanic the adversarial sweep
+> never reaches is a mechanic nothing stress-tests. The previous figures were 4.04%/yr, 11.92%
+> unemployment, 26% deposed. This is a deliberate change to the SAMPLER, not a change in the
+> economy: passive and developmental are untouched.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
+
+### The environment (schema 34, ADR-0028)
+
+Pollution is the first mechanic here that **moves the baseline on purpose**, so it does not get
+the inert treatment the statute book and the rules of a run got. What to check instead:
+
+| 1000 × 400q | before v34 | after |
+|---|---|---|
+| passive growth %/yr | 2.81 | **2.82** |
+| passive unemployment % | 12.23 | **12.26** |
+| passive deposed | 6% | **6%** |
+| developmental deposed (400×400q) | 8% | **10%** |
+| developmental survivors (`future-stability`) | 22 | **19** |
+
+**The passive/developmental split IS the calibration test.** A country at its OWN inherited burden
+pays exactly nothing — the damage terms read the excess over `environment.baseline`, not over the
+standard country's 1.0 — so passive must stay put while the industrialising cohort pays. Reading it
+against the global value shipped once and cost Oranga twelve points of deposition for its recipe's
+structure; it was invisible because the passive baseline is measured on the reference country. If a retune moves the passive figures, the burden has stopped being
+a cost of development and become a tax on existence, which is a different mechanic and a worse one.
+
+The golden replays are NOT evidence here: they moved 3540 values and every one by 0.00 %, because
+40 quarters cannot see a stock with a seventeen-year half-life. Use the 400-quarter batches.
+
+Measured cost of doing nothing, capacity-building century on Meridia: real GDP −6.8 %, consumption
+per head −5.7 %, death rate +4.8 % by 2046 against the same run with a clean air act.
+
+### The statute book (`--policy regulated`)
+
+Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
+time as capital allows. It is the only policy that exercises the statute book comparably, so it
+is the arm to run **against `developmental`** — the two differ by nothing except the statutes.
+
+| 200 × 400q, `--country all` | developmental | regulated | | |
+|---|---|---|---|---|
+| | growth %/yr | growth %/yr | unemployment % | deposed |
+| meridia | 3.11 | 3.07 | 11.70 → 11.38 | 9% → 12% |
+| costona | 3.67 | 3.68 | 14.64 → 14.43 | **62% → 41%** |
+| veltravia | 2.50 | 2.49 | 9.02 → 8.91 | 18% → 24% |
+| oranga | 2.86 | 2.83 | 9.00 → 8.83 | 27% → 30% |
+| kestrel | 3.53 | 3.50 | 12.30 → 11.96 | 61% → 58% |
+| procedural | 3.29 | 3.24 | 11.59 → 11.25 | 27% → 27% |
+
+**Do not read this table as growth.** Growth is flat to slightly negative, because two of the
+three statutes cost output on purpose: compulsory schooling withdraws the youngest workers, and
+the minimum wage raises unit labour cost. Unemployment falls everywhere partly for a mechanical
+reason — a school-leaving age shrinks the labour force, and the rate is measured against it.
+
+The result worth knowing is the last column. **Costona's deposition rate falls from 62% to 41%.**
+Nothing in the statute book touches politics directly; the minimum wage binds on Costona's
+agricultural wage, the Gini falls about five points, and lower inequality feeds unrest and
+approval through the channels that were already there. On the hardest country in the catalogue
+the statute book's payoff is survival, not output — which is the correct shape for a political
+economy game and was not designed in.
+
+The competition act alone, against `developmental`, was +0.01–0.05 pp/yr per country with the
+right ordering (most captured gains most). That is **much smaller than the mechanism test
+suggests** — `tests/properties/statutes.test.ts` measures +16% of real GDP on Costona over 160
+quarters. Both are correct and the gap is methodological; see the tuning lesson in AGENTS.md
+before concluding that either is wrong.
 
 The stability harness is the future-facing balance check. It compares fixed eras through
 2050, reports the inflation and real-growth tails that century means conceal, and conditions

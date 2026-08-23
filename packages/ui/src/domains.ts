@@ -141,6 +141,12 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // the face: "am I above the floor I set" is the reading, and a dial that
   // could not draw the floor could not answer it.
   bank_capital_ratio: { lo: 0, hi: 35 },
+  // Measured with `pnpm ranges` over the funded century: p01–p99 is 66.8–418.2
+  // and the extrema are 57.6–477.9. A country that never industrialises sits
+  // near its 1946 inheritance at 100; one that industrialises without rules
+  // runs past 400. The face covers the middle 98% and lets the filthiest
+  // centuries peg, which is the point — going off this dial is information.
+  pollution: { lo: 50, hi: 450 },
   unrest: { lo: 0, hi: 60 },
 }
 

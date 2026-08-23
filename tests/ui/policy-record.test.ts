@@ -35,6 +35,12 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
       investment: { mode: 'fixed', value: 2, votedAt: 0 },
       research: { mode: 'fixed', value: 1, votedAt: 0 },
     },
+    statutes: {
+      minimum_wage: { level: 0, enactedAt: 0 },
+      compulsory_schooling: { level: 0, enactedAt: 0 },
+      competition: { level: 0, enactedAt: 0 },
+      emissions_standard: { level: 0, enactedAt: 0 },
+    },
     ...over,
   }
 }
@@ -213,7 +219,7 @@ describe('reading the dials back', () => {
     // 5 sector subsidies. The scalar count is derived from `PolicyRecord`, so a lever added
     // to the cabinet fails the build here until it has been named and faced —
     // which is how `assetPurchaseRate` and `capitalRequirement` arrived.
-    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5)
+    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5 + 4)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
   })
 
@@ -244,7 +250,38 @@ describe('reading the dials back', () => {
   })
 
   it('prints a rate as a percentage and money as money', () => {
-    expect(formatPolicyValue('rate', 15)).toBe('15.00%')
-    expect(formatPolicyValue('money', 4)).toBe('4.00')
+    expect(formatPolicyValue({ unit: 'rate', key: 'tax.income' }, 15)).toBe('15.00%')
+    expect(formatPolicyValue({ unit: 'money', key: 'spending.transfers' }, 4)).toBe('4.00')
+  })
+
+  it('prints a statute as the name of the rung, never as its number', () => {
+    // "2" is not a policy. The minute book is meant to be read back years
+    // later, and a bare rung index is unreadable the moment a ladder changes.
+    const printed = formatPolicyValue({ unit: 'statute', key: 'statute.minimum_wage' }, 2)
+    expect(printed).toBe('Living wage')
+    expect(formatPolicyValue({ unit: 'statute', key: 'statute.minimum_wage' }, 0)).toBe(
+      'No statutory wage',
+    )
+  })
+
+  it('files an enactment as a decision and never files compliance', () => {
+    // The load-bearing negative, in the statute register this time: a statute
+    // is filed when its LEVEL moves, and compliance — which drifts every
+    // quarter as the civil service grows — is not on the record at all.
+    const century = Array.from({ length: 40 }, (_, t) =>
+      point(t, {
+        statutes: {
+          minimum_wage: { level: t >= 10 ? 2 : 0, enactedAt: t >= 10 ? 10 : 0 },
+          compulsory_schooling: { level: 0, enactedAt: 0 },
+          competition: { level: 0, enactedAt: 0 },
+      emissions_standard: { level: 0, enactedAt: 0 },
+        },
+      }),
+    )
+    const filed = policyChanges(century).filter((c) => c.key === 'statute.minimum_wage')
+    expect(filed).toHaveLength(1)
+    expect(filed[0].tick).toBe(10)
+    expect(filed[0].from).toBe(0)
+    expect(filed[0].to).toBe(2)
   })
 })

@@ -4,6 +4,7 @@ import {
   ASSET_PURCHASE_PRIVATE_RATE_GAIN,
   BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
+  COMPETITION_CAPTURE_RELIEF,
   CORRIDOR_HALF_WIDTH,
   DEBT_RISK_PREMIUM_AT,
   ELITE_CAPTURE_NEUTRAL,
@@ -14,13 +15,25 @@ import {
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
   LIVING_STANDARD_1946,
+  MINIMUM_WAGE_ANCHOR,
   PARTICIPATION,
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
+  SCHOOLING_LABOR_WITHDRAWAL,
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
+  STATUTE_COMPLIANCE_ADMIN,
+  STATUTE_COMPLIANCE_CEILING,
+  STATUTE_COMPLIANCE_COURTS,
+  STATUTE_COMPLIANCE_FLOOR,
+  STATUTE_CONGESTION,
+  STATUTE_EVASION_GAIN,
+  STATUTE_LEVELS,
+  STATUTE_STANCE,
+  STATUTE_PHASE_IN_QTRS,
   TECH_EXPOSURE,
+  adminEffectiveness,
   domesticBondFundingShare,
   taxEfficiency,
 } from '../constants'
@@ -30,10 +43,13 @@ import {
   CAPACITY_IDS,
   COHORT_IDS,
   SECTOR_IDS,
+  STATUTE_IDS,
+  WORKING_BANDS,
   type BlocId,
   type CohortId,
   type Sector,
   type SectorId,
+  type StatuteId,
   type TrueState,
 } from '../state/schema'
 
@@ -154,13 +170,43 @@ export function effectivePrice(state: TrueState, id: SectorId): number {
   return id === 'energy' ? p * (1 + state.gov.dials.taxRates.fuel) : p
 }
 
+/**
+ * The share of the labour force a school-leaving age takes out of it — the
+ * FAST half of the compulsory-schooling statute (ADR-0027), and the reason
+ * that statute is a genuine choice rather than a growth button.
+ *
+ * Children who stay in school stop supplying labour, and they do it the
+ * quarter the law bites, while what they learn arrives over the seventeen-year
+ * half-life of the human-capital stock. A country that legislates in 1950 is
+ * poorer in 1955 and unrecognisable in 1990.
+ *
+ * The size of the bite is read off the PYRAMID, not authored: it is the
+ * youngest working band's share of working-age people, so the same law costs a
+ * young agrarian country far more labour than an ageing industrial one — which
+ * is exactly right, and falls out for free rather than being written down.
+ */
+export function schoolingWithdrawal(state: TrueState): number {
+  const force = statuteForce(state, 'compulsory_schooling')
+  if (force <= 0) return 0
+  const pyramid = state.demography.pyramid
+  let workingAge = 0
+  for (let band = WORKING_BANDS[0]; band <= WORKING_BANDS[1]; band++) {
+    workingAge += pyramid[band] ?? 0
+  }
+  if (workingAge <= 1e-9) return 0
+  const youngest = pyramid[WORKING_BANDS[0]] ?? 0
+  return SCHOOLING_LABOR_WITHDRAWAL * force * (youngest / workingAge)
+}
+
 export function laborForce(state: TrueState): Record<CohortId, number> {
   // participation was calibrated on the 1946 pyramid; workerShareMult is the
   // pyramid's current working-age share against that baseline — the
   // demographic dividend (and later the aging squeeze) enters here, once
   const mult = state.demography.workerShareMult
+  // …and a school-leaving age takes the youngest of them back out again
+  const schooled = 1 - schoolingWithdrawal(state)
   const out = {} as Record<CohortId, number>
-  for (const c of state.cohorts) out[c.id] = c.size * PARTICIPATION[c.id] * mult
+  for (const c of state.cohorts) out[c.id] = c.size * PARTICIPATION[c.id] * mult * schooled
   return out
 }
 
@@ -446,16 +492,32 @@ export function eliteHostility(state: TrueState): number {
   return weight > 1e-9 ? hostile / weight : 0
 }
 
-/** The extractive ceiling. The strongest incumbent, unchecked, is the one
+/**
+ * The extractive ceiling. The strongest incumbent, unchecked, is the one
  * who vetoes creative destruction — so this reads the MAX, not the mean: it
- * only takes one entrenched interest to keep the newcomers out. */
+ * only takes one entrenched interest to keep the newcomers out.
+ *
+ * **The competition statute's one channel** (ADR-0027). A merger review or a
+ * trust-busting programme is the only order in the game aimed at incumbency
+ * itself, and this is the number incumbency is: it relieves the ceiling, and
+ * everything that follows — faster absorption of the frontier, more yield on
+ * the same research money — follows through `creativeDestruction` exactly as
+ * it would if the incumbents had been weakened by a slump instead.
+ *
+ * Note what it deliberately does NOT touch: `effectiveBlocPower` itself, which
+ * prices every order on the desk and also carries the capital strike, the wage
+ * push and the sovereign risk premium. A competition law arguably weakens the
+ * veto too, but a statute that moved that number would move six channels at
+ * once and its economics review would be unreadable. Start where the claim is
+ * precise; extend on evidence.
+ */
 export function eliteCapture(state: TrueState): number {
   let max = 0
   for (const id of BLOC_IDS) {
     if (id === 'unions') continue
     max = Math.max(max, effectiveBlocPower(state, id))
   }
-  return max
+  return max * (1 - COMPETITION_CAPTURE_RELIEF * statuteForce(state, 'competition'))
 }
 
 /** The multiplier the extractive ceiling puts on absorptive capacity. Above 1
@@ -468,6 +530,123 @@ export function creativeDestruction(state: TrueState): number {
     ELITE_ABSORB_CLAMP[0],
     ELITE_ABSORB_CLAMP[1],
   )
+}
+
+// ---------- the statute book (ADR-0027) ----------
+
+/** How many statutes are on the books at all. One civil service enforces a
+ * long book worse than a short one, so this is the congestion term's input. */
+export function statutesInForce(state: TrueState): number {
+  let n = 0
+  for (const id of STATUTE_IDS) if (state.gov.statutes[id].level > 0) n++
+  return n
+}
+
+/**
+ * How much of a posted statute the country actually obeys, 0..1.
+ *
+ * The third instance of the gap this game is about. `taxEfficiency` is the
+ * distance between a posted rate and collected revenue; `adminEffectiveness`
+ * is the distance between a voted appropriation and delivered money; this is
+ * the distance between a rule that is written and a rule that is obeyed. What
+ * makes it the interesting one is that the party doing the evading has a name:
+ * a powerful, hostile bloc does not veto a factory act, it ignores one.
+ *
+ * Nothing here is stored, and nothing here is fogged, for the same reason:
+ * every input is already published exactly — the civil service, the courts,
+ * and each bloc's power and favour are all on the desk unfogged — so a player
+ * with a pencil could compute this figure from what the game already shows.
+ * That equivalence is the boundary: the moment a term here reads something the
+ * player cannot see, this becomes an inspectorate survey with a lag and a band
+ * rather than an exact figure. See ADR-0027.
+ */
+export function statuteCompliance(state: TrueState, id: StatuteId): number {
+  const capability =
+    STATUTE_COMPLIANCE_ADMIN * adminEffectiveness(state.gov.capacity.administrative) +
+    STATUTE_COMPLIANCE_COURTS * state.institutions.stocks.courts
+  // The same table that priced the enactment says who declines to comply.
+  // Anger only has force when the bloc holding it also has the power to act
+  // on it, which is the reading `financierAnger` above already uses.
+  let resistance = 0
+  for (const bloc of BLOC_IDS) {
+    const minds = Math.max(0, STATUTE_STANCE[id][bloc] ?? 0)
+    if (minds <= 0) continue
+    resistance +=
+      minds *
+      effectiveBlocPower(state, bloc) *
+      Math.max(0, -state.institutions.blocs[bloc].favor)
+  }
+  // One civil service, many laws. A statute that is NOT yet in force is
+  // counted as if it were, so the figure answers the question the desk
+  // actually asks of a dormant law — "what could I enforce if I wrote this
+  // today?" — rather than quoting an enforcement level that enacting it would
+  // immediately undercut. This cannot reach the economy: `statuteForce`
+  // returns zero on a dormant statute before it ever asks for compliance.
+  const book = statutesInForce(state) + (state.gov.statutes[id].level > 0 ? 0 : 1)
+  const congestion = 1 + STATUTE_CONGESTION * Math.max(0, book - 1)
+  return clamp(
+    (capability / congestion) * (1 - STATUTE_EVASION_GAIN * clamp(resistance, 0, 1)),
+    STATUTE_COMPLIANCE_FLOOR,
+    STATUTE_COMPLIANCE_CEILING,
+  )
+}
+
+/**
+ * What the economy is actually subject to: the posted strength, times what is
+ * enforced, times how far the change has phased in. **Every pipeline step that
+ * reads a statute reads this and nothing else** — reading `gov.statutes`
+ * directly is reading the announcement instead of the effect, which is exactly
+ * the mistake the register exists to make impossible.
+ *
+ * Zero on rung 0 whatever the compliance, so an un-enacted statute is inert by
+ * construction rather than by a constant that could be retuned.
+ */
+export function statuteForce(state: TrueState, id: StatuteId): number {
+  const { level, enactedAt } = state.gov.statutes[id]
+  const strength = STATUTE_LEVELS[id][level]?.strength ?? 0
+  if (strength <= 0) return 0
+  const phase = clamp((state.meta.tick - enactedAt) / STATUTE_PHASE_IN_QTRS, 0, 1)
+  return strength * statuteCompliance(state, id) * phase
+}
+
+/**
+ * The wage floor a minimum-wage statute puts under every sector — the
+ * statute's ONE channel, read by `pipeline/labor` and nothing else
+ * (ADR-0027). Zero when no statute is written.
+ *
+ * Anchored to the prevailing WAGE, not to the price level, and the choice is
+ * load-bearing rather than stylistic. Measured over a capacity-building
+ * century, real wages roughly triple: agriculture's wage runs from 1.8× the
+ * consumer price level in 1946 to 4.8× by 2006 on Costona and 9.0× on Meridia.
+ * A floor pinned to prices would therefore bind hard for a decade and then be
+ * left behind by real wage growth, quietly ceasing to be a policy at all —
+ * the same silent-irrelevance failure a nominal floor has, arriving by the
+ * opposite route. A floor expressed against what people actually earn stays a
+ * policy for as long as it is on the books.
+ *
+ * The mean is EMPLOYMENT-weighted because the sectors differ by an order of
+ * magnitude in wage and by more than that in headcount: energy pays roughly
+ * seven times agriculture and employs almost nobody, so an unweighted mean
+ * would set the floor by the wage of a sector the floor cannot reach. Weighted
+ * by heads, this is the wage of the average worker, which is what a minimum
+ * wage has always been argued about as a fraction of.
+ *
+ * It reads the wages standing at the start of the quarter, so the floor and
+ * the raise it forces are not solved simultaneously; the feedback from a
+ * higher floor to a higher mean arrives next quarter, damped by the ordinary
+ * wage-move caps.
+ */
+export function minimumWageFloor(state: TrueState): number {
+  const force = statuteForce(state, 'minimum_wage')
+  if (force <= 0) return 0
+  let bill = 0
+  let heads = 0
+  for (const sector of state.sectors) {
+    bill += state.market.wages[sector.id] * sector.employment
+    heads += sector.employment
+  }
+  if (heads <= 1e-9) return 0
+  return MINIMUM_WAGE_ANCHOR * force * (bill / heads)
 }
 
 /** Household own-basket price level for a cohort (base = 1). */

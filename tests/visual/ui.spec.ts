@@ -313,6 +313,27 @@ test('migration desk exposes the annual immigration ceiling', async ({ page }) =
   await expect(page).toHaveScreenshot('migration-controls.png')
 })
 
+test('the statute book shows what was written beside what is obeyed', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'STATUTES 0 IN FORCE' }).click()
+
+  // The two figures that make a statute different from a dial: the rung and
+  // the compliance. In 1946 Meridia the civil service is thin, so the drawer
+  // should be saying out loud that a law written today would be widely evaded.
+  const ladder = page.getByRole('group', { name: 'Minimum wage level' })
+  await expect(ladder.getByRole('button', { name: /No statutory wage/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByText('Widely evaded').first()).toBeVisible()
+
+  // …and the ladder is climbed a rung at a time, because the top rung costs
+  // more than a new government is holding
+  await ladder.getByRole('button', { name: /Subsistence floor/ }).click()
+  await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
+  await expect(page).toHaveScreenshot('statute-book.png')
+})
+
 test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
   await openGame(page)
   await page.getByRole('tab', { name: 'SPENDING 4 CONTROLS' }).click()

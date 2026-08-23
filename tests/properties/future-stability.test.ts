@@ -63,11 +63,24 @@ describe('the playable economy through 2050', () => {
     const quietWidth = (tail: typeof future.quietInflation) => tail.p99 - tail.p01
     // Schema 30 separates schools from the workforce they teach. The lag
     // leaves a larger youth cohort to absorb while skills catch up, widening
-    // this relative tail from 1.60× to 1.63× in the fixed sample. The hard
-    // absolute -10..10 quiet bounds above still own safety; 1.65 keeps the
-    // cross-era guard tight around the measured generational transition.
+    // this relative tail from 1.60× to 1.63× in the fixed sample.
+    //
+    // Schema 34 (pollution, ADR-0028) widens it again to 1.71×, and the cause
+    // is worth stating because it is not "the economy got less stable". A
+    // heavier burden makes the harvest fail more often, harvest failures move
+    // food prices, and the burden is heaviest in the final era — so the future
+    // tail SHOULD be wider than the one before it. Sample composition adds to
+    // that: the quiet tails are computed over survivors, and pollution changes
+    // who survives into 2026-2050.
+    //
+    // Isolating the two damage channels showed neither dominates — zeroing
+    // mortality left 16.24 and halving the drought gain left 16.13 — which is
+    // what a compositional effect looks like rather than a channel that is
+    // simply too strong. The hard absolute -10..10 quiet bounds above still own
+    // safety and still pass; this stays a tightness guard, now at the same
+    // 1.75 its per-era sibling above uses.
     expect(quietWidth(future.quietInflation), 'quiet future inflation widened').toBeLessThan(
-      quietWidth(lateCentury.quietInflation) * 1.65,
+      quietWidth(lateCentury.quietInflation) * 1.75,
     )
     expect(quietWidth(future.quietRealGrowth), 'quiet future growth widened').toBeLessThan(
       quietWidth(lateCentury.quietRealGrowth) * 1.5,
@@ -93,8 +106,19 @@ describe('the playable economy through 2050', () => {
     // so aggregate GDP can grow faster than output per resident. Pin both
     // sides of that identity: migration must not buy aggregate acceleration
     // by making the population poorer per head.
+    //
+    // v34 (pollution, ADR-0028) costs the DEVELOPMENTAL cohort three of its
+    // twenty-two survivors and leaves the passive cohort untouched at
+    // twenty-six. That split is the mechanic rather than a regression, and it
+    // is the reason to pin both numbers rather than one: a burden that taxed
+    // everybody would have moved the passive figure too, and a burden nobody
+    // felt would have moved neither. Only countries that industrialise past
+    // their 1946 inheritance carry it, and the developmental policy
+    // industrialises without ever legislating — the emissions standard is the
+    // answer it does not use. Measured beside it, the `regulated` policy,
+    // which does legislate, deposes 7% against developmental's 10%.
     expect(passiveTrend.survivors).toBe(26)
-    expect(developmentalTrend.survivors).toBe(22)
+    expect(developmentalTrend.survivors).toBe(19)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,
     // lifting this fixed passive sample from 2.79% to 2.81% without changing

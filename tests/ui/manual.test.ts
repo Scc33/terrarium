@@ -226,6 +226,7 @@ describe('the order of a quarter still matches the engine', () => {
     finance: 'Finance',
     foreignInvestment: 'Foreign investment',
     production: 'Production',
+    environment: 'The environment',
     trade: 'Trade',
     fiscal: 'Fiscal',
     monetary: 'Monetary',

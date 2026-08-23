@@ -115,6 +115,45 @@ export type SpendingRule =
 export type SpendingRuleMode = SpendingRule['kind']
 export type SpendingRules = Record<SpendingProgramId, SpendingRule>
 
+/**
+ * The statute book (ADR-0027). Rules the government writes, as opposed to the
+ * numbers it sets — a register between the dials and the constitution.
+ *
+ * A statute is an ORDINAL with named levels rather than a scalar, and the
+ * naming is the point: a rule that is *called* something is what separates
+ * this from a second rack of sliders. Each ladder lives in `STATUTE_LEVELS`;
+ * a statute needing more than about three rungs was a number all along and
+ * belongs in the cabinet as a dial.
+ *
+ * What reaches the economy is never the posted level. It is the level times
+ * what the state can actually enforce — the third instance of a gap this game
+ * already teaches twice, after `taxEfficiency` (a posted rate is not collected
+ * revenue) and `adminEffectiveness` (a voted appropriation is not delivered
+ * money). See `statuteForce` in `pipeline/derive.ts`; every step that reads a
+ * statute reads that and nothing else.
+ */
+export const STATUTE_IDS = [
+  'minimum_wage',
+  'compulsory_schooling',
+  'competition',
+  'emissions_standard',
+] as const
+export type StatuteId = (typeof STATUTE_IDS)[number]
+
+/** A statute as it stands on the books. Deliberately holds NOTHING that can be
+ * computed: compliance is a function of quantities the desk already publishes
+ * exactly, and a second copy of a derivable number is a second thing that can
+ * be wrong. `enactedAt` is stored because both the phase-in and the repeal
+ * premium read it — a law gets harder to undo the longer it has stood, which
+ * is the whole difference between a statute and a dial. */
+export interface Statute {
+  /** index into `STATUTE_LEVELS[id]`; 0 is always "no statute" */
+  level: number
+  /** the quarter this level was written */
+  enactedAt: Qtr
+}
+export type StatuteBook = Record<StatuteId, Statute>
+
 /** Institutional reforms are generational, ratcheting, and contested. These are the stocks
  * that edit your own objective function: `suffrage` rewrites the ballot
  * weights the PC formula scores you on, `repression` buys the state's coercive
@@ -206,6 +245,12 @@ export const INDICATOR_IDS = [
    * At the inherited 6% floor it is slack for a whole century; a government
    * that raises the floor cannot otherwise tell it did anything. */
   'bank_capital_ratio',
+  /** the pollution burden the economy is carrying, standard 1946 country ≈ 100.
+   * Fogged like everything else, and behind a monitoring gate for the reason
+   * the whole instrument wall exists: a state that has not built an
+   * environmental service cannot see what its own industry is doing, which is
+   * the historical fact rather than a flourish. */
+  'pollution',
   'unrest',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
@@ -390,6 +435,19 @@ export interface PolicyRecord extends Omit<DialState, 'subsidies'> {
    * the same convention `setSpendingRule` takes. `votedAt` is what makes a
    * change log possible; see the note on `SpendingRule`. */
   rules: Record<SpendingProgramId, { mode: SpendingRuleMode; value: number; votedAt: Qtr }>
+  /** the statute book as it stood, level and enactment quarter only.
+   *
+   * A total `Record`, so a statute added later joins the minute book without a
+   * second list to keep in step — the same reason `subsidies` above is widened
+   * from its `Partial`.
+   *
+   * Compliance is deliberately NOT here. The minute book files DECISIONS, and
+   * compliance moves every quarter on its own as the civil service grows and
+   * the blocs change their minds: filing it would report a policy change every
+   * quarter for eighty years, and it would look entirely plausible in review.
+   * That is the trap indexed appropriations sprang once already — see the note
+   * on `SpendingRule.votedAt`. */
+  statutes: Record<StatuteId, Statute>
 }
 
 export interface CapacityBuild {
@@ -404,6 +462,10 @@ export interface GovernmentState {
   /** Standing appropriations. `dials.spending` is the amount currently
    * resolved from these rules and remains the common input to the economy. */
   spendingRules: SpendingRules
+  /** The rules the government has written, as opposed to the numbers it has
+   * set (ADR-0027). What the economy is subject to is never what is stored
+   * here — read it through `statuteForce`, never directly. */
+  statutes: StatuteBook
   capacity: Record<CapacityId, Ratio>
   /** in-flight Layer-2 investments; capacity arrives with a lag */
   pipeline: CapacityBuild[]
@@ -445,6 +507,52 @@ export interface ExternalState {
     /** agri tfp multiplier applied while the drought runs (restored after) */
     droughtSeverity: number
   }
+}
+
+// ---------- the environment: what production costs outside the market ----------
+/**
+ * The externality (ADR-0028). One slow stock, plus the flow that feeds it.
+ *
+ * `pollution` is a burden index normalised so a standard 1946 country reads
+ * about 1. It is PER HEAD rather than absolute, because land and area are not
+ * modelled and an absolute tonnage would make a big country dirtier than a
+ * small one purely by being big — meaningless to everything that reads it.
+ * Per head it follows income and industrial structure instead, which is the
+ * environmental Kuznets story arrived at rather than authored.
+ *
+ * It is a STOCK, chasing current emissions slowly, so a country that
+ * industrialises hard carries the burden for decades after it stops and a
+ * clean-up is a generation's work. That inertia is what makes this an
+ * externality rather than a running cost.
+ *
+ * Nothing reads it directly. The damage arrives through two channels that
+ * already existed — mortality in `demography`, and the drought hazard in
+ * `shocks` — because "pollution reduces GDP" is the effect arrow this engine
+ * exists to refuse.
+ */
+export interface EnvironmentState {
+  /** pollution burden, standard 1946 country ≈ 1 */
+  pollution: number
+  /**
+   * The burden this country INHERITED, sealed at init and never moved.
+   *
+   * Both damage channels read the excess over THIS, not over the standard
+   * country's 1.0, and the distinction is not a detail: the catalogue opens
+   * anywhere between 0.62 (agrarian Costona) and 1.57 (industrial Veltravia),
+   * so a global threshold charged Veltravia excess mortality and a 12% higher
+   * drought hazard in 1946Q1 — before it had industrialised at all — for the
+   * authored structure of its recipe rather than for anything a player did.
+   *
+   * That penalty was invisible in the passive baseline because the baseline is
+   * measured on Meridia, which IS the reference country and opens at exactly
+   * 1.0. Same shape as `demography.migrationBaselineWelfare`: a country
+   * anchor, kept separate from a global one, because the mechanic is about
+   * what this government did to this country.
+   */
+  baseline: number
+  /** this quarter's emissions per head, in the same index — what the stock
+   * chases. Kept for inspection and for the fogged instrument. */
+  emissionsQ: number
 }
 
 // ---------- technology: two trees and the gap ----------
@@ -772,6 +880,10 @@ export interface StatRecord {
    * `capitalRequirement` floor the government sets. A level would have to be
    * divided by a fogged GDP before it could be read against the dial. */
   bankCapitalRatio: Ratio
+  /** the pollution burden, standard 1946 country = 1 — what an environmental
+   * monitoring service would find in the air. Fogged like everything else,
+   * and unmeasurable at all until somebody funds the monitors. */
+  pollution: number
   /** revolutionary pressure, 0..1 — what the provincial governors' reports
    * would add up to if anyone collated them. Fogged like everything
    * else: a state that cannot survey its own people cannot see the street. */
@@ -887,6 +999,8 @@ export interface TrueState {
   }
   params: CountryParams
   demography: DemographyState
+  /** what production costs outside the market (ADR-0028) */
+  environment: EnvironmentState
   tech: TechState
   finance: FinanceState
   cohorts: Cohort[]
@@ -918,7 +1032,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 32 // v32: leverage + bank-capital prints, and wire items name their kind
+export const SCHEMA_VERSION = 34 // v34: the environment — pollution as a stock (ADR-0028)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

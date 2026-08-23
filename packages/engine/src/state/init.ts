@@ -6,6 +6,7 @@
  */
 
 import type { Seed } from '../rng/rng'
+import { emissionsPerHead } from '../pipeline/environment'
 import {
   adminEffectiveness,
   taxEfficiency,
@@ -39,6 +40,7 @@ import {
   RETIREMENT_BAND,
   SCHEMA_VERSION,
   SECTOR_IDS,
+  STATUTE_IDS,
   WORKING_BANDS,
   WORKING_CLASS_IDS,
   appointmentTick,
@@ -50,6 +52,7 @@ import {
   type GameRules,
   type Qtr,
   type SectorId,
+  type StatuteBook,
   type TickFlows,
   type TrueState,
 } from './schema'
@@ -392,6 +395,14 @@ export function init(
         investment: { kind: 'fixed', amount: spendingDials.investment, votedAt: 0 },
         research: { kind: 'fixed', amount: spendingDials.research, votedAt: 0 },
       },
+      // The statute book opens empty (ADR-0027): every country inherits a
+      // 1946 in which none of these rules has been written. `enactedAt: 0`
+      // beside level 0 is the same statement twice — nothing is in force, and
+      // nothing is phasing in — and it keeps the record shape uniform so the
+      // minute book has no absent quarters to reason about.
+      statutes: Object.fromEntries(
+        STATUTE_IDS.map((id) => [id, { level: 0, enactedAt: 0 }]),
+      ) as StatuteBook,
       // Older saves carry no education capacity — backfill the 1946 default.
       capacity: {
         ...params.capacities,
@@ -413,6 +424,8 @@ export function init(
       },
       shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
+    // seeded at equilibrium two lines below, once the sectors exist to emit
+    environment: { pollution: 0, baseline: 0, emissionsQ: 0 },
     institutions: {
       stocks: { suffrage: 0, press: 0, labor_rights: 0, courts: 0, repression: 0 },
       societalPower: 0,
@@ -453,5 +466,20 @@ export function init(
     flows,
   }
 
-  return { ...provisional, institutions: initialInstitutions(provisional) }
+  // The burden opens AT its equilibrium, not at zero, and this is the whole
+  // reason `emissionsPerHead` is a shared function rather than arithmetic
+  // inside the step: a country seeded at zero would spend its first two
+  // decades on a rising trend nobody chose, and every early-century
+  // measurement would be reading that ramp instead of the economy. Countries
+  // differ here because their industrial structures differ, which is the
+  // correct reason to differ (ADR-0028).
+  const opening = emissionsPerHead(provisional)
+  const seeded: TrueState = {
+    ...provisional,
+    // `baseline` is the inheritance the damage channels measure excess
+    // against, so an industrial recipe is not charged for being industrial
+    // before its player has done anything.
+    environment: { pollution: opening, baseline: opening, emissionsQ: opening },
+  }
+  return { ...seeded, institutions: initialInstitutions(seeded) }
 }

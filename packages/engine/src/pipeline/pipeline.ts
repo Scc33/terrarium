@@ -22,6 +22,7 @@ import { world } from './world'
 import { finance } from './finance'
 import { foreignInvestment } from './foreignInvestment'
 import { production } from './production'
+import { environment } from './environment'
 import { trade } from './trade'
 import { fiscal } from './fiscal'
 import { monetary } from './monetary'
@@ -40,6 +41,7 @@ export const TICK_ORDER: PipelineStep[] = [
   finance, // credit, asset prices, banking crises — the fragility clock — schema v10
   foreignInvestment, // inward productive capital and its foreign ownership — schema v23
   production, // output given prices, capital, labor, I/O table
+  environment, // emissions from that output; the burden that damages elsewhere — schema v34
   trade, // books external flows, reserves, exchange rate
   fiscal, // capacity-gated collection; spending with leakage; the press
   monetary, // expectations adapt; printing feeds them

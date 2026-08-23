@@ -19,6 +19,7 @@ import {
   INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
+  STATUTE_IDS,
   type IndicatorId,
   type IndustryPrint,
   type IndustryTableId,
@@ -286,6 +287,17 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 12,
   },
   {
+    // Indexed against the standard 1946 country, so 100 is "as dirty as a
+    // 1946 economy" and the needle means the same thing in every country and
+    // every decade. Relative noise: a monitoring service estimates a burden
+    // proportionally, and an absolute band honest about a filthy century would
+    // print a clean one negative.
+    id: 'pollution',
+    trueValue: (h, q) => h[q].pollution * 100,
+    baseSd: 0.07,
+    relativeSd: true,
+  },
+  {
     id: 'credit_growth',
     trueValue: (h, q) => {
       const prev = q > 0 ? h[q - 1].creditToGdp : h[q].creditToGdp
@@ -380,6 +392,7 @@ function recordOf(state: TrueState): StatRecord {
     assetPrice: finance.assetPrice,
     creditToGdp: finance.creditToGdp,
     bankCapitalRatio: finance.bankCapital / Math.max(finance.creditOutstanding, 1e-9),
+    pollution: state.environment.pollution,
     unrest: inst.unrest,
     statePower: inst.statePower,
     societalPower: inst.societalPower,
@@ -415,10 +428,16 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
       votedAt: rule.votedAt,
     }
   }
+  // The statute book, cloned so a later enactment cannot reach back into a
+  // filed quarter. Levels and enactment quarters only: compliance is a
+  // consequence and the minute book files decisions (ADR-0027).
+  const statutes = {} as PolicyRecord['statutes']
+  for (const id of STATUTE_IDS) statutes[id] = { ...gov.statutes[id] }
   // spread the dials rather than name them: a lever added to the cabinet is
   // recorded from the day it exists, with no second list to keep in step
   return {
     ...gov.dials,
+    statutes,
     // These are the only nested dial records. Clone them explicitly rather
     // than asking structuredClone to discover that shape every quarter; the
     // spread above still makes a future top-level lever part of the record.

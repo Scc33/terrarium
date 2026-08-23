@@ -25,8 +25,10 @@ import type {
   RevenueSplit,
   SectorId,
   StatPrint,
+  StatuteId,
   SpendingRules,
 } from '@terrarium/engine'
+
 
 export {
   INDICATOR_IDS,
@@ -39,12 +41,14 @@ export {
   PLATFORM_IDS,
   GAME_RULE_IDS,
   STANDARD_RULES,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
 } from '@terrarium/engine'
 export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId }
-export type { IndustryTableId } from '@terrarium/engine'
+export type { IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
 
 /** One quarter of the government's own record of itself. */
 export type PolicyPoint = PolicyRecord & { tick: Qtr }
@@ -95,6 +99,42 @@ export interface ReportCard {
   positionGrade: Grade
   /** how the run ended — the street and the palace are not the ballot box */
   deposedBy: 'poll' | 'revolt' | 'coup' | null
+}
+
+/**
+ * One statute, as the government's own law officers would report it. Exact,
+ * not fogged, and deliberately so: every input to `compliance` — the civil
+ * service, the courts, and each bloc's power and favour — is already published
+ * unfogged, so a player with a pencil could derive this figure from what the
+ * desk already shows. Publishing it leaks nothing (ADR-0027).
+ *
+ * The gap between `level` and `inForce` is the thing this whole register
+ * exists to say: what you wrote, against what the country is actually subject
+ * to. A statute posted by a government with no inspectorate shows a full level
+ * and almost no force, which is the same lesson `taxEfficiency` teaches about
+ * a posted rate.
+ */
+export interface PublishedStatute {
+  id: StatuteId
+  /** which rung of the ladder is posted; 0 is no statute */
+  level: number
+  /** the ladder itself, so the desk can name every rung it offers */
+  levels: readonly { name: string; strength: number }[]
+  /** the quarter this level was written; null when nothing has been enacted */
+  enactedAt: Qtr | null
+  /** what share of the posted rule the country obeys, 0..1 */
+  compliance: Ratio
+  /** what the economy is actually subject to: posted strength × compliance ×
+   * phase-in. Below `strength × compliance` while a change is still arriving. */
+  inForce: number
+  /** what a move to each rung would cost right now — entrenchment premium and
+   * veto premium already applied, and null for a rung not on offer (the one
+   * it is already on). Straight from `politicalCostOfAction`, so the quote
+   * cannot drift from the charge. */
+  cost: readonly (number | null)[]
+  /** who is declining to obey it, and how much of the shortfall each accounts
+   * for. The whip count for a law rather than a lever. */
+  resistance: readonly { bloc: BlocId; weight: number }[]
 }
 
 /** A veto player, as the government's own whip count sees it. Exact, not
@@ -158,6 +198,9 @@ export interface PublishedState {
   industry: IndustryPoint[]
   /** you always know your own settings */
   dials: DialState
+  /** the statute book: the rules you have written, what each is costing to
+   * change, and how much of each the country is actually obeying */
+  statutes: readonly PublishedStatute[]
   /** Exact standing appropriations; the economic denominator remains fogged. */
   spendingRules: SpendingRules
   /** the treasury keeps exact books on itself — including *which* tax paid
