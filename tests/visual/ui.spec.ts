@@ -469,10 +469,13 @@ test('desktop cabinet collapses into a persistent reading rail', async ({ page }
   const wall = page.locator('main[data-tour="wall"]')
   const openWidth = (await wall.boundingBox())?.width ?? 0
 
+  await page.getByRole('button', { name: 'Increase Income' }).click()
+  await expect(page.getByText('1 ORDER DRAFTED')).toBeVisible()
   await page.getByRole('button', { name: 'Collapse cabinet controls' }).click()
   const expand = page.getByRole('button', { name: 'Expand cabinet controls' })
   await expect(expand).toBeVisible()
   await expect(expand).toBeFocused()
+  await expect(page.getByRole('status', { name: /1 order drafted, .* PC, will enact when the quarter advances/ })).toBeVisible()
   await expect(page.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })).toBeHidden()
   expect((await wall.boundingBox())?.width ?? 0).toBeGreaterThan(openWidth + 300)
   await expect(page).toHaveScreenshot('cabinet-collapsed-1280.png')

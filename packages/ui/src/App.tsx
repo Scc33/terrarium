@@ -54,8 +54,21 @@ type OverlayKind =
   | null
 
 export default function App() {
-  const { published, newGame, newDraftedGame, loadAutosave, loadError, drafts, loadDrafts, saveDraft, deleteDraft, clearStudy } =
-    useGame()
+  const {
+    published,
+    staged,
+    stagedCost,
+    stagedAffordable,
+    newGame,
+    newDraftedGame,
+    loadAutosave,
+    loadError,
+    drafts,
+    loadDrafts,
+    saveDraft,
+    deleteDraft,
+    clearStudy,
+  } = useGame()
   const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   /** the draft currently open in the drafting room, and the country it was
@@ -296,6 +309,9 @@ export default function App() {
     }
     setCabinetFocusRequest((request) => request + 1)
   }
+  const compactDraftCost = stagedCost !== null && Number.isFinite(stagedCost)
+    ? `${stagedCost.toFixed(1)} PC`
+    : 'PRICING…'
 
   return (
     <div className="grid h-full grid-rows-[auto_1fr_auto] bg-[#22382d]">
@@ -363,7 +379,19 @@ export default function App() {
             >
               <span className="text-lg leading-none text-dossier-brass" aria-hidden="true">‹</span>
               <span className="[writing-mode:vertical-rl] rotate-180">CABINET</span>
-              <span className="mt-auto text-[8px] tabular-nums text-dossier-brass/80">
+              {staged.size > 0 && (
+                <span
+                  role="status"
+                  aria-label={`${staged.size} order${staged.size === 1 ? '' : 's'} drafted, ${compactDraftCost}${stagedAffordable ? ', will enact when the quarter advances' : ', not enough political capital to enact'}`}
+                  className="mt-auto flex w-full flex-col items-center gap-1 border-y border-terminal-alert/70 bg-terminal-alert/10 py-2 text-terminal-alert"
+                >
+                  <span className="text-sm leading-none tabular-nums">{staged.size}</span>
+                  <span className="[writing-mode:vertical-rl] rotate-180 text-[8px] tracking-[0.14em]">DRAFTED</span>
+                  <span className="text-[7px] tracking-normal">{compactDraftCost}</span>
+                  {!stagedAffordable && <span className="text-[7px] tracking-[0.08em]">BLOCKED</span>}
+                </span>
+              )}
+              <span className={`${staged.size === 0 ? 'mt-auto' : ''} text-[8px] tabular-nums text-dossier-brass/80`}>
                 {published.rules.unlimitedCapital ? '∞' : published.politicalCapital.toFixed(0)} PC
               </span>
             </button>
