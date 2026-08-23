@@ -97,11 +97,39 @@ for a regression they caused. Nobody has ruled on whether it is correct (capacit
 schooling→fertility→labour-force channel both plausibly explain it, and per-head growth is not
 what this table measures) — so measure it, do not reason from it.
 
-**Healthy random policy, 120q:** growth ≈ 4.04%/yr · inflation ≈ 0.46% ·
-unemployment ≈ 11.92% · **26% deposed** (median quarter 77) · no NaN · no price explosions.
+**Healthy random policy, 120q:** growth ≈ 3.91%/yr · inflation ≈ 0.46% ·
+unemployment ≈ 12.12% · **29% deposed** (median quarter 77) · no NaN · no price explosions.
+
+> Re-baselined when the statute book landed (schema 33). `randomPolicy` now spends about a tenth
+> of its orders enacting and repealing statutes, which it must — a mechanic the adversarial sweep
+> never reaches is a mechanic nothing stress-tests. The previous figures were 4.04%/yr, 11.92%
+> unemployment, 26% deposed. This is a deliberate change to the SAMPLER, not a change in the
+> economy: passive and developmental are untouched.
 
 CI runs a 200×120 random batch as a smoke test, so NaN and explosions get caught. The
 *levels* do not — those are yours to check.
+
+### The statute book (`--policy regulated`)
+
+Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
+time as capital allows. It is the only policy that exercises the statute book comparably, so it
+is the arm to run **against `developmental`** — the two differ by nothing except the statutes.
+
+| 200 × 400q, `--country all` | developmental | regulated |
+|---|---|---|
+| meridia growth %/yr | 3.11 | 3.13 |
+| costona growth %/yr | 3.67 | **3.72** |
+| veltravia growth %/yr | 2.50 | 2.52 |
+| oranga growth %/yr | 2.86 | 2.87 |
+| kestrel growth %/yr | 3.53 | 3.56 |
+| procedural growth %/yr | 3.29 | 3.31 |
+
+Every country gains and the ordering is right — the most captured country (Costona, "the
+landowners' settlement") gains most and the most open one (Oranga) gains least. But **the
+headline effect is small, 0.01–0.05 pp/yr, and it is much smaller than the mechanism test
+suggests.** `tests/properties/statutes.test.ts` measures +16% of real GDP on Costona over 160
+quarters; this table implies nearer 5% over a century. Both are correct and the gap is
+methodological — see the tuning lesson in AGENTS.md before concluding that either is wrong.
 
 The stability harness is the future-facing balance check. It compares fixed eras through
 2050, reports the inflation and real-growth tails that century means conceal, and conditions

@@ -4,6 +4,7 @@ import {
   ASSET_PURCHASE_PRIVATE_RATE_GAIN,
   BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
+  COMPETITION_CAPTURE_RELIEF,
   CORRIDOR_HALF_WIDTH,
   DEBT_RISK_PREMIUM_AT,
   ELITE_CAPTURE_NEUTRAL,
@@ -458,16 +459,32 @@ export function eliteHostility(state: TrueState): number {
   return weight > 1e-9 ? hostile / weight : 0
 }
 
-/** The extractive ceiling. The strongest incumbent, unchecked, is the one
+/**
+ * The extractive ceiling. The strongest incumbent, unchecked, is the one
  * who vetoes creative destruction — so this reads the MAX, not the mean: it
- * only takes one entrenched interest to keep the newcomers out. */
+ * only takes one entrenched interest to keep the newcomers out.
+ *
+ * **The competition statute's one channel** (ADR-0027). A merger review or a
+ * trust-busting programme is the only order in the game aimed at incumbency
+ * itself, and this is the number incumbency is: it relieves the ceiling, and
+ * everything that follows — faster absorption of the frontier, more yield on
+ * the same research money — follows through `creativeDestruction` exactly as
+ * it would if the incumbents had been weakened by a slump instead.
+ *
+ * Note what it deliberately does NOT touch: `effectiveBlocPower` itself, which
+ * prices every order on the desk and also carries the capital strike, the wage
+ * push and the sovereign risk premium. A competition law arguably weakens the
+ * veto too, but a statute that moved that number would move six channels at
+ * once and its economics review would be unreadable. Start where the claim is
+ * precise; extend on evidence.
+ */
 export function eliteCapture(state: TrueState): number {
   let max = 0
   for (const id of BLOC_IDS) {
     if (id === 'unions') continue
     max = Math.max(max, effectiveBlocPower(state, id))
   }
-  return max
+  return max * (1 - COMPETITION_CAPTURE_RELIEF * statuteForce(state, 'competition'))
 }
 
 /** The multiplier the extractive ceiling puts on absorptive capacity. Above 1

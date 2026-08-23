@@ -4,12 +4,14 @@ import {
   CAPACITY_IDS,
   IMMIGRATION_LIMIT_MAX,
   SECTOR_IDS,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
   type Action,
   type Rng,
   type TrueState,
 } from '@terrarium/engine'
 
-export const POLICY_IDS = ['passive', 'developmental', 'random'] as const
+export const POLICY_IDS = ['passive', 'developmental', 'random', 'regulated'] as const
 export type PolicyId = (typeof POLICY_IDS)[number]
 export type RunnerPolicy = (state: TrueState, rng: Rng, tick: number) => Action[]
 
@@ -58,13 +60,62 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
     ] as const)
     return [{ kind: 'setDial', path: monetary.path, value: rng.range(monetary.min, monetary.max) }]
   }
-  if (roll < 0.8) {
+  if (roll < 0.75) {
     return [{ kind: 'setDial', path: `subsidies.${pick(SECTOR_IDS)}`, value: rng.range(0, 0.05) * gdp }]
+  }
+  if (roll < 0.85) {
+    // The statute book has to be in the adversarial sweep or nothing ever
+    // stress-tests it: this is the run that finds a NaN, a price explosion, or
+    // a rule nobody can reach. A rung equal to the one in force is refused by
+    // the engine, and runOne is lenient about exactly that.
+    const statute = pick(STATUTE_IDS)
+    return [
+      { kind: 'enact', statute, level: Math.floor(rng.next() * STATUTE_LEVELS[statute].length) },
+    ]
   }
   return [{ kind: 'investCapacity', target: pick(CAPACITY_IDS), amount: rng.range(0.02, 0.2) * gdp }]
 }
 
+/**
+ * The statute book's own baseline: build the ministries, then climb every
+ * ladder a rung at a time as the political capital comes in.
+ *
+ * It exists because none of the other three policies exercises a statute in a
+ * comparable way — passive and developmental write nothing, and random writes
+ * rules at random moments and repeals them again. A century that can be
+ * compared with the developmental one needs the statutes enacted deliberately
+ * and left alone.
+ *
+ * ONE RUNG AT A TIME, and persistently, because the first version of this was
+ * a fixed schedule — one statute per year at its top rung — and it measured
+ * nothing. A top-rung enactment is priced around 23 PC against the ~11 a
+ * capacity-building government is holding, so two of the three orders were
+ * refused as unaffordable and lenient mode skipped them: the resulting
+ * "regulated" century was developmental to two decimal places in every column.
+ * That is what an unreachable mechanic looks like in a results table — not an
+ * error, just a baseline quietly measuring nothing.
+ */
+export const regulatedPolicy: RunnerPolicy = (state, _rng, tick) => {
+  if (tick % 8 === 0) {
+    return CAPACITY_IDS.map((target) => ({ kind: 'investCapacity', target, amount: 2 }))
+  }
+  // legislate once the ministries exist to enforce anything
+  if (tick < 40 || tick % 4 !== 1) return []
+  for (const statute of STATUTE_IDS) {
+    const { level } = state.gov.statutes[statute]
+    if (level < STATUTE_LEVELS[statute].length - 1) {
+      return [{ kind: 'enact', statute, level: level + 1 }]
+    }
+  }
+  return []
+}
+
+const POLICIES: Record<Exclude<PolicyId, 'passive'>, RunnerPolicy> = {
+  developmental: developmentalPolicy,
+  random: randomPolicy,
+  regulated: regulatedPolicy,
+}
+
 export function policyFor(id: PolicyId): RunnerPolicy | undefined {
-  if (id === 'passive') return undefined
-  return id === 'developmental' ? developmentalPolicy : randomPolicy
+  return id === 'passive' ? undefined : POLICIES[id]
 }

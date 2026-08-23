@@ -967,6 +967,18 @@ export const STATUTE_COMPLIANCE_CEILING = 0.95
  * everything" from being free, without a bespoke penalty for doing it. */
 export const STATUTE_CONGESTION = 0.12
 
+/**
+ * What each statute does, and where. One constant per statute, sitting beside
+ * the ladder it belongs to rather than in the section of the model it reaches,
+ * so the whole statute book's economic footprint is readable in one place.
+ *
+ * COMPETITION relieves the extractive ceiling (`eliteCapture`), and nothing
+ * else. Calibrated so that trust-busting in a state that can enforce it moves
+ * absorption by roughly what a decade of ordinary institutional reform would,
+ * rather than by enough to make it the only lever worth pulling.
+ */
+export const COMPETITION_CAPTURE_RELIEF = 0.35
+
 /** An act of legislation costs more than ordinary policy and less than a
  * constitutional reform — it is a session of parliament, not a generation. */
 export const PC_COST_STATUTE = 9

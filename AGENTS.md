@@ -434,6 +434,24 @@ perfectly with no opinion about anything in the game. The first politics impleme
   per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range
   to a readable step can leave ONE label on the axis, and a chart with a single number up its
   side gives no scale at all — `niceTicks` refines the step until at least two fit.
+- **A mechanism test and a baseline sweep measure different things, and a statute is where
+  they diverge most.** `tests/properties/statutes.test.ts` protects tenure and funds the
+  cabinet, deliberately, so that what it measures is the CHANNEL — and it reports the
+  competition act as +16% of Costona's real GDP over 160 quarters. `pnpm batch --policy
+  regulated` reports nearer 0.05 pp/yr against `developmental`. Both are right. The sweep
+  truncates at deposition (Costona deposes 62% of governments), climbs the ladder only as
+  capital allows, and annualizes over a century in which everyone converges on the frontier
+  anyway. Quote the sweep when asked what a lever is worth in play; quote the mechanism test
+  when asked whether the channel works.
+- **A lenient experiment must never be lenient about the thing under test.** Skipping a
+  capacity order that a full ministry refuses is fine — the runner does it. Skipping the
+  ENACTMENT is how an experiment lies: a deposed cabinet cannot give orders, so on a hard
+  country the statute silently never happens, `statuteForce` reads 0.000, and the two arms come
+  out identical to the last decimal. In a results table that reads as "the statute does
+  nothing" rather than "the statute never happened". Two of the first six seeds did exactly
+  this. The same trap caught the first `regulatedPolicy`: a top-rung enactment is priced near
+  23 PC against the ~11 a capacity-building government holds, so two of three orders were
+  refused as unaffordable and the "regulated" century was developmental to two decimals.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a
