@@ -487,14 +487,16 @@ test('census files net migration with the other population flows', async ({ page
 test('modal paperwork contains and restores keyboard focus', async ({ page }) => {
   await openGame(page)
   const trigger = await officeButton(page, 'FINANCE')
+  const offices = page.locator('details[data-tour="offices"]')
   await trigger.click()
+  await expect(offices).not.toHaveAttribute('open', '')
   const dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
   await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeFocused()
   await page.keyboard.press('Shift+Tab')
   expect(await page.evaluate('document.querySelector(\'[role="dialog"]\')?.contains(document.activeElement)')).toBe(true)
   await page.keyboard.press('Escape')
   await expect(dialog).toBeHidden()
-  await expect(trigger).toBeFocused()
+  await expect(offices.locator('summary')).toBeFocused()
 })
 
 test('tablet wall reflows to two instrument columns', async ({ page }) => {

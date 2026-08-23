@@ -3,6 +3,7 @@
 
 import { FIRST_YEAR } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
+import { useRef } from 'react'
 import { Button, Metric, Tooltip, TooltipLabel } from '../components/ui'
 import { activeRuleMarks, capitalReading } from '../gameRules'
 
@@ -42,6 +43,12 @@ export function HeaderBar({
   const t = pub.treasury
   const capital = capitalReading(pub, null)
   const ruleMarks = activeRuleMarks(pub.rules)
+  const officesMenuRef = useRef<HTMLDetailsElement>(null)
+  const openOffice = (open: () => void) => {
+    officesMenuRef.current?.querySelector<HTMLElement>('summary')?.focus()
+    if (officesMenuRef.current) officesMenuRef.current.open = false
+    open()
+  }
   return (
     <header className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 border-b border-dossier-brass/70 bg-[#294235] px-3 py-2 shadow-[0_2px_0_rgba(0,0,0,0.22)] sm:px-4 xl:grid-cols-[auto_minmax(0,1fr)_auto]">
       <div className="flex min-w-[150px] items-center gap-2.5 border-r border-dossier-paper/15 pr-3">
@@ -117,18 +124,18 @@ export function HeaderBar({
         <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
         <Button onClick={onManual} variant="secondary" size="compact" title="The manual: every lever, every instrument, how the published figures are made, and what happens when you advance a quarter.">HANDBOOK</Button>
       </nav>
-      <details data-tour="offices" className="relative justify-self-end min-[2048px]:hidden">
+      <details ref={officesMenuRef} data-tour="offices" className="relative justify-self-end min-[2048px]:hidden">
         <summary className="flex min-h-8 list-none items-center border border-dossier-paper/30 px-2.5 font-mono text-[9px] font-medium tracking-[0.15em] text-dossier-paper marker:hidden hover:border-dossier-brass hover:text-dossier-brass">
           OFFICES <span className="ml-2 text-dossier-brass" aria-hidden="true">▾</span>
         </summary>
         <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
-          {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
-          <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output.">INDUSTRY</Button>
-          <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output.">ACCOUNTS</Button>
-          <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
-          <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
-          <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
-          <Button onClick={onManual} variant="secondary" size="compact" title="The manual: every lever, every instrument, and how the figures are made.">HANDBOOK</Button>
+          {onVerdict && <Button onClick={() => openOffice(onVerdict)} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+          <Button onClick={() => openOffice(onIndustry)} variant="secondary" size="compact" title="See which industries make the economy’s output.">INDUSTRY</Button>
+          <Button onClick={() => openOffice(onAccounts)} variant="secondary" size="compact" title="See who buys the economy’s output.">ACCOUNTS</Button>
+          <Button onClick={() => openOffice(onFinance)} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
+          <Button onClick={() => openOffice(onStudy)} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
+          <Button onClick={() => openOffice(onSettings)} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
+          <Button onClick={() => openOffice(onManual)} variant="secondary" size="compact" title="The manual: every lever, every instrument, and how the figures are made.">HANDBOOK</Button>
         </nav>
       </details>
     </header>
