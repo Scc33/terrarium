@@ -108,6 +108,17 @@ can be tested — anything pushed into a component becomes untestable:
   error, and dividing one by the other imports a fog it never had. `SECTOR_FACE` is a total
   `Record` over `SECTOR_IDS`, so a sixth sector fails the build until named and inked.
 
+- **`ui/src/census.ts`** — the DEMOGRAPHIC census read, and the counterweight to the fog: heads
+  are countable without a statistical office, so the head count, its year-on-year growth rate,
+  the age structure and the median age are all EXACT. Population growth is deliberately not an
+  indicator — it is a ratio of two numbers the state can count, so giving it a lag, a band and a
+  revision would invent fog for a figure that has none. Measured across the catalogue, growth
+  spans −0.84 to +2.11 %/yr, so it goes NEGATIVE and every chart of it must carry zero on the
+  axis or a shrinking country draws the same as a stagnant one. `populationGrowth` indexes the
+  record BY TICK rather than by position: the census is written one entry per quarter today, so
+  a positional `k − 4` agrees — right up until something filters the record on the way to the
+  page, after which it measures a different span and prints a plausible wrong number.
+
 - **`ui/src/finance.ts`** — why a banking crisis happens, made legible. The hazard is a
   PRODUCT of two excesses (`max(0, leverage − CRISIS_LEVERAGE_SAFE) × max(0, q −
   CRISIS_ASSET_SAFE)`), so EITHER ONE ALONE IS HARMLESS — measured, a century of maximum asset
