@@ -39,3 +39,4 @@ the old one and update the Status line of both.
 | [0024](0024-the-manual-is-generated-from-the-game.md) | The manual is generated from the game, not written beside it | Accepted |
 | [0025](0025-charts-own-their-analytical-scale.md) | Charts own their analytical scale and shared range inspection | Accepted |
 | [0026](0026-a-product-of-two-excesses-needs-a-phase-plot.md) | A product of two excesses is drawn as a phase plot, not two time charts | Accepted |
+| [0027](0027-a-statute-is-a-posted-rule.md) | A statute is a posted rule; compliance is what the state can enforce | Accepted |

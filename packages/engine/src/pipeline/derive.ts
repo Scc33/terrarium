@@ -20,7 +20,17 @@ import {
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
+  STATUTE_COMPLIANCE_ADMIN,
+  STATUTE_COMPLIANCE_CEILING,
+  STATUTE_COMPLIANCE_COURTS,
+  STATUTE_COMPLIANCE_FLOOR,
+  STATUTE_CONGESTION,
+  STATUTE_EVASION_GAIN,
+  STATUTE_LEVELS,
+  STATUTE_STANCE,
+  STATUTE_PHASE_IN_QTRS,
   TECH_EXPOSURE,
+  adminEffectiveness,
   domesticBondFundingShare,
   taxEfficiency,
 } from '../constants'
@@ -30,10 +40,12 @@ import {
   CAPACITY_IDS,
   COHORT_IDS,
   SECTOR_IDS,
+  STATUTE_IDS,
   type BlocId,
   type CohortId,
   type Sector,
   type SectorId,
+  type StatuteId,
   type TrueState,
 } from '../state/schema'
 
@@ -468,6 +480,76 @@ export function creativeDestruction(state: TrueState): number {
     ELITE_ABSORB_CLAMP[0],
     ELITE_ABSORB_CLAMP[1],
   )
+}
+
+// ---------- the statute book (ADR-0027) ----------
+
+/** How many statutes are on the books at all. One civil service enforces a
+ * long book worse than a short one, so this is the congestion term's input. */
+export function statutesInForce(state: TrueState): number {
+  let n = 0
+  for (const id of STATUTE_IDS) if (state.gov.statutes[id].level > 0) n++
+  return n
+}
+
+/**
+ * How much of a posted statute the country actually obeys, 0..1.
+ *
+ * The third instance of the gap this game is about. `taxEfficiency` is the
+ * distance between a posted rate and collected revenue; `adminEffectiveness`
+ * is the distance between a voted appropriation and delivered money; this is
+ * the distance between a rule that is written and a rule that is obeyed. What
+ * makes it the interesting one is that the party doing the evading has a name:
+ * a powerful, hostile bloc does not veto a factory act, it ignores one.
+ *
+ * Nothing here is stored, and nothing here is fogged, for the same reason:
+ * every input is already published exactly — the civil service, the courts,
+ * and each bloc's power and favour are all on the desk unfogged — so a player
+ * with a pencil could compute this figure from what the game already shows.
+ * That equivalence is the boundary: the moment a term here reads something the
+ * player cannot see, this becomes an inspectorate survey with a lag and a band
+ * rather than an exact figure. See ADR-0027.
+ */
+export function statuteCompliance(state: TrueState, id: StatuteId): number {
+  const capability =
+    STATUTE_COMPLIANCE_ADMIN * adminEffectiveness(state.gov.capacity.administrative) +
+    STATUTE_COMPLIANCE_COURTS * state.institutions.stocks.courts
+  // The same table that priced the enactment says who declines to comply.
+  // Anger only has force when the bloc holding it also has the power to act
+  // on it, which is the reading `financierAnger` above already uses.
+  let resistance = 0
+  for (const bloc of BLOC_IDS) {
+    const minds = Math.max(0, STATUTE_STANCE[id][bloc] ?? 0)
+    if (minds <= 0) continue
+    resistance +=
+      minds *
+      effectiveBlocPower(state, bloc) *
+      Math.max(0, -state.institutions.blocs[bloc].favor)
+  }
+  const congestion = 1 + STATUTE_CONGESTION * Math.max(0, statutesInForce(state) - 1)
+  return clamp(
+    (capability / congestion) * (1 - STATUTE_EVASION_GAIN * clamp(resistance, 0, 1)),
+    STATUTE_COMPLIANCE_FLOOR,
+    STATUTE_COMPLIANCE_CEILING,
+  )
+}
+
+/**
+ * What the economy is actually subject to: the posted strength, times what is
+ * enforced, times how far the change has phased in. **Every pipeline step that
+ * reads a statute reads this and nothing else** — reading `gov.statutes`
+ * directly is reading the announcement instead of the effect, which is exactly
+ * the mistake the register exists to make impossible.
+ *
+ * Zero on rung 0 whatever the compliance, so an un-enacted statute is inert by
+ * construction rather than by a constant that could be retuned.
+ */
+export function statuteForce(state: TrueState, id: StatuteId): number {
+  const { level, enactedAt } = state.gov.statutes[id]
+  const strength = STATUTE_LEVELS[id][level]?.strength ?? 0
+  if (strength <= 0) return 0
+  const phase = clamp((state.meta.tick - enactedAt) / STATUTE_PHASE_IN_QTRS, 0, 1)
+  return strength * statuteCompliance(state, id) * phase
 }
 
 /** Household own-basket price level for a cohort (base = 1). */

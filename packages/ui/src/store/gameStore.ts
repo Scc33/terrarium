@@ -105,7 +105,8 @@ interface GameState {
 }
 
 /** one staged change per dial, one staged program per capacity target, one
- * reform per institution, and exactly one campaign */
+ * reform per institution, one enactment per statute, and exactly one
+ * campaign */
 function actionKey(a: Action): string {
   switch (a.kind) {
     case 'setDial':
@@ -116,6 +117,8 @@ function actionKey(a: Action): string {
       return `cap:${a.target}`
     case 'reform':
       return `reform:${a.institution}`
+    case 'enact':
+      return `statute:${a.statute}`
     case 'campaign':
       return 'campaign'
   }

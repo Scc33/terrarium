@@ -19,6 +19,7 @@ import {
   INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
+  STATUTE_IDS,
   type IndicatorId,
   type IndustryPrint,
   type IndustryTableId,
@@ -415,10 +416,16 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
       votedAt: rule.votedAt,
     }
   }
+  // The statute book, cloned so a later enactment cannot reach back into a
+  // filed quarter. Levels and enactment quarters only: compliance is a
+  // consequence and the minute book files decisions (ADR-0027).
+  const statutes = {} as PolicyRecord['statutes']
+  for (const id of STATUTE_IDS) statutes[id] = { ...gov.statutes[id] }
   // spread the dials rather than name them: a lever added to the cabinet is
   // recorded from the day it exists, with no second list to keep in step
   return {
     ...gov.dials,
+    statutes,
     // These are the only nested dial records. Clone them explicitly rather
     // than asking structuredClone to discover that shape every quarter; the
     // spread above still makes a future top-level lever part of the record.

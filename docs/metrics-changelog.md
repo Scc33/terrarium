@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 32)
+## Current contract (schema 33)
 
 ### Inputs
 
@@ -70,6 +70,26 @@ do not start until `appointedAt`.
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
 | `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
+
+**The statute book** (`gov.statutes`, written via the `enact` action — ADR-0027). Rules the
+government writes rather than numbers it sets: a fourth register, between the dials and the
+constitution. Each statute is an ORDINAL on a short named ladder (`STATUTE_LEVELS`), rung 0 being
+"no statute", and each is stored as `{ level, enactedAt }` and nothing else.
+
+What reaches the economy is never the posted level. `statuteForce(state, id)` = posted strength ×
+`statuteCompliance` × phase-in, and **every step that reads a statute reads that**. Compliance is
+the third instance of the gap this contract already describes twice — after capacity-gated tax
+collection and leaky programme delivery — and it is derived, never stored: the civil service and
+the courts supply the capability, every bloc that minds the rule supplies evasion in proportion to
+its effective power and its anger, and each statute past the first congests the same inspectorate.
+A change phases in over `STATUTE_PHASE_IN_QTRS`, and repeal costs more the longer a rule has
+stood.
+
+| Statute | Ladder | Wired to |
+|---|---|---|
+| `minimum_wage` | none · subsistence floor · living wage | *nothing yet (schema 33 ships the register inert)* |
+| `compulsory_schooling` | none · to 14 · to 16 | *nothing yet* |
+| `competition` | none · merger review · trust-busting | *nothing yet* |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
 | Stock | What it does |
@@ -244,6 +264,31 @@ two shares side by side in a table, which is the only place the dual economy rea
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 33 — The statute book: rules the government writes
+
+- **Inputs +**: the `enact` action and `gov.statutes`, a total record over `STATUTE_IDS`
+  (`minimum_wage`, `compulsory_schooling`, `competition`), each `{ level, enactedAt }`. A statute
+  is an ordinal on a named ladder rather than a scalar, it phases in over eight quarters, and
+  repeal carries an entrenchment premium rising with how long the rule has stood. Priced through
+  `politicalCostOfAction` like every other order, with the reform window's discount and veto
+  relief — a crisis passes legislation.
+- **Outputs +**: `PublishedState.statutes`, one `PublishedStatute` per statute: the posted level,
+  its ladder, the quarter it was written (null when nothing was), the compliance, what is actually
+  in force, the veto-loaded price of every rung, and which blocs are declining to obey. **Exact,
+  not fogged**, and deliberately: every input to compliance is already published unfogged, so the
+  figure is derivable from what the desk already shows and publishing it leaks nothing. That
+  equivalence is the boundary — a compliance term that reads unpublished state would have to
+  become an inspectorate survey with a lag and a band.
+- **Outputs ±**: `PolicyRecord.statutes` puts the book in the minute book beside the dials, levels
+  and enactment quarters only. Compliance is deliberately excluded: it moves every quarter on its
+  own as the civil service grows and the blocs change their minds, so filing it would report a
+  policy change every quarter for eighty years.
+- **Pipeline ±**: unchanged — no step moved, no step's behaviour changed, and no statute is wired
+  to a channel in this release. **The register ships economically inert**, and that is the point of
+  shipping it alone: `pnpm diff-state --moved-only` over both golden replays reported
+  `meta.schemaVersion` and nothing else, and the 1000×400q passive baseline is unmoved at
+  2.81 %/yr growth, 0.11 % inflation, 12.23 % unemployment, 6 % deposed.
 
 ### schema 32 — The leverage level, the banks' buffer, and typed wire items
 

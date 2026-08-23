@@ -24,11 +24,23 @@ import {
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
   reformWindowOpen,
+  statuteCompliance,
+  statuteForce,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
+  STATUTE_STANCE,
   totalLaborForce,
   WELFARE_DISCOUNT_Q,
   type TrueState,
 } from '@terrarium/engine'
-import type { Grade, IndicatorId, PublishedBloc, PublishedState, ReportCard } from './published'
+import type {
+  Grade,
+  IndicatorId,
+  PublishedBloc,
+  PublishedState,
+  PublishedStatute,
+  ReportCard,
+} from './published'
 
 const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gdp_growth: { label: 'Real GDP growth', unit: '% / yr' },
@@ -154,6 +166,51 @@ function reformCosts(state: TrueState): PublishedState['reformCost'] {
   return out
 }
 
+/**
+ * The statute book as the law officers would report it: what is posted, what
+ * a change to each rung would cost, how much of it the country obeys, and who
+ * is not obeying it.
+ *
+ * The costs come from `politicalCostOfAction` for the same reason the reform
+ * prices above do — one quote function, so the number on the screen is the
+ * number that gets charged. The resistance list is assembled from the same
+ * `STATUTE_STANCE` entries that priced the enactment and hollowed out the
+ * compliance, so the desk cannot show one story while the economy runs another.
+ */
+function statutes(state: TrueState): PublishedStatute[] {
+  return STATUTE_IDS.map((id) => {
+    const { level, enactedAt } = state.gov.statutes[id]
+    const ladder = STATUTE_LEVELS[id]
+    const cost = ladder.map((_, rung) => {
+      try {
+        return politicalCostOfAction(state, { kind: 'enact', statute: id, level: rung })
+      } catch {
+        return null // the rung it is already on, or otherwise not on offer
+      }
+    })
+    const resistance = BLOC_IDS.map((bloc) => ({
+      bloc,
+      weight:
+        Math.max(0, STATUTE_STANCE[id][bloc] ?? 0) *
+        effectiveBlocPower(state, bloc) *
+        Math.max(0, -state.institutions.blocs[bloc].favor),
+    })).filter((entry) => entry.weight > 1e-9)
+    return {
+      id,
+      level,
+      levels: ladder,
+      // "since 1946" would be a lie about a statute nobody has written: the
+      // opening book stamps quarter zero on every rung-0 entry to keep the
+      // record shape uniform, and null is how that reads on the desk.
+      enactedAt: level > 0 ? enactedAt : null,
+      compliance: statuteCompliance(state, id),
+      inForce: statuteForce(state, id),
+      cost,
+      resistance,
+    }
+  })
+}
+
 export function observe(state: TrueState): PublishedState {
   const indicators: PublishedState['indicators'] = {}
   for (const id of INDICATOR_IDS) {
@@ -224,6 +281,7 @@ export function observe(state: TrueState): PublishedState {
     electionsWon: state.politics.electionsWon,
     electionsSuppressed: state.politics.electionsSuppressed,
     news: state.stats.news,
+    statutes: statutes(state),
     institutions: { ...state.institutions.stocks },
     reformWindowOpen: reformWindowOpen(state),
     reformCost: reformCosts(state),

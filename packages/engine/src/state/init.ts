@@ -39,6 +39,7 @@ import {
   RETIREMENT_BAND,
   SCHEMA_VERSION,
   SECTOR_IDS,
+  STATUTE_IDS,
   WORKING_BANDS,
   WORKING_CLASS_IDS,
   appointmentTick,
@@ -50,6 +51,7 @@ import {
   type GameRules,
   type Qtr,
   type SectorId,
+  type StatuteBook,
   type TickFlows,
   type TrueState,
 } from './schema'
@@ -392,6 +394,14 @@ export function init(
         investment: { kind: 'fixed', amount: spendingDials.investment, votedAt: 0 },
         research: { kind: 'fixed', amount: spendingDials.research, votedAt: 0 },
       },
+      // The statute book opens empty (ADR-0027): every country inherits a
+      // 1946 in which none of these rules has been written. `enactedAt: 0`
+      // beside level 0 is the same statement twice — nothing is in force, and
+      // nothing is phasing in — and it keeps the record shape uniform so the
+      // minute book has no absent quarters to reason about.
+      statutes: Object.fromEntries(
+        STATUTE_IDS.map((id) => [id, { level: 0, enactedAt: 0 }]),
+      ) as StatuteBook,
       // Older saves carry no education capacity — backfill the 1946 default.
       capacity: {
         ...params.capacities,

@@ -115,6 +115,40 @@ export type SpendingRule =
 export type SpendingRuleMode = SpendingRule['kind']
 export type SpendingRules = Record<SpendingProgramId, SpendingRule>
 
+/**
+ * The statute book (ADR-0027). Rules the government writes, as opposed to the
+ * numbers it sets — a register between the dials and the constitution.
+ *
+ * A statute is an ORDINAL with named levels rather than a scalar, and the
+ * naming is the point: a rule that is *called* something is what separates
+ * this from a second rack of sliders. Each ladder lives in `STATUTE_LEVELS`;
+ * a statute needing more than about three rungs was a number all along and
+ * belongs in the cabinet as a dial.
+ *
+ * What reaches the economy is never the posted level. It is the level times
+ * what the state can actually enforce — the third instance of a gap this game
+ * already teaches twice, after `taxEfficiency` (a posted rate is not collected
+ * revenue) and `adminEffectiveness` (a voted appropriation is not delivered
+ * money). See `statuteForce` in `pipeline/derive.ts`; every step that reads a
+ * statute reads that and nothing else.
+ */
+export const STATUTE_IDS = ['minimum_wage', 'compulsory_schooling', 'competition'] as const
+export type StatuteId = (typeof STATUTE_IDS)[number]
+
+/** A statute as it stands on the books. Deliberately holds NOTHING that can be
+ * computed: compliance is a function of quantities the desk already publishes
+ * exactly, and a second copy of a derivable number is a second thing that can
+ * be wrong. `enactedAt` is stored because both the phase-in and the repeal
+ * premium read it — a law gets harder to undo the longer it has stood, which
+ * is the whole difference between a statute and a dial. */
+export interface Statute {
+  /** index into `STATUTE_LEVELS[id]`; 0 is always "no statute" */
+  level: number
+  /** the quarter this level was written */
+  enactedAt: Qtr
+}
+export type StatuteBook = Record<StatuteId, Statute>
+
 /** Institutional reforms are generational, ratcheting, and contested. These are the stocks
  * that edit your own objective function: `suffrage` rewrites the ballot
  * weights the PC formula scores you on, `repression` buys the state's coercive
@@ -390,6 +424,19 @@ export interface PolicyRecord extends Omit<DialState, 'subsidies'> {
    * the same convention `setSpendingRule` takes. `votedAt` is what makes a
    * change log possible; see the note on `SpendingRule`. */
   rules: Record<SpendingProgramId, { mode: SpendingRuleMode; value: number; votedAt: Qtr }>
+  /** the statute book as it stood, level and enactment quarter only.
+   *
+   * A total `Record`, so a statute added later joins the minute book without a
+   * second list to keep in step — the same reason `subsidies` above is widened
+   * from its `Partial`.
+   *
+   * Compliance is deliberately NOT here. The minute book files DECISIONS, and
+   * compliance moves every quarter on its own as the civil service grows and
+   * the blocs change their minds: filing it would report a policy change every
+   * quarter for eighty years, and it would look entirely plausible in review.
+   * That is the trap indexed appropriations sprang once already — see the note
+   * on `SpendingRule.votedAt`. */
+  statutes: Record<StatuteId, Statute>
 }
 
 export interface CapacityBuild {
@@ -404,6 +451,10 @@ export interface GovernmentState {
   /** Standing appropriations. `dials.spending` is the amount currently
    * resolved from these rules and remains the common input to the economy. */
   spendingRules: SpendingRules
+  /** The rules the government has written, as opposed to the numbers it has
+   * set (ADR-0027). What the economy is subject to is never what is stored
+   * here — read it through `statuteForce`, never directly. */
+  statutes: StatuteBook
   capacity: Record<CapacityId, Ratio>
   /** in-flight Layer-2 investments; capacity arrives with a lag */
   pipeline: CapacityBuild[]
@@ -918,7 +969,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 32 // v32: leverage + bank-capital prints, and wire items name their kind
+export const SCHEMA_VERSION = 33 // v33: the statute book — rules the government writes (ADR-0027)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

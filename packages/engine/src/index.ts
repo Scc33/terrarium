@@ -180,6 +180,7 @@ export {
   REVENUE_SOURCE_IDS,
   OUTLAY_IDS,
   SPENDING_PROGRAM_IDS,
+  STATUTE_IDS,
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
   FIRST_YEAR,
@@ -230,6 +231,9 @@ export type {
   StatPrint,
   StatRecord,
   StatsOffice,
+  Statute,
+  StatuteBook,
+  StatuteId,
   TickFlows,
   TrueState,
 } from './state/schema'
@@ -263,6 +267,9 @@ export {
   enfranchisementIndex,
   inCorridor,
   statePower,
+  statuteCompliance,
+  statuteForce,
+  statutesInForce,
   urbanShare,
 } from './pipeline/derive'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
@@ -303,9 +310,18 @@ export {
   REFORM_WINDOW_AT,
   REFORM_WINDOW_DISCOUNT,
   REVOLT_AT,
+  // the statute book's own tables. The cabinet names every rung from
+  // `STATUTE_LEVELS` and the handbook explains who resists from
+  // `STATUTE_STANCE`, for the ADR-0024 reason: a statute that cannot ship
+  // unnamed cannot ship undocumented either.
+  PC_COST_STATUTE,
+  STATUTE_LEVELS,
+  STATUTE_PHASE_IN_QTRS,
+  STATUTE_STANCE,
   TRANSFER_SHARE,
   WELFARE_DISCOUNT_Q,
 } from './constants'
+export type { StatuteLevel } from './constants'
 export { AGE_BANDS, PARTNER_IDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
 export type {
   DemographyState,

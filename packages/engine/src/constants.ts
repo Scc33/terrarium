@@ -13,6 +13,7 @@ import type {
   PartnerId,
   PlatformId,
   SectorId,
+  StatuteId,
 } from './state/schema'
 
 // ---------- production ----------
@@ -884,6 +885,96 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * to productivity whatever the veto does. Making the transition itself
  * blockable needs endogenous demand composition, which is a separate change.
  */
+
+// ---------- the statute book (ADR-0027) ----------
+/**
+ * One rung of a statute's ladder: the words a player reads and the number the
+ * engine reads. `strength` is 0..1 and rung 0 is always 0 — that is what makes
+ * an un-enacted statute inert, and it is checked by
+ * `tests/unit/statutes.test.ts` rather than trusted.
+ */
+export interface StatuteLevel {
+  /** what the statute book calls this rung */
+  name: string
+  /** what the engine reads. 0 on rung 0, always. */
+  strength: number
+}
+
+/**
+ * Every statute's ladder. Deliberately short: three rungs is the working
+ * maximum, and a statute that wants six was a continuous quantity all along
+ * and belongs in the cabinet as a dial (ADR-0027).
+ *
+ * A total `Record`, so a new `StatuteId` cannot compile without a ladder, and
+ * a rung cannot exist without a name.
+ */
+export const STATUTE_LEVELS: Record<StatuteId, readonly StatuteLevel[]> = {
+  minimum_wage: [
+    { name: 'No statutory wage', strength: 0 },
+    { name: 'Subsistence floor', strength: 0.5 },
+    { name: 'Living wage', strength: 1 },
+  ],
+  compulsory_schooling: [
+    { name: 'No school-leaving age', strength: 0 },
+    { name: 'Schooling to 14', strength: 0.5 },
+    { name: 'Schooling to 16', strength: 1 },
+  ],
+  competition: [
+    { name: 'No competition law', strength: 0 },
+    { name: 'Merger review', strength: 0.5 },
+    { name: 'Trust-busting', strength: 1 },
+  ],
+}
+
+/**
+ * How much each bloc minds a statute being made STRICTER, −1..1 — the same
+ * `Stance` primitive the dials and reforms use, on the same sign convention
+ * (positive = they mind, negative = they want it).
+ *
+ * It does two jobs, and that is the point of there being one table: the veto
+ * multiplier prices the enactment from it, and `statuteCompliance` reads the
+ * evasion off it. A bloc that minds a statute enough to make it expensive is,
+ * by the same number, the bloc that declines to obey it.
+ */
+export const STATUTE_STANCE: Record<StatuteId, Partial<Record<BlocId, number>>> = {
+  // industry pays it; the landed pay it in the fields; labour is the whole point
+  minimum_wage: { industrialists: 0.8, landowners: 0.6, financiers: 0.3, unions: -0.9 },
+  // child labour is agricultural before it is industrial, so the landed mind it most
+  compulsory_schooling: { landowners: 0.8, industrialists: 0.4, unions: -0.5 },
+  // whoever is currently biggest has the most to lose, but incumbency is shared
+  competition: { industrialists: 0.7, financiers: 0.6, landowners: 0.4, unions: -0.2 },
+}
+
+/** A statute arrives; it does not switch on. Two years from signature to full
+ * effect, which is the mechanical difference between a rule and a dial. */
+export const STATUTE_PHASE_IN_QTRS = 8
+
+/** What compliance is made of. The two capability terms are weighted to sum to
+ * 1 at full strength, so a state with a complete civil service and complete
+ * courts and a room that does not mind reaches the ceiling and no further. */
+export const STATUTE_COMPLIANCE_ADMIN = 0.65
+export const STATUTE_COMPLIANCE_COURTS = 0.35
+/** how far an angry, powerful bloc can hollow a statute out */
+export const STATUTE_EVASION_GAIN = 0.9
+/** Never 1 and never 0 by fiat. A statute fully obeyed by a state with no
+ * civil service is the same lie as a tax rate that collects itself; a statute
+ * obeyed by nobody at all is a lever that does nothing, and a lever that does
+ * nothing is not a lever. */
+export const STATUTE_COMPLIANCE_FLOOR = 0.05
+export const STATUTE_COMPLIANCE_CEILING = 0.95
+/** One civil service, many laws: each statute in force past the first makes
+ * every statute a little less enforced. This is what stops "regulate
+ * everything" from being free, without a bespoke penalty for doing it. */
+export const STATUTE_CONGESTION = 0.12
+
+/** An act of legislation costs more than ordinary policy and less than a
+ * constitutional reform — it is a session of parliament, not a generation. */
+export const PC_COST_STATUTE = 9
+/** Repeal is not the negative of enactment: the constituency a law creates
+ * defends it. The premium rises with how long the statute has stood and
+ * saturates after a decade. */
+export const STATUTE_ENTRENCHMENT_QTRS = 40
+export const STATUTE_REPEAL_PREMIUM = 1.5
 
 // ---------- the election as a scene ----------
 /** the swing each platform is worth, in approval points at the ballot box */

@@ -79,7 +79,7 @@ const SECTOR_FACE: Record<SectorId, string> = {
  * `assetPurchaseRate`, `capitalRequirement`, and `immigrationLimit` arrived exactly that way. */
 type ScalarDialId = Exclude<
   keyof PolicyPoint,
-  'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules'
+  'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules' | 'statutes'
 >
 
 const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; group: PolicyGroup }> = {

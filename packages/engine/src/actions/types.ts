@@ -8,6 +8,7 @@ import type {
   SectorId,
   SpendingProgramId,
   SpendingRuleMode,
+  StatuteId,
 } from '../state/schema'
 
 export type DialPath =
@@ -34,6 +35,10 @@ export type Action =
   // Institutional reforms: generational, ratcheting, contested — and cheap only when
   // a crisis has prised the reform window open
   | { kind: 'reform'; institution: InstitutionId; direction: 1 | -1 }
+  /** Write a rule rather than set a number (ADR-0027). `level` indexes
+   * `STATUTE_LEVELS[statute]`; 0 repeals. Unlike a dial this arrives over two
+   * years, and unlike a dial it costs more to undo than it did to pass. */
+  | { kind: 'enact'; statute: StatuteId; level: number }
   // how you fight the election now approaching
   | { kind: 'campaign'; platform: PlatformId; bloc?: BlocId }
 

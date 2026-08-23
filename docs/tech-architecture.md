@@ -346,6 +346,7 @@ type Action =
   | { kind: 'setDial'; path: DialPath; value: number }              // Layer 1
   | { kind: 'setSpendingRule'; programme; mode; value }             // Layer 1
   | { kind: 'investCapacity'; target: CapacityId; amount: Money }   // Layer 2
+  | { kind: 'enact'; statute: StatuteId; level: number }            // the statute book
 
 interface TurnActions { tick: Qtr; actions: Action[] }
 type ActionLog = TurnActions[]
@@ -359,6 +360,18 @@ never a silent skip.
 once per new first-release official CPI print), and `gdpShare` (0..1 of the latest officially
 published nominal GDP). Legacy `setDial` spending actions remain valid and mean `fixed`, so old
 action logs replay without migration.
+
+`enact` writes a rule rather than setting a number (ADR-0027). `level` indexes the statute's own
+named ladder in `STATUTE_LEVELS`; rung 0 is "no statute". Three things distinguish it from a dial
+and are the reason it is a separate register: it phases in over `STATUTE_PHASE_IN_QTRS` rather
+than taking effect at once, repeal carries an entrenchment premium that rises with how long the
+rule has stood, and **what reaches the economy is never the posted level**. `statuteForce(state,
+id)` is posted strength × `statuteCompliance` × phase-in, and every step that reads a statute
+reads that — reading `gov.statutes` directly is reading the announcement instead of the effect.
+Compliance is derived from the civil service, the courts, and the effective power and anger of
+every bloc that minds the rule, read off the same `STATUTE_STANCE` table that priced the
+enactment. It is the third instance of a gap the engine already models twice, after capacity-gated
+tax collection and leaky programme delivery.
 
 ---
 

@@ -199,6 +199,8 @@ function previewKey(action: Parameters<typeof applyActions>[1][number]): string 
       return `cap:${action.target}`
     case 'reform':
       return `reform:${action.institution}`
+    case 'enact':
+      return `statute:${action.statute}`
     case 'campaign':
       return 'campaign'
   }

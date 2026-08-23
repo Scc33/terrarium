@@ -35,6 +35,11 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
       investment: { mode: 'fixed', value: 2, votedAt: 0 },
       research: { mode: 'fixed', value: 1, votedAt: 0 },
     },
+    statutes: {
+      minimum_wage: { level: 0, enactedAt: 0 },
+      compulsory_schooling: { level: 0, enactedAt: 0 },
+      competition: { level: 0, enactedAt: 0 },
+    },
     ...over,
   }
 }
