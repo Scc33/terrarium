@@ -14,6 +14,12 @@ async function openGame(page: Page, cabinetVisible = true) {
   await page.evaluate('document.fonts.ready')
 }
 
+async function officeButton(page: Page, name: string) {
+  const offices = page.locator('summary').filter({ hasText: 'OFFICES' })
+  if (await offices.isVisible()) await offices.click()
+  return page.getByRole('button', { name, exact: true })
+}
+
 test('component gallery', async ({ page }) => {
   await page.goto('/?gallery=1')
   await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
@@ -233,6 +239,48 @@ test('dashboard with empty instruments', async ({ page }) => {
   await expect(page).toHaveScreenshot('dashboard-empty.png')
 })
 
+test('header keeps every reading visible with all standing orders', async ({ page }) => {
+  await page.setViewportSize({ width: 1493, height: 720 })
+  await page.addInitScript({ content: `localStorage.setItem(${JSON.stringify(BRIEFED_KEY)}, '1')` })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Choose your posting' })).toBeVisible()
+  await page.getByRole('radio', { name: /Costona/ }).click()
+  await page.getByRole('group', { name: 'Year of appointment' }).getByRole('button', { name: '2005' }).click()
+  await page.getByText('STANDING ORDERS', { exact: true }).click()
+  await page.getByRole('group', { name: 'TENURE' }).getByRole('button', { name: 'GOD MODE' }).click()
+  await page.getByRole('group', { name: 'INSTRUMENTS' }).getByRole('button', { name: 'ALL FITTED' }).click()
+  await page.getByRole('group', { name: 'CABINET' }).getByRole('button', { name: 'UNLIMITED' }).click()
+  await page.getByPlaceholder('blank draws a new code').fill('header-regression')
+  await page.getByRole('button', { name: /^ACCEPT POSTING/ }).click()
+  await expect(page.getByRole('complementary', { name: 'Cabinet controls' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const fitAt = async (width: number) => {
+    await page.setViewportSize({ width, height: 720 })
+    return page.evaluate(`(() => {
+      const header = document.querySelector('header');
+      const metrics = document.querySelector('[data-header-metrics]');
+      const edge = metrics?.getBoundingClientRect().right ?? 0;
+      return {
+        headerScrolls: (header?.scrollWidth ?? 0) > (header?.clientWidth ?? 0) + 1,
+        metricsScroll: (metrics?.scrollWidth ?? 0) > (metrics?.clientWidth ?? 0) + 1,
+        clippedGroups: [...(metrics?.querySelectorAll('section') ?? [])]
+          .filter((group) => group.getBoundingClientRect().right > edge + 1)
+          .map((group) => group.getAttribute('aria-label')),
+      };
+    })()`)
+  }
+
+  expect(await fitAt(768)).toEqual({ headerScrolls: false, metricsScroll: false, clippedGroups: [] })
+  expect(await fitAt(1280)).toEqual({ headerScrolls: false, metricsScroll: false, clippedGroups: [] })
+  expect(await fitAt(1493)).toEqual({ headerScrolls: false, metricsScroll: false, clippedGroups: [] })
+  expect(await fitAt(2048)).toEqual({ headerScrolls: false, metricsScroll: false, clippedGroups: [] })
+  await page.setViewportSize({ width: 1493, height: 720 })
+  await expect(page.locator('summary').filter({ hasText: 'OFFICES' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explain 3 standing orders in force' })).toBeVisible()
+  await expect(page.locator('header')).toHaveScreenshot('header-all-rules-1493.png')
+})
+
 test('dense desktop rack fits every instrument name on one screen', async ({ page }) => {
   const browserErrors: string[] = []
   page.on('console', (message) => {
@@ -378,7 +426,7 @@ test('unfitted instrument routes to its capacity investment', async ({ page }) =
 
 test('financial overlay empty state', async ({ page }) => {
   await openGame(page)
-  await page.getByRole('button', { name: 'FINANCE' }).click()
+  await (await officeButton(page, 'FINANCE')).click()
   await expect(page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })).toBeVisible()
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
@@ -402,7 +450,7 @@ test('financial overlay plots the position and the stance once surveyed', async 
   // `exact` matters here and not in the empty-state test above: once the rack
   // is fitted, the consumer-confidence strip's aria-label contains the word
   // "finances" and a loose name match resolves to two elements.
-  await page.getByRole('button', { name: 'FINANCE', exact: true }).click()
+  await (await officeButton(page, 'FINANCE')).click()
   const finance = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
   await expect(finance.getByText('WHERE THE COUNTRY STANDS', { exact: true })).toBeVisible()
   await expect(page).toHaveScreenshot('finance-overlay-position.png')
@@ -438,7 +486,7 @@ test('census files net migration with the other population flows', async ({ page
 
 test('modal paperwork contains and restores keyboard focus', async ({ page }) => {
   await openGame(page)
-  const trigger = page.getByRole('button', { name: 'FINANCE' })
+  const trigger = await officeButton(page, 'FINANCE')
   await trigger.click()
   const dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
   await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeFocused()
