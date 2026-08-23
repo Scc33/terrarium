@@ -253,6 +253,45 @@ at 35.3 per 1000 against 26.0, populations up to 7% too large, and a measured ta
 entirely plausible. That is the "don't conflate the two anchors" rule in the tuning lessons
 below, and a scoring gate is a new way to break it.
 
+### The statute book (ADR-0027)
+
+`gov.statutes` is a total record over `STATUTE_IDS` — a fourth register of policy, between the
+dials and the constitution. Each entry holds a LEVEL on a short named ladder (`STATUTE_LEVELS`)
+and the quarter it was written, and nothing else. Everything else is derived.
+
+Three rules govern it and all three are load-bearing:
+
+- **Read `statuteForce`, never `gov.statutes`.** What the economy is subject to is the posted
+  strength × `statuteCompliance` × phase-in. Reading the record directly is reading the
+  announcement instead of the effect, which is the mistake the register exists to prevent.
+  Compliance is the third instance of a gap the engine already models twice — after
+  `taxEfficiency` (a posted rate is not collected revenue) and `adminEffectiveness` (a voted
+  appropriation is not delivered money) — and the party evading it has a name, because it is
+  one of the four blocs, read off the same `STATUTE_STANCE` table that priced the enactment.
+- **One statute, one channel, named in its own comment.** `competition` → `eliteCapture`;
+  `compulsory_schooling` → one fact (who is in a classroom) with two readers, `laborForce` and
+  the human-capital target; `minimum_wage` → a floor under `market.wages`. No effect arrows, and
+  no disemployment term — the minimum wage costs jobs only through cost → price → demand, which
+  it measurably does (up to 1.4 points).
+- **A statute is inert until enacted, and `pnpm diff-state --moved-only` is the proof.** All
+  three wired, no golden moves; passive 400q is unchanged at 2.81 %/yr, 12.23 % unemployment.
+
+Compliance is published EXACTLY, because every input to it already is — admin capacity, courts,
+bloc power and favour are all unfogged. That equivalence is the boundary: a compliance term that
+read unpublished state would have to become an inspectorate survey with a lag and a band.
+Compliance must also never enter `ui/src/policyRecord.ts`: the minute book files DECISIONS, and
+a figure that drifts every quarter would report a policy change every quarter for eighty years.
+
+`pnpm batch --policy regulated` is the statute book's baseline, and it is read against
+`developmental` — the two differ by nothing else. Do not read it as growth: two of the three
+statutes cost output on purpose. The result worth knowing is that Costona's deposition rate falls
+from 62% to 41%, because the minimum wage compresses its income distribution and lower inequality
+reaches unrest and approval through channels that were already there.
+
+Adding a statute is a `SCHEMA_VERSION` event (a `meta`-only diff, cheap to bless), so add them in
+batches — and never pre-declare an id for a statute wired to nothing, which puts a lever on the
+desk that does not work.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
