@@ -190,7 +190,7 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
               title={`${NAMES.credit_to_gdp.note} Above ${LEVERAGE_RAIL.toFixed(0)}% it starts to matter — but only while assets are also expensive.`}
             />
             <Metric
-              label="ASSET PRICES"
+              label="ASSET VALUATION"
               value={reading.valuation === null ? '—' : reading.valuation.toFixed(0)}
               title={`${NAMES.asset_prices.note} Above ${VALUATION_RAIL.toFixed(0)} they count as expensive — but only while borrowing is also high.`}
             />
@@ -218,7 +218,7 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
             value={view}
             onChange={setView}
             options={[
-              { value: 'position', label: 'THE POSITION', title: 'Borrowing against asset prices. Only the shaded corner is dangerous.' },
+              { value: 'position', label: 'THE POSITION', title: 'Borrowing against asset valuation. Only the shaded corner is dangerous.' },
               { value: 'stance', label: 'THE STANCE', title: 'The three money dials over the whole run, exactly as they were set.' },
               { value: 'banks', label: 'THE BANKS', title: 'What the banks can absorb, against the floor you set them.' },
             ]}
@@ -248,17 +248,17 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
                   includeX={[LEVERAGE_RAIL]}
                   includeY={[VALUATION_RAIL, 100]}
                   labelX="BORROWING · % GDP"
-                  labelY="ASSET PRICES · 1946=100"
+                  labelY="ASSET VALUATION · COST=100"
                   formatPoint={(p) => qtrLabel(p.tick)}
                   summary={
                     standing
-                      ? `Borrowing against asset prices, one point per surveyed quarter. The country now stands at ${standing.label.toLowerCase()}. ${standing.note}`
-                      : 'Borrowing against asset prices, one point per surveyed quarter.'
+                      ? `Borrowing against asset valuation, one point per surveyed quarter. The country now stands at ${standing.label.toLowerCase()}. ${standing.note}`
+                      : 'Borrowing against asset valuation, one point per surveyed quarter.'
                   }
                 />
               ) : (
                 <EmptyState title="THE POSITION CANNOT BE PLOTTED" requirement="BANK LEDGER RETURNS + EXCHANGE BOARD">
-                  Both halves are needed. Borrowing alone or asset prices alone cannot say whether
+                  Both halves are needed. Borrowing alone or asset valuation alone cannot say whether
                   the financial system is dangerous — that is the whole point of the figure.
                 </EmptyState>
               )}
@@ -281,14 +281,14 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
               />
               <MarketChart
                 id="asset_prices"
-                title="ASSET PRICES · 1946=100"
+                title="ASSET VALUATION · COST=100"
                 points={valuation}
                 color="var(--color-dossier-felt)"
                 include={[100]}
                 mark={VALUATION_RAIL}
                 markLabel="RICH"
                 rules={rules}
-                blurb="What capital sells for. When it floats far above what it earns, that is a bubble — and only the exchange quotes it."
+                blurb="What existing productive assets sell for against the cost of replacing them. At 100 the two are equal; a growing economy can stay there indefinitely."
               />
             </div>
           </div>
