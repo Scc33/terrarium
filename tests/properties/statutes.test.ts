@@ -26,6 +26,8 @@ import {
   creativeDestruction,
   eliteCapture,
   init,
+  giniIndex,
+  minimumWageFloor,
   realConsumptionPerCapita,
   schoolingWithdrawal,
   statuteCompliance,
@@ -261,5 +263,88 @@ describe('compulsory schooling → a generation of cost, then the return', () =>
     // whatever human capital does here, it is not because of the statute
     expect(statuteForce(on, 'compulsory_schooling')).toBeGreaterThan(0)
     expect(on.demography.humanCapital).toBeLessThan(0.35)
+  })
+})
+
+const LIVING_WAGE: Action = { kind: 'enact', statute: 'minimum_wage', level: 2 }
+
+/**
+ * MINIMUM WAGE reaches the economy as a floor under `market.wages` and nothing
+ * else. Everything after that is the machinery already there: the floor enters
+ * unit labour cost, the price step's cost anchor carries it into every price in
+ * the table, and employment responds only through the demand that survives.
+ *
+ * The claims below are the two halves of the argument about minimum wages,
+ * and the point is that BOTH of them show up without either being written
+ * down. Measured on Costona over six seeds, at the 1976 sample: agricultural
+ * wages +42.6%, Gini 0.494 → 0.442, food dearer by 19.8% against services, and
+ * unemployment 17.1% → 17.7%.
+ *
+ * That last number resolves the question this statute was planned around —
+ * whether an engine with no scripted disemployment term could produce one at
+ * all. It can: the cost → price → real demand → output → hiring chain moves
+ * unemployment by up to 1.4 points at its peak. A redistribution lever with no
+ * cost attached would have been a bad mechanic, and this is not one.
+ */
+describe('minimum wage → the argument about minimum wages, unscripted', () => {
+  const costona = createCountryParams('costona', 'minwage-costona')
+
+  it('puts a floor under the lowest-paid sector and lifts it', () => {
+    const off = govern(costona, 'mw-a', 120, null)
+    const on = govern(costona, 'mw-a', 120, LIVING_WAGE)
+    expect(minimumWageFloor(off)).toBe(0)
+    expect(minimumWageFloor(on)).toBeGreaterThan(0)
+    // agriculture is where the low wages and most of the workers are
+    expect(on.market.wages.agri).toBeGreaterThan(off.market.wages.agri)
+    // and no sector is left below the floor it wrote
+    for (const sector of on.sectors) {
+      expect(on.market.wages[sector.id]).toBeGreaterThanOrEqual(minimumWageFloor(on) * 0.999)
+    }
+  })
+
+  it('compresses the income distribution, in every seed', () => {
+    let fairer = 0
+    for (const seed of SEEDS) {
+      const off = govern(costona, seed, 120, null)
+      const on = govern(costona, seed, 120, LIVING_WAGE)
+      if (giniIndex(on) < giniIndex(off)) fairer++
+    }
+    expect(fairer).toBe(SEEDS.length)
+  })
+
+  it('makes food dearer against services — through the cost anchor, not a rule', () => {
+    // Nothing connects a wage floor to the price of bread except agriculture
+    // paying wages and the price step pulling prices toward unit cost.
+    let dearer = 0
+    for (const seed of SEEDS) {
+      const off = govern(costona, seed, 120, null)
+      const on = govern(costona, seed, 120, LIVING_WAGE)
+      const rel = (s: TrueState) => s.market.prices.agri / s.market.prices.services
+      if (rel(on) > rel(off)) dearer++
+    }
+    expect(dearer).toBeGreaterThanOrEqual(5)
+  })
+
+  it('costs jobs, with no disemployment term anywhere in the engine', () => {
+    let costlier = 0
+    for (const seed of SEEDS) {
+      const off = govern(costona, seed, 120, null)
+      const on = govern(costona, seed, 120, LIVING_WAGE)
+      if (on.flows.unemployment > off.flows.unemployment) costlier++
+    }
+    expect(costlier).toBeGreaterThanOrEqual(4)
+  })
+
+  it('does not bind where wages are already compressed', () => {
+    // A floor at roughly half the average wage reaches nobody in a country
+    // whose lowest-paid sector already earns more than that. The statute is
+    // still on the books, still enforced, and simply has nothing to do.
+    const meridia = createCountryParams('meridia', 'minwage-meridia')
+    const off = govern(meridia, 'mw-b', 200, null)
+    const on = govern(meridia, 'mw-b', 200, LIVING_WAGE)
+    expect(statuteForce(on, 'minimum_wage')).toBeGreaterThan(0)
+    const lowest = Math.min(...on.sectors.map((sector) => on.market.wages[sector.id]))
+    expect(lowest).toBeGreaterThan(minimumWageFloor(on))
+    expect(giniIndex(on)).toBeCloseTo(giniIndex(off), 2)
   })
 })

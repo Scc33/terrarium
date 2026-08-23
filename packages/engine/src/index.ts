@@ -249,6 +249,7 @@ export {
   realIncomePerHead,
   householdSavingRate,
   meanLogConsumption,
+  minimumWageFloor,
   realConsumptionPerCapita,
   sectorValueAdded,
   livingStandard,

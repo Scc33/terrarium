@@ -85,11 +85,11 @@ its effective power and its anger, and each statute past the first congests the 
 A change phases in over `STATUTE_PHASE_IN_QTRS`, and repeal costs more the longer a rule has
 stood.
 
-| Statute | Ladder | Wired to |
+| Statute | Ladder | The one channel it enters through |
 |---|---|---|
-| `minimum_wage` | none · subsistence floor · living wage | *nothing yet (schema 33 ships the register inert)* |
-| `compulsory_schooling` | none · to 14 · to 16 | *nothing yet* |
-| `competition` | none · merger review · trust-busting | *nothing yet* |
+| `minimum_wage` | none · subsistence floor · living wage | a floor under `market.wages`, at a fraction of the employment-weighted average wage. From there it is an ordinary wage: unit labour cost → the price step's cost anchor → every price. No disemployment term exists; jobs are lost only through the demand that survives. |
+| `compulsory_schooling` | none · to 14 · to 16 | one fact, two readers on different clocks — `schoolingWithdrawal` takes the youngest working band out of the labour force now, and the human-capital target rises so the same school system yields more over a seventeen-year half-life. The bite is sized off the pyramid; the return is a multiplier on `capacity.education`, so a state with no schools gets the cost and none of the benefit. |
+| `competition` | none · merger review · trust-busting | `eliteCapture`, the extractive ceiling, which `creativeDestruction` already turns into a multiplier on frontier absorption and research yield. `effectiveBlocPower` is deliberately untouched. |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
 | Stock | What it does |
@@ -284,11 +284,12 @@ two shares side by side in a table, which is the only place the dual economy rea
   and enactment quarters only. Compliance is deliberately excluded: it moves every quarter on its
   own as the civil service grows and the blocs change their minds, so filing it would report a
   policy change every quarter for eighty years.
-- **Pipeline ±**: unchanged — no step moved, no step's behaviour changed, and no statute is wired
-  to a channel in this release. **The register ships economically inert**, and that is the point of
-  shipping it alone: `pnpm diff-state --moved-only` over both golden replays reported
-  `meta.schemaVersion` and nothing else, and the 1000×400q passive baseline is unmoved at
-  2.81 %/yr growth, 0.11 % inflation, 12.23 % unemployment, 6 % deposed.
+- **Pipeline ±**: unchanged — no step moved and no step's behaviour changed. **A statute is inert
+  until it is enacted**, and that is what makes it safe to add: `pnpm diff-state --moved-only`
+  reports nothing on any of the three golden replays with all three statutes wired, and the
+  1000×400q passive baseline is unmoved at 2.81 %/yr growth, 0.11 % inflation, 12.23 %
+  unemployment, 6 % deposed. A fourth golden case, `competition-act-40q`, exists so that the
+  bless workflow reviews a register that actually fires.
 
 ### schema 32 — The leverage level, the banks' buffer, and typed wire items
 

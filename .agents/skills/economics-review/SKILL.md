@@ -115,21 +115,33 @@ Builds the four capacities like `developmental`, then climbs every statute ladde
 time as capital allows. It is the only policy that exercises the statute book comparably, so it
 is the arm to run **against `developmental`** — the two differ by nothing except the statutes.
 
-| 200 × 400q, `--country all` | developmental | regulated |
-|---|---|---|
-| meridia growth %/yr | 3.11 | 3.13 |
-| costona growth %/yr | 3.67 | **3.72** |
-| veltravia growth %/yr | 2.50 | 2.52 |
-| oranga growth %/yr | 2.86 | 2.87 |
-| kestrel growth %/yr | 3.53 | 3.56 |
-| procedural growth %/yr | 3.29 | 3.31 |
+| 200 × 400q, `--country all` | developmental | regulated | | |
+|---|---|---|---|---|
+| | growth %/yr | growth %/yr | unemployment % | deposed |
+| meridia | 3.11 | 3.07 | 11.70 → 11.38 | 9% → 12% |
+| costona | 3.67 | 3.68 | 14.64 → 14.43 | **62% → 41%** |
+| veltravia | 2.50 | 2.49 | 9.02 → 8.91 | 18% → 24% |
+| oranga | 2.86 | 2.83 | 9.00 → 8.83 | 27% → 30% |
+| kestrel | 3.53 | 3.50 | 12.30 → 11.96 | 61% → 58% |
+| procedural | 3.29 | 3.24 | 11.59 → 11.25 | 27% → 27% |
 
-Every country gains and the ordering is right — the most captured country (Costona, "the
-landowners' settlement") gains most and the most open one (Oranga) gains least. But **the
-headline effect is small, 0.01–0.05 pp/yr, and it is much smaller than the mechanism test
-suggests.** `tests/properties/statutes.test.ts` measures +16% of real GDP on Costona over 160
-quarters; this table implies nearer 5% over a century. Both are correct and the gap is
-methodological — see the tuning lesson in AGENTS.md before concluding that either is wrong.
+**Do not read this table as growth.** Growth is flat to slightly negative, because two of the
+three statutes cost output on purpose: compulsory schooling withdraws the youngest workers, and
+the minimum wage raises unit labour cost. Unemployment falls everywhere partly for a mechanical
+reason — a school-leaving age shrinks the labour force, and the rate is measured against it.
+
+The result worth knowing is the last column. **Costona's deposition rate falls from 62% to 41%.**
+Nothing in the statute book touches politics directly; the minimum wage binds on Costona's
+agricultural wage, the Gini falls about five points, and lower inequality feeds unrest and
+approval through the channels that were already there. On the hardest country in the catalogue
+the statute book's payoff is survival, not output — which is the correct shape for a political
+economy game and was not designed in.
+
+The competition act alone, against `developmental`, was +0.01–0.05 pp/yr per country with the
+right ordering (most captured gains most). That is **much smaller than the mechanism test
+suggests** — `tests/properties/statutes.test.ts` measures +16% of real GDP on Costona over 160
+quarters. Both are correct and the gap is methodological; see the tuning lesson in AGENTS.md
+before concluding that either is wrong.
 
 The stability harness is the future-facing balance check. It compares fixed eras through
 2050, reports the inflation and real-growth tails that century means conceal, and conditions

@@ -15,6 +15,7 @@ import {
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
   LIVING_STANDARD_1946,
+  MINIMUM_WAGE_ANCHOR,
   PARTICIPATION,
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
@@ -599,6 +600,46 @@ export function statuteForce(state: TrueState, id: StatuteId): number {
   if (strength <= 0) return 0
   const phase = clamp((state.meta.tick - enactedAt) / STATUTE_PHASE_IN_QTRS, 0, 1)
   return strength * statuteCompliance(state, id) * phase
+}
+
+/**
+ * The wage floor a minimum-wage statute puts under every sector — the
+ * statute's ONE channel, read by `pipeline/labor` and nothing else
+ * (ADR-0027). Zero when no statute is written.
+ *
+ * Anchored to the prevailing WAGE, not to the price level, and the choice is
+ * load-bearing rather than stylistic. Measured over a capacity-building
+ * century, real wages roughly triple: agriculture's wage runs from 1.8× the
+ * consumer price level in 1946 to 4.8× by 2006 on Costona and 9.0× on Meridia.
+ * A floor pinned to prices would therefore bind hard for a decade and then be
+ * left behind by real wage growth, quietly ceasing to be a policy at all —
+ * the same silent-irrelevance failure a nominal floor has, arriving by the
+ * opposite route. A floor expressed against what people actually earn stays a
+ * policy for as long as it is on the books.
+ *
+ * The mean is EMPLOYMENT-weighted because the sectors differ by an order of
+ * magnitude in wage and by more than that in headcount: energy pays roughly
+ * seven times agriculture and employs almost nobody, so an unweighted mean
+ * would set the floor by the wage of a sector the floor cannot reach. Weighted
+ * by heads, this is the wage of the average worker, which is what a minimum
+ * wage has always been argued about as a fraction of.
+ *
+ * It reads the wages standing at the start of the quarter, so the floor and
+ * the raise it forces are not solved simultaneously; the feedback from a
+ * higher floor to a higher mean arrives next quarter, damped by the ordinary
+ * wage-move caps.
+ */
+export function minimumWageFloor(state: TrueState): number {
+  const force = statuteForce(state, 'minimum_wage')
+  if (force <= 0) return 0
+  let bill = 0
+  let heads = 0
+  for (const sector of state.sectors) {
+    bill += state.market.wages[sector.id] * sector.employment
+    heads += sector.employment
+  }
+  if (heads <= 1e-9) return 0
+  return MINIMUM_WAGE_ANCHOR * force * (bill / heads)
 }
 
 /** Household own-basket price level for a cohort (base = 1). */

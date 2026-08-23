@@ -997,6 +997,20 @@ export const SCHOOLING_LABOR_WITHDRAWAL = 0.25
  * gains nothing by making attendance compulsory — there is nothing to attend. */
 export const SCHOOLING_ATTAINMENT_GAIN = 0.65
 
+/**
+ * MINIMUM WAGE, as a fraction of the average worker's wage — the Kaitz ratio a
+ * minimum wage has always been argued about as. Multiplied by the statute's
+ * force, so a fully enforced living wage lands near half the average wage and
+ * a half-enforced subsistence floor near a quarter of it, which is the range
+ * real minimum wages have occupied.
+ *
+ * It binds on agriculture first and hardest, because that is where the low
+ * wages and most of the workers are in a poor country — which is the argument
+ * about minimum wages in a developing economy, arrived at rather than written
+ * down.
+ */
+export const MINIMUM_WAGE_ANCHOR = 0.75
+
 /** An act of legislation costs more than ordinary policy and less than a
  * constitutional reform — it is a session of parliament, not a generation. */
 export const PC_COST_STATUTE = 9
