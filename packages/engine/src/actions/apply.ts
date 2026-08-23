@@ -37,6 +37,7 @@ import {
   PC_COST_DIAL_BASE,
   PC_COST_DIAL_SLOPE,
   PC_COST_REFORM,
+  PC_COST_STATUTE,
   PLATFORM_BLOC_COST,
   PLATFORM_SWING,
   PLEDGE_QTRS,
@@ -45,6 +46,10 @@ import {
   REFORM_WINDOW_AT,
   REFORM_WINDOW_DISCOUNT,
   REFORM_WINDOW_VETO_RELIEF,
+  STATUTE_ENTRENCHMENT_QTRS,
+  STATUTE_LEVELS,
+  STATUTE_REPEAL_PREMIUM,
+  STATUTE_STANCE,
   SUPPRESSION_REPRESSION_STEP,
   VETO_COST_GAIN,
 } from '../constants'
@@ -59,6 +64,7 @@ import {
   type PlatformId,
   type SectorId,
   type SpendingProgramId,
+  type StatuteId,
   type TrueState,
 } from '../state/schema'
 import {
@@ -353,6 +359,56 @@ function reformTarget(state: TrueState, institution: InstitutionId, direction: 1
   return target
 }
 
+/** What the room makes of a statute moving to `level`, at the size of the
+ * move. `STATUTE_STANCE` describes a bloc's view of the rule getting STRICTER,
+ * so a repeal reverses the sign the same way a dial cut does. */
+function statuteObjections(
+  state: TrueState,
+  statute: StatuteId,
+  level: number,
+): Record<BlocId, number> {
+  const ladder = STATUTE_LEVELS[statute]
+  const current = state.gov.statutes[statute].level
+  const delta = ladder[level].strength - ladder[current].strength
+  return objections(STATUTE_STANCE[statute], Math.sign(delta), Math.abs(delta))
+}
+
+/** Validate an enactment, and hand back the rungs involved. Shared by the
+ * quote and the application so a statute that cannot be written is never
+ * priced — and so a level the ladder does not have fails here rather than
+ * indexing past the end of it somewhere downstream. */
+function checkStatute(
+  state: TrueState,
+  statute: StatuteId,
+  level: number,
+): { current: number; ladder: readonly { strength: number }[] } {
+  const ladder = STATUTE_LEVELS[statute]
+  if (!ladder) throw new IllegalActionError(`unknown statute: ${statute}`)
+  if (!Number.isInteger(level) || level < 0 || level >= ladder.length) {
+    throw new IllegalActionError(
+      `${statute} has no level ${level}; the ladder runs 0..${ladder.length - 1}`,
+    )
+  }
+  const current = state.gov.statutes[statute].level
+  if (level === current) {
+    throw new IllegalActionError(`${statute} is already at that level`)
+  }
+  return { current, ladder }
+}
+
+/**
+ * The entrenchment premium on undoing a law: repeal is not the negative of
+ * enactment, because the constituency a statute creates defends it. Rises with
+ * how long the rule has stood and saturates after a decade. Derived from
+ * `enactedAt` rather than stored, so nothing has to be kept in step.
+ */
+function entrenchmentMultiplier(state: TrueState, statute: StatuteId, level: number): number {
+  const { level: current, enactedAt } = state.gov.statutes[statute]
+  if (level >= current) return 1
+  const stood = clamp((state.meta.tick - enactedAt) / STATUTE_ENTRENCHMENT_QTRS, 0, 1)
+  return 1 + STATUTE_REPEAL_PREMIUM * stood
+}
+
 /** Validate a campaign order. Shared by the quote and the application so a
  * platform that cannot be announced is never priced. */
 function checkCampaign(state: TrueState, action: Extract<Action, { kind: 'campaign' }>): void {
@@ -441,6 +497,23 @@ export function politicalCostOfAction(state: TrueState, action: Action): number 
         (windowOpen ? REFORM_WINDOW_DISCOUNT : 1)
       )
     }
+    case 'enact': {
+      const { statute, level } = action
+      const { current, ladder } = checkStatute(state, statute, level)
+      // priced by how far up or down the ladder it goes, so a two-rung move
+      // costs what two one-rung moves would
+      const step = Math.abs(ladder[level].strength - ladder[current].strength)
+      const windowOpen = reformWindowOpen(state)
+      return (
+        PC_COST_STATUTE *
+        step *
+        entrenchmentMultiplier(state, statute, level) *
+        vetoMultiplier(state, statuteObjections(state, statute, level), windowOpen) *
+        // a crisis passes legislation: the factory acts, the New Deal and
+        // post-2008 bank regulation all went through somebody else's window
+        (windowOpen ? REFORM_WINDOW_DISCOUNT : 1)
+      )
+    }
     case 'campaign': {
       checkCampaign(state, action)
       return PC_COST_CAMPAIGN
@@ -513,6 +586,26 @@ export function applyAction(state: TrueState, action: Action): TrueState {
         institutions: {
           ...s.institutions,
           stocks: { ...s.institutions.stocks, [institution]: target },
+        },
+      }
+    }
+    case 'enact': {
+      const { statute, level } = action
+      checkStatute(state, statute, level)
+      const s = applyObjections(
+        spendPc(state, cost, `enact ${statute}`),
+        statuteObjections(state, statute, level),
+      )
+      return {
+        ...s,
+        gov: {
+          ...s.gov,
+          statutes: {
+            ...s.gov.statutes,
+            // the clock restarts on every change, because a phase-in and a
+            // repeal premium are both about THIS rule, not the last one
+            [statute]: { level, enactedAt: s.meta.tick },
+          },
         },
       }
     }

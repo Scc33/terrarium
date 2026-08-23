@@ -8,9 +8,27 @@
  * certainty — a drought is not fog, everyone can see the sky.
  */
 
-import { DROUGHT_EXTRA_QTRS, DROUGHT_P, DROUGHT_SEVERITY, ENERGY_SHOCK_JUMP, ENERGY_SHOCK_P } from '../constants'
-import type { NewsItem } from '../state/schema'
+import {
+  DROUGHT_EXTRA_QTRS,
+  DROUGHT_P,
+  DROUGHT_SEVERITY,
+  ENERGY_SHOCK_JUMP,
+  ENERGY_SHOCK_P,
+  POLLUTION_DROUGHT_GAIN,
+  POLLUTION_DROUGHT_MAX,
+} from '../constants'
+import type { NewsItem, TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
+
+/** How much likelier a failed harvest is, given the burden the country is
+ * carrying. Exactly 1 at its inherited burden and capped, because a filthy
+ * century should make drought common and never make it certain. */
+export function droughtHazardMultiplier(state: TrueState): number {
+  // …against the country's OWN inheritance. A global threshold gave Veltravia
+  // a 12% higher hazard in 1946Q1 for the structure of its recipe.
+  const excess = Math.max(0, state.environment.pollution - state.environment.baseline)
+  return Math.min(1 + POLLUTION_DROUGHT_GAIN * excess, POLLUTION_DROUGHT_MAX)
+}
 
 export const shocks: PipelineStep = {
   name: 'shocks',
@@ -34,7 +52,19 @@ export const shocks: PipelineStep = {
           kind: 'drought_ends',
         })
       }
-    } else if (rng.next() < DROUGHT_P) {
+      // The climatic half of the pollution externality (ADR-0028): a heavier
+      // burden makes the rains fail more often. It multiplies the hazard and
+      // reuses the ENTIRE drought response below — severity, duration, the
+      // agricultural tfp cut, the wire item, the recovery — so nothing about
+      // what a drought does had to be modelled twice. A country at its 1946
+      // burden faces exactly the hazard it always did, which is what keeps
+      // this inert for anyone who has not industrialised past their
+      // inheritance.
+      //
+      // Note this reads the burden at the START of the quarter, because
+      // `environment` runs after `production` and therefore after this step.
+      // Damage from pollution not yet emitted would be the wrong way round.
+    } else if (rng.next() < DROUGHT_P * droughtHazardMultiplier(state)) {
       droughtSeverity = rng.range(...DROUGHT_SEVERITY)
       droughtQtrsLeft = Math.floor(rng.range(DROUGHT_EXTRA_QTRS[0], DROUGHT_EXTRA_QTRS[1] + 1))
       sectors = sectors.map((s) => (s.id === 'agri' ? { ...s, tfp: s.tfp * droughtSeverity } : s))

@@ -21,7 +21,13 @@ import {
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
 import type { PipelineStep } from './pipeline'
-import { effectiveBlocPower, laborForce, laborForOutput, totalLaborForce } from './derive'
+import {
+  effectiveBlocPower,
+  laborForce,
+  laborForOutput,
+  minimumWageFloor,
+  totalLaborForce,
+} from './derive'
 
 export const labor: PipelineStep = {
   name: 'labor',
@@ -70,6 +76,14 @@ export const labor: PipelineStep = {
       UNION_FAVOR_WAGE *
       Math.max(0, -state.institutions.blocs.unions.favor) *
       effectiveBlocPower(state, 'unions')
+    // A minimum wage is a floor under the bargain, not a term inside it: it
+    // applies after the ordinary move, to whatever the market arrived at. From
+    // here it is an ordinary wage — it enters unit labour cost in `prices`,
+    // the cost anchor carries it into every price in the table, and employment
+    // responds only through the demand that survives. There is no scripted
+    // disemployment term, and adding one would be the effect arrow ADR-0027
+    // forbids.
+    const floor = minimumWageFloor(state)
     const newWages = sectorRecord((sid, i) => {
       const s = state.sectors[i]
       const tightness = (targets[i] - s.employment) / Math.max(s.employment, 1e-9)
@@ -82,7 +96,7 @@ export const labor: PipelineStep = {
         -WAGE_MAX_DOWN,
         WAGE_MAX_UP,
       )
-      return Math.max(0.05, market.wages[sid] * (1 + move))
+      return Math.max(floor, Math.max(0.05, market.wages[sid] * (1 + move)))
     })
 
     // capital: depreciate, then allocate this tick's investment by

@@ -21,7 +21,13 @@
  * be checked by playing eighty years of a save and squinting at it.
  */
 
-import { SECTOR_IDS, SPENDING_PROGRAM_IDS, type SectorId } from '@terrarium/engine'
+import {
+  SECTOR_IDS,
+  SPENDING_PROGRAM_IDS,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
+  type SectorId,
+} from '@terrarium/engine'
 import {
   REVENUE_SOURCE_IDS,
   type PolicyPoint,
@@ -33,12 +39,18 @@ import {
 /** Which desk in the cabinet an entry belongs to — the same five groups the
  * control rail sets them on, so the record reads back in the order it was
  * written. */
-export type PolicyGroup = 'TAXATION' | 'CENTRAL BANK' | 'MIGRATION' | 'SPENDING' | 'SUBSIDIES'
+export type PolicyGroup =
+  | 'TAXATION'
+  | 'CENTRAL BANK'
+  | 'MIGRATION'
+  | 'SPENDING'
+  | 'SUBSIDIES'
+  | 'STATUTES'
 
 /** A rate is a percentage and comparable across a century; an appropriation
  * is money, and 4.0 in 1946 is not 4.0 in 2040. The distinction decides how a
  * value prints and whether it can honestly share an axis with its siblings. */
-export type PolicyUnit = 'rate' | 'money'
+export type PolicyUnit = 'rate' | 'money' | 'statute'
 
 export interface PolicyLine {
   key: string
@@ -72,6 +84,35 @@ const SECTOR_FACE: Record<SectorId, string> = {
   transport: 'TRANSPORT',
 }
 
+/** What the minute book calls each statute, and the ladder it names its rungs
+ * from. The names come from the ENGINE's own `STATUTE_LEVELS` rather than a
+ * second table here, because a rung's name and the strength it carries are one
+ * fact and a copy of it is a thing that can disagree. */
+const STATUTE_FACE: Record<(typeof STATUTE_IDS)[number], { label: string; note: string }> = {
+  minimum_wage: {
+    label: 'MIN. WAGE',
+    note: 'A legal floor under pay. It binds where the low wages are, and is obeyed as far as the state can enforce it.',
+  },
+  compulsory_schooling: {
+    label: 'SCHOOL AGE',
+    note: 'The age below which children must be in a classroom. Costs labour now and returns workforce skills over a generation.',
+  },
+  emissions_standard: {
+    label: 'EMISSIONS',
+    note: 'Rules on what industry may put into the air. It lowers the pollution burden and raises costs where the dirt is.',
+  },
+  competition: {
+    label: 'COMPETITION',
+    note: 'Merger review and the power to break up dominant firms. It speeds up how fast the country adopts techniques the world already has.',
+  },
+}
+
+/** How a statute's rung prints in the record: its name, not its number. */
+export function statuteLevelName(key: string, level: number): string {
+  const id = key.slice('statute.'.length) as (typeof STATUTE_IDS)[number]
+  return STATUTE_LEVELS[id]?.[level]?.name ?? String(level)
+}
+
 /** The dials that are a bare number on the record rather than a table — every
  * `PolicyRecord` field that is not one of the table-valued groups below. Derived from
  * the type, so a lever added to the cabinet lands here on its own and the
@@ -79,7 +120,7 @@ const SECTOR_FACE: Record<SectorId, string> = {
  * `assetPurchaseRate`, `capitalRequirement`, and `immigrationLimit` arrived exactly that way. */
 type ScalarDialId = Exclude<
   keyof PolicyPoint,
-  'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules'
+  'tick' | 'taxRates' | 'spending' | 'subsidies' | 'rules' | 'statutes'
 >
 
 const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; group: PolicyGroup }> = {
@@ -152,6 +193,20 @@ export const POLICY_LINES: readonly PolicyLine[] = [
     note: `Money paid to ${SECTOR_FACE[id].toLowerCase()} firms. Delivery leaks through weak administration.`,
     read: (p) => p.subsidies[id],
   })),
+  // The statute book. A statute reads as its RUNG, not its strength: the
+  // record is of what the cabinet wrote, and "level 2" is the decision it
+  // took. Compliance is deliberately absent — it moves every quarter on its
+  // own as the civil service grows and the blocs change their minds, so a log
+  // that diffed it would file a decision every quarter for eighty years. Same
+  // trap the indexed appropriations sprang, in a new register (ADR-0027).
+  ...STATUTE_IDS.map((id): PolicyLine => ({
+    key: `statute.${id}`,
+    label: STATUTE_FACE[id].label,
+    group: 'STATUTES',
+    unit: 'statute',
+    note: STATUTE_FACE[id].note,
+    read: (p) => p.statutes[id].level,
+  })),
 ]
 
 export const POLICY_LINES_BY_GROUP: Record<PolicyGroup, readonly PolicyLine[]> = {
@@ -160,6 +215,7 @@ export const POLICY_LINES_BY_GROUP: Record<PolicyGroup, readonly PolicyLine[]> =
   MIGRATION: POLICY_LINES.filter((l) => l.group === 'MIGRATION'),
   SPENDING: POLICY_LINES.filter((l) => l.group === 'SPENDING'),
   SUBSIDIES: POLICY_LINES.filter((l) => l.group === 'SUBSIDIES'),
+  STATUTES: POLICY_LINES.filter((l) => l.group === 'STATUTES'),
 }
 
 /** One entry in the minute book. `from` is null for the opening settlement:
@@ -249,9 +305,15 @@ export function policyChanges(record: readonly PolicyPoint[]): PolicyChange[] {
 }
 
 /** How a dial's value prints. Rates get a decimal because a quarter-point
- * move on the policy rate is a real decision; money follows the ledger. */
-export function formatPolicyValue(unit: PolicyUnit, value: number): string {
-  return unit === 'rate' ? `${value.toFixed(2)}%` : value.toFixed(2)
+ * move on the policy rate is a real decision; money follows the ledger; and a
+ * statute prints the NAME of the rung it is on, because "2" is not a policy
+ * and the record is meant to be read. */
+export function formatPolicyValue(
+  line: Pick<PolicyLine, 'unit' | 'key'>,
+  value: number,
+): string {
+  if (line.unit === 'statute') return statuteLevelName(line.key, value)
+  return line.unit === 'rate' ? `${value.toFixed(2)}%` : value.toFixed(2)
 }
 
 /** How a rule prints — a share is a percentage of GDP, everything else is

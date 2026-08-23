@@ -1,12 +1,17 @@
 {
   "passive-40q": {
-    "stateHash": "ad63d5b5",
+    "stateHash": "0608f2f0",
     "realGdp": 93.05313767205712,
     "tick": 40
   },
   "fuel-tax-40q": {
-    "stateHash": "f6d667df",
+    "stateHash": "809dd7bc",
     "realGdp": 89.25070675057793,
+    "tick": 40
+  },
+  "competition-act-40q": {
+    "stateHash": "b81995b3",
+    "realGdp": 93.4340843203857,
     "tick": 40
   }
 }

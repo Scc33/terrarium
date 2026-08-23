@@ -13,6 +13,7 @@ import type {
   PartnerId,
   PlatformId,
   SectorId,
+  StatuteId,
 } from './state/schema'
 
 // ---------- production ----------
@@ -212,6 +213,11 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   bank_capital_ratio: 0.55,
   // the provincial governors always write in; somebody has to read the
   // reports, collate them, and dare to put a number on the result
+  // Systematic air monitoring is a mid-century institution: smoke inspectors
+  // are old, but a service that can tell you the burden across a whole country
+  // is not. Behind the labour force survey and roughly with the trade
+  // statistics.
+  pollution: 0.4,
   unrest: 0.4,
 }
 
@@ -323,6 +329,59 @@ export function fdiStructuralAttraction(
   const catchUp = clampLocal(1.25 - 0.75 * development, 0.5, 1.2)
   return size * access * catchUp
 }
+
+// ---------- the environment: what production costs outside the market (ADR-0028) ----------
+/**
+ * How dirty a unit of each sector's output is. A total `Record`, so a sixth
+ * sector cannot ship without somebody deciding how dirty it is.
+ *
+ * Energy first by a wide margin, then transport and heavy manufacturing;
+ * agriculture is middling (land clearing, livestock, later fertiliser) and
+ * services are nearly clean. These are RELATIVE weights — the absolute level
+ * is set by `POLLUTION_REFERENCE` below, so only the ratios matter here.
+ */
+export const EMISSION_INTENSITY: Record<SectorId, number> = {
+  agri: 0.35,
+  manuf: 0.8,
+  energy: 2.4,
+  services: 0.08,
+  transport: 1.1,
+}
+
+/** Better techniques are cleaner ones: emissions per unit of output fall as a
+ * sector's attainment rises. The exponent is what makes a country that funds
+ * research get a cleaner economy without ever being told it would. */
+export const EMISSION_TECH_GAIN = 0.7
+
+/** Emissions per head that reads as a burden of 1.0. MEASURED, not chosen:
+ * the standard 1946 country's opening emissions, so Meridia opens at 1.00 and
+ * the rest of the catalogue spreads around it by how dirty their inherited
+ * industry actually is — Costona 0.62 (agrarian), Veltravia 1.57 (industrial).
+ * That spread is the index earning its keep; a per-country normalisation would
+ * have thrown it away. */
+export const POLLUTION_REFERENCE = 3.665
+
+/** How fast the burden chases current emissions. Slow on purpose: a country
+ * that industrialises hard carries it for decades after it stops, and cleaning
+ * up is a generation's work. Half-life ≈ 17 years, the same order as the
+ * human-capital stock, because both are things a country lives with rather
+ * than switches. */
+export const POLLUTION_ADJUST = 0.01
+
+/** What the burden does to people, through the mortality schedule that already
+ * exists — the local, immediate, personal half of the damage. Added to the
+ * mortality index per unit of burden above the 1946 baseline. */
+export const POLLUTION_MORTALITY_GAIN = 0.05
+
+/** …and what it does to the climate, through the drought hazard that already
+ * exists — the delayed, stochastic half. `DROUGHT_P` is multiplied by
+ * `1 + this × max(0, burden − 1)`, so a country at its 1946 burden faces
+ * exactly the hazard it always did and the whole drought response (severity,
+ * duration, the agricultural tfp cut, the wire item, the recovery) is reused
+ * rather than re-modelled. */
+export const POLLUTION_DROUGHT_GAIN = 0.22
+/** and a ceiling, so a filthy century cannot make drought a certainty */
+export const POLLUTION_DROUGHT_MAX = 2
 
 // ---------- the crisis clock ----------
 /** per-quarter odds of a world energy rupture (~3 per century) */
@@ -884,6 +943,163 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * to productivity whatever the veto does. Making the transition itself
  * blockable needs endogenous demand composition, which is a separate change.
  */
+
+// ---------- the statute book (ADR-0027) ----------
+/**
+ * One rung of a statute's ladder: the words a player reads and the number the
+ * engine reads. `strength` is 0..1 and rung 0 is always 0 — that is what makes
+ * an un-enacted statute inert, and it is checked by
+ * `tests/unit/statutes.test.ts` rather than trusted.
+ */
+export interface StatuteLevel {
+  /** what the statute book calls this rung */
+  name: string
+  /** what the engine reads. 0 on rung 0, always. */
+  strength: number
+}
+
+/**
+ * Every statute's ladder. Deliberately short: three rungs is the working
+ * maximum, and a statute that wants six was a continuous quantity all along
+ * and belongs in the cabinet as a dial (ADR-0027).
+ *
+ * A total `Record`, so a new `StatuteId` cannot compile without a ladder, and
+ * a rung cannot exist without a name.
+ */
+export const STATUTE_LEVELS: Record<StatuteId, readonly StatuteLevel[]> = {
+  minimum_wage: [
+    { name: 'No statutory wage', strength: 0 },
+    { name: 'Subsistence floor', strength: 0.5 },
+    { name: 'Living wage', strength: 1 },
+  ],
+  compulsory_schooling: [
+    { name: 'No school-leaving age', strength: 0 },
+    { name: 'Schooling to 14', strength: 0.5 },
+    { name: 'Schooling to 16', strength: 1 },
+  ],
+  competition: [
+    { name: 'No competition law', strength: 0 },
+    { name: 'Merger review', strength: 0.5 },
+    { name: 'Trust-busting', strength: 1 },
+  ],
+  emissions_standard: [
+    { name: 'No emissions rules', strength: 0 },
+    { name: 'Smokestack rules', strength: 0.45 },
+    { name: 'Clean air act', strength: 0.85 },
+  ],
+}
+
+/**
+ * How much each bloc minds a statute being made STRICTER, −1..1 — the same
+ * `Stance` primitive the dials and reforms use, on the same sign convention
+ * (positive = they mind, negative = they want it).
+ *
+ * It does two jobs, and that is the point of there being one table: the veto
+ * multiplier prices the enactment from it, and `statuteCompliance` reads the
+ * evasion off it. A bloc that minds a statute enough to make it expensive is,
+ * by the same number, the bloc that declines to obey it.
+ */
+export const STATUTE_STANCE: Record<StatuteId, Partial<Record<BlocId, number>>> = {
+  // industry pays it; the landed pay it in the fields; labour is the whole point
+  minimum_wage: { industrialists: 0.8, landowners: 0.6, financiers: 0.3, unions: -0.9 },
+  // child labour is agricultural before it is industrial, so the landed mind it most
+  compulsory_schooling: { landowners: 0.8, industrialists: 0.4, unions: -0.5 },
+  // whoever is currently biggest has the most to lose, but incumbency is shared
+  competition: { industrialists: 0.7, financiers: 0.6, landowners: 0.4, unions: -0.2 },
+  // the chimneys are industry's, and the equipment is bought out of profits.
+  // Labour is mildly for it — they live downwind — but mildly, because the
+  // jobs are in the same factories.
+  emissions_standard: { industrialists: 0.85, financiers: 0.3, landowners: 0.2, unions: -0.25 },
+}
+
+/** A statute arrives; it does not switch on. Two years from signature to full
+ * effect, which is the mechanical difference between a rule and a dial. */
+export const STATUTE_PHASE_IN_QTRS = 8
+
+/** What compliance is made of. The two capability terms are weighted to sum to
+ * 1 at full strength, so a state with a complete civil service and complete
+ * courts and a room that does not mind reaches the ceiling and no further. */
+export const STATUTE_COMPLIANCE_ADMIN = 0.65
+export const STATUTE_COMPLIANCE_COURTS = 0.35
+/** how far an angry, powerful bloc can hollow a statute out */
+export const STATUTE_EVASION_GAIN = 0.9
+/** Never 1 and never 0 by fiat. A statute fully obeyed by a state with no
+ * civil service is the same lie as a tax rate that collects itself; a statute
+ * obeyed by nobody at all is a lever that does nothing, and a lever that does
+ * nothing is not a lever. */
+export const STATUTE_COMPLIANCE_FLOOR = 0.05
+export const STATUTE_COMPLIANCE_CEILING = 0.95
+/** One civil service, many laws: each statute in force past the first makes
+ * every statute a little less enforced. This is what stops "regulate
+ * everything" from being free, without a bespoke penalty for doing it. */
+export const STATUTE_CONGESTION = 0.12
+
+/**
+ * What each statute does, and where. One constant per statute, sitting beside
+ * the ladder it belongs to rather than in the section of the model it reaches,
+ * so the whole statute book's economic footprint is readable in one place.
+ *
+ * COMPETITION relieves the extractive ceiling (`eliteCapture`), and nothing
+ * else. Calibrated so that trust-busting in a state that can enforce it moves
+ * absorption by roughly what a decade of ordinary institutional reform would,
+ * rather than by enough to make it the only lever worth pulling.
+ */
+export const COMPETITION_CAPTURE_RELIEF = 0.35
+
+/**
+ * COMPULSORY SCHOOLING is one fact — who is in a classroom instead of at work
+ * — with two readers, and they pull in opposite directions on different
+ * clocks. That is the whole design: it is the only order in the game whose
+ * cost lands a decade before its return.
+ *
+ * The withdrawal is a share of the YOUNGEST WORKING BAND, scaled by the
+ * pyramid in `schoolingWithdrawal`, not a flat haircut on the labour force:
+ * "schooling to 16" reaches roughly the first two years of a five-year band,
+ * and a young agrarian country therefore pays far more for the same law than
+ * an ageing industrial one.
+ */
+export const SCHOOLING_LABOR_WITHDRAWAL = 0.25
+/**
+ * EMISSIONS STANDARD is one fact — how much dirt is caught before it leaves
+ * the chimney — with two readers, like compulsory schooling. Emissions fall in
+ * `pipeline/environment.ts`, and the equipment that catches them raises unit
+ * cost in the sectors that must fit it, through the price step's existing cost
+ * anchor. Which way that trade goes is a measurement, not a design intent.
+ *
+ * The cost is scaled by each sector's emission intensity, so the industries
+ * that pollute most are the ones that pay to stop: a clean air act is nearly
+ * free for the service trades and expensive for power generation, and nobody
+ * had to write that down separately.
+ */
+export const ABATEMENT_COST_GAIN = 0.11
+
+/** …and what the same school system yields once the children stay in it.
+ * Read as a multiplier on `capacity.education`, so a country with no schools
+ * gains nothing by making attendance compulsory — there is nothing to attend. */
+export const SCHOOLING_ATTAINMENT_GAIN = 0.65
+
+/**
+ * MINIMUM WAGE, as a fraction of the average worker's wage — the Kaitz ratio a
+ * minimum wage has always been argued about as. Multiplied by the statute's
+ * force, so a fully enforced living wage lands near half the average wage and
+ * a half-enforced subsistence floor near a quarter of it, which is the range
+ * real minimum wages have occupied.
+ *
+ * It binds on agriculture first and hardest, because that is where the low
+ * wages and most of the workers are in a poor country — which is the argument
+ * about minimum wages in a developing economy, arrived at rather than written
+ * down.
+ */
+export const MINIMUM_WAGE_ANCHOR = 0.75
+
+/** An act of legislation costs more than ordinary policy and less than a
+ * constitutional reform — it is a session of parliament, not a generation. */
+export const PC_COST_STATUTE = 9
+/** Repeal is not the negative of enactment: the constituency a law creates
+ * defends it. The premium rises with how long the statute has stood and
+ * saturates after a decade. */
+export const STATUTE_ENTRENCHMENT_QTRS = 40
+export const STATUTE_REPEAL_PREMIUM = 1.5
 
 // ---------- the election as a scene ----------
 /** the swing each platform is worth, in approval points at the ballot box */

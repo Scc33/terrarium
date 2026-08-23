@@ -253,6 +253,73 @@ at 35.3 per 1000 against 26.0, populations up to 7% too large, and a measured ta
 entirely plausible. That is the "don't conflate the two anchors" rule in the tuning lessons
 below, and a scoring gate is a new way to break it.
 
+### The statute book (ADR-0027)
+
+`gov.statutes` is a total record over `STATUTE_IDS` — a fourth register of policy, between the
+dials and the constitution. Each entry holds a LEVEL on a short named ladder (`STATUTE_LEVELS`)
+and the quarter it was written, and nothing else. Everything else is derived.
+
+Three rules govern it and all three are load-bearing:
+
+- **Read `statuteForce`, never `gov.statutes`.** What the economy is subject to is the posted
+  strength × `statuteCompliance` × phase-in. Reading the record directly is reading the
+  announcement instead of the effect, which is the mistake the register exists to prevent.
+  Compliance is the third instance of a gap the engine already models twice — after
+  `taxEfficiency` (a posted rate is not collected revenue) and `adminEffectiveness` (a voted
+  appropriation is not delivered money) — and the party evading it has a name, because it is
+  one of the four blocs, read off the same `STATUTE_STANCE` table that priced the enactment.
+- **One statute, one channel, named in its own comment.** `competition` → `eliteCapture`;
+  `compulsory_schooling` → one fact (who is in a classroom) with two readers, `laborForce` and
+  the human-capital target; `minimum_wage` → a floor under `market.wages`. No effect arrows, and
+  no disemployment term — the minimum wage costs jobs only through cost → price → demand, which
+  it measurably does (up to 1.4 points).
+- **A statute is inert until enacted, and `pnpm diff-state --moved-only` is the proof.** All
+  three wired, no golden moves; passive 400q is unchanged at 2.81 %/yr, 12.23 % unemployment.
+
+Compliance is published EXACTLY, because every input to it already is — admin capacity, courts,
+bloc power and favour are all unfogged. That equivalence is the boundary: a compliance term that
+read unpublished state would have to become an inspectorate survey with a lag and a band.
+Compliance must also never enter `ui/src/policyRecord.ts`: the minute book files DECISIONS, and
+a figure that drifts every quarter would report a policy change every quarter for eighty years.
+
+`pnpm batch --policy regulated` is the statute book's baseline, and it is read against
+`developmental` — the two differ by nothing else. Do not read it as growth: two of the three
+statutes cost output on purpose. The result worth knowing is that Costona's deposition rate falls
+from 62% to 41%, because the minimum wage compresses its income distribution and lower inequality
+reaches unrest and approval through channels that were already there.
+
+Adding a statute is a `SCHEMA_VERSION` event (a `meta`-only diff, cheap to bless), so add them in
+batches — and never pre-declare an id for a statute wired to nothing, which puts a lever on the
+desk that does not work.
+
+### The environment (ADR-0028)
+
+`environment.pollution` is a per-head burden index, standard 1946 country = 1, produced by the
+`environment` step after `production` and seeded by `init` at its opening equilibrium. Four rules:
+
+- **Nothing reads the burden where it is made.** Damage arrives through the mortality schedule in
+  `demography` and the drought hazard in `shocks` — the latter reusing the ENTIRE drought response
+  rather than modelling harm twice. There is no term anywhere subtracting pollution from output,
+  and adding one is the effect arrow the engine exists to refuse.
+- **Both damage terms read the excess over `environment.baseline`** — the burden this country
+  INHERITED, sealed at init — not over the standard country's 1.0. The catalogue opens between
+  0.62 (agrarian Costona) and 1.57 (industrial Veltravia), so a global threshold charged Veltravia
+  excess mortality and a 12 % higher drought hazard in 1946Q1 for the authored structure of its
+  recipe. That shipped, and it was invisible in the passive baseline **because that baseline is
+  measured on Meridia, which IS the reference country and opens at exactly 1.0** — the one country
+  where the bug could not show. Measured cost of the bug: Oranga deposed 36 % against 24 % once
+  fixed. **The passive/developmental split is the calibration test** — if a retune moves passive,
+  the burden has become a tax on existence rather than a cost of development.
+- **Per head, not absolute.** Land is not modelled, so a tonnage would make a big country dirtier
+  by being big, and mortality responds to what people breathe. Per head it follows income and
+  industrial structure, which is the Kuznets shape arrived at rather than authored.
+- **The goldens cannot see this.** They moved 3540 values and every one by 0.00 %, because 40
+  quarters cannot see a stock with a seventeen-year half-life. Use `pnpm batch`, not `pnpm bless`,
+  as the evidence for anything you change here.
+
+The damage channels run EARLIER in the tick than the step that produces emissions, which is
+correct rather than a bug: they read the burden accumulated up to the start of the quarter.
+
 ### Adding an indicator
 
 → **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
@@ -434,6 +501,33 @@ perfectly with no opinion about anything in the game. The first politics impleme
   per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range
   to a readable step can leave ONE label on the axis, and a chart with a single number up its
   side gives no scale at all — `niceTicks` refines the step until at least two fit.
+- **No lever in the game steers sector composition, and it is the demand side that blocks it.**
+  Household weights are fixed per cohort, which is Cobb-Douglas — unit price elasticity — so a
+  subsidy that lowers a sector's price raises real quantity one-for-one and leaves the nominal
+  expenditure share untouched *by construction*. Measured: a subsidy worth 5% of GDP every quarter
+  for sixty years moves its sector's value-added share 0.8–1.2 points, and a 60% tariff moves
+  composition 0.1 points while costing 6% of GDP. Do not answer issue #97 with a new lever; the
+  channel is blocked, and a lever on a blocked channel looks like steering. The same fixed weights
+  are why the service share FALLS as the country gets eight times richer, which is backwards. See
+  `docs/investigations/0013`.
+- **A mechanism test and a baseline sweep measure different things, and a statute is where
+  they diverge most.** `tests/properties/statutes.test.ts` protects tenure and funds the
+  cabinet, deliberately, so that what it measures is the CHANNEL — and it reports the
+  competition act as +16% of Costona's real GDP over 160 quarters. `pnpm batch --policy
+  regulated` reports nearer 0.05 pp/yr against `developmental`. Both are right. The sweep
+  truncates at deposition (Costona deposes 62% of governments), climbs the ladder only as
+  capital allows, and annualizes over a century in which everyone converges on the frontier
+  anyway. Quote the sweep when asked what a lever is worth in play; quote the mechanism test
+  when asked whether the channel works.
+- **A lenient experiment must never be lenient about the thing under test.** Skipping a
+  capacity order that a full ministry refuses is fine — the runner does it. Skipping the
+  ENACTMENT is how an experiment lies: a deposed cabinet cannot give orders, so on a hard
+  country the statute silently never happens, `statuteForce` reads 0.000, and the two arms come
+  out identical to the last decimal. In a results table that reads as "the statute does
+  nothing" rather than "the statute never happened". Two of the first six seeds did exactly
+  this. The same trap caught the first `regulatedPolicy`: a top-rung enactment is priced near
+  23 PC against the ~11 a capacity-building government holds, so two of three orders were
+  refused as unaffordable and the "regulated" century was developmental to two decimals.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a

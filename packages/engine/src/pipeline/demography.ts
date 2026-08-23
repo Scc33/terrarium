@@ -36,6 +36,8 @@ import {
   MORT_SECULAR_Q,
   NATURAL_UNEMPLOYMENT,
   URBANIZATION_GAIN,
+  SCHOOLING_ATTAINMENT_GAIN,
+  POLLUTION_MORTALITY_GAIN,
 } from '../constants'
 import { clamp } from '../math'
 import {
@@ -49,7 +51,7 @@ import {
   type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { livingStandard, meanLogConsumption } from './derive'
+import { livingStandard, meanLogConsumption, statuteForce } from './derive'
 
 const sumBands = (p: number[], from: number, to: number) => {
   let s = 0
@@ -152,16 +154,35 @@ export const demography: PipelineStep = {
     // generational clock, so the stock only closes a fraction of the gap to
     // the current school system each quarter. This happens before technology
     // so the same workforce fact prices absorption, staffing and fertility.
+    //
+    // A school-leaving age raises what the same school system yields, because
+    // the children who would have left for the fields or the mill stay in it
+    // (ADR-0027). This is the SLOW half of the compulsory-schooling statute —
+    // the fast half is the labour those children stop supplying, in
+    // `derive.laborForce`. Both read the one `statuteForce`, so the cost and
+    // the return can never come from different rules.
+    const schooling = statuteForce(state, 'compulsory_schooling')
+    const schoolYield = clamp(state.gov.capacity.education * (1 + SCHOOLING_ATTAINMENT_GAIN * schooling), 0, 1)
     const humanCapital = clamp(
-      d.humanCapital +
-        HUMAN_CAPITAL_ADJUST_Q * (state.gov.capacity.education - d.humanCapital),
+      d.humanCapital + HUMAN_CAPITAL_ADJUST_Q * (schoolYield - d.humanCapital),
       0,
       1,
     )
 
     // --- vital rates respond to how life actually is ---
+    // …including the air. This is the local, immediate half of the pollution
+    // externality (ADR-0028): dirty air kills people in your own country now,
+    // and it reaches welfare and the report card through the mortality
+    // schedule that was already here rather than through a drag on output.
+    // Measured against THIS COUNTRY's inherited burden, not the standard
+    // country's — the catalogue opens between 0.62 and 1.57, and a global
+    // threshold charged an industrial recipe for being industrial in 1946Q1.
+    const pollutionHarm =
+      POLLUTION_MORTALITY_GAIN *
+      Math.max(0, state.environment.pollution - state.environment.baseline)
     const mortalityIndex = clamp(
-      Math.exp(-MORT_SECULAR_Q * state.meta.tick) * (1 - MORT_INCOME_GAIN * lnLiving),
+      Math.exp(-MORT_SECULAR_Q * state.meta.tick) *
+        (1 - MORT_INCOME_GAIN * lnLiving + pollutionHarm),
       MORT_FLOOR,
       1.3,
     )

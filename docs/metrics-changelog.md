@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 32)
+## Current contract (schema 34)
 
 ### Inputs
 
@@ -70,6 +70,27 @@ do not start until `appointedAt`.
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
 | `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
+
+**The statute book** (`gov.statutes`, written via the `enact` action — ADR-0027). Rules the
+government writes rather than numbers it sets: a fourth register, between the dials and the
+constitution. Each statute is an ORDINAL on a short named ladder (`STATUTE_LEVELS`), rung 0 being
+"no statute", and each is stored as `{ level, enactedAt }` and nothing else.
+
+What reaches the economy is never the posted level. `statuteForce(state, id)` = posted strength ×
+`statuteCompliance` × phase-in, and **every step that reads a statute reads that**. Compliance is
+the third instance of the gap this contract already describes twice — after capacity-gated tax
+collection and leaky programme delivery — and it is derived, never stored: the civil service and
+the courts supply the capability, every bloc that minds the rule supplies evasion in proportion to
+its effective power and its anger, and each statute past the first congests the same inspectorate.
+A change phases in over `STATUTE_PHASE_IN_QTRS`, and repeal costs more the longer a rule has
+stood.
+
+| Statute | Ladder | The one channel it enters through |
+|---|---|---|
+| `minimum_wage` | none · subsistence floor · living wage | a floor under `market.wages`, at a fraction of the employment-weighted average wage. From there it is an ordinary wage: unit labour cost → the price step's cost anchor → every price. No disemployment term exists; jobs are lost only through the demand that survives. |
+| `compulsory_schooling` | none · to 14 · to 16 | one fact, two readers on different clocks — `schoolingWithdrawal` takes the youngest working band out of the labour force now, and the human-capital target rises so the same school system yields more over a seventeen-year half-life. The bite is sized off the pyramid; the return is a multiplier on `capacity.education`, so a state with no schools gets the cost and none of the benefit. |
+| `competition` | none · merger review · trust-busting | `eliteCapture`, the extractive ceiling, which `creativeDestruction` already turns into a multiplier on frontier absorption and research yield. `effectiveBlocPower` is deliberately untouched. |
+| `emissions_standard` | none · smokestack rules · clean air act | abatement — one fact with two readers. Emissions fall in the `environment` step, and the equipment that catches them raises unit cost through the price step's cost anchor, scaled by each sector's own emission intensity so the dirtiest industries pay most. |
 
 **Layer-3 institutions** (`InstitutionState.stocks`, moved via the `reform` action, 0..1 each)
 | Stock | What it does |
@@ -244,6 +265,63 @@ two shares side by side in a table, which is the only place the dual economy rea
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 34 — The environment: what production costs outside the market
+
+- **State +**: `environment: { pollution, baseline, emissionsQ }` (ADR-0028). One slow burden index,
+  standard 1946 country = 1, seeded by `init` at exactly its opening equilibrium so no run begins
+  on a ramp nobody chose. Countries open apart because their industrial structures differ —
+  Costona 0.62 agrarian, Meridia 1.00, Veltravia 1.57 industrial.
+- **Pipeline ±**: a new `environment` step directly after `production`, so **step order changed**
+  (ADR-0005) and `statistics` moves from 15 to 16. RNG substreams are keyed by step name
+  (ADR-0002), so no existing step's draw sequence moved. Emissions are per head, not absolute:
+  land is not modelled, and an absolute tonnage would make a big country dirtier purely by being
+  big. Better technique emits less, so research buys a cleaner economy without being told to.
+- **Outputs +**: `pollution` / **Pollution** (1946 = 100, unlocks at 0.40 behind environmental
+  monitoring) — a relative-noise print like every other survey. Face measured with `pnpm ranges`
+  at 50–450 against a p01–p99 of 66.8–418.2. A state that has not funded monitors cannot see what
+  its own industry is doing, which is the historical fact rather than a flourish.
+- **Inputs +**: `emissions_standard` joins `STATUTE_IDS` — the statute the register was built for,
+  and it cost an id, a ladder, a stance row and one `statuteForce` read.
+- **Damage reaches the economy through two channels that already existed and no others**: the
+  mortality schedule in `demography`, and the drought hazard in `shocks` (which reuses the entire
+  drought response — severity, duration, the agricultural tfp cut, the wire item, the recovery).
+  There is no term anywhere subtracting pollution from output.
+  `baseline` is the burden the country inherited, sealed at init: both damage terms read the excess
+  over it, so an industrial recipe is not charged for being industrial before its player has done
+  anything.
+- **This one moves the baseline, and that is the mechanic.** A country at its OWN inherited burden
+  pays exactly nothing, so the 1000×400q passive century is unmoved at 2.82 %/yr, 12.26 %
+  unemployment, 6 % deposed. The developmental cohort, which industrialises and never
+  legislates, loses three of twenty-two survivors and deposes 10 % against 8 %. The golden
+  replays moved 3540 values and **every one of them by 0.00 %** — 40 quarters cannot see a
+  century-scale stock, so the batches are this feature's evidence, not the goldens.
+
+### schema 33 — The statute book: rules the government writes
+
+- **Inputs +**: the `enact` action and `gov.statutes`, a total record over `STATUTE_IDS`
+  (`minimum_wage`, `compulsory_schooling`, `competition`), each `{ level, enactedAt }`. A statute
+  is an ordinal on a named ladder rather than a scalar, it phases in over eight quarters, and
+  repeal carries an entrenchment premium rising with how long the rule has stood. Priced through
+  `politicalCostOfAction` like every other order, with the reform window's discount and veto
+  relief — a crisis passes legislation.
+- **Outputs +**: `PublishedState.statutes`, one `PublishedStatute` per statute: the posted level,
+  its ladder, the quarter it was written (null when nothing was), the compliance, what is actually
+  in force, the veto-loaded price of every rung, and which blocs are declining to obey. **Exact,
+  not fogged**, and deliberately: every input to compliance is already published unfogged, so the
+  figure is derivable from what the desk already shows and publishing it leaks nothing. That
+  equivalence is the boundary — a compliance term that reads unpublished state would have to
+  become an inspectorate survey with a lag and a band.
+- **Outputs ±**: `PolicyRecord.statutes` puts the book in the minute book beside the dials, levels
+  and enactment quarters only. Compliance is deliberately excluded: it moves every quarter on its
+  own as the civil service grows and the blocs change their minds, so filing it would report a
+  policy change every quarter for eighty years.
+- **Pipeline ±**: unchanged — no step moved and no step's behaviour changed. **A statute is inert
+  until it is enacted**, and that is what makes it safe to add: `pnpm diff-state --moved-only`
+  reports nothing on any of the three golden replays with all three statutes wired, and the
+  1000×400q passive baseline is unmoved at 2.81 %/yr growth, 0.11 % inflation, 12.23 %
+  unemployment, 6 % deposed. A fourth golden case, `competition-act-40q`, exists so that the
+  bless workflow reviews a register that actually fires.
 
 ### schema 32 — The leverage level, the banks' buffer, and typed wire items
 

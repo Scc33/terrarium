@@ -213,13 +213,19 @@ export const CAPACITY_COPY: Record<CapacityId, CapacityCopy> = {
 /**
  * The drawers of the cabinet that hold levers.
  *
- * Derived from `CabinetGroup` by subtraction rather than listed, so the three
- * drawers the rail paints itself — capacity, institutions, the whip count —
- * are the only exceptions, and a NEW cabinet group is a lever drawer until
- * somebody says otherwise. That makes `DRAWERS` below a total `Record`, so the
- * group cannot reach the cabinet without a brief and a question.
+ * Derived from `CabinetGroup` by subtraction rather than listed, so the four
+ * drawers the rail paints itself — capacity, institutions, the statute book,
+ * the whip count — are the only exceptions, and a NEW cabinet group is a lever
+ * drawer until somebody says otherwise. That makes `DRAWERS` below a total
+ * `Record`, so the group cannot reach the cabinet without a brief and a
+ * question. The statute book joined that exception list the day it was added,
+ * and it did so because the build stopped rather than because anyone
+ * remembered to look — which is the whole point of writing it this way.
  */
-export type LeverGroupId = Exclude<CabinetGroup, 'STATE CAPACITY' | 'INSTITUTIONS' | 'THE ROOM'>
+export type LeverGroupId = Exclude<
+  CabinetGroup,
+  'STATE CAPACITY' | 'INSTITUTIONS' | 'THE ROOM' | 'STATUTES'
+>
 
 export interface DrawerCopy {
   /** the cabinet tab's short name */

@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { init, rngFor, step, TICK_ORDER, totalLaborForce, type TrueState } from '@terrarium/engine'
+import {
+  applyActions,
+  init,
+  politicalCostOfAction,
+  rngFor,
+  step,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
+  TICK_ORDER,
+  totalLaborForce,
+  type TrueState,
+} from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -119,5 +130,81 @@ describe('headline salience', () => {
       politics.run(withHeadline(v), rngFor(s0.meta.seed, 'politics', s0.meta.tick)).politics
         .politicalCapital
     expect(pcAfter(5)).toBeGreaterThan(pcAfter(-5))
+  })
+})
+
+describe('the statute book on the desk', () => {
+  it('publishes every statute, its ladder, and what it would cost to change', () => {
+    const pub = observe(play('statutes-desk', 8))
+    expect(pub.statutes.length).toBe(STATUTE_IDS.length)
+    for (const statute of pub.statutes) {
+      expect(statute.levels.length).toBe(STATUTE_LEVELS[statute.id].length)
+      expect(statute.cost.length).toBe(statute.levels.length)
+      // the rung already in force is not on offer, and every other one is
+      expect(statute.cost[statute.level]).toBeNull()
+      for (let rung = 0; rung < statute.cost.length; rung++) {
+        if (rung === statute.level) continue
+        expect(statute.cost[rung], `${statute.id} rung ${rung}`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('quotes what the engine will actually charge, never a second opinion', () => {
+    const state = play('statutes-quote', 8)
+    for (const statute of observe(state).statutes) {
+      for (let rung = 0; rung < statute.cost.length; rung++) {
+        if (statute.cost[rung] === null) continue
+        expect(statute.cost[rung]).toBeCloseTo(
+          politicalCostOfAction(state, { kind: 'enact', statute: statute.id, level: rung }),
+          9,
+        )
+      }
+    }
+  })
+
+  it('says "no statute" rather than "in force since 1946" for a rule nobody wrote', () => {
+    for (const statute of observe(play('statutes-empty', 8)).statutes) {
+      expect(statute.level).toBe(0)
+      expect(statute.enactedAt).toBeNull()
+      expect(statute.inForce).toBe(0)
+      // …and the compliance is still a real figure: nobody obeys a rule that
+      // does not exist, but the state's capacity to enforce one is a fact
+      // about the state, not about the rule
+      expect(statute.compliance).toBeGreaterThan(0)
+    }
+  })
+
+  it('shows the gap between what was written and what the country is subject to', () => {
+    const opening = play('statutes-gap', 8)
+    let state = applyActions(
+      { ...opening, politics: { ...opening.politics, politicalCapital: 500 } },
+      [{ kind: 'enact', statute: 'minimum_wage', level: 2 }],
+    )
+    for (let t = 0; t < 12; t++) state = step(state)
+    const statute = observe(state).statutes.find((s) => s.id === 'minimum_wage')!
+    expect(statute.level).toBe(2)
+    expect(statute.enactedAt).not.toBeNull()
+    // fully phased in, so force is exactly the posted strength times what the
+    // state can enforce — and a mid-century civil service enforces some of it
+    expect(statute.inForce).toBeCloseTo(statute.compliance * statute.levels[2].strength, 9)
+    expect(statute.inForce).toBeLessThan(statute.levels[2].strength)
+    expect(statute.inForce).toBeGreaterThan(0)
+  })
+
+  it('names the blocs declining to obey, and nobody who is content', () => {
+    const base = play('statutes-resist', 8)
+    const angry: TrueState = {
+      ...base,
+      institutions: {
+        ...base.institutions,
+        blocs: { ...base.institutions.blocs, industrialists: { power: 1, favor: -1 } },
+      },
+    }
+    const statute = observe(angry).statutes.find((s) => s.id === 'minimum_wage')!
+    const names = statute.resistance.map((r) => r.bloc)
+    expect(names).toContain('industrialists')
+    // labour wants a minimum wage, so it can never appear as resistance to one
+    expect(names).not.toContain('unions')
+    for (const entry of statute.resistance) expect(entry.weight).toBeGreaterThan(0)
   })
 })
