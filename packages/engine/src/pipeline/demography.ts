@@ -36,6 +36,7 @@ import {
   MORT_SECULAR_Q,
   NATURAL_UNEMPLOYMENT,
   URBANIZATION_GAIN,
+  SCHOOLING_ATTAINMENT_GAIN,
 } from '../constants'
 import { clamp } from '../math'
 import {
@@ -49,7 +50,7 @@ import {
   type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { livingStandard, meanLogConsumption } from './derive'
+import { livingStandard, meanLogConsumption, statuteForce } from './derive'
 
 const sumBands = (p: number[], from: number, to: number) => {
   let s = 0
@@ -152,9 +153,17 @@ export const demography: PipelineStep = {
     // generational clock, so the stock only closes a fraction of the gap to
     // the current school system each quarter. This happens before technology
     // so the same workforce fact prices absorption, staffing and fertility.
+    //
+    // A school-leaving age raises what the same school system yields, because
+    // the children who would have left for the fields or the mill stay in it
+    // (ADR-0027). This is the SLOW half of the compulsory-schooling statute —
+    // the fast half is the labour those children stop supplying, in
+    // `derive.laborForce`. Both read the one `statuteForce`, so the cost and
+    // the return can never come from different rules.
+    const schooling = statuteForce(state, 'compulsory_schooling')
+    const schoolYield = clamp(state.gov.capacity.education * (1 + SCHOOLING_ATTAINMENT_GAIN * schooling), 0, 1)
     const humanCapital = clamp(
-      d.humanCapital +
-        HUMAN_CAPITAL_ADJUST_Q * (state.gov.capacity.education - d.humanCapital),
+      d.humanCapital + HUMAN_CAPITAL_ADJUST_Q * (schoolYield - d.humanCapital),
       0,
       1,
     )

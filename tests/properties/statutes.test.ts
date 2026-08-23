@@ -26,9 +26,12 @@ import {
   creativeDestruction,
   eliteCapture,
   init,
+  realConsumptionPerCapita,
+  schoolingWithdrawal,
   statuteCompliance,
   statuteForce,
   step,
+  totalLaborForce,
   type Action,
   type CountryParams,
   type TrueState,
@@ -177,5 +180,86 @@ describe('competition law → catch-up growth (emergent, not scripted)', () => {
     // …and the ceiling is then exactly the strongest incumbent, untouched
     expect(statuteCompliance(passive, 'competition')).toBeGreaterThan(0)
     expect(eliteCapture(passive)).toBeGreaterThan(0)
+  })
+})
+
+const SCHOOL_TO_16: Action = { kind: 'enact', statute: 'compulsory_schooling', level: 2 }
+
+/**
+ * COMPULSORY SCHOOLING is one fact — who is in a classroom rather than at work
+ * — with two readers pulling opposite ways on different clocks. It is the only
+ * order in the game whose cost lands a generation before its return, and the
+ * claims below are about that SHAPE rather than about a final number.
+ *
+ * Measured on Costona (young, agrarian, the country child-labour law is for),
+ * six seeds, real consumption per head against an identical run without the
+ * law: −1.2% in 1961, still negative in 1966, crossing over by 1976, +3.0% at
+ * its 1996 peak, and back to roughly nothing by 2046 as the school system
+ * saturates and every country converges anyway.
+ */
+describe('compulsory schooling → a generation of cost, then the return', () => {
+  const costona = createCountryParams('costona', 'schooling-costona')
+
+  it('takes labour out of the economy the quarter it bites', () => {
+    const off = govern(costona, 'sch-a', 60, null)
+    const on = govern(costona, 'sch-a', 60, SCHOOL_TO_16)
+    expect(schoolingWithdrawal(on)).toBeGreaterThan(0)
+    expect(schoolingWithdrawal(off)).toBe(0)
+    expect(totalLaborForce(on)).toBeLessThan(totalLaborForce(off))
+  })
+
+  it('sizes the bite off the pyramid, so a young country pays more for the same law', () => {
+    // Costona is the young agrarian giant; Veltravia is the industrial one
+    // with an older workforce. Nothing about the statute differs.
+    const young = govern(costona, 'sch-b', 60, SCHOOL_TO_16)
+    const old = govern(createCountryParams('veltravia', 'schooling-velt'), 'sch-b', 60, SCHOOL_TO_16)
+    expect(schoolingWithdrawal(young)).toBeGreaterThan(schoolingWithdrawal(old))
+  })
+
+  it('costs real consumption per head for its first decade, in every seed', () => {
+    let poorer = 0
+    for (const seed of SEEDS) {
+      const off = govern(costona, seed, 80, null)
+      const on = govern(costona, seed, 80, SCHOOL_TO_16)
+      if (realConsumptionPerCapita(on) < realConsumptionPerCapita(off)) poorer++
+    }
+    expect(poorer).toBe(SEEDS.length)
+  })
+
+  it('and pays it back by the fourth decade, in every seed', () => {
+    let richer = 0
+    for (const seed of SEEDS) {
+      const off = govern(costona, seed, 200, null)
+      const on = govern(costona, seed, 200, SCHOOL_TO_16)
+      if (realConsumptionPerCapita(on) > realConsumptionPerCapita(off)) richer++
+    }
+    expect(richer).toBe(SEEDS.length)
+  })
+
+  it('builds the workforce it withdrew — the return is human capital, not a bonus', () => {
+    for (const seed of SEEDS.slice(0, 3)) {
+      const off = govern(costona, seed, 200, null)
+      const on = govern(costona, seed, 200, SCHOOL_TO_16)
+      expect(on.demography.humanCapital).toBeGreaterThan(off.demography.humanCapital)
+    }
+  })
+
+  it('gains nothing where there are no schools to compel attendance at', () => {
+    // The multiplier reads `capacity.education`, so a state that never built a
+    // school system gets the labour cost and none of the return. A country
+    // cannot legislate its way past having no teachers.
+    const s = init(costona, 'no-schools', { protectedTenure: true })
+    const schoolless: TrueState = {
+      ...s,
+      gov: { ...s.gov, capacity: { ...s.gov.capacity, education: 0 } },
+    }
+    let on = applyActions(
+      { ...schoolless, politics: { ...schoolless.politics, politicalCapital: 500 } },
+      [SCHOOL_TO_16],
+    )
+    for (let t = 0; t < 40; t++) on = step(on)
+    // whatever human capital does here, it is not because of the statute
+    expect(statuteForce(on, 'compulsory_schooling')).toBeGreaterThan(0)
+    expect(on.demography.humanCapital).toBeLessThan(0.35)
   })
 })

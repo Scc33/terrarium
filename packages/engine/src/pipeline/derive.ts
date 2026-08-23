@@ -18,6 +18,7 @@ import {
   PARTICIPATION,
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
+  SCHOOLING_LABOR_WITHDRAWAL,
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
@@ -42,6 +43,7 @@ import {
   COHORT_IDS,
   SECTOR_IDS,
   STATUTE_IDS,
+  WORKING_BANDS,
   type BlocId,
   type CohortId,
   type Sector,
@@ -167,13 +169,43 @@ export function effectivePrice(state: TrueState, id: SectorId): number {
   return id === 'energy' ? p * (1 + state.gov.dials.taxRates.fuel) : p
 }
 
+/**
+ * The share of the labour force a school-leaving age takes out of it — the
+ * FAST half of the compulsory-schooling statute (ADR-0027), and the reason
+ * that statute is a genuine choice rather than a growth button.
+ *
+ * Children who stay in school stop supplying labour, and they do it the
+ * quarter the law bites, while what they learn arrives over the seventeen-year
+ * half-life of the human-capital stock. A country that legislates in 1950 is
+ * poorer in 1955 and unrecognisable in 1990.
+ *
+ * The size of the bite is read off the PYRAMID, not authored: it is the
+ * youngest working band's share of working-age people, so the same law costs a
+ * young agrarian country far more labour than an ageing industrial one — which
+ * is exactly right, and falls out for free rather than being written down.
+ */
+export function schoolingWithdrawal(state: TrueState): number {
+  const force = statuteForce(state, 'compulsory_schooling')
+  if (force <= 0) return 0
+  const pyramid = state.demography.pyramid
+  let workingAge = 0
+  for (let band = WORKING_BANDS[0]; band <= WORKING_BANDS[1]; band++) {
+    workingAge += pyramid[band] ?? 0
+  }
+  if (workingAge <= 1e-9) return 0
+  const youngest = pyramid[WORKING_BANDS[0]] ?? 0
+  return SCHOOLING_LABOR_WITHDRAWAL * force * (youngest / workingAge)
+}
+
 export function laborForce(state: TrueState): Record<CohortId, number> {
   // participation was calibrated on the 1946 pyramid; workerShareMult is the
   // pyramid's current working-age share against that baseline — the
   // demographic dividend (and later the aging squeeze) enters here, once
   const mult = state.demography.workerShareMult
+  // …and a school-leaving age takes the youngest of them back out again
+  const schooled = 1 - schoolingWithdrawal(state)
   const out = {} as Record<CohortId, number>
-  for (const c of state.cohorts) out[c.id] = c.size * PARTICIPATION[c.id] * mult
+  for (const c of state.cohorts) out[c.id] = c.size * PARTICIPATION[c.id] * mult * schooled
   return out
 }
 

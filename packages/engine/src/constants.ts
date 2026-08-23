@@ -979,6 +979,24 @@ export const STATUTE_CONGESTION = 0.12
  */
 export const COMPETITION_CAPTURE_RELIEF = 0.35
 
+/**
+ * COMPULSORY SCHOOLING is one fact — who is in a classroom instead of at work
+ * — with two readers, and they pull in opposite directions on different
+ * clocks. That is the whole design: it is the only order in the game whose
+ * cost lands a decade before its return.
+ *
+ * The withdrawal is a share of the YOUNGEST WORKING BAND, scaled by the
+ * pyramid in `schoolingWithdrawal`, not a flat haircut on the labour force:
+ * "schooling to 16" reaches roughly the first two years of a five-year band,
+ * and a young agrarian country therefore pays far more for the same law than
+ * an ageing industrial one.
+ */
+export const SCHOOLING_LABOR_WITHDRAWAL = 0.25
+/** …and what the same school system yields once the children stay in it.
+ * Read as a multiplier on `capacity.education`, so a country with no schools
+ * gains nothing by making attendance compulsory — there is nothing to attend. */
+export const SCHOOLING_ATTAINMENT_GAIN = 0.65
+
 /** An act of legislation costs more than ordinary policy and less than a
  * constitutional reform — it is a session of parliament, not a generation. */
 export const PC_COST_STATUTE = 9

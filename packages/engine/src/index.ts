@@ -266,6 +266,7 @@ export {
   eliteHostility,
   enfranchisementIndex,
   inCorridor,
+  schoolingWithdrawal,
   statePower,
   statuteCompliance,
   statuteForce,
