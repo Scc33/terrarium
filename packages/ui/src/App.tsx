@@ -29,11 +29,12 @@ import { DevConsole } from './panels/DevConsole'
 import { CountrySelect } from './panels/CountrySelect'
 import { DraftingRoom } from './panels/DraftingRoom'
 import { Button, Modal, useFocusTrap } from './components/ui'
-import { hasBeenBriefed, markBriefed } from './walkthrough'
+import { hasBeenBriefed, markBriefed, stepAt } from './walkthrough'
 import type { ManualChapterId } from './manual'
 import { draftFrom, sharedCountryFromUrl, type CountryDocument } from './countryDraft'
 import type { CuratedCountryId } from '@terrarium/engine'
 import type { CabinetGroup } from './cabinetNavigation'
+import { cabinetStartsCollapsed, rememberCabinetCollapsed } from './layoutPreferences'
 
 type OverlayKind =
   | 'ledger'
@@ -65,6 +66,9 @@ export default function App() {
    * too, and a year chosen next door is still the year that player means. */
   const [appointedAt, setAppointedAt] = useState(0)
   const [cabinetOpen, setCabinetOpen] = useState(false)
+  /** A browser view preference, not a rule of the run. Below `xl` the cabinet
+   * remains a drawer regardless; this only gives the desktop wall its width. */
+  const [cabinetCollapsed, setCabinetCollapsed] = useState(cabinetStartsCollapsed)
   /** the handbook opens on whichever chapter the player was reaching for —
    * the records office wants the methodology, the header wants the front */
   const [manualChapter, setManualChapter] = useState<ManualChapterId>('briefing')
@@ -79,10 +83,22 @@ export default function App() {
   const [cabinetFocusRequest, setCabinetFocusRequest] = useState(0)
   const cabinetDrawerRef = useRef<HTMLDivElement>(null)
   const cabinetReturnFocusRef = useRef<HTMLElement>(null)
+  const cabinetExpandRef = useRef<HTMLButtonElement>(null)
+  const focusCollapsedCabinet = useRef(false)
   const hadCard = useRef(false)
   const lastCampaignSeen = useRef<number | null>(null)
   const lastCountSeen = useRef<number | null>(null)
   const closeCabinet = useCallback(() => setCabinetOpen(false), [])
+  const setCabinetCollapsedPreference = useCallback((collapsed: boolean) => {
+    setCabinetCollapsed(collapsed)
+    rememberCabinetCollapsed(collapsed)
+  }, [])
+  const collapseCabinet = useCallback(() => {
+    // The pressed button is about to leave the tree. Hand focus to the narrow
+    // replacement rail so keyboard users do not fall back to <body>.
+    focusCollapsedCabinet.current = true
+    setCabinetCollapsedPreference(true)
+  }, [setCabinetCollapsedPreference])
 
   useFocusTrap({
     active: cabinetOpen,
@@ -91,6 +107,12 @@ export default function App() {
     onEscape: closeCabinet,
     restoreFocusRef: cabinetReturnFocusRef,
   })
+
+  useEffect(() => {
+    if (!cabinetCollapsed || !focusCollapsedCabinet.current) return
+    focusCollapsedCabinet.current = false
+    cabinetExpandRef.current?.focus()
+  }, [cabinetCollapsed])
 
   useEffect(() => {
     const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
@@ -262,7 +284,11 @@ export default function App() {
 
   const openCabinet = (group?: CabinetGroup) => {
     if (group) setCabinetGroup(group)
-    if (!window.matchMedia('(min-width: 1280px)').matches) {
+    if (window.matchMedia('(min-width: 1280px)').matches) {
+      // A route to a cabinet control is also an explicit request to see it.
+      // The focusRequest lands on the chosen tab after the rail remounts.
+      setCabinetCollapsedPreference(false)
+    } else {
       cabinetReturnFocusRef.current = document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null
@@ -284,7 +310,13 @@ export default function App() {
         onIndustry={() => setOverlay('industry')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
-      <div className="relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:grid-cols-[minmax(0,1fr)_384px] xl:overflow-hidden">
+      <div
+        className={`relative grid min-h-0 min-w-0 grid-cols-1 overflow-y-auto xl:overflow-hidden ${
+          cabinetCollapsed
+            ? 'xl:grid-cols-[minmax(0,1fr)_44px]'
+            : 'xl:grid-cols-[minmax(0,1fr)_384px]'
+        }`}
+      >
         <main data-tour="wall" className="min-h-[700px] min-w-0 xl:min-h-0 xl:overflow-hidden">
           <Instruments pub={published} onLedger={() => setOverlay('ledger')} onOpenCapacity={() => openCabinet('STATE CAPACITY')} />
         </main>
@@ -301,7 +333,9 @@ export default function App() {
           role={cabinetOpen ? 'dialog' : undefined}
           aria-modal={cabinetOpen ? 'true' : undefined}
           aria-label={cabinetOpen ? 'Cabinet drawer' : undefined}
-          className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full min-h-0 w-full max-w-[430px] overflow-hidden shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:block xl:max-w-none xl:shadow-none`}
+          className={`${cabinetOpen ? 'fixed' : 'hidden'} inset-y-0 right-0 z-40 h-full min-h-0 w-full max-w-[430px] overflow-hidden shadow-[-12px_0_30px_rgba(0,0,0,0.35)] xl:static xl:z-auto xl:max-w-none xl:shadow-none ${
+            cabinetCollapsed ? 'xl:hidden' : 'xl:block'
+          }`}
         >
           <ControlRail
             pub={published}
@@ -310,8 +344,31 @@ export default function App() {
             focusRequest={cabinetFocusRequest}
             onOpenRecord={() => setOverlay('policy')}
             onClose={cabinetOpen ? closeCabinet : undefined}
+            onCollapse={collapseCabinet}
           />
         </div>
+        {cabinetCollapsed && (
+          <aside
+            className="hidden h-full min-h-0 border-l border-dossier-brass/70 bg-[#294235] xl:flex"
+            aria-label="Cabinet controls"
+          >
+            <button
+              ref={cabinetExpandRef}
+              type="button"
+              onClick={() => openCabinet()}
+              aria-label="Expand cabinet controls"
+              aria-expanded="false"
+              aria-controls="cabinet-controls"
+              className="flex h-full w-full flex-col items-center gap-3 px-1 py-3 font-mono text-[9px] font-semibold tracking-[0.16em] text-dossier-paper/75 hover:bg-dossier-paper/5 hover:text-dossier-brass focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass"
+            >
+              <span className="text-lg leading-none text-dossier-brass" aria-hidden="true">‹</span>
+              <span className="[writing-mode:vertical-rl] rotate-180">CABINET</span>
+              <span className="mt-auto text-[8px] tabular-nums text-dossier-brass/80">
+                {published.rules.unlimitedCapital ? '∞' : published.politicalCapital.toFixed(0)} PC
+              </span>
+            </button>
+          </aside>
+        )}
         <Button
           variant="primary"
           className="fixed bottom-10 right-3 z-20 gap-2 shadow-[4px_5px_0_rgba(0,0,0,0.28)] xl:hidden"
@@ -373,7 +430,16 @@ export default function App() {
       {tourStep !== null && overlay === null && (
         <Walkthrough
           index={tourStep}
-          onIndex={setTourStep}
+          onIndex={(next) => {
+            const target = stepAt(next)?.target
+            // A remembered compact layout must not make the walkthrough point
+            // at controls it has kept hidden. Do not move focus: NEXT remains
+            // the active tour control while the subject opens beside it.
+            if (target === 'cabinet' || target === 'enact') {
+              setCabinetCollapsedPreference(false)
+            }
+            setTourStep(next)
+          }}
           onClose={endTour}
           onHandbook={() => {
             endTour()
