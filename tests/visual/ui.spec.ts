@@ -217,6 +217,17 @@ test('ledger chart inspection does not activate the ledger tile', async ({ page 
   await expect(page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })).toBeVisible()
 })
 
+test('ledger explains revenue per tax-rate point beside the column', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('button', { name: 'Open the full treasury ledger' }).click()
+
+  const ledger = page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })
+  const help = ledger.getByRole('button', { name: 'Explain Revenue per 1% tax rate' })
+  await expect(help).toHaveText('PER 1% ⓘ')
+  await help.hover()
+  await expect(page.getByRole('tooltip')).toContainText('Quarterly revenue for each percentage point')
+})
+
 test('dashboard with empty instruments', async ({ page }) => {
   await openGame(page)
   await expect(page).toHaveScreenshot('dashboard-empty.png')

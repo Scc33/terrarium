@@ -1,10 +1,12 @@
-# 0011 — No lever in the game can steer sector composition, and the service share falls as the country gets rich
+# 0013 — No lever in the game can steer sector composition, and the service share falls as the country gets rich
 
 **Status:** Open
 
 **Raised by:** issue #97 ("if I wanted to become an export driven economy how would I do that?"), while
 scoping a steerability statute for the statute book (ADR-0027). The statute was not written: the
-measurement below says it would have been a new lever on a blocked channel.
+measurement below says it would have been a new lever on a blocked channel. Sibling to
+[0010](0010-how-to-grow-export-share.md), which reached the missing-lever conclusion from the
+export share's side; see "How this sits with investigation 0010" below.
 
 **Measured at:** `d5a5a08` on 2026-08-23. Meridia and Costona, capacity-building government with
 protected tenure and unlimited political capital, so that what is measured is the CHANNEL and not
@@ -93,6 +95,25 @@ Services *employment* does rise (22.7% → 30.0%) while its value-added share fa
 consistent with Baumol — services are furthest from their frontier, so their productivity lags. But
 Baumol explains why the service share of *real* output grows slowly. It does not explain a fall,
 and it cannot, because the demand side that would pull services up is switched off.
+
+## How this sits with investigation 0010
+
+[0010](0010-how-to-grow-export-share.md) asked why stimulus could not lift the export *share* and
+answered it at the level of the ratio: the denominator is all final expenditure, so a policy that
+raises exports 80% while raising total expenditure 154% lowers the share. It closed by noting there
+is no direct export-promotion dial, and that adding one is the feature work proposed by #53 and #97.
+
+This investigation is the layer underneath that, and it qualifies the conclusion. **An
+export-promotion lever would move the export share and still leave the industrial census where it
+was.** 0010's own reading of the export order says why: exports are `base share × potential output ×
+openness × foreign demand × (relative price)^1.5`, so a promotion lever scales a sector's exports —
+but the domestic demand it is competing against is pinned by fixed weights, and value added is
+dominated by domestic absorption at these openness levels. The share of expenditure would move; what
+kind of country it is would not.
+
+The two findings agree on the diagnosis and differ on the prescription. 0010 points at a missing
+lever. This one says the lever would land on a channel that cannot carry it, and that the demand
+side has to move first.
 
 ## What this means for #97
 

@@ -481,7 +481,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
   composition 0.1 points while costing 6% of GDP. Do not answer issue #97 with a new lever; the
   channel is blocked, and a lever on a blocked channel looks like steering. The same fixed weights
   are why the service share FALLS as the country gets eight times richer, which is backwards. See
-  `docs/investigations/0011`.
+  `docs/investigations/0013`.
 - **A mechanism test and a baseline sweep measure different things, and a statute is where
   they diverge most.** `tests/properties/statutes.test.ts` protects tenure and funds the
   cabinet, deliberately, so that what it measures is the CHANNEL — and it reports the

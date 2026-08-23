@@ -1,4 +1,4 @@
-# 0010 — Compulsory schooling pays for forty years and then stops paying
+# 0012 — Compulsory schooling pays for forty years and then stops paying
 
 **Status:** Open
 
