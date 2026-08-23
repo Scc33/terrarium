@@ -22,7 +22,12 @@ import {
 import { clamp } from '../math'
 import { END_OF_HISTORY_TICK, SECTOR_IDS, type Cohort } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { cohortCpi, laborForce, meanLogConsumption } from './derive'
+import {
+  cohortCpi,
+  effectiveConsumptionWeights,
+  laborForce,
+  meanLogConsumption,
+} from './derive'
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x))
 
@@ -78,9 +83,11 @@ export const cohorts: PipelineStep = {
       const basketInflAnnual = c.lastCpi > 1e-9 ? (cpi / c.lastCpi - 1) * 4 : 0
       const lfc = lf[c.id]
       const jobless = lfc > 1e-9 ? clamp(1 - employed / lfc, 0, 1) : 0
+      // queues are felt in proportion to what this household actually buys
+      const weights = effectiveConsumptionWeights(state, c.id)
       let shortage = 0
       for (const sid of SECTOR_IDS) {
-        shortage += c.consumptionWeights[sid] * (1 - flows.satisfied[sid])
+        shortage += weights[sid] * (1 - flows.satisfied[sid])
       }
 
       const target = logistic(

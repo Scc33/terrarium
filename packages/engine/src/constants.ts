@@ -97,6 +97,56 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
   retirees: { agri: 0.4, manuf: 0.18, energy: 0.06, services: 0.32, transport: 0.04 },
 }
 
+/**
+ * How the basket answers to INCOME (ADR-0029). The weight on a sector is
+ * multiplied by `(y / y_ref) ^ ENGEL_ELASTICITY[sid]` before renormalisation,
+ * where `y` is the cohort's real income per head and `y_ref` is the one it
+ * inherited in 1946 (`Cohort.engelReference`, sealed at init).
+ *
+ * Negative is a necessity — its share falls as people get richer. Positive is
+ * a luxury. `CONSUMPTION_WEIGHTS` above is the CROSS-SECTION of the same law,
+ * authored by hand: rural workers already spend 48% on food and business
+ * owners 20%. This table is that law over TIME, and it is what makes growth
+ * and redistribution transform the economy rather than just enlarge it.
+ */
+export const ENGEL_ELASTICITY: Record<SectorId, number> = {
+  agri: 0,
+  manuf: 0,
+  energy: 0,
+  services: 0,
+  transport: 0,
+}
+
+/**
+ * How the basket answers to RELATIVE PRICE — the elasticity of substitution in
+ * the household's CES nest (ADR-0029). The weight on a sector is multiplied by
+ * `effectivePrice(sid) ^ (1 − HOUSEHOLD_SUBSTITUTION)`.
+ *
+ * **1 is Cobb-Douglas**, which is where this started and what pinned nominal
+ * expenditure shares against every price lever in the game (investigation
+ * 0013). Above 1 the sectors are substitutes: a subsidy that lowers a price
+ * RAISES that sector's share of spending, which is what a player pulling a
+ * lever expects to happen. Below 1 they are complements and a price rise
+ * raises spending on the dearer sector — which feeds the excess-demand term in
+ * the price step with the wrong sign, so this side of 1 is not a tuning
+ * option.
+ *
+ * The term is homogeneous of degree zero in prices: a general inflation scales
+ * every sector's factor identically and cancels in the renormalisation. Only
+ * relative prices move the basket.
+ */
+export const HOUSEHOLD_SUBSTITUTION = 1
+
+/** Bounds on `y / y_ref` before the Engel exponent, so a hyperinflationary
+ * income collapse or a runaway century cannot drive a weight to a corner. */
+export const ENGEL_INCOME_RATIO_MIN = 0.25
+export const ENGEL_INCOME_RATIO_MAX = 16
+
+/** No sector ever leaves the basket. A weight of zero is a sector with no
+ * household demand at all, which the Leontief solve reads as an economy that
+ * stopped eating — the floor is a numerical guard, not a behavioural one. */
+export const CONSUMPTION_WEIGHT_FLOOR = 0.01
+
 // profit distribution across cohorts
 export const PROFIT_SHARE: Record<CohortId, number> = {
   business_owners: 0.75,

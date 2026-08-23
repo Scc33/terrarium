@@ -4,6 +4,7 @@
  */
 
 import { IMMIGRATION_LIMIT_MAX, STATUTE_LEVELS } from '../constants'
+import { effectiveConsumptionWeights } from '../pipeline/derive'
 import {
   BLOC_IDS,
   INSTITUTION_IDS,
@@ -54,6 +55,23 @@ export function validate(state: TrueState): void {
     const wSum = SECTOR_IDS.reduce((s, sid) => s + c.consumptionWeights[sid], 0)
     if (Math.abs(wSum - 1) > 1e-6) {
       throw new InvariantError(`consumptionWeights[${c.id}] sum to ${wSum}`)
+    }
+    // The authored recipe above is checked because a bad table is a bad
+    // country; the DERIVED basket is checked because it is what the economy
+    // actually spends, and a NaN in it silently zeroes a sector's demand
+    // rather than throwing anywhere (ADR-0029).
+    finite(c.engelReference, `engelReference[${c.id}]`)
+    const effective = effectiveConsumptionWeights(state, c.id)
+    let eSum = 0
+    for (const sid of SECTOR_IDS) {
+      finite(effective[sid], `effectiveConsumptionWeights[${c.id}][${sid}]`)
+      if (effective[sid] < 0) {
+        throw new InvariantError(`effectiveConsumptionWeights[${c.id}][${sid}] < 0`)
+      }
+      eSum += effective[sid]
+    }
+    if (Math.abs(eSum - 1) > 1e-6) {
+      throw new InvariantError(`effectiveConsumptionWeights[${c.id}] sum to ${eSum}`)
     }
   }
   finite(state.gov.debt, 'debt')

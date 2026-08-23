@@ -253,9 +253,13 @@ export function init(
     const profitTotal = (1 - LABOR_SHARE) * gdp0
     const income =
       wageIncome + profitTotal * PROFIT_SHARE[cid] + transfersDelivered * TRANSFER_SHARE[cid]
+    const size = params.cohortSizes[cid]
+    // slightly below true income so tick-0 bookkeeping shifts don't read
+    // as a recession through the loss-aversion multiplier
+    const lastRealIncome = income * 0.99
     return {
       id: cid,
-      size: params.cohortSizes[cid],
+      size,
       employedIn,
       wageIncome,
       transferIncome: transfersDelivered * TRANSFER_SHARE[cid],
@@ -263,11 +267,15 @@ export function init(
       savings: income * (cid === 'retirees' ? 8 : 1), // retirees hold war bonds
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },
+      // Sealed from the SAME expression the Engel shift reads each quarter
+      // (real income per head), so the ratio is exactly 1 on the first tick
+      // and the basket opens on its authored weights. Prices open at 1 and the
+      // fuel dial at 0, so the price half is neutral at init too — every
+      // country in the catalogue starts on the recipe it was written with.
+      engelReference: lastRealIncome / Math.max(size, 1e-9),
       approval: 0.55, // a modest honeymoon
       enfranchisement: params.enfranchisement[cid],
-      // slightly below true income so tick-0 bookkeeping shifts don't read
-      // as a recession through the loss-aversion multiplier
-      lastRealIncome: income * 0.99,
+      lastRealIncome,
       lastCpi: 1,
     }
   })

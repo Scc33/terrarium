@@ -354,7 +354,15 @@ export interface Cohort {
   transferIncome: Money
   profitIncome: Money
   savings: Money
+  /** the basket this cohort was AUTHORED with — the recipe, not what it buys.
+   * `effectiveConsumptionWeights` is what the economy is subject to; read that
+   * (ADR-0029). Sums to 1. */
   consumptionWeights: Record<SectorId, Ratio> // sums to 1
+  /** real income per head at init, sealed. The Engel shift is measured against
+   * the country's OWN 1946 standard of living, so the basket opens exactly
+   * where its recipe put it and answers only to growth from there — the same
+   * inherited-baseline rule as `environment.baseline` (ADR-0029). */
+  engelReference: number
   approval: Ratio
   enfranchisement: Ratio
   /** last tick's experienced real income (for growth calc) */
@@ -1032,7 +1040,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 34 // v34: the environment — pollution as a stock (ADR-0028)
+export const SCHEMA_VERSION = 35 // v35: the basket answers to income and relative price (ADR-0029)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a
