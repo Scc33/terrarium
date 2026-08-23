@@ -122,7 +122,7 @@ function Readout({
                   </TooltipLabel>
                 )}
                 <span className="font-semibold text-dossier-ink">
-                  {formatPolicyValue(line.unit, line.read(at))}
+                  {formatPolicyValue(line, line.read(at))}
                 </span>
               </span>
             </div>
@@ -159,8 +159,8 @@ function MinuteBook({
       {changes.map((change, i) => (
         <li key={`${change.tick}-${change.key}-${i}`}>
           <Tooltip content={change.from === null
-            ? `${change.label} started at ${formatPolicyValue(change.unit, change.to)} in 1946.`
-            : `${change.label} moved from ${formatPolicyValue(change.unit, change.from)} to ${formatPolicyValue(change.unit, change.to)}. Select to view that quarter.`}
+            ? `${change.label} started at ${formatPolicyValue(change, change.to)} in 1946.`
+            : `${change.label} moved from ${formatPolicyValue(change, change.from)} to ${formatPolicyValue(change, change.to)}. Select to view that quarter.`}
           >
             <button
               type="button"
@@ -177,10 +177,16 @@ function MinuteBook({
                   <span className="ml-1 text-dossier-ink/45">{RULE_MODE_LABEL[change.rule.mode]}</span>
                 )}
               </span>
-              <span className="shrink-0 font-semibold text-dossier-ink">
-                {change.from === null
-                  ? formatPolicyValue(change.unit, change.to)
-                  : `${formatPolicyValue(change.unit, change.from)} → ${formatPolicyValue(change.unit, change.to)}`}
+              {/* A statute prints only the rung it moved TO. The other lines
+                  are numbers and the from→to pair fits beside the label; a
+                  statute's rungs are sentences, and "No statutory wage →
+                  Subsistence floor" is wider than the whole column — it would
+                  shear the label off every row it sits in. The previous rung
+                  is in the tooltip, where there is room for it. */}
+              <span className="min-w-0 shrink-0 truncate font-semibold text-dossier-ink">
+                {change.unit === 'statute' || change.from === null
+                  ? formatPolicyValue(change, change.to)
+                  : `${formatPolicyValue(change, change.from)} → ${formatPolicyValue(change, change.to)}`}
               </span>
             </button>
           </Tooltip>

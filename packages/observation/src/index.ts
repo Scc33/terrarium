@@ -8,6 +8,7 @@ export {
   REVENUE_SOURCE_IDS,
   SECTOR_IDS,
   INDUSTRY_TABLE_IDS,
+  STATUTE_IDS,
   type IndicatorId,
   type IndicatorPoint,
   type IndicatorSeries,
@@ -36,4 +37,8 @@ export {
   type PublishedBloc,
   type PublishedCampaign,
   type PublishedCorridor,
+  // the statute book — rules the government writes (ADR-0027)
+  type PublishedStatute,
+  type Statute,
+  type StatuteId,
 } from './published'

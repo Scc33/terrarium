@@ -9,14 +9,16 @@
  * only if it cannot go stale — so the chapters that describe *things the game
  * has* are GENERATED from the same id lists and copy tables the screens read:
  *
- * - the cabinet chapter walks `LEVER_GROUPS` / `LEVER_COPY` / `CAPACITY_COPY`,
- *   which are total over `DialPath` and `CapacityId`;
+ * - the cabinet chapter walks `LEVER_GROUPS` / `LEVER_COPY` / `CAPACITY_COPY`
+ *   / `STATUTE_COPY`, which are total over `DialPath`, `CapacityId` and
+ *   `StatuteId` — and a statute's RUNGS come from the engine's own
+ *   `STATUTE_LEVELS`, never renamed here;
  * - the wall chapter walks `INDICATOR_IDS` in funding order, taking every word
  *   from `NAMES` and every gate from `INDICATOR_FUNDED_AT`;
  * - the room chapter walks `BLOC_IDS`, `COHORT_IDS`, `INSTITUTION_IDS` and the
  *   platform table; the run chapter walks `GAME_RULE_IDS` and `APPOINTMENTS`.
  *
- * A new indicator, lever, bloc, institution, sector or rule therefore appears
+ * A new indicator, lever, statute, bloc, institution, sector or rule therefore appears
  * in the manual the quarter it appears in the game, and — because those tables
  * are compile-enforced `Record`s — cannot appear without words.
  *
@@ -48,6 +50,9 @@ import {
   PC_START,
   REFORM_WINDOW_AT,
   REVOLT_AT,
+  STATUTE_IDS,
+  STATUTE_LEVELS,
+  STATUTE_PHASE_IN_QTRS,
 } from '@terrarium/engine'
 import { INDICATOR_IDS } from '@terrarium/observation'
 import {
@@ -63,6 +68,7 @@ import {
 } from './components/labels'
 import { RULE_COPY } from './gameRules'
 import { CAPACITY_COPY, LEVER_COPY, LEVER_GROUPS } from './levers'
+import { STATUTE_COPY, STATUTE_DRAWER } from './statutes'
 import { BOARD_SLOTS } from './wallPlan'
 import { TERMINAL_AT } from './maturity'
 
@@ -143,6 +149,20 @@ const cabinetSections = (): ManualSection[] => [
       term: CAPACITY_COPY[id].label,
       detail: `${CAPACITY_COPY[id].hint} ${CAPACITY_COPY[id].detail}`,
       meta: CAPACITY_COPY[id].effect,
+    })),
+  },
+  {
+    heading: `STATUTES — ${STATUTE_DRAWER.tab}`,
+    body: [
+      STATUTE_DRAWER.brief,
+      `A statute is not a dial, and the three differences are the whole register. It ARRIVES rather than switching on — about ${STATUTE_PHASE_IN_QTRS / 4} years from signature to full effect. It costs more to REPEAL than it did to pass, and more the longer it has stood, because the people a law creates defend it. And what the country is actually subject to is never what you wrote: it is the rule times what your civil service and your courts can enforce, less whatever the blocs who mind it decline to obey.`,
+      'That last part is the same lesson the tax office teaches. A posted tax rate is not collected revenue and a voted appropriation is not delivered money; a written rule is not an obeyed one. The difference is that here the people evading it have names, and you can see them in the whip count. A government with no inspectorate can post the strictest law in the book and change almost nothing — it will pay the full price for it either way.',
+      'A crisis passes legislation. The same unrest that prises open a constitutional reform discounts a statute, for the same reason and by the same amount.',
+    ],
+    entries: STATUTE_IDS.map((id) => ({
+      term: STATUTE_COPY[id].label,
+      detail: `${STATUTE_COPY[id].hint} ${STATUTE_COPY[id].effect} ${STATUTE_COPY[id].resists}`,
+      meta: STATUTE_LEVELS[id].map((rung) => rung.name).join(' · '),
     })),
   },
   {

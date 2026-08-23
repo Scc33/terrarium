@@ -4,6 +4,11 @@ export const CABINET_GROUPS = [
   'MONEY',
   'MIGRATION',
   'SUBSIDIES',
+  // The statute book: rules the government writes rather than numbers it sets
+  // (ADR-0027). It sits after the levers and before state capacity because
+  // that is the order of commitment — a dial is this quarter's, a statute is
+  // a decade's, a ministry is a generation's.
+  'STATUTES',
   'STATE CAPACITY',
   // Institutional reforms and the veto players who price them. These sit last because
   // they are the slowest things on the desk — a reform is generational, and
@@ -30,6 +35,7 @@ const TAB_IDS: Record<CabinetGroup, string> = {
   MONEY: 'cabinet-tab-money',
   MIGRATION: 'cabinet-tab-migration',
   SUBSIDIES: 'cabinet-tab-subsidies',
+  STATUTES: 'cabinet-tab-statutes',
   'STATE CAPACITY': 'cabinet-tab-state-capacity',
   INSTITUTIONS: 'cabinet-tab-institutions',
   'THE ROOM': 'cabinet-tab-the-room',
