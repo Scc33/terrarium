@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { IndicatorSeries } from '@terrarium/observation'
 import { TerminalTicker } from './TerminalTicker'
+import { NAMES } from '../labels'
 
 const series: IndicatorSeries = {
   id: 'inflation', label: 'Inflation', unit: '%',
@@ -55,5 +56,12 @@ describe('TerminalTicker', () => {
     expect(frontier).toContain('FRONTIER')
     expect(price).not.toContain('DIAL LIMIT')
     expect(frontier).not.toContain('DIAL LIMIT')
+  })
+
+  it('describes asset valuation as a replacement-cost ratio, not total wealth', () => {
+    expect(NAMES.asset_prices.dossier).toContain('COST=100')
+    expect(NAMES.asset_prices.note).toContain('cost of replacing')
+    expect(NAMES.asset_prices.note).toContain('Growth alone does not move the ratio')
+    expect(NAMES.asset_prices.note).not.toContain('compared with 1946')
   })
 })
