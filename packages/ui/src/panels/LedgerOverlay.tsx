@@ -14,7 +14,7 @@
 import { useState } from 'react'
 import { REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
-import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart } from '../components/ui'
+import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 import {
   OUTLAY_CHART_IDS,
@@ -169,16 +169,17 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               shares={shares}
               format={money}
               extra={side === 'revenue' ? (s) => perPoint(s.key) : undefined}
+              extraHeader={side === 'revenue' ? (
+                <TooltipLabel
+                  label="Revenue per 1% tax rate"
+                  content="Quarterly revenue for each percentage point of the posted tax rate. Multiply it by the current rate: 40 at 10% means 400 collected. This is a snapshot, not a forecast — changing a rate can also change what gets taxed."
+                  className="text-right"
+                >
+                  PER 1% ⓘ
+                </TooltipLabel>
+              ) : undefined}
               emptyNote={side === 'revenue' ? 'NOTHING COLLECTED' : 'NOTHING VOTED'}
             />
-            {side === 'revenue' && (
-              <div
-                className="mt-0.5 text-right font-mono text-[8px] tracking-[0.1em] text-dossier-ink/45"
-                title="How much taxable income, profit, imports or fuel produced this quarter’s receipts. Changing the rate can also change this base."
-              >
-                LAST COLUMN: TAKE PER 1 PT OF RATE ⓘ
-              </div>
-            )}
           </div>
 
           <div className="flex min-w-0 flex-col gap-1">
