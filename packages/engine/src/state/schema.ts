@@ -533,6 +533,23 @@ export interface ExternalState {
 export interface EnvironmentState {
   /** pollution burden, standard 1946 country ≈ 1 */
   pollution: number
+  /**
+   * The burden this country INHERITED, sealed at init and never moved.
+   *
+   * Both damage channels read the excess over THIS, not over the standard
+   * country's 1.0, and the distinction is not a detail: the catalogue opens
+   * anywhere between 0.62 (agrarian Costona) and 1.57 (industrial Veltravia),
+   * so a global threshold charged Veltravia excess mortality and a 12% higher
+   * drought hazard in 1946Q1 — before it had industrialised at all — for the
+   * authored structure of its recipe rather than for anything a player did.
+   *
+   * That penalty was invisible in the passive baseline because the baseline is
+   * measured on Meridia, which IS the reference country and opens at exactly
+   * 1.0. Same shape as `demography.migrationBaselineWelfare`: a country
+   * anchor, kept separate from a global one, because the mechanic is about
+   * what this government did to this country.
+   */
+  baseline: number
   /** this quarter's emissions per head, in the same index — what the stock
    * chases. Kept for inspection and for the fogged instrument. */
   emissionsQ: number

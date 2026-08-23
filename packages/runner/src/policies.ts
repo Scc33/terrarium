@@ -3,6 +3,7 @@
 import {
   CAPACITY_IDS,
   IMMIGRATION_LIMIT_MAX,
+  PC_COST_CAPACITY,
   SECTOR_IDS,
   STATUTE_IDS,
   STATUTE_LEVELS,
@@ -101,6 +102,16 @@ export const regulatedPolicy: RunnerPolicy = (state, _rng, tick) => {
   }
   // legislate once the ministries exist to enforce anything
   if (tick < 40 || tick % 4 !== 1) return []
+  // …but never at the expense of the capacity path this arm shares with
+  // `developmentalPolicy`. Both arms spend the same political-capital stock,
+  // and `runOne` leniently skips whatever it cannot afford, so an enactment
+  // that drained the stock would silently cost the NEXT capacity batch and the
+  // reported regulated-vs-developmental difference would confound statutes
+  // with missing ministries. Measured, that never actually happened — both
+  // arms finish with identical capacities — but holding it by construction is
+  // worth four lines, because the margin it relies on is only as stable as
+  // PC_COST_CAPACITY and the accrual constants.
+  if (state.politics.politicalCapital < CAPACITY_RESERVE) return []
   for (const statute of STATUTE_IDS) {
     const { level } = state.gov.statutes[statute]
     if (level < STATUTE_LEVELS[statute].length - 1) {
@@ -109,6 +120,10 @@ export const regulatedPolicy: RunnerPolicy = (state, _rng, tick) => {
   }
   return []
 }
+
+/** what one `tick % 8` capacity batch costs, kept whole so legislating can
+ * never eat it */
+const CAPACITY_RESERVE = PC_COST_CAPACITY * CAPACITY_IDS.length
 
 const POLICIES: Record<Exclude<PolicyId, 'passive'>, RunnerPolicy> = {
   developmental: developmentalPolicy,

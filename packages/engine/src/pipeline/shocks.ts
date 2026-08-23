@@ -21,10 +21,12 @@ import type { NewsItem, TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 
 /** How much likelier a failed harvest is, given the burden the country is
- * carrying. Exactly 1 at the 1946 burden and capped, because a filthy century
- * should make drought common and never make it certain. */
+ * carrying. Exactly 1 at its inherited burden and capped, because a filthy
+ * century should make drought common and never make it certain. */
 export function droughtHazardMultiplier(state: TrueState): number {
-  const excess = Math.max(0, state.environment.pollution - 1)
+  // …against the country's OWN inheritance. A global threshold gave Veltravia
+  // a 12% higher hazard in 1946Q1 for the structure of its recipe.
+  const excess = Math.max(0, state.environment.pollution - state.environment.baseline)
   return Math.min(1 + POLLUTION_DROUGHT_GAIN * excess, POLLUTION_DROUGHT_MAX)
 }
 

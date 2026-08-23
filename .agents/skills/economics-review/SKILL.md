@@ -117,14 +117,16 @@ the inert treatment the statute book and the rules of a run got. What to check i
 | 1000 × 400q | before v34 | after |
 |---|---|---|
 | passive growth %/yr | 2.81 | **2.82** |
-| passive unemployment % | 12.23 | **12.27** |
-| passive deposed | 6% | **7%** |
+| passive unemployment % | 12.23 | **12.26** |
+| passive deposed | 6% | **6%** |
 | developmental deposed (400×400q) | 8% | **10%** |
 | developmental survivors (`future-stability`) | 22 | **19** |
 
-**The passive/developmental split IS the calibration test.** A country at its 1946 burden pays
-exactly nothing — the damage terms read `max(0, burden − 1)` — so passive must stay put while the
-industrialising cohort pays. If a retune moves the passive figures, the burden has stopped being
+**The passive/developmental split IS the calibration test.** A country at its OWN inherited burden
+pays exactly nothing — the damage terms read the excess over `environment.baseline`, not over the
+standard country's 1.0 — so passive must stay put while the industrialising cohort pays. Reading it
+against the global value shipped once and cost Oranga twelve points of deposition for its recipe's
+structure; it was invisible because the passive baseline is measured on the reference country. If a retune moves the passive figures, the burden has stopped being
 a cost of development and become a tax on existence, which is a different mechanic and a worse one.
 
 The golden replays are NOT evidence here: they moved 3540 values and every one by 0.00 %, because

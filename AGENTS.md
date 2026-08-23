@@ -301,11 +301,15 @@ desk that does not work.
   `demography` and the drought hazard in `shocks` — the latter reusing the ENTIRE drought response
   rather than modelling harm twice. There is no term anywhere subtracting pollution from output,
   and adding one is the effect arrow the engine exists to refuse.
-- **Both damage terms read `max(0, burden − 1)`**, so a country that has not industrialised past
-  its 1946 inheritance pays exactly nothing. That is what keeps the passive century unmoved
-  (2.81 → 2.82 %/yr) while the developmental cohort loses three of twenty-two survivors. **The
-  passive/developmental split is the calibration test** — if a retune moves passive, the burden has
-  become a tax on existence rather than a cost of development.
+- **Both damage terms read the excess over `environment.baseline`** — the burden this country
+  INHERITED, sealed at init — not over the standard country's 1.0. The catalogue opens between
+  0.62 (agrarian Costona) and 1.57 (industrial Veltravia), so a global threshold charged Veltravia
+  excess mortality and a 12 % higher drought hazard in 1946Q1 for the authored structure of its
+  recipe. That shipped, and it was invisible in the passive baseline **because that baseline is
+  measured on Meridia, which IS the reference country and opens at exactly 1.0** — the one country
+  where the bug could not show. Measured cost of the bug: Oranga deposed 36 % against 24 % once
+  fixed. **The passive/developmental split is the calibration test** — if a retune moves passive,
+  the burden has become a tax on existence rather than a cost of development.
 - **Per head, not absolute.** Land is not modelled, so a tonnage would make a big country dirtier
   by being big, and mortality responds to what people breathe. Per head it follows income and
   industrial structure, which is the Kuznets shape arrived at rather than authored.

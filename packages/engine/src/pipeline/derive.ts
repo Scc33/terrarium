@@ -576,7 +576,14 @@ export function statuteCompliance(state: TrueState, id: StatuteId): number {
       effectiveBlocPower(state, bloc) *
       Math.max(0, -state.institutions.blocs[bloc].favor)
   }
-  const congestion = 1 + STATUTE_CONGESTION * Math.max(0, statutesInForce(state) - 1)
+  // One civil service, many laws. A statute that is NOT yet in force is
+  // counted as if it were, so the figure answers the question the desk
+  // actually asks of a dormant law — "what could I enforce if I wrote this
+  // today?" — rather than quoting an enforcement level that enacting it would
+  // immediately undercut. This cannot reach the economy: `statuteForce`
+  // returns zero on a dormant statute before it ever asks for compliance.
+  const book = statutesInForce(state) + (state.gov.statutes[id].level > 0 ? 0 : 1)
+  const congestion = 1 + STATUTE_CONGESTION * Math.max(0, book - 1)
   return clamp(
     (capability / congestion) * (1 - STATUTE_EVASION_GAIN * clamp(resistance, 0, 1)),
     STATUTE_COMPLIANCE_FLOOR,

@@ -66,6 +66,7 @@ export const environment: PipelineStep = {
     const pollution =
       state.environment.pollution +
       POLLUTION_ADJUST * (emissionsQ - state.environment.pollution)
-    return { ...state, environment: { pollution, emissionsQ } }
+    // `baseline` is an init-time inheritance and never moves
+    return { ...state, environment: { ...state.environment, pollution, emissionsQ } }
   },
 }

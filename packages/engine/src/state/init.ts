@@ -425,7 +425,7 @@ export function init(
       shocks: { droughtQtrsLeft: 0, droughtSeverity: 1 },
     },
     // seeded at equilibrium two lines below, once the sectors exist to emit
-    environment: { pollution: 0, emissionsQ: 0 },
+    environment: { pollution: 0, baseline: 0, emissionsQ: 0 },
     institutions: {
       stocks: { suffrage: 0, press: 0, labor_rights: 0, courts: 0, repression: 0 },
       societalPower: 0,
@@ -476,7 +476,10 @@ export function init(
   const opening = emissionsPerHead(provisional)
   const seeded: TrueState = {
     ...provisional,
-    environment: { pollution: opening, emissionsQ: opening },
+    // `baseline` is the inheritance the damage channels measure excess
+    // against, so an industrial recipe is not charged for being industrial
+    // before its player has done anything.
+    environment: { pollution: opening, baseline: opening, emissionsQ: opening },
   }
   return { ...seeded, institutions: initialInstitutions(seeded) }
 }

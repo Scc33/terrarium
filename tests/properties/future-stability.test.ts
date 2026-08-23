@@ -63,11 +63,24 @@ describe('the playable economy through 2050', () => {
     const quietWidth = (tail: typeof future.quietInflation) => tail.p99 - tail.p01
     // Schema 30 separates schools from the workforce they teach. The lag
     // leaves a larger youth cohort to absorb while skills catch up, widening
-    // this relative tail from 1.60× to 1.63× in the fixed sample. The hard
-    // absolute -10..10 quiet bounds above still own safety; 1.65 keeps the
-    // cross-era guard tight around the measured generational transition.
+    // this relative tail from 1.60× to 1.63× in the fixed sample.
+    //
+    // Schema 34 (pollution, ADR-0028) widens it again to 1.71×, and the cause
+    // is worth stating because it is not "the economy got less stable". A
+    // heavier burden makes the harvest fail more often, harvest failures move
+    // food prices, and the burden is heaviest in the final era — so the future
+    // tail SHOULD be wider than the one before it. Sample composition adds to
+    // that: the quiet tails are computed over survivors, and pollution changes
+    // who survives into 2026-2050.
+    //
+    // Isolating the two damage channels showed neither dominates — zeroing
+    // mortality left 16.24 and halving the drought gain left 16.13 — which is
+    // what a compositional effect looks like rather than a channel that is
+    // simply too strong. The hard absolute -10..10 quiet bounds above still own
+    // safety and still pass; this stays a tightness guard, now at the same
+    // 1.75 its per-era sibling above uses.
     expect(quietWidth(future.quietInflation), 'quiet future inflation widened').toBeLessThan(
-      quietWidth(lateCentury.quietInflation) * 1.65,
+      quietWidth(lateCentury.quietInflation) * 1.75,
     )
     expect(quietWidth(future.quietRealGrowth), 'quiet future growth widened').toBeLessThan(
       quietWidth(lateCentury.quietRealGrowth) * 1.5,

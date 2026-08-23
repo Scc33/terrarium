@@ -268,7 +268,7 @@ two shares side by side in a table, which is the only place the dual economy rea
 
 ### schema 34 — The environment: what production costs outside the market
 
-- **State +**: `environment: { pollution, emissionsQ }` (ADR-0028). One slow burden index,
+- **State +**: `environment: { pollution, baseline, emissionsQ }` (ADR-0028). One slow burden index,
   standard 1946 country = 1, seeded by `init` at exactly its opening equilibrium so no run begins
   on a ramp nobody chose. Countries open apart because their industrial structures differ —
   Costona 0.62 agrarian, Meridia 1.00, Veltravia 1.57 industrial.
@@ -287,9 +287,12 @@ two shares side by side in a table, which is the only place the dual economy rea
   mortality schedule in `demography`, and the drought hazard in `shocks` (which reuses the entire
   drought response — severity, duration, the agricultural tfp cut, the wire item, the recovery).
   There is no term anywhere subtracting pollution from output.
-- **This one moves the baseline, and that is the mechanic.** A country at its 1946 burden pays
-  exactly nothing, so the 1000×400q passive century is unmoved at 2.82 %/yr, 0.12 % inflation,
-  12.27 % unemployment, 7 % deposed. The developmental cohort, which industrialises and never
+  `baseline` is the burden the country inherited, sealed at init: both damage terms read the excess
+  over it, so an industrial recipe is not charged for being industrial before its player has done
+  anything.
+- **This one moves the baseline, and that is the mechanic.** A country at its OWN inherited burden
+  pays exactly nothing, so the 1000×400q passive century is unmoved at 2.82 %/yr, 12.26 %
+  unemployment, 6 % deposed. The developmental cohort, which industrialises and never
   legislates, loses three of twenty-two survivors and deposes 10 % against 8 %. The golden
   replays moved 3540 values and **every one of them by 0.00 %** — 40 quarters cannot see a
   century-scale stock, so the batches are this feature's evidence, not the goldens.

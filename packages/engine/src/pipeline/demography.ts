@@ -174,10 +174,12 @@ export const demography: PipelineStep = {
     // externality (ADR-0028): dirty air kills people in your own country now,
     // and it reaches welfare and the report card through the mortality
     // schedule that was already here rather than through a drag on output.
-    // Measured against the 1946 burden, so a country that has not industrialised
-    // past its inheritance pays nothing.
+    // Measured against THIS COUNTRY's inherited burden, not the standard
+    // country's — the catalogue opens between 0.62 and 1.57, and a global
+    // threshold charged an industrial recipe for being industrial in 1946Q1.
     const pollutionHarm =
-      POLLUTION_MORTALITY_GAIN * Math.max(0, state.environment.pollution - 1)
+      POLLUTION_MORTALITY_GAIN *
+      Math.max(0, state.environment.pollution - state.environment.baseline)
     const mortalityIndex = clamp(
       Math.exp(-MORT_SECULAR_Q * state.meta.tick) *
         (1 - MORT_INCOME_GAIN * lnLiving + pollutionHarm),

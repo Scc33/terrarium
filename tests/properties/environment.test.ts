@@ -88,6 +88,35 @@ describe('the burden opens where the country actually is', () => {
   })
 })
 
+describe('the damage is measured against what the country inherited', () => {
+  it('charges no country anything in the quarter it opens', () => {
+    // The bug this pins, found in review: both damage terms originally read
+    // `max(0, burden − 1)` against the STANDARD country's 1.0. The catalogue
+    // opens between 0.62 and 1.57, so Veltravia was charged excess mortality
+    // and a 12% higher drought hazard in 1946Q1 for the authored structure of
+    // its recipe, before its player had done anything at all.
+    //
+    // It was invisible in the passive baseline because that baseline is
+    // measured on Meridia — which IS the reference country and opens at
+    // exactly 1.0. The one country where the bug could not show.
+    for (const id of ['meridia', 'costona', 'veltravia', 'oranga', 'kestrel'] as const) {
+      const s = init(createCountryParams(id, `inherit-${id}`), 'inherit')
+      expect(droughtHazardMultiplier(s), `${id} drought hazard at t=0`).toBe(1)
+      expect(s.environment.pollution - s.environment.baseline).toBeCloseTo(0, 9)
+    }
+  })
+
+  it('keeps the inheritance fixed while the burden moves', () => {
+    const params = createCountryParams('veltravia', 'anchor')
+    const opening = init(params, 'anchor').environment.baseline
+    const century = govern(params, 'anchor', 200, null)
+    expect(century.environment.baseline).toBeCloseTo(opening, 9)
+    expect(century.environment.pollution).toBeGreaterThan(opening)
+    // …and an industrial country that HAS industrialised does now pay
+    expect(droughtHazardMultiplier(century)).toBeGreaterThan(1)
+  })
+})
+
 describe('industrialising dirties the country, and technique cleans it', () => {
   it('raises the burden over a century of building', () => {
     for (const seed of SEEDS.slice(0, 2)) {

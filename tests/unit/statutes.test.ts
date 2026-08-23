@@ -294,6 +294,36 @@ describe('compliance is what the state can enforce', () => {
     }
   })
 
+  it('quotes a dormant law prospectively, counting itself against the book', () => {
+    // Found in review: the desk asks a dormant statute "what could I enforce
+    // if I wrote this today?", and the answer must include the congestion that
+    // writing it would ADD. Quoting the current book overstated what the
+    // player would actually get the moment they enacted.
+    const s0 = funded(fresh())
+    const withOthers = applyActions(s0, [
+      { kind: 'enact', statute: 'minimum_wage', level: 1 },
+      { kind: 'enact', statute: 'compulsory_schooling', level: 1 },
+    ])
+    // competition is dormant here; its quote must already carry its own weight
+    const quoted = statuteCompliance(withOthers, 'competition')
+    const enacted = applyActions(funded(withOthers), [
+      { kind: 'enact', statute: 'competition', level: 1 },
+    ])
+    // Hold the ROOM fixed, because enacting also spends bloc favour and an
+    // angrier industry lowers compliance on its own. That is real and separate;
+    // the claim under test is only that the congestion denominator already
+    // counted this statute.
+    const congestionOnly: TrueState = { ...enacted, institutions: withOthers.institutions }
+    expect(statuteCompliance(congestionOnly, 'competition')).toBeCloseTo(quoted, 9)
+  })
+
+  it('never lets a dormant quote reach the economy', () => {
+    // The prospective count is a PUBLISHED figure only: force short-circuits
+    // on zero strength before compliance is ever asked for.
+    const s = funded(fresh())
+    for (const id of STATUTE_IDS) expect(statuteForce(s, id)).toBe(0)
+  })
+
   it('thins as the book lengthens: one civil service, many laws', () => {
     const s0 = funded(fresh())
     const one = applyActions(s0, [{ kind: 'enact', statute: 'minimum_wage', level: 1 }])
