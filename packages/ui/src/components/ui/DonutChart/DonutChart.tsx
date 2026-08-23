@@ -21,11 +21,13 @@ export interface DonutChartProps {
   size?: number
   /** an extra right-hand legend cell, per category */
   extra?: (share: Share) => ReactNode
+  /** a heading for the extra column, kept beside the figures it explains */
+  extraHeader?: ReactNode
   /** what to say when nothing sums to a positive total */
   emptyNote?: string
 }
 
-export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOTHING BOOKED' }: DonutChartProps) {
+export function DonutChart({ shares, format, size = 112, extra, extraHeader, emptyNote = 'NOTHING BOOKED' }: DonutChartProps) {
   const r = size / 2 - 1
   const slices = donutSlices(shares, { cx: size / 2, cy: size / 2, r, ri: r * 0.52 })
   const total = slices.reduce((s, x) => s + x.value, 0)
@@ -79,6 +81,11 @@ export function DonutChart({ shares, format, size = 112, extra, emptyNote = 'NOT
       )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+        {extra && extraHeader && (
+          <div className="flex justify-end font-mono text-[8px] leading-none tracking-[0.08em] text-dossier-ink/45">
+            <span className="w-10 shrink-0 text-right">{extraHeader}</span>
+          </div>
+        )}
         {shares.map((s) => {
           const row = (
             <div key={s.key} tabIndex={s.note ? 0 : undefined} className="flex items-baseline gap-1.5 font-mono text-[10px] leading-none focus-visible:outline-2 focus-visible:outline-dossier-brass">
