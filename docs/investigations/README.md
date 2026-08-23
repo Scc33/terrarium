@@ -33,3 +33,4 @@ drift. Re-measure before acting on one.
 | [0007](0007-aggregate-versus-per-capita-growth.md) | Population decline lowers late aggregate growth but does not explain the downside | Open |
 | [0008](0008-developmental-baseline-retires-public-debt.md) | Why does the developmental baseline retire all public debt? | Resolved (baseline methodology) |
 | [0009](0009-engine-performance.md) | Why are goldens, research, shocks, and long simulations expensive? | Resolved (runner/tooling overhead) |
+| [0010](0010-how-to-grow-export-share.md) | How do you grow exports as a share of the economy? | Resolved (ratio behavior) |

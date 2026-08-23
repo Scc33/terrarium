@@ -24,6 +24,7 @@
     "batch": "pnpm --filter @terrarium/runner batch",
     "stability": "pnpm --filter @terrarium/runner stability",
     "export-feedback": "pnpm --filter @terrarium/runner export-feedback",
+    "export-share": "tsx tools/measure-export-share.ts",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "debt-baselines": "tsx tools/measure-debt-baselines.ts",
