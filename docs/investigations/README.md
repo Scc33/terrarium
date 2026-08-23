@@ -34,3 +34,4 @@ drift. Re-measure before acting on one.
 | [0008](0008-developmental-baseline-retires-public-debt.md) | Why does the developmental baseline retire all public debt? | Resolved (baseline methodology) |
 | [0009](0009-engine-performance.md) | Why are goldens, research, shocks, and long simulations expensive? | Resolved (runner/tooling overhead) |
 | [0010](0010-compulsory-schooling-reverses-late-century.md) | Compulsory schooling pays for forty years and then stops paying | Open |
+| [0011](0011-policy-cannot-steer-sector-composition.md) | No lever steers sector composition, and the service share falls as the country gets rich | Open |
