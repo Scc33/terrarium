@@ -38,6 +38,7 @@ describe('published historical data export', () => {
     expect(record.calendar).toEqual({ firstYear: 1946, quartersPerYear: 4 })
     expect(record.run).toEqual(save)
     expect(record.records.industryReleases).toEqual(pub.industry)
+    expect(record.records.householdReleases).toEqual(pub.households)
     expect(record.records.treasury).toEqual(pub.books)
     expect(record.records.census).toEqual(pub.census)
     expect(record.records.policy).toEqual(pub.policy)
@@ -78,6 +79,7 @@ describe('published historical data export', () => {
       inCorridor: pub.corridor.inCorridor,
     })
     expect(record.snapshot).not.toHaveProperty('indicators')
+    expect(record.snapshot).not.toHaveProperty('households')
     expect(record.snapshot).not.toHaveProperty('books')
     expect(record.snapshot.corridor).not.toHaveProperty('trail')
     expect(JSON.parse(JSON.stringify(record))).toEqual(record)

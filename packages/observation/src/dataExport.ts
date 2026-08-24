@@ -27,6 +27,7 @@ export type IndicatorRelease = IndicatorPoint & {
 type HistoricalPublishedKey =
   | 'indicators'
   | 'industry'
+  | 'households'
   | 'books'
   | 'census'
   | 'policy'
@@ -53,6 +54,8 @@ export interface HistoricalDataExport {
     indicatorReleases: IndicatorRelease[]
     /** Vector releases from the industrial census, in publication order. */
     industryReleases: PublishedState['industry']
+    /** Income by population fifth from the household-budget survey. */
+    householdReleases: PublishedState['households']
     /** Exact government books, one row per quarter. */
     treasury: PublishedState['books']
     /** Exact head counts and age pyramids, one row per quarter. */
@@ -75,7 +78,17 @@ export function createHistoricalDataExport(
   published: PublishedState,
   save: SaveFile,
 ): HistoricalDataExport {
-  const { indicators, industry, books, census, policy, news, corridor, ...current } = published
+  const {
+    indicators,
+    industry,
+    households,
+    books,
+    census,
+    policy,
+    news,
+    corridor,
+    ...current
+  } = published
   const indicatorReleases: IndicatorRelease[] = []
 
   // Use the catalogue order rather than object enumeration. An unfunded series
@@ -106,6 +119,7 @@ export function createHistoricalDataExport(
     records: {
       indicatorReleases,
       industryReleases: industry,
+      householdReleases: households,
       treasury: books,
       census,
       policy,

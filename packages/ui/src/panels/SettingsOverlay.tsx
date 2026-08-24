@@ -56,7 +56,7 @@ export function SettingsOverlay({
           fullWidth
           className="justify-start text-left"
           onClick={exportData}
-          title="Download every figure published to this government, including revisions, quarterly books, census, policy, events, and the current public record."
+          title="Download every figure published to this government, including revisions, industry and household surveys, quarterly books, census, policy, events, and the current public record."
         >
           EXPORT DATA — complete published history for outside analysis
         </Button>
