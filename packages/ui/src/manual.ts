@@ -282,10 +282,11 @@ const runSections = (): ManualSection[] => [
     })),
   },
   {
-    heading: 'SAVES, AND WHY THEY ARE SMALL',
+    heading: 'SAVES, DATA, AND WHY THEY DIFFER',
     body: [
       'A save is the country, the seed, and your decisions — a few kilobytes — because the state is not stored, it is replayed. Loading a save re-runs the century from the beginning and arrives at exactly the same place.',
       'That is also what makes a save a bug report. If something looks wrong, export it and say which quarter to look at; anyone can reproduce the exact run.',
+      'A data export is the readable record instead: every published figure and revision, the industrial census, treasury books, head counts, policy minute book, wire and corridor path, plus the public desk as it stands. It includes the replay inputs for provenance, but never the hidden state. The format is versioned so spreadsheets, scripts and other tools can rely on it.',
       'It has one consequence worth knowing: a save from an older build opens only if the whole replay still succeeds. The game attempts the load and commits nothing until it does, then tells you in words if it could not. It will never repair a save to make it open — filling in a field the country predates would open A country, not the one you saved.',
     ],
   },
