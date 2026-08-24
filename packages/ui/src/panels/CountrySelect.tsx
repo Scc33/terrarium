@@ -27,6 +27,7 @@ import {
   type GameRules,
 } from '@terrarium/engine'
 import { Button, SegmentedControl, Tooltip, TooltipLabel } from '../components/ui'
+import { ProjectLinks } from '../components/ProjectLinks/ProjectLinks'
 import { activeRuleMarks, RULE_COPY } from '../gameRules'
 import { draftKey, draftPopulation, parseCountryDocument, type CountryDocument } from '../countryDraft'
 
@@ -630,6 +631,12 @@ export function CountrySelect({
             </div>
           </aside>
         </main>
+        <footer className="mt-3 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-dossier-brass/30 pt-2">
+          <p className="font-mono text-[8px] tracking-[0.16em] text-dossier-paper/45">
+            OPEN SOURCE · THE PUBLIC RECORD IS OPEN FOR INSPECTION
+          </p>
+          <ProjectLinks />
+        </footer>
       </div>
     </div>
   )

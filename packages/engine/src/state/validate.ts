@@ -59,7 +59,7 @@ export function validate(state: TrueState): void {
     // The authored recipe above is checked because a bad table is a bad
     // country; the DERIVED basket is checked because it is what the economy
     // actually spends, and a NaN in it silently zeroes a sector's demand
-    // rather than throwing anywhere (ADR-0029).
+    // rather than throwing anywhere (ADR-0030).
     finite(c.engelReference, `engelReference[${c.id}]`)
     const effective = effectiveConsumptionWeights(state, c.id)
     let eSum = 0

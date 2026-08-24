@@ -90,7 +90,7 @@ imports-as-a-substitute-good change in the basket, which is a different and much
 
 ## What this means for #97
 
-The visibility half is built and the demand side is no longer backwards (ADR-0029). What is left
+The visibility half is built and the demand side is no longer backwards (ADR-0030). What is left
 is that **a subsidy is a weak steering instrument here for a reason that has nothing to do with
 elasticities**: it is mostly a transfer to business owners, and only marginally a cost reduction.
 Three directions, in the order the evidence supports them:

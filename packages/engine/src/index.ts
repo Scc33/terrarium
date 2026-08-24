@@ -166,6 +166,7 @@ export type { Action, ActionLog, DialPath, TurnActions } from './actions/types'
 export {
   SECTOR_IDS,
   COHORT_IDS,
+  INCOME_QUINTILE_IDS,
   CAPACITY_IDS,
   GAME_RULE_IDS,
   STANDARD_RULES,
@@ -205,7 +206,9 @@ export type {
   GameRuleId,
   GameRules,
   GovernmentState,
+  HouseholdSurveyPrint,
   IndicatorId,
+  IncomeQuintileId,
   InstitutionId,
   InstitutionState,
   Money,
@@ -246,6 +249,8 @@ export {
   technologyAttainment,
   approvalIndex,
   giniIndex,
+  householdIncomeDistribution,
+  householdIncomeGroups,
   realIncomePerHead,
   householdSavingRate,
   meanLogConsumption,
@@ -299,7 +304,7 @@ export {
   CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
   NATURAL_REAL_RATE,
-  // the household basket's own tables (ADR-0029). Exported so the mechanism
+  // the household basket's own tables (ADR-0030). Exported so the mechanism
   // test can assert the inert-when-off identity against the CONSTANTS rather
   // than against a snapshot of them.
   CONSUMPTION_WEIGHT_FLOOR,
@@ -308,6 +313,7 @@ export {
   ELECTION_WIN_THRESHOLD,
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,
+  HOUSEHOLD_SURVEY_FUNDED_AT,
   INDUSTRY_CENSUS_FUNDED_AT,
   IMMIGRATION_LIMIT_DEFAULT,
   IMMIGRATION_LIMIT_MAX,
@@ -318,6 +324,7 @@ export {
   PC_COST_REFORM,
   PC_START,
   POSITION_GRADE_CUTS,
+  POVERTY_LINE_REAL,
   PROSPERITY_GRADE_CUTS,
   REFORM_STEP,
   REFORM_WINDOW_AT,

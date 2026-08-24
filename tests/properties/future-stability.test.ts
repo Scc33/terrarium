@@ -118,9 +118,9 @@ describe('the playable economy through 2050', () => {
     // answer it does not use. Measured beside it, the `regulated` policy,
     // which does legislate, deposes 7% against developmental's 10%.
     //
-    // v35 (the basket, ADR-0029) gains the passive cohort one survivor and
+    // v35 (the basket, ADR-0030) gains the passive cohort one survivor and
     // leaves developmental alone, which is worth a line because the 1000x400q
-    // batches move much further: developmental deposition goes 9% to 17%
+    // batches move much further: developmental deposition goes 9% to 15%
     // there. The passive gain is the `init` income-basis fix that shipped
     // beside it — three legs of the opening habit were seeded on a different
     // basis from the one `cohorts.run` recomputes them on, and the opening

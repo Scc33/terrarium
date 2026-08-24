@@ -22,6 +22,7 @@ import {
   LIVING_STANDARD_1946,
   MINIMUM_WAGE_ANCHOR,
   PARTICIPATION,
+  POVERTY_LINE_REAL,
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
   SCHOOLING_LABOR_WITHDRAWAL,
@@ -47,11 +48,13 @@ import {
   BLOC_IDS,
   CAPACITY_IDS,
   COHORT_IDS,
+  INCOME_QUINTILE_IDS,
   SECTOR_IDS,
   STATUTE_IDS,
   WORKING_BANDS,
   type BlocId,
   type CohortId,
+  type IncomeQuintileId,
   type Sector,
   type SectorId,
   type StatuteId,
@@ -298,32 +301,152 @@ export function livingStandard(state: TrueState): number {
   return Math.exp(meanLogConsumption(state)) / LIVING_STANDARD_1946
 }
 
-/** Income Gini across cohorts (grouped lower bound: within-cohort equality).
- * Income = wages + transfers + profits, per capita — what a household income
- * survey would tabulate, transfers included, so redistribution moves it. */
-export function giniIndex(state: TrueState): number {
-  const groups = state.cohorts
+export interface HouseholdIncomeGroup {
+  id: CohortId
+  population: number
+  /** disposable income per person after effective personal income tax,
+   * deflated by this group's own household basket */
+  realPerHead: number
+}
+
+export interface HouseholdIncomeDistribution {
+  groups: HouseholdIncomeGroup[]
+  mean: number
+  median: number
+  /** grouped lower bound: the engine holds no within-cohort dispersion */
+  gini: number
+  povertyRate: number
+  povertyGap: number
+  /** mean real income in each equal fifth of the population */
+  incomeQuintileReal: Record<IncomeQuintileId, number>
+  /** share of all real household income received by each fifth */
+  incomeQuintileShare: Record<IncomeQuintileId, number>
+}
+
+const emptyQuintiles = (): Record<IncomeQuintileId, number> =>
+  Object.fromEntries(INCOME_QUINTILE_IDS.map((id) => [id, 0])) as Record<
+    IncomeQuintileId,
+    number
+  >
+
+/**
+ * The one household-income basis. `cohorts.ts` has always judged approval on
+ * income after the effective personal income tax; the old Gini and mean
+ * quietly used gross wages instead. Poverty made that mismatch impossible to
+ * leave implicit, because a tax-and-transfer programme must appear in the
+ * survey the same way it lands in a household budget.
+ */
+export function householdIncomeGroups(state: TrueState): HouseholdIncomeGroup[] {
+  const incomeTaxEff = state.gov.dials.taxRates.income * taxEfficiency(state.gov.capacity.tax)
+  return state.cohorts
     .filter((c) => c.size > 1e-9)
-    .map((c) => ({ pop: c.size, income: c.wageIncome + c.transferIncome + c.profitIncome }))
-    .sort((a, b) => a.income / a.pop - b.income / b.pop)
-  const popTotal = groups.reduce((s, g) => s + g.pop, 0)
-  const incTotal = groups.reduce((s, g) => s + Math.max(g.income, 0), 0)
-  if (popTotal <= 1e-9 || incTotal <= 1e-9) return 0
-  let cumShare = 0
-  let areaTwice = 0 // Σ fᵢ·(Sᵢ₋₁ + Sᵢ) — twice the area under the Lorenz curve
-  for (const g of groups) {
-    const f = g.pop / popTotal
-    const prev = cumShare
-    cumShare += Math.max(g.income, 0) / incTotal
-    areaTwice += f * (prev + cumShare)
+    .map((c) => {
+      const disposable =
+        c.wageIncome * (1 - incomeTaxEff) + c.transferIncome + c.profitIncome
+      const realPerHead =
+        disposable /
+        Math.max(cohortCpi(state, c.id), 1e-9) /
+        c.size
+      return {
+        id: c.id,
+        population: c.size,
+        // Negative household income cannot buy a negative basket. The old
+        // Gini already floored negative group income at zero; keeping the
+        // floor here also bounds the normalized poverty gap at one.
+        realPerHead: Math.max(0, Number.isFinite(realPerHead) ? realPerHead : 0),
+      }
+    })
+    .sort((a, b) => a.realPerHead - b.realPerHead)
+}
+
+/** Poverty, inequality and quintiles from the same sorted household returns.
+ * Quintiles are equal POPULATION bins, not aliases for the five model
+ * cohorts. A cohort crossing a boundary is split at one unchanged income,
+ * which is the only honest interpolation when within-cohort spread is absent. */
+export function householdIncomeDistribution(state: TrueState): HouseholdIncomeDistribution {
+  const groups = householdIncomeGroups(state)
+  const population = groups.reduce((sum, group) => sum + group.population, 0)
+  const income = groups.reduce(
+    (sum, group) => sum + group.population * group.realPerHead,
+    0,
+  )
+  const incomeQuintileReal = emptyQuintiles()
+  const incomeQuintileShare = emptyQuintiles()
+  if (population <= 1e-9) {
+    return {
+      groups,
+      mean: 0,
+      median: 0,
+      gini: 0,
+      povertyRate: 0,
+      povertyGap: 0,
+      incomeQuintileReal,
+      incomeQuintileShare,
+    }
   }
-  return Math.max(0, 1 - areaTwice)
+
+  let cumulativePopulation = 0
+  let cumulativeIncomeShare = 0
+  let areaTwice = 0
+  let poorPopulation = 0
+  let povertyShortfall = 0
+  let median = groups[groups.length - 1]?.realPerHead ?? 0
+  const quintilePopulation = population / INCOME_QUINTILE_IDS.length
+
+  for (const group of groups) {
+    const start = cumulativePopulation
+    const end = start + group.population
+    if (start < population / 2 && end >= population / 2) median = group.realPerHead
+
+    if (group.realPerHead < POVERTY_LINE_REAL) {
+      poorPopulation += group.population
+      povertyShortfall +=
+        group.population * (POVERTY_LINE_REAL - group.realPerHead) / POVERTY_LINE_REAL
+    }
+
+    for (let i = 0; i < INCOME_QUINTILE_IDS.length; i++) {
+      const lo = i * quintilePopulation
+      const hi = (i + 1) * quintilePopulation
+      const overlap = Math.max(0, Math.min(end, hi) - Math.max(start, lo))
+      incomeQuintileReal[INCOME_QUINTILE_IDS[i]] += overlap * group.realPerHead
+    }
+
+    if (income > 1e-9) {
+      const fraction = group.population / population
+      const previous = cumulativeIncomeShare
+      cumulativeIncomeShare += group.population * group.realPerHead / income
+      areaTwice += fraction * (previous + cumulativeIncomeShare)
+    }
+    cumulativePopulation = end
+  }
+
+  for (const id of INCOME_QUINTILE_IDS) {
+    const total = incomeQuintileReal[id]
+    incomeQuintileReal[id] = quintilePopulation > 1e-9 ? total / quintilePopulation : 0
+    incomeQuintileShare[id] = income > 1e-9 ? total / income : 0
+  }
+
+  return {
+    groups,
+    mean: income / population,
+    median,
+    gini: income > 1e-9 ? Math.max(0, 1 - areaTwice) : 0,
+    povertyRate: poorPopulation / population,
+    povertyGap: povertyShortfall / population,
+    incomeQuintileReal,
+    incomeQuintileShare,
+  }
+}
+
+/** Income Gini across the shared real-disposable household groups. */
+export function giniIndex(state: TrueState): number {
+  return householdIncomeDistribution(state).gini
 }
 
 /**
  * Real household income per head, two ways: the average, and the household in
- * the middle. Same income definition the Gini tabulates (wages + transfers +
- * profits), deflated by each cohort's OWN basket — the same real-income notion
+ * the middle. Same income definition the Gini tabulates (post-effective-tax
+ * wages + transfers + profits), deflated by each cohort's OWN basket — the same real-income notion
  * `pipeline/cohorts.ts` judges approval against, so the instrument and the
  * political response are measuring one quantity rather than two.
  *
@@ -347,28 +470,7 @@ export function giniIndex(state: TrueState): number {
  * containing cohort would invent a spread that does not exist.
  */
 export function realIncomePerHead(state: TrueState): { mean: number; median: number } {
-  const groups = state.cohorts
-    .filter((c) => c.size > 1e-9)
-    .map((c) => ({
-      pop: c.size,
-      perHead:
-        (c.wageIncome + c.transferIncome + c.profitIncome) /
-        Math.max(cohortCpi(state, c.id), 1e-9) /
-        c.size,
-    }))
-    .sort((a, b) => a.perHead - b.perHead)
-  const popTotal = groups.reduce((s, g) => s + g.pop, 0)
-  if (popTotal <= 1e-9) return { mean: 0, median: 0 }
-  const mean = groups.reduce((s, g) => s + g.perHead * g.pop, 0) / popTotal
-  let cum = 0
-  let median = groups[groups.length - 1].perHead
-  for (const g of groups) {
-    cum += g.pop
-    if (cum >= 0.5 * popTotal) {
-      median = g.perHead
-      break
-    }
-  }
+  const { mean, median } = householdIncomeDistribution(state)
   return { mean, median }
 }
 
@@ -655,7 +757,7 @@ export function minimumWageFloor(state: TrueState): number {
 }
 
 /**
- * What a cohort actually buys, as shares of its budget (ADR-0029). This is the
+ * What a cohort actually buys, as shares of its budget (ADR-0030). This is the
  * vector every reader wants; `cohort.consumptionWeights` is the recipe it was
  * authored with, and reading THAT is reading the announcement instead of the
  * effect — the same rule as `statuteForce` against `gov.statutes`.

@@ -69,7 +69,7 @@ export const production: PipelineStep = {
       const budget = Math.max(0, MPC[c.id] * smoothed * spirits + SAVINGS_DRAWDOWN * c.savings)
       cohortSpend[c.id] = budget
       // the basket the cohort actually buys, not the one it was authored with
-      // (ADR-0029) — one read per cohort, not one per sector
+      // (ADR-0030) — one read per cohort, not one per sector
       const weights = effectiveConsumptionWeights(state, c.id)
       for (const sid of SECTOR_IDS) {
         householdDemand[sid] += (budget * weights[sid]) / effectivePrice(state, sid)

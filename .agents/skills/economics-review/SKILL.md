@@ -135,7 +135,7 @@ The golden replays are NOT evidence here: they moved 3540 values and every one b
 Measured cost of doing nothing, capacity-building century on Meridia: real GDP −6.8 %, consumption
 per head −5.7 %, death rate +4.8 % by 2046 against the same run with a clean air act.
 
-### The household basket (schema 35, ADR-0029)
+### The household basket (schema 35, ADR-0030)
 
 Like pollution, this **moves the baseline on purpose**, and like pollution the split is the test.
 
@@ -144,9 +144,14 @@ Like pollution, this **moves the baseline on purpose**, and like pollution the s
 | real growth %/yr | 2.82 | **2.84** | 3.05 | **3.02** |
 | mean inflation %/yr | 0.12 | **0.19** | −0.19 | **−0.11** |
 | unemployment % | 12.26 | **12.41** | 11.63 | **11.78** |
-| deposed | 6% | **7%** | 9% | **17%** |
+| deposed | 6% | **7%** | 9% | **15%** |
 
 Random 120q is near-unmoved: 3.91 → 4.07 %/yr, 12.12 → 12.03 % unemployment, 29% → 29% deposed,
+
+The "after" column is measured on the tree with **schema 35 (poverty, ADR-0029) merged in**,
+since that landed on master first. Its own economic footprint is small — it moved the 40-quarter
+goldens by at most 0.12% (the gini, which it reworks) and 0.03% elsewhere — but it is what took
+developmental deposition from 17% to 15%, so do not attribute that last two points to the basket.
 no NaN, no price explosions.
 
 These "after" figures include a bookkeeping fix v35 forced into the open: `init` seeded

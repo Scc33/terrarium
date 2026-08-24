@@ -109,7 +109,7 @@ export const cohorts: PipelineStep = {
         approval,
         // EMA: the standard of living people measure themselves against
         lastRealIncome: 0.75 * c.lastRealIncome + 0.25 * realIncome,
-        // the same smoothing, PER HEAD, for the Engel shift (ADR-0029). Kept
+        // the same smoothing, PER HEAD, for the Engel shift (ADR-0030). Kept
         // separate rather than derived from the line above, because dividing a
         // lagging aggregate by a current headcount makes a shrinking cohort
         // look richer than it is.

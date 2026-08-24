@@ -1,5 +1,5 @@
 /**
- * Load-bearing mechanism claims for the household basket (ADR-0029), asserted
+ * Load-bearing mechanism claims for the household basket (ADR-0030), asserted
  * over seeds because a claim about a mechanism is not a claim about a run.
  *
  * The basket is what a cohort buys, and it answers to two things: the INCOME

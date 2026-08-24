@@ -36,7 +36,7 @@ drift. Re-measure before acting on one.
 | [0010](0010-how-to-grow-export-share.md) | How do you grow exports as a share of the economy? | Resolved (ratio behavior) |
 | [0011](0011-is-there-a-neutral-rate.md) | Is there a neutral policy rate? | Resolved (state-dependent rate channel) |
 | [0012](0012-compulsory-schooling-reverses-late-century.md) | Compulsory schooling pays for forty years and then stops paying | Open |
-| [0013](0013-policy-cannot-steer-sector-composition.md) | No lever steers sector composition, and the service share falls as the country gets rich | Resolved (ADR-0029, and 0016) |
+| [0013](0013-policy-cannot-steer-sector-composition.md) | No lever steers sector composition, and the service share falls as the country gets rich | Resolved (ADR-0030, and 0016) |
 | [0014](0014-returns-to-capital-stock.md) | Why does a larger capital stock not permanently raise growth? | Resolved (level versus rate) |
 | [0015](0015-a-service-economy-cannot-make-professionals.md) | A service economy raises the return to being a professional and can never make more of them | Open |
 | [0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md) | A household price elasticity does not reach the industrial census, and a deficit-financed subsidy raises the price it was meant to lower | Resolved (CES rejected) |

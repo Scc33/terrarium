@@ -513,7 +513,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
   to a readable step can leave ONE label on the axis, and a chart with a single number up its
   side gives no scale at all — `niceTicks` refines the step until at least two fit.
 - **The basket is calibrated to the country it opens in, and that is what makes it inert**
-  (ADR-0029). `cohort.consumptionWeights` is the authored recipe; `effectiveConsumptionWeights` is
+  (ADR-0030). `cohort.consumptionWeights` is the authored recipe; `effectiveConsumptionWeights` is
   what the economy spends, and every reader goes through it — the `statuteForce` rule again. The
   income term reads each cohort's own sealed 1946 standard, so every country opens on its recipe
   and answers only to growth from there; the price term is neutral because prices open at 1. Both
@@ -523,11 +523,11 @@ perfectly with no opinion about anything in the game. The first politics impleme
   `lastRealIncome` GROSS while `cohorts.run` computes it after income tax, so the habit walked down
   a 3–9% basis change for its first years — and only for the cohorts that earn wages, so the
   poorest inherited a standard of living they had never had and the richest inherited a correct
-  one. Invisible for as long as it was only a smoothing term; load-bearing the moment ADR-0029
+  one. Invisible for as long as it was only a smoothing term; load-bearing the moment ADR-0030
   sealed `engelReference` from it. The `0.99` beside it was already an attempt to absorb this and
   was an order of magnitude too small.
 - **Only a country that develops pays for the income response, and passive is the check.** Fixing
-  the falling service share cost 17% developmental deposition against 9%, and left passive at 7%
+  the falling service share cost 15% developmental deposition against 9%, and left passive at 7%
   and 2.84 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
   the pollution baseline. If a retune moves passive, the basket has become a tax on existence.
 - **What it costs is inequality, and the cause is a supply-side gap.** Services are staffed 60% by

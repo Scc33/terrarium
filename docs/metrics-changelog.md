@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 35)
+## Current contract (schema 36)
 
 ### Inputs
 
@@ -174,6 +174,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
+| `poverty_rate` | % population | 0.55 | v35 | population below one standard 1946 consumption basket per person per quarter |
 | `household_saving_rate` | % disposable income | 0.45 | v15 | disposable income not consumed; consumption is the complement |
 | `productivity` | 1946=100 | 0.40 | v19 | annualized real GDP ÷ total employment (incl. agriculture), indexed to own 1946 |
 | `technology_attainment` | % frontier | 0.45 | v18 | output-weighted domestic technique ÷ sector-adjusted world frontier |
@@ -219,6 +220,26 @@ dials against six rack strips of headroom, and a sector share has no fixed dial 
 when the catalogue's countries open anywhere between 5% and 60% agricultural. Shown in the
 **industrial census** overlay — donut for the release, stacked bands for the century, and the
 two shares side by side in a table, which is the only place the dual economy reads as one fact.
+
+### Outputs — the household survey (fogged vector)
+
+`PublishedState.households`, since v35. One household-budget-survey release carries the income
+distribution over `INCOME_QUINTILE_IDS` (`lowest`, `second`, `middle`, `fourth`, `highest`), plus
+the poverty gap and fixed real poverty line. It unlocks at **0.55** statistical capacity beside
+the Gini and `poverty_rate`, and uses the office's ordinary lag, noise and revision clock.
+
+| Field | Unit | Underlying truth |
+|---|---|---|
+| `incomeReal` | national 1946 mean = 100 | mean real disposable income per head in each equal fifth of the population |
+| `incomeShare` | share, sums to 1 | each fifth's share of all real disposable household income |
+| `povertyGap` | share of the line | population-average normalized shortfall below `POVERTY_LINE_REAL`, non-poor people zero |
+| `povertyLine` | national 1946 mean = 100 | the fixed one-basket poverty line on the same indexed scale as `incomeReal` |
+
+The truth sorts the five socioeconomic cohorts by real disposable income and splits population
+mass exactly at quintile boundaries. It assumes no dispersion inside a cohort. Each reported
+quintile income is drawn independently; the release then orders those five reports and derives
+shares from the same reported values, so its own distribution remains coherent without being
+reconciled to the separately noised `income_real` headline.
 
 ### Outputs — exact (no fog)
 
@@ -266,10 +287,10 @@ two shares side by side in a table, which is the only place the dual economy rea
 
 ## Version history — what each release added to the contract
 
-### schema 35 — The basket answers to income
+### schema 36 — The basket answers to income
 
 - **State +**: `Cohort.engelReference` (real income per head at init, sealed) and
-  `Cohort.engelIncome` (the per-head EMA compared against it) — ADR-0029. The second is a separate
+  `Cohort.engelIncome` (the per-head EMA compared against it) — ADR-0030. The second is a separate
   field rather than `lastRealIncome / size` because that divides a lagging aggregate by a current
   headcount, so a cohort urbanisation is draining reads as richer than it is. Nothing
   else changed shape: `cohort.consumptionWeights` still holds the authored recipe and still sums
@@ -294,7 +315,7 @@ two shares side by side in a table, which is the only place the dual economy rea
   value-added share across a century in which it got five to eight times richer; the fix raises the
   attractor the catalogue converges into from ~25–31% to ~30–36%. Passive is near-unchanged at 7%
   deposed (2.82 → 2.83 %/yr) because a do-nothing country never gets rich enough for the income
-  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 17%, and
+  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 15%, and
   what it buys is inequality: services are staffed 60% by professionals and the class transition
   cannot make more of them (investigation 0015).
 - **One bookkeeping fix rides along, because this change made it load-bearing.** `init` seeded
@@ -306,6 +327,33 @@ two shares side by side in a table, which is the only place the dual economy rea
   implemented, swept over σ ∈ {1, 1.5, 2, 3} and rejected on measurement — the basket's price
   response rises exactly as the theory says while the industrial census does not follow it
   (investigation 0016).
+
+### schema 35 — Poverty and the household income distribution
+
+- **Outputs +**: `poverty_rate` / **Poverty** (% of population, unlocks at 0.55), the grouped
+  headcount below one standard 1946 consumption basket per person per quarter. The companion
+  `PublishedState.households` vector release carries five population quintiles by real income and
+  income share, the normalized poverty gap, and the fixed poverty line, all fogged. The fixed
+  0–50% face covers the measured funded-century extrema of 5.7–45.8% (p01–p99 6.4–24.1%).
+- **Internal state +**: `StatRecord` stores the exact poverty rate, gap and quintile tables;
+  `StatsOffice.households` stores their releases. `householdIncomeGroups` is the one worksheet for
+  Gini, mean household income, poverty and quintiles: post-effective-income-tax wages plus
+  transfers and profits, deflated by each cohort's own basket and divided by population.
+- **Outputs ± / behaviour ±**: `gini` and `income_real` now use that disposable-real basis rather
+  than gross cohort income. Institutions read Gini, so this is an economic behaviour change even
+  though poverty itself has no direct politics or scoring term. Golden and batch evidence is
+  required before blessing.
+- **Pipeline**: unchanged. New measurement draws use `obs:households:*` substreams, orthogonal to
+  both economic randomness and every existing instrument's fog.
+- **Economics review**: the new basis lowers the 1946 Meridia income worksheet by 4.08% and raises
+  its grouped Gini from 42.08 to 42.92 points. Through the existing institutions seam that lowers
+  societal power by about 0.45 points and raises unrest by about 0.6 points; 40-quarter real GDP
+  moves only −0.03% to −0.05% across the three golden cases. The 1000×400q passive baseline remains
+  2.82% growth, 0.12% inflation, 12.26% unemployment and 6% deposed; developmental is 3.05%,
+  −0.19%, 11.63% and 9%. The 1000×120q random sweep has zero NaN/explosions and 30% deposed. The
+  120-run all-country/all-policy stability matrix has no reachable non-finite state; passive,
+  developmental and regulated have no price explosions, while random finds two reachable
+  procedural-country explosions (the adversarial arm the harness permits and reports).
 
 ### schema 34 — The environment: what production costs outside the market
 

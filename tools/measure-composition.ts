@@ -1,6 +1,6 @@
 /**
  * Can policy steer what kind of country this is? — the repeatable form of
- * investigation 0013, and the regression check for ADR-0029.
+ * investigation 0013, and the regression check for ADR-0030.
  *
  *   pnpm composition -- --seeds 8 --ticks 400 --country meridia
  *
@@ -12,7 +12,7 @@
  *    0013's method exactly, and the only table comparable with its numbers.
  * 2. **THE TRANSFORMATION.** One capacity-building century, composition beside
  *    consumption per head. This is where the modelling error shows: before
- *    ADR-0029 the service share of value added FELL while the country got
+ *    ADR-0030 the service share of value added FELL while the country got
  *    eight times richer, which is backwards and is not Baumol.
  * 3. **WHAT A PLAYER GETS.** The same six arms under ordinary play — no
  *    protection, orders priced and refused when unaffordable, truncated at
@@ -54,7 +54,7 @@ function arg(name: string, fallback: string): string {
 
 const SEEDS = Number(arg('seeds', '8'))
 // 400 by default, because that is the horizon the claims this tool is cited
-// for are made at — the service-share regression in ADR-0029 and the
+// for are made at — the service-share regression in ADR-0030 and the
 // economics-review skill both quote a four-hundred-quarter figure, and a
 // default that stopped at 240 could not reproduce the evidence it is offered
 // as. Table 1 still reports the 0013 horizon as well, so the original

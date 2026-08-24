@@ -98,7 +98,7 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
 }
 
 /**
- * How the basket answers to INCOME (ADR-0029). The weight on a sector is
+ * How the basket answers to INCOME (ADR-0030). The weight on a sector is
  * multiplied by `(y / y_ref) ^ ENGEL_ELASTICITY[sid]` before renormalisation,
  * where `y` is the cohort's real income per head and `y_ref` is the one it
  * inherited in 1946 (`Cohort.engelReference`, sealed at init).
@@ -122,7 +122,7 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
  * moving toward services raises the RETURN to being a professional and never
  * the NUMBER of them. Every point of correction is therefore bought with
  * inequality: `services: 0.45` does make the share rise, and costs 7.4 Gini
- * points and 21% developmental deposition against this setting's 5.8 and 17%.
+ * points and 21% developmental deposition against this setting's 5.8 and 15%.
  * See `docs/investigations/0015`; that gap has to close before this can go
  * further.
  */
@@ -136,7 +136,7 @@ export const ENGEL_ELASTICITY: Record<SectorId, number> = {
 
 /**
  * How the basket answers to RELATIVE PRICE — the elasticity of substitution in
- * the household's CES nest (ADR-0029). The weight on a sector is multiplied by
+ * the household's CES nest (ADR-0030). The weight on a sector is multiplied by
  * `effectivePrice(sid) ^ (1 − HOUSEHOLD_SUBSTITUTION)`.
  *
  * **1 is Cobb-Douglas**, which is where this started and what pinned nominal
@@ -191,6 +191,12 @@ export const TRANSFER_SHARE: Record<CohortId, number> = {
   business_owners: 0,
 }
 
+/** One standard 1946 basket per person per quarter. This fixed real line is
+ * deliberately shared by every country and year: broad-based growth can lift
+ * people over it, while Gini and quintile shares carry the relative story.
+ * Calibrated across the authored-country catalogue for schema 35. */
+export const POVERTY_LINE_REAL = 1
+
 // ---------- fiscal ----------
 /** collection efficiency as a function of tax capacity: revenue = base × rate × eff */
 export const taxEfficiency = (capacity: number): number => Math.pow(Math.max(0, capacity), 0.6)
@@ -214,6 +220,10 @@ export const domesticBondFundingShare = (openness: number): number =>
 // ---------- capacity (Layer 2) ----------
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
+/** The household-budget survey is the statistical office's most demanding
+ * return. Poverty, inequality and the quintile books unlock together because
+ * they are three readings of the same enumerators' schedules. */
+export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
 /** Minimum statistical-office strength required to produce each series.
  * This is exported because the wall must explain the exact institution the
  * simulation is waiting for; one table keeps that promise from drifting. */
@@ -258,9 +268,10 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   conf_consumer: 0.45,
   conf_business: 0.45,
   approval: 0.25,
-  gini: 0.55,
+  gini: HOUSEHOLD_SURVEY_FUNDED_AT,
   // national accounts and a price index between them give you the average
   income_real: 0.45,
+  poverty_rate: HOUSEHOLD_SURVEY_FUNDED_AT,
   // border and civil-registration returns are reconciled with the same
   // population register that produces births and deaths
   net_migration: 0.3,
@@ -309,6 +320,13 @@ export const INDUSTRY_CENSUS_FUNDED_AT = 0.3
 export const INDUSTRY_VALUE_ADDED_SD = 0.06
 /** …and on the head count beside it, which an enumerator can actually count. */
 export const INDUSTRY_EMPLOYMENT_SD = 0.04
+/** First-print relative error on each quintile's real-income estimate. The
+ * five figures are ranked and reconciled into shares after noise is applied. */
+export const HOUSEHOLD_INCOME_SD = 0.08
+/** First-print relative error on the poverty gap. It is noisier than a total
+ * income estimate because it depends on each poor return's distance from the
+ * line, not merely which side of the line it falls on. */
+export const HOUSEHOLD_POVERTY_GAP_SD = 0.1
 /** neglect is a policy. This is institutional decay: school buildings and
  * teaching systems deteriorate. The people they already taught persist in
  * `demography.humanCapital`, which moves on its own generational clock. */
@@ -1007,7 +1025,7 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * incumbents' rents", and a weighted-by-sector version was tried and removed
  * when the consumption weights were fixed per cohort and the services share of
  * output could not move in response to productivity whatever the veto did.
- * ADR-0029 unpinned that side, so the objection no longer holds on its
+ * ADR-0030 unpinned that side, so the objection no longer holds on its
  * original grounds — but the version that was removed has not been re-tried,
  * and re-trying it is its own change with its own review.
  */

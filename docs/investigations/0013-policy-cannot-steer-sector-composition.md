@@ -1,7 +1,7 @@
 # 0013 — No lever in the game can steer sector composition, and the service share falls as the country gets rich
 
 **Status:** Resolved — see the resolution at the foot of this file. Result 2 was a modelling
-error and is FIXED (ADR-0029). Result 1 was right about the symptom and wrong about the cause;
+error and is FIXED (ADR-0030). Result 1 was right about the symptom and wrong about the cause;
 the cause is in [0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md).
 
 **Raised by:** issue #97 ("if I wanted to become an export driven economy how would I do that?"), while
@@ -164,7 +164,7 @@ failing. The tool re-indexes annually.
 ### Result 2 — FIXED
 
 The falling service share was a modelling error and it is corrected. Household weights now shift
-with a cohort's real income (ADR-0029), which raises the attractor the catalogue converges into
+with a cohort's real income (ADR-0030), which raises the attractor the catalogue converges into
 from roughly 25–31% to 30–36%. Meridia holds 33.7 → 33.2 across four hundred quarters against
 34.2 → 26.9. Countries that open ABOVE the demand-implied share still relax toward it — that is
 convergence, and the defect was that the destination sat below where every country started.

@@ -78,7 +78,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // millimetre of dial and make the split unreadable — which is the opposite
   // of what a composition instrument is for.
   // Schema 35 widened the floor: with the basket answering to income
-  // (ADR-0029) a household buys more services per unit of real output, and
+  // (ADR-0030) a household buys more services per unit of real output, and
   // consumption's share of expenditure now reaches p01 68.1 against the old
   // 70 rail. Measured p01–p99 68.1–82.2, extrema 63.6–89.1.
   consumption_share: { lo: 65, hi: 85 },
@@ -123,6 +123,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   approval: { lo: 20, hi: 80 },
   gini: { lo: 20, hi: 60 },
   income_real: 'ratchet',
+  // Schema 35, 12 seeds × 6 countries × 400 funded quarters: p01–p99
+  // 6.4–24.1%, extrema 5.7–45.8. Poverty cannot go below zero; the 50% rail
+  // clears the measured maximum while leaving the ordinary range legible.
+  poverty_rate: { lo: 0, hi: 50 },
   // Measured across the all-country funded century: -11.9..12.1, with
   // p01 -8.0 and p99 9.6. Keep zero centered: the sign is the story.
   net_migration: { lo: -15, hi: 15 },
@@ -156,7 +160,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // centuries peg, which is the point — going off this dial is information.
   pollution: { lo: 50, hi: 450 },
   // Schema 35: p01–p99 4.5–61.3, extrema −13.1–79.9. The top rail moved
-  // because a developing century now runs slightly hotter (ADR-0029 shifts
+  // because a developing century now runs slightly hotter (ADR-0030 shifts
   // demand toward the sector the richest working cohort staffs), not because
   // the face was wrong before.
   unrest: { lo: 0, hi: 70 },

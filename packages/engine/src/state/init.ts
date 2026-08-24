@@ -293,7 +293,7 @@ export function init(
     // earners 3-9%, gross profits gave business owners 5-10% they never got,
     // and the missing coupon took 8-28% from retirees, who hold paper and earn
     // no wages. `engelReference` is sealed from this, so a biased seed tips
-    // that cohort's basket permanently (ADR-0029) — and `growth` below reads
+    // that cohort's basket permanently (ADR-0030) — and `growth` below reads
     // it through the loss-aversion multiplier, which is what the 0.99 is for.
     const incomeAfterTax =
       wageIncome * (1 - 0.15 * taxEff) +
@@ -503,7 +503,7 @@ export function init(
       debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
-    stats: { record: [], series: {}, industry: [], news: [] },
+    stats: { record: [], series: {}, industry: [], households: [], news: [] },
     score: {
       discountedWelfare: 0,
       discountWeight: 0,
