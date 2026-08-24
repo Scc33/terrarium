@@ -20,8 +20,11 @@ import {
   type ActionLog,
   type CountryParams,
   type CountryScenarioId,
+  type GameMode,
+  type GameRules,
   type Rng,
   type SectorId,
+  type TurnActions,
   type TrueState,
 } from '@terrarium/engine'
 import { DEBT_FREE_RATIO, debtToGdp } from './debt'
@@ -124,6 +127,18 @@ export interface RunOptions {
   country?: CountryScenarioId
   /** if set, generates actions on the fly (random-policy runs) */
   policy?: (state: TrueState, rng: Rng, tick: number) => Action[]
+  /** Independent from the simulation seed when an experiment needs country,
+   * shocks, and government behavior to vary on separate axes. */
+  policySeed?: string
+  /** Immutable rules for the run. Ordinary balance baselines omit this and
+   * retain the standard rules. */
+  rules?: GameMode | Partial<GameRules>
+  /** Read-only probes for research and fuzz tooling. Successful generated or
+   * scripted actions are reported before the tick; state is reported after it. */
+  observer?: {
+    onActions?(turn: TurnActions): void
+    afterStep?(state: TrueState): void
+  }
   /** tolerate illegal scripted/policy actions by skipping them (default true;
    * golden replays set false) */
   lenient?: boolean
@@ -255,7 +270,7 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
   for (const t of opts.script ?? []) byTick.set(t.tick, t.actions)
   const lenient = opts.lenient !== false
 
-  let s = init(params, opts.seed)
+  let s = init(params, opts.seed, opts.rules)
   let nanCount = 0
   let priceExplosions = 0
   let illegalActionsSkipped = 0
@@ -263,17 +278,23 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
 
   for (let t = 0; t < opts.ticks; t++) {
     const scripted = byTick.get(t) ?? []
-    const generated = opts.policy ? opts.policy(s, rngFor(opts.seed, 'runner:policy', t), t) : []
+    const generated = opts.policy
+      ? opts.policy(s, rngFor(opts.policySeed ?? opts.seed, 'runner:policy', t), t)
+      : []
+    const accepted: Action[] = []
     for (const a of [...scripted, ...generated]) {
       try {
         s = applyActions(s, [a])
+        accepted.push(a)
       } catch (e) {
         if (lenient && e instanceof IllegalActionError) illegalActionsSkipped++
         else throw e
       }
     }
+    if (accepted.length > 0) opts.observer?.onActions?.({ tick: t, actions: accepted })
     const before = s
     s = step(s)
+    opts.observer?.afterStep?.(s)
     const p = trajectoryPoint(s, eventsBetween(before, s))
     onPoint(p)
     for (const v of [p.realGdp, p.nominalGdp, p.inflationQ, p.unemployment, ...Object.values(p.prices)]) {

@@ -6,6 +6,7 @@
   "scripts": {
     "run-one": "tsx src/run.ts",
     "batch": "tsx src/batch.ts",
+    "country-fuzz": "tsx src/country-fuzz-cli.ts",
     "stability": "tsx src/stability-cli.ts",
     "export-feedback": "tsx src/export-feedback-cli.ts"
   },

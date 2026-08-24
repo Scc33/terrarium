@@ -169,6 +169,43 @@ The study's metric definitions are copied from `packages/runner` because `packag
 depend on a node CLI package. `tests/ui/trial.test.ts` pins the two implementations against each
 other on identical inputs; if it goes, the study stops being comparable with the tables above.
 
+## Programmatic country-space exploration
+
+`pnpm country-fuzz` turns the same country contract into a reproducible discovery tool. It keeps
+three axes independent: the country seed chooses the parameter vector, the simulation seed drives
+economic shocks, and the policy seed drives the headless government's orders. A surprising result
+can therefore be repeated while changing one source of variation at a time.
+
+```sh
+pnpm country-fuzz -- --cases 100 --ticks 400 --profile recipe --policy random
+pnpm country-fuzz -- --cases 400 --ticks 400 --profile draft --policy passive
+pnpm country-fuzz -- --cases 100 --ticks 120 --profile edges --policy random
+```
+
+The profiles answer different questions:
+
+- **`recipe`** uses the bounded, correlated archetype generator. These are plausible procedural
+  countries, so the ordinary NaN and 50× / 1⁄50× price tripwires remain hard failures.
+- **`draft`** samples every numeric field independently inside `COUNTRY_DRAFT_DOMAIN`, the same
+  finite rails the drafting room exposes. The combinations are intentionally much wilder than the
+  catalogue.
+- **`edges`** biases those same fields to both rails, one-percent insets, and midpoints. Uniform
+  high-dimensional sampling almost never visits a corner; this profile exists to make it do so.
+
+Every profile passes the materialized country through the document writer and parser, then calls
+the full engine `validate` after every quarter. An invariant failure is always a hard failure.
+For `draft` and `edges`, a late price excursion or deposition is a **finding**, not a verdict that
+the input is illegal or the engine is broken. The CLI writes a hard failure to
+`country-fuzz-failures/` as a country document plus engine/schema versions, all three seeds, rules,
+policy, failure quarter, and a save containing every accepted generated action. The save is the
+durable regression artifact; it does not depend on a future version of `randomPolicy` making the
+same choices.
+
+`tests/properties/country-fuzz.test.ts` is the small fixed CI corpus. Larger sweeps are research:
+use them to find a candidate, reduce it to one country and one mechanism, then run paired seeds and
+counterfactuals before writing an investigation. A fuzz table can raise a question; varying forty
+inputs at once cannot answer why the result happened.
+
 ## Adding another country
 
 1. Add a `CuratedCountryId`, presentation profile, and immutable recipe in `countries.ts`.

@@ -510,6 +510,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm diff-state` | what moved between two states — read before blessing |
 | `pnpm bless` | re-bless golden snapshots after an intentional change |
 | `pnpm ranges` | measure a surveyed century; the input to dial faces |
+| `pnpm country-fuzz -- --cases 100 --ticks 400 --profile draft --policy random` | checked, replayable country-space exploration |
 | `pnpm stability -- --runs 120 --policy all --country all` | player-reachable macro tails through 2050 |
 | `pnpm export-feedback -- --runs 40 --openness all` | paired foreign-demand and household-feedback counterfactuals |
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
