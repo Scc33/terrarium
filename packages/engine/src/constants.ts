@@ -108,12 +108,29 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
  * authored by hand: rural workers already spend 48% on food and business
  * owners 20%. This table is that law over TIME, and it is what makes growth
  * and redistribution transform the economy rather than just enlarge it.
+ *
+ * CALIBRATED, not guessed, against the defect it exists to fix: before this,
+ * every country in the catalogue lost 6 to 10 points of service value-added
+ * share while getting five to eight times richer, which is the most robust
+ * regularity in structural change running backwards. Meridia now holds
+ * 33.6% → 33.0% across four hundred quarters against 34.2% → 26.9%.
+ *
+ * It stops at FLAT rather than rising, and the stopping point is a measured
+ * constraint rather than a preference. Services are staffed 60% by
+ * professionals and agriculture entirely by rural workers, while the class
+ * transition moves people rural → urban and into no other class — so demand
+ * moving toward services raises the RETURN to being a professional and never
+ * the NUMBER of them. Every point of correction is therefore bought with
+ * inequality: `services: 0.45` does make the share rise, and costs 7.4 Gini
+ * points and 21% developmental deposition against this setting's 5.8 and 15%.
+ * See `docs/investigations/0015`; that gap has to close before this can go
+ * further.
  */
 export const ENGEL_ELASTICITY: Record<SectorId, number> = {
-  agri: 0,
-  manuf: 0,
-  energy: 0,
-  services: 0,
+  agri: -0.35,
+  manuf: -0.15,
+  energy: -0.15,
+  services: 0.32,
   transport: 0,
 }
 
@@ -139,8 +156,8 @@ export const HOUSEHOLD_SUBSTITUTION = 1
 
 /** Bounds on `y / y_ref` before the Engel exponent, so a hyperinflationary
  * income collapse or a runaway century cannot drive a weight to a corner. */
-export const ENGEL_INCOME_RATIO_MIN = 0.25
-export const ENGEL_INCOME_RATIO_MAX = 16
+export const ENGEL_INCOME_RATIO_MIN = 0.1
+export const ENGEL_INCOME_RATIO_MAX = 64
 
 /** No sector ever leaves the basket. A weight of zero is a sector with no
  * household demand at all, which the Leontief solve reads as an economy that
@@ -987,11 +1004,12 @@ export const ELITE_ABSORB_CLAMP: [number, number] = [0.35, 1.2]
  * works and the extractive path stays genuinely tempting.
  *
  * It does NOT reproduce the full story of "new sectors cannot displace
- * incumbents' rents", and a weighted-by-sector version was tried and removed:
- * the engine's consumption weights are FIXED per cohort (no Engel shift), so
- * the services share of output is pinned by demand and cannot move in response
- * to productivity whatever the veto does. Making the transition itself
- * blockable needs endogenous demand composition, which is a separate change.
+ * incumbents' rents", and a weighted-by-sector version was tried and removed
+ * when the consumption weights were fixed per cohort and the services share of
+ * output could not move in response to productivity whatever the veto did.
+ * ADR-0029 unpinned that side, so the objection no longer holds on its
+ * original grounds — but the version that was removed has not been re-tried,
+ * and re-trying it is its own change with its own review.
  */
 
 // ---------- the statute book (ADR-0027) ----------

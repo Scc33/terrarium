@@ -77,7 +77,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // 0–100 one. A common face would put three of the four needles in the same
   // millimetre of dial and make the split unreadable — which is the opposite
   // of what a composition instrument is for.
-  consumption_share: { lo: 70, hi: 85 },
+  // Schema 35 widened the floor: with the basket answering to income
+  // (ADR-0029) a household buys more services per unit of real output, and
+  // consumption's share of expenditure now reaches p01 68.1 against the old
+  // 70 rail. Measured p01–p99 68.1–82.2, extrema 63.6–89.1.
+  consumption_share: { lo: 65, hi: 85 },
   investment_share: { lo: 0, hi: 10 },
   export_share: { lo: 5, hi: 30 },
   // Schema 24 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
@@ -85,7 +89,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // use the face rather than disappear into a generic 0–5 scale.
   fdi_inflows: { lo: 0, hi: 2 },
   inflation: { lo: -15, hi: 15 },
-  price_food: { lo: 50, hi: 160 },
+  // Schema 35: households leave the food aisle as they get richer, so food
+  // gets cheaper against the 1946 base than the old 50 rail allowed — and a
+  // hungry century still reaches past the old ceiling. Measured p01–p99
+  // 43.7–141.9, extrema 38.8–174.7.
+  price_food: { lo: 40, hi: 180 },
   price_fuel: { lo: 40, hi: 130 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
@@ -147,7 +155,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // runs past 400. The face covers the middle 98% and lets the filthiest
   // centuries peg, which is the point — going off this dial is information.
   pollution: { lo: 50, hi: 450 },
-  unrest: { lo: 0, hi: 60 },
+  // Schema 35: p01–p99 4.5–61.3, extrema −13.1–79.9. The top rail moved
+  // because a developing century now runs slightly hotter (ADR-0029 shifts
+  // demand toward the sector the richest working cohort staffs), not because
+  // the face was wrong before.
+  unrest: { lo: 0, hi: 70 },
 }
 
 /**
