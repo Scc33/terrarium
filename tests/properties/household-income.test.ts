@@ -1,18 +1,20 @@
 /**
- * Household income — the level, and who it reached.
+ * Household income — the level, poverty, and who it reached.
  *
  * The design claim these two instruments exist to make is that a Gini cannot
  * carry a level: it is a shape, so it cannot separate "everyone gained
  * unevenly" from "the top pulled away while the middle stood still". These
- * tests hold the arithmetic that makes the separation real, and the one
- * property that makes the pair worth two dials rather than one — that the
- * median/mean ratio moves for reasons the Gini does not have to agree with.
+ * tests hold the shared disposable-real worksheet behind all three, plus the
+ * equal-population split that makes a quintile mean what its label says.
  */
 
 import { describe, expect, it } from 'vitest'
 import {
   applyAction,
   giniIndex,
+  householdIncomeDistribution,
+  householdIncomeGroups,
+  INCOME_QUINTILE_IDS,
   init,
   generateParams,
   realIncomePerHead,
@@ -36,12 +38,12 @@ describe('the measure itself', () => {
     // as twenty million rural workers
     const s = century('income-mean', 24)
     const { mean } = realIncomePerHead(s)
-    const naive =
-      s.cohorts.reduce(
-        (a, c) => a + (c.wageIncome + c.transferIncome + c.profitIncome) / Math.max(c.size, 1e-9),
-        0,
-      ) / s.cohorts.length
+    const groups = householdIncomeGroups(s)
+    const weighted = groups.reduce((sum, group) => sum + group.population * group.realPerHead, 0)
+      / groups.reduce((sum, group) => sum + group.population, 0)
+    const naive = groups.reduce((sum, group) => sum + group.realPerHead, 0) / groups.length
     expect(mean).toBeGreaterThan(0)
+    expect(mean).toBeCloseTo(weighted, 12)
     expect(mean).not.toBeCloseTo(naive, 3)
   })
 
@@ -52,21 +54,19 @@ describe('the measure itself', () => {
     for (const seed of ['med-a', 'med-b', 'med-c']) {
       const s = century(seed, 60)
       const { median } = realIncomePerHead(s)
-      const perHead = s.cohorts
-        .filter((c) => c.size > 1e-9)
-        .map((c) => (c.wageIncome + c.transferIncome + c.profitIncome) / c.size)
-      expect(perHead.some((y) => Math.abs(y / median - 1) < 0.5), seed).toBe(true)
+      const perHead = householdIncomeGroups(s).map((group) => group.realPerHead)
+      expect(perHead).toContain(median)
     }
   })
 
   it('splits the population either side of the median cohort', () => {
     const s = century('med-split', 80)
     const { median } = realIncomePerHead(s)
-    const rows = s.cohorts.filter((c) => c.size > 1e-9)
-    const pop = rows.reduce((a, c) => a + c.size, 0)
+    const rows = householdIncomeGroups(s)
+    const pop = rows.reduce((a, group) => a + group.population, 0)
     const below = rows
-      .filter((c) => (c.wageIncome + c.transferIncome + c.profitIncome) / c.size < median)
-      .reduce((a, c) => a + c.size, 0)
+      .filter((group) => group.realPerHead < median)
+      .reduce((a, group) => a + group.population, 0)
     // strictly-poorer cohorts are under half the country; adding the median
     // cohort itself takes it over — that is what "the middle household" means
     expect(below).toBeLessThan(0.5 * pop)
@@ -78,9 +78,75 @@ describe('the measure itself', () => {
       ...s,
       cohorts: s.cohorts.map((c) => ({ ...c, wageIncome: 0, transferIncome: 0, profitIncome: 0 })),
     }
-    const { mean, median } = realIncomePerHead(stripped)
+    const distribution = householdIncomeDistribution(stripped)
+    const { mean, median } = distribution
     expect(Number.isFinite(mean)).toBe(true)
     expect(Number.isFinite(median)).toBe(true)
+    expect(distribution.povertyRate).toBe(1)
+    expect(distribution.povertyGap).toBe(1)
+  })
+
+  it('forms five ordered equal-population bins whose income shares sum to one', () => {
+    for (const seed of ['quintile-a', 'quintile-b', 'quintile-c']) {
+      const distribution = householdIncomeDistribution(century(seed, 80))
+      const incomes = INCOME_QUINTILE_IDS.map((id) => distribution.incomeQuintileReal[id])
+      const shares = INCOME_QUINTILE_IDS.map((id) => distribution.incomeQuintileShare[id])
+      expect(incomes.every(Number.isFinite), seed).toBe(true)
+      expect(shares.every((share) => share >= 0 && share <= 1), seed).toBe(true)
+      expect(shares.reduce((sum, share) => sum + share, 0), seed).toBeCloseTo(1, 12)
+      for (let i = 1; i < incomes.length; i++) {
+        expect(incomes[i], `${seed}: quintile ${i} was poorer than ${i - 1}`).toBeGreaterThanOrEqual(incomes[i - 1])
+      }
+    }
+  })
+
+  it('keeps poverty and its gap bounded, with the gap no larger than the headcount', () => {
+    for (const seed of ['poverty-a', 'poverty-b', 'poverty-c']) {
+      const { povertyRate, povertyGap } = householdIncomeDistribution(century(seed, 80))
+      expect(povertyRate).toBeGreaterThanOrEqual(0)
+      expect(povertyRate).toBeLessThanOrEqual(1)
+      expect(povertyGap).toBeGreaterThanOrEqual(0)
+      expect(povertyGap).toBeLessThanOrEqual(povertyRate)
+    }
+  })
+
+  it('does not make the distribution more unequal when every household income is scaled equally', () => {
+    const base = century('income-scale', 60)
+    const doubled: TrueState = {
+      ...base,
+      cohorts: base.cohorts.map((cohort) => ({
+        ...cohort,
+        wageIncome: 2 * cohort.wageIncome,
+        transferIncome: 2 * cohort.transferIncome,
+        profitIncome: 2 * cohort.profitIncome,
+      })),
+    }
+    const before = householdIncomeDistribution(base)
+    const after = householdIncomeDistribution(doubled)
+    expect(after.gini).toBeCloseTo(before.gini, 12)
+    for (const id of INCOME_QUINTILE_IDS) {
+      expect(after.incomeQuintileShare[id]).toBeCloseTo(before.incomeQuintileShare[id], 12)
+      expect(after.incomeQuintileReal[id]).toBeCloseTo(2 * before.incomeQuintileReal[id], 12)
+    }
+    expect(after.povertyRate).toBeLessThanOrEqual(before.povertyRate)
+    expect(after.povertyGap).toBeLessThanOrEqual(before.povertyGap)
+  })
+
+  it('records progress in the poverty gap before a grouped headcount necessarily crosses', () => {
+    const base = century('poverty-transfer', 40)
+    const lifted: TrueState = {
+      ...base,
+      cohorts: base.cohorts.map((cohort) => ({
+        ...cohort,
+        // A modest per-person transfer lifts every return without changing
+        // employment, prices or the population being counted.
+        transferIncome: cohort.transferIncome + 0.1 * cohort.size,
+      })),
+    }
+    const before = householdIncomeDistribution(base)
+    const after = householdIncomeDistribution(lifted)
+    expect(after.povertyRate).toBeLessThanOrEqual(before.povertyRate)
+    expect(after.povertyGap).toBeLessThan(before.povertyGap)
   })
 })
 

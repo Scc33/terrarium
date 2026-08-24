@@ -8,6 +8,7 @@ export {
   REVENUE_SOURCE_IDS,
   SECTOR_IDS,
   INDUSTRY_TABLE_IDS,
+  INCOME_QUINTILE_IDS,
   STATUTE_IDS,
   type IndicatorId,
   type IndicatorPoint,
@@ -15,6 +16,8 @@ export {
   // the production side, by industry — a fogged vector release, not a dial
   type IndustryPoint,
   type IndustryTableId,
+  type HouseholdIncomePoint,
+  type IncomeQuintileId,
   type SectorId,
   type Grade,
   type NewsItem,
