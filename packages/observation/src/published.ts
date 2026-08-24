@@ -13,6 +13,7 @@ import type {
   DialState,
   ElectionResult,
   GameRules,
+  HouseholdSurveyPrint,
   IndicatorId,
   IndustryPrint,
   InstitutionId,
@@ -32,6 +33,7 @@ import type {
 
 export {
   INDICATOR_IDS,
+  INCOME_QUINTILE_IDS,
   INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   OUTLAY_IDS,
@@ -48,7 +50,7 @@ export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId }
-export type { IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
+export type { IncomeQuintileId, IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
 
 /** One quarter of the government's own record of itself. */
 export type PolicyPoint = PolicyRecord & { tick: Qtr }
@@ -69,6 +71,9 @@ export interface IndicatorSeries {
  * establishment survey is funded. See `IndustryPrint` in the engine for why
  * this is a vector release rather than a family of indicators. */
 export type IndustryPoint = IndustryPrint
+
+/** One fogged household-budget survey release. */
+export type HouseholdIncomePoint = HouseholdSurveyPrint
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
@@ -196,6 +201,9 @@ export interface PublishedState {
    * unfunded survey says: the country has industries, the ministry has no
    * means of counting them apart. */
   industry: IndustryPoint[]
+  /** Household-budget survey, absent until the same enumerators that produce
+   * the Gini are funded. Five equal population bins, never true cohorts. */
+  households: HouseholdIncomePoint[]
   /** you always know your own settings */
   dials: DialState
   /** the statute book: the rules you have written, what each is costing to

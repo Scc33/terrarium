@@ -124,6 +124,12 @@ export const TRANSFER_SHARE: Record<CohortId, number> = {
   business_owners: 0,
 }
 
+/** One standard 1946 basket per person per quarter. This fixed real line is
+ * deliberately shared by every country and year: broad-based growth can lift
+ * people over it, while Gini and quintile shares carry the relative story.
+ * Calibrated across the authored-country catalogue for schema 35. */
+export const POVERTY_LINE_REAL = 1
+
 // ---------- fiscal ----------
 /** collection efficiency as a function of tax capacity: revenue = base × rate × eff */
 export const taxEfficiency = (capacity: number): number => Math.pow(Math.max(0, capacity), 0.6)
@@ -147,6 +153,10 @@ export const domesticBondFundingShare = (openness: number): number =>
 // ---------- capacity (Layer 2) ----------
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
+/** The household-budget survey is the statistical office's most demanding
+ * return. Poverty, inequality and the quintile books unlock together because
+ * they are three readings of the same enumerators' schedules. */
+export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
 /** Minimum statistical-office strength required to produce each series.
  * This is exported because the wall must explain the exact institution the
  * simulation is waiting for; one table keeps that promise from drifting. */
@@ -191,9 +201,10 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   conf_consumer: 0.45,
   conf_business: 0.45,
   approval: 0.25,
-  gini: 0.55,
+  gini: HOUSEHOLD_SURVEY_FUNDED_AT,
   // national accounts and a price index between them give you the average
   income_real: 0.45,
+  poverty_rate: HOUSEHOLD_SURVEY_FUNDED_AT,
   // border and civil-registration returns are reconciled with the same
   // population register that produces births and deaths
   net_migration: 0.3,
@@ -242,6 +253,13 @@ export const INDUSTRY_CENSUS_FUNDED_AT = 0.3
 export const INDUSTRY_VALUE_ADDED_SD = 0.06
 /** …and on the head count beside it, which an enumerator can actually count. */
 export const INDUSTRY_EMPLOYMENT_SD = 0.04
+/** First-print relative error on each quintile's real-income estimate. The
+ * five figures are ranked and reconciled into shares after noise is applied. */
+export const HOUSEHOLD_INCOME_SD = 0.08
+/** First-print relative error on the poverty gap. It is noisier than a total
+ * income estimate because it depends on each poor return's distance from the
+ * line, not merely which side of the line it falls on. */
+export const HOUSEHOLD_POVERTY_GAP_SD = 0.1
 /** neglect is a policy. This is institutional decay: school buildings and
  * teaching systems deteriorate. The people they already taught persist in
  * `demography.humanCapital`, which moves on its own generational clock. */
