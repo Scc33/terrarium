@@ -512,15 +512,41 @@ perfectly with no opinion about anything in the game. The first politics impleme
   per axis from the gridline step (`axisDecimals`). The same trap in reverse: rounding a range
   to a readable step can leave ONE label on the axis, and a chart with a single number up its
   side gives no scale at all — `niceTicks` refines the step until at least two fit.
-- **No lever in the game steers sector composition, and it is the demand side that blocks it.**
-  Household weights are fixed per cohort, which is Cobb-Douglas — unit price elasticity — so a
-  subsidy that lowers a sector's price raises real quantity one-for-one and leaves the nominal
-  expenditure share untouched *by construction*. Measured: a subsidy worth 5% of GDP every quarter
-  for sixty years moves its sector's value-added share 0.8–1.2 points, and a 60% tariff moves
-  composition 0.1 points while costing 6% of GDP. Do not answer issue #97 with a new lever; the
-  channel is blocked, and a lever on a blocked channel looks like steering. The same fixed weights
-  are why the service share FALLS as the country gets eight times richer, which is backwards. See
-  `docs/investigations/0013`.
+- **The basket is calibrated to the country it opens in, and that is what makes it inert**
+  (ADR-0030). `cohort.consumptionWeights` is the authored recipe; `effectiveConsumptionWeights` is
+  what the economy spends, and every reader goes through it — the `statuteForce` rule again. The
+  income term reads each cohort's own sealed 1946 standard, so every country opens on its recipe
+  and answers only to growth from there; the price term is neutral because prices open at 1. Both
+  exponents are zero at their neutral constants, which is how the mechanism shipped moving
+  `meta.schemaVersion` and nothing else, and then got calibrated under its own review.
+- **A seeded EMA must be seeded on the basis the step recomputes it on.** `init` seeded
+  `lastRealIncome` GROSS while `cohorts.run` computes it after income tax, so the habit walked down
+  a 3–9% basis change for its first years — and only for the cohorts that earn wages, so the
+  poorest inherited a standard of living they had never had and the richest inherited a correct
+  one. Invisible for as long as it was only a smoothing term; load-bearing the moment ADR-0030
+  sealed `engelReference` from it. The `0.99` beside it was already an attempt to absorb this and
+  was an order of magnitude too small.
+- **Only a country that develops pays for the income response, and passive is the check.** Fixing
+  the falling service share cost 15% developmental deposition against 9%, and left passive at 7%
+  and 2.84 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
+  the pollution baseline. If a retune moves passive, the basket has become a tax on existence.
+- **What it costs is inequality, and the cause is a supply-side gap.** Services are staffed 60% by
+  professionals, agriculture entirely by rural workers, and the class transition moves people
+  rural → urban and nowhere else — so demand shifting toward services raises the RETURN to being a
+  professional and never the NUMBER of them (Gini +5.8 points by 2046). The cost scales with
+  `ENGEL_ELASTICITY.services` and is insensitive to agriculture's, which is why it stops at 0.32
+  and the service share stops flat rather than rising. `docs/investigations/0015` has the cost
+  curve any fix has to reproduce.
+- **A price elasticity in the basket does not reach the industrial census — measured, not assumed.**
+  CES was implemented and swept over σ ∈ {1, 1.5, 2, 3}: the basket's response to a 25% price fall
+  rises monotonically (+6.1% → +10.3%) and the value-added share does not follow (+3.02 → +2.82
+  points), because household consumption is one part of final demand and a cheap sector is an input
+  to every other sector. `HOUSEHOLD_SUBSTITUTION` ships at 1 for that reason. **What actually binds
+  is that a deficit-financed subsidy RAISES the price it was meant to lower** — +3.4% on
+  agriculture, +12.9% on services — because the money lands in profits and the demand outweighs
+  the unit-cost relief; tax-funded, the same subsidy takes 21–33% off the price. Point the next
+  steerability attempt at the financing or at capital allocation, not at an elasticity.
+  `docs/investigations/0016`.
 - **A mechanism test and a baseline sweep measure different things, and a statute is where
   they diverge most.** `tests/properties/statutes.test.ts` protects tenure and funds the
   cabinet, deliberately, so that what it measures is the CHANNEL — and it reports the

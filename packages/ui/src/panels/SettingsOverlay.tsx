@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import type { SaveFile } from '@terrarium/engine'
-import type { PublishedState } from '@terrarium/observation'
+import { createHistoricalDataExport, type PublishedState } from '@terrarium/observation'
 import { Button, Modal } from '../components/ui'
 import { ProjectLinks } from '../components/ProjectLinks/ProjectLinks'
 import { useGame } from '../store/gameStore'
@@ -25,15 +25,25 @@ export function SettingsOverlay({
   const { save, loadSave } = useGame()
   const fileInput = useRef<HTMLInputElement>(null)
 
+  const downloadJson = (value: unknown, filename: string) => {
+    const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = filename
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
   const exportSave = () => {
     if (!save) return
-    const blob = new Blob([JSON.stringify(save, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `terrarium-${pub.country.toLowerCase()}-q${pub.tick}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    downloadJson(save, `terrarium-${pub.country.toLowerCase()}-q${pub.tick}.json`)
+  }
+
+  const exportData = () => {
+    if (!save) return
+    const record = createHistoricalDataExport(pub, save)
+    downloadJson(record, `terrarium-${pub.country.toLowerCase()}-q${pub.tick}-data.json`)
   }
 
   return (
@@ -41,6 +51,14 @@ export function SettingsOverlay({
       <div className="flex flex-col gap-2">
         <Button fullWidth className="justify-start text-left" onClick={exportSave} title="Download this game as a JSON file — it is just the seed and your decisions, and replays exactly.">
           EXPORT SAVE — seed + decision log, a few KB, perfectly replayable
+        </Button>
+        <Button
+          fullWidth
+          className="justify-start text-left"
+          onClick={exportData}
+          title="Download every figure published to this government, including revisions, industry and household surveys, quarterly books, census, policy, events, and the current public record."
+        >
+          EXPORT DATA — complete published history for outside analysis
         </Button>
         <Button fullWidth className="justify-start text-left" onClick={() => fileInput.current?.click()} title="Load a previously exported save file.">
           IMPORT SAVE — resume a filed game
@@ -84,7 +102,8 @@ export function SettingsOverlay({
         <div className="mt-2 border-t border-dossier-ink/15 pt-3">
           <p className="font-dossier text-[11px] italic leading-relaxed text-dossier-ink/60">
             Autosave runs every quarter. A save file is a bug report: if something looks wrong,
-            export it and attach it with a note about which quarter to inspect.
+            export it and attach it with a note about which quarter to inspect. The data file is
+            a versioned JSON record of what this government could know — never the hidden state.
           </p>
           <ProjectLinks surface="paper" className="mt-2" />
         </div>

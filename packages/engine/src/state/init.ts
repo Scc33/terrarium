@@ -23,6 +23,7 @@ import {
   LABOR_SHARE,
   LABOR_SOURCE,
   PC_START,
+  BOND_HOLDING,
   PROFIT_SHARE,
   RESERVES_INIT_QTRS,
   IMPORT_BASE_SHARE,
@@ -62,6 +63,7 @@ import {
   IMMIGRATION_LIMIT_DEFAULT,
   FERT_MAX,
   FDI_OPENING_OWNERSHIP_BASE,
+  FDI_PROFIT_REMIT_SHARE,
   TECH_ATTAINED_BASE,
   TECH_ATTAINED_DEV_GAIN,
   fdiStructuralAttraction,
@@ -238,6 +240,27 @@ export function init(
   }
   const transfersDelivered = spendingDials.transfers * adminEff
 
+  const demography = initialDemography(params)
+  const openingPopulation = demography.pyramid.reduce((sum, people) => sum + people, 0)
+  const foreignOwnedCapital0 =
+    capitalTotal0 *
+    Math.min(
+      0.3,
+      FDI_OPENING_OWNERSHIP_BASE *
+        fdiStructuralAttraction(openingPopulation, params.development, params.openness),
+    )
+
+  // Profits, and the slice of them that leaves the country. `production`
+  // computes this from the inherited foreign ownership on the very first tick
+  // and `cohorts.run` subtracts it before distributing, so a seed that handed
+  // households the whole pot would walk down one more basis change.
+  const profitTotal = (1 - LABOR_SHARE) * gdp0
+  const remittances0 =
+    FDI_PROFIT_REMIT_SHARE *
+    Math.min(1, foreignOwnedCapital0 / Math.max(capitalTotal0, 1e-9)) *
+    profitTotal *
+    (1 - 0.2 * taxEff)
+
   // cohort employment from the staffing matrix
   const cohorts: Cohort[] = COHORT_IDS.map((cid) => {
     const employedIn: Cohort['employedIn'] = {}
@@ -250,24 +273,64 @@ export function init(
         wageIncome += workers * wages[sid]
       }
     }
-    const profitTotal = (1 - LABOR_SHARE) * gdp0
-    const income =
-      wageIncome + profitTotal * PROFIT_SHARE[cid] + transfersDelivered * TRANSFER_SHARE[cid]
+    // Capital income on the SAME BASIS `cohorts.run` recomputes it: profits
+    // net of corporate tax, plus the coupon on the inherited debt. Seeded
+    // gross and coupon-less, the treasury booked the corporate tax as revenue
+    // AND the household booked it as income, and the bondholders' interest
+    // simply did not exist for one quarter — so the habit was 5-10% too high
+    // for business owners and 8-28% too LOW for retirees, who hold paper and
+    // earn no wages. Opposite signs, same bug as the wage leg below.
+    const profitIncome =
+      (profitTotal * (1 - 0.2 * taxEff) - remittances0) * PROFIT_SHARE[cid] +
+      interest0 * BOND_HOLDING[cid]
+    const size = params.cohortSizes[cid]
+    // The habitual standard of living, and every leg of it must be seeded on
+    // the SAME BASIS `cohorts.run` recomputes it on — wages after income tax,
+    // profits after corporate tax, plus the coupon — or the EMA spends its
+    // first years walking to a basis change rather than reacting to the
+    // economy. Each leg was wrong in a different direction and for a different
+    // cohort, which is why one is not enough: gross wages cost the wage
+    // earners 3-9%, gross profits gave business owners 5-10% they never got,
+    // and the missing coupon took 8-28% from retirees, who hold paper and earn
+    // no wages. `engelReference` is sealed from this, so a biased seed tips
+    // that cohort's basket permanently (ADR-0030) — and `growth` below reads
+    // it through the loss-aversion multiplier, which is what the 0.99 is for.
+    const incomeAfterTax =
+      wageIncome * (1 - 0.15 * taxEff) +
+      profitIncome +
+      transfersDelivered * TRANSFER_SHARE[cid]
+    // Opening wealth is a multiple of what the household actually has to live
+    // on, so it reads the SAME disposable figure — a hybrid of gross wages and
+    // net profits would recalibrate the war-bond inheritance for one cohort and
+    // not another, and `SAVINGS_DRAWDOWN` spends it from the first quarter.
+    const savings = incomeAfterTax * (cid === 'retirees' ? 8 : 1)
+    const lastRealIncome = incomeAfterTax * 0.99
     return {
       id: cid,
-      size: params.cohortSizes[cid],
+      size,
       employedIn,
       wageIncome,
       transferIncome: transfersDelivered * TRANSFER_SHARE[cid],
-      profitIncome: profitTotal * PROFIT_SHARE[cid],
-      savings: income * (cid === 'retirees' ? 8 : 1), // retirees hold war bonds
+      profitIncome,
+      savings, // retirees hold war bonds
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },
+      // Sealed from the SAME expression the Engel shift reads each quarter —
+      // disposable income per head, and WITHOUT the 0.99 above. That discount
+      // is a deliberate bias for one reader, the loss-aversion multiplier, and
+      // it must not reach these two: `cohorts.run` moves `engelIncome` toward
+      // the undiscounted truth while the reference would have stayed
+      // discounted, so the ratio converged on 1/0.99 and every basket drifted
+      // ~1% toward luxuries on a stationary economy that had earned nothing.
+      // Both fields take the same value, so the opening ratio is still exactly
+      // 1; prices open at 1 and the fuel dial at 0, so the price half is
+      // neutral too, and every country starts on the recipe it was written
+      // with.
+      engelReference: incomeAfterTax / Math.max(size, 1e-9),
+      engelIncome: incomeAfterTax / Math.max(size, 1e-9),
       approval: 0.55, // a modest honeymoon
       enfranchisement: params.enfranchisement[cid],
-      // slightly below true income so tick-0 bookkeeping shifts don't read
-      // as a recession through the loss-aversion multiplier
-      lastRealIncome: income * 0.99,
+      lastRealIncome,
       lastCpi: 1,
     }
   })
@@ -312,15 +375,6 @@ export function init(
     printedThisQtr: 0,
   }
 
-  const demography = initialDemography(params)
-  const openingPopulation = demography.pyramid.reduce((sum, people) => sum + people, 0)
-  const foreignOwnedCapital0 =
-    capitalTotal0 *
-    Math.min(
-      0.3,
-      FDI_OPENING_OWNERSHIP_BASE *
-        fdiStructuralAttraction(openingPopulation, params.development, params.openness),
-    )
 
   // the constitution is opened last, against the economy this function just
   // built — bloc power is read off agriculture's share, the credit stock and

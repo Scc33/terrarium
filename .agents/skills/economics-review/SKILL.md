@@ -135,6 +135,51 @@ The golden replays are NOT evidence here: they moved 3540 values and every one b
 Measured cost of doing nothing, capacity-building century on Meridia: real GDP −6.8 %, consumption
 per head −5.7 %, death rate +4.8 % by 2046 against the same run with a clean air act.
 
+### The household basket (schema 35, ADR-0030)
+
+Like pollution, this **moves the baseline on purpose**, and like pollution the split is the test.
+
+| 1000 × 400q | passive before | passive after | developmental before | developmental after |
+|---|---|---|---|---|
+| real growth %/yr | 2.82 | **2.84** | 3.05 | **3.02** |
+| mean inflation %/yr | 0.12 | **0.19** | −0.19 | **−0.11** |
+| unemployment % | 12.26 | **12.41** | 11.63 | **11.78** |
+| deposed | 6% | **7%** | 9% | **15%** |
+
+Random 120q is near-unmoved: 3.91 → 4.07 %/yr, 12.12 → 12.03 % unemployment, 29% → 29% deposed,
+
+The "after" column is measured on the tree with **schema 35 (poverty, ADR-0029) merged in**,
+since that landed on master first. Its own economic footprint is small — it moved the 40-quarter
+goldens by at most 0.12% (the gini, which it reworks) and 0.03% elsewhere — but it is what took
+developmental deposition from 17% to 15%, so do not attribute that last two points to the basket.
+no NaN, no price explosions.
+
+These "after" figures include a bookkeeping fix v35 forced into the open: `init` seeded
+`lastRealIncome` GROSS while `cohorts.run` recomputes it after income tax, a 3–9% basis step that
+fell only on wage-earning cohorts. `engelReference` is sealed from that field, so the anchor would
+have inherited the asymmetry. If you touch `init`'s cohort seeding, this is the invariant: the seed
+and `cohorts.run` must compute the same quantity the same way.
+
+**Passive holding still IS the calibration test.** The income term reads each cohort's own sealed
+1946 standard, so a do-nothing country never gets rich enough for it to bite. If a retune of
+`ENGEL_ELASTICITY` moves the passive column, the basket has stopped being a consequence of
+development and become a tax on existence — the same failure mode as reading the pollution burden
+against a global threshold.
+
+What the developmental column is paying for is inequality, not inflation: services are staffed 60%
+by professionals and the class transition cannot make more of them, so the Gini rises ~5.8 points
+by 2046. That cost scales with `ENGEL_ELASTICITY.services` and is nearly insensitive to
+agriculture's. Do not try to buy it back by softening the food elasticity — measured, that moves
+the Gini 0.3 points. `docs/investigations/0015`.
+
+Use **`pnpm composition`** as the evidence here, not the goldens: it runs investigation 0013's
+six arms in three tables (the isolated channel, the century transformation, and what a player
+with ordinary tenure actually gets). The number the fix exists to hold is Meridia's service
+value-added share at **33.7 → 33.2** across 400 quarters, against 34.2 → 26.9 before.
+
+`HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
+(`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a

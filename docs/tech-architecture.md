@@ -478,8 +478,14 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   a later appointment adds only the caretaker's own orders to the log (about 30 turns by 2005).
 - **Autosave** = append the turn's actions to the open save every tick. Crash recovery is free
   replay.
-- **Export/import** as a JSON blob — doubles as the bug-report format: a report is a save file
-  plus "look at Q83."
+- **Save export/import** as a JSON blob — doubles as the bug-report format: a report is a save
+  file plus "look at Q83."
+- **Published-data export** as a separate, versioned JSON artifact. It carries the replay inputs
+  as provenance, the current public desk, and normalized tables for every historical release and
+  revision, industrial census, household-budget survey, treasury book, head count, policy record,
+  wire item, and corridor point. It is assembled from `PublishedState`, never `TrueState`, so exporting during play cannot
+  become a way around the statistical fog. The format lives in `observation/src/dataExport.ts` so
+  future CLI or agent interfaces can consume the same contract rather than scraping the UI.
 - Replay cost is negligible (~7ms for a 60-quarter run), so no state snapshots are needed.
 
 ---
