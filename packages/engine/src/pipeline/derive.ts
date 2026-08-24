@@ -5,13 +5,18 @@ import {
   BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
   COMPETITION_CAPTURE_RELIEF,
+  CONSUMPTION_WEIGHT_FLOOR,
   CORRIDOR_HALF_WIDTH,
   DEBT_RISK_PREMIUM_AT,
   ELITE_CAPTURE_NEUTRAL,
   ELITE_VETO_ABSORB,
   ELITE_ABSORB_CLAMP,
+  ENGEL_ELASTICITY,
+  ENGEL_INCOME_RATIO_MAX,
+  ENGEL_INCOME_RATIO_MIN,
   EXPORT_BASE_SHARE,
   FIN_FAVOR_PREMIUM,
+  HOUSEHOLD_SUBSTITUTION,
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
   LIVING_STANDARD_1946,
@@ -751,10 +756,92 @@ export function minimumWageFloor(state: TrueState): number {
   return MINIMUM_WAGE_ANCHOR * force * (bill / heads)
 }
 
-/** Household own-basket price level for a cohort (base = 1). */
-export function cohortCpi(state: TrueState, cohortId: CohortId): number {
+/**
+ * What a cohort actually buys, as shares of its budget (ADR-0030). This is the
+ * vector every reader wants; `cohort.consumptionWeights` is the recipe it was
+ * authored with, and reading THAT is reading the announcement instead of the
+ * effect — the same rule as `statuteForce` against `gov.statutes`.
+ *
+ * Two multiplicative terms on the authored weight, renormalised once:
+ *
+ *   raw[i] = base[i] × (y / y_ref) ^ ENGEL_ELASTICITY[i]
+ *                    × effectivePrice(i) ^ (1 − HOUSEHOLD_SUBSTITUTION)
+ *
+ * The first is Engel: as a cohort's real income per head rises above the one
+ * it inherited, necessities lose share and luxuries gain it. The second is the
+ * CES nest: at σ = 1 the exponent is zero and this is Cobb-Douglas, which is
+ * where the engine started and why no price lever could steer composition
+ * (investigation 0013); above 1 a cheaper sector gains share of spending.
+ *
+ * Both are neutral at their neutral constants BY CONSTRUCTION — anything to
+ * the power zero is one — which is what let the mechanism ship inert and the
+ * two recalibrations be reviewed one at a time.
+ *
+ * Income is `engelIncome`, a PER-HEAD EMA of real income, so the basket moves
+ * with the trend rather than one quarter's pay packet and no simultaneity is
+ * created: the weights this quarter are a function of last quarter's income
+ * and this quarter's opening prices, both already on the state. It is its own
+ * field rather than `lastRealIncome / size` because that mixes a lagging
+ * aggregate with a current headcount — see the note on `Cohort.engelIncome`.
+ */
+export function effectiveConsumptionWeights(
+  state: TrueState,
+  cohortId: CohortId,
+): Record<SectorId, number> {
   const c = state.cohorts.find((x) => x.id === cohortId)!
+  const ratio = clamp(
+    c.engelIncome / Math.max(c.engelReference, 1e-9),
+    ENGEL_INCOME_RATIO_MIN,
+    ENGEL_INCOME_RATIO_MAX,
+  )
+  const priceExponent = 1 - HOUSEHOLD_SUBSTITUTION
+  const out = {} as Record<SectorId, number>
+  let total = 0
+  for (const sid of SECTOR_IDS) {
+    const engel = ENGEL_ELASTICITY[sid] === 0 ? 1 : Math.pow(ratio, ENGEL_ELASTICITY[sid])
+    const price = priceExponent === 0 ? 1 : Math.pow(effectivePrice(state, sid), priceExponent)
+    const raw = c.consumptionWeights[sid] * engel * price
+    // A non-finite raw falls back to the authored recipe WHOLESALE, and the
+    // test is on the value rather than `raw > 0`. Coercing it to zero instead
+    // does not fail loudly and does not fail safe: a sector whose elasticity
+    // is exactly zero keeps a finite weight through the same corruption, so
+    // the total stays above the guard, and the vector normalises to that one
+    // sector — measured, a NaN income put 96% of the household budget into
+    // transport, and every downstream finite check passed.
+    if (!Number.isFinite(raw)) return { ...c.consumptionWeights }
+    out[sid] = raw > 0 ? raw : 0
+    total += out[sid]
+  }
+  if (!Number.isFinite(total) || total <= 1e-9) return { ...c.consumptionWeights }
+  // The floor is applied AFTER normalising and only rebalances when it
+  // actually binds, so at the neutral constants this returns the authored
+  // weights bit for bit — which is what makes the inert proof available.
+  let floored = 0
+  let bound = false
+  for (const sid of SECTOR_IDS) {
+    out[sid] /= total
+    if (out[sid] < CONSUMPTION_WEIGHT_FLOOR) {
+      out[sid] = CONSUMPTION_WEIGHT_FLOOR
+      bound = true
+    }
+    floored += out[sid]
+  }
+  if (bound) for (const sid of SECTOR_IDS) out[sid] /= floored
+  return out
+}
+
+/**
+ * Household own-basket price level for a cohort (base = 1).
+ *
+ * Arithmetic over the CURRENT basket, not the CES exact cost-of-living index.
+ * The exact index is geometric at σ = 1, so adopting it would move every real
+ * income in the game on a change that is supposed to be inert — and this is
+ * anyway the index a statistical office reweighting its basket would publish,
+ * substitution bias and all.
+ */
+export function cohortCpi(state: TrueState, cohortId: CohortId): number {
+  const weights = effectiveConsumptionWeights(state, cohortId)
   let cpi = 0
-  for (const sid of SECTOR_IDS) cpi += c.consumptionWeights[sid] * effectivePrice(state, sid)
+  for (const sid of SECTOR_IDS) cpi += weights[sid] * effectivePrice(state, sid)
   return cpi
 }

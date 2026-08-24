@@ -230,7 +230,7 @@ export const INDICATOR_IDS = [
   'approval',
   'gini',
   'income_real',
-  /** population below the fixed real basic-needs line (ADR-0029) */
+  /** population below the fixed real basic-needs line (ADR-0030) */
   'poverty_rate',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
@@ -362,7 +362,24 @@ export interface Cohort {
   transferIncome: Money
   profitIncome: Money
   savings: Money
+  /** the basket this cohort was AUTHORED with — the recipe, not what it buys.
+   * `effectiveConsumptionWeights` is what the economy is subject to; read that
+   * (ADR-0030). Sums to 1. */
   consumptionWeights: Record<SectorId, Ratio> // sums to 1
+  /** real income per head at init, sealed. The Engel shift is measured against
+   * the country's OWN 1946 standard of living, so the basket opens exactly
+   * where its recipe put it and answers only to growth from there — the same
+   * inherited-baseline rule as `environment.baseline` (ADR-0030). */
+  engelReference: number
+  /** the smoothed standard of living the Engel shift actually reads, PER HEAD.
+   * Deliberately not `lastRealIncome / size`: that divides a lagging AGGREGATE
+   * EMA by a current headcount, so a cohort the urbanisation flow is draining
+   * looks richer than it is and one it is filling looks poorer — measured up to
+   * 4% at its worst over a century, entirely from membership moving. Kept as
+   * its own per-head EMA rather than re-basing `lastRealIncome`, because that
+   * one IS the habitual income households spend against and the main damper of
+   * the business cycle. */
+  engelIncome: number
   approval: Ratio
   enfranchisement: Ratio
   /** last tick's experienced real income (for growth calc) */
@@ -970,7 +987,7 @@ export interface StatsOffice {
    * than an `IndicatorId`, for the reasons on `IndustryPrint`. */
   industry: IndustryPrint[]
   /** household-budget survey releases, in publication order. Quintiles are a
-   * vector rather than five separate wall indicators (ADR-0029). */
+   * vector rather than five separate wall indicators (ADR-0030). */
   households: HouseholdSurveyPrint[]
   news: NewsItem[]
 }
@@ -1081,7 +1098,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 35 // v35: poverty and the household income distribution (ADR-0029)
+export const SCHEMA_VERSION = 36 // v36: the basket answers to income and relative price (ADR-0030)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

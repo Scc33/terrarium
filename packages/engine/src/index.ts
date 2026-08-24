@@ -263,6 +263,8 @@ export {
   discontentIndex,
   creativeDestruction,
   effectiveBlocPower,
+  effectiveConsumptionWeights,
+  effectivePrice,
   financierAnger,
   sovereignRiskPremium,
   bondIssuanceShare,
@@ -302,6 +304,12 @@ export {
   CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
   NATURAL_REAL_RATE,
+  // the household basket's own tables (ADR-0030). Exported so the mechanism
+  // test can assert the inert-when-off identity against the CONSTANTS rather
+  // than against a snapshot of them.
+  CONSUMPTION_WEIGHT_FLOOR,
+  ENGEL_ELASTICITY,
+  HOUSEHOLD_SUBSTITUTION,
   ELECTION_WIN_THRESHOLD,
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,

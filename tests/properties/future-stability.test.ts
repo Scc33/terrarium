@@ -117,7 +117,17 @@ describe('the playable economy through 2050', () => {
     // industrialises without ever legislating — the emissions standard is the
     // answer it does not use. Measured beside it, the `regulated` policy,
     // which does legislate, deposes 7% against developmental's 10%.
-    expect(passiveTrend.survivors).toBe(26)
+    //
+    // v35 (the basket, ADR-0030) gains the passive cohort one survivor and
+    // leaves developmental alone, which is worth a line because the 1000x400q
+    // batches move much further: developmental deposition goes 9% to 15%
+    // there. The passive gain is the `init` income-basis fix that shipped
+    // beside it — three legs of the opening habit were seeded on a different
+    // basis from the one `cohorts.run` recomputes them on, and the opening
+    // therefore read as a small recession nobody had. A fixed cohort of a few
+    // dozen runs cannot resolve seven points of deposition, so read this as a
+    // tail and explosion guard and the batch as the survival measurement.
+    expect(passiveTrend.survivors).toBe(27)
     expect(developmentalTrend.survivors).toBe(19)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,
