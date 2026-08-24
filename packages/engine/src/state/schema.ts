@@ -58,6 +58,12 @@ export const COHORT_IDS = [
 ] as const
 export type CohortId = (typeof COHORT_IDS)[number]
 
+/** Equal fifths of the population, ranked by real disposable income. These
+ * are survey bins, not socioeconomic cohorts: a large cohort may span more
+ * than one quintile, and a quintile may contain pieces of several cohorts. */
+export const INCOME_QUINTILE_IDS = ['lowest', 'second', 'middle', 'fourth', 'highest'] as const
+export type IncomeQuintileId = (typeof INCOME_QUINTILE_IDS)[number]
+
 /** the classes whose size is the non-retired population, split by share */
 export const WORKING_CLASS_IDS = [
   'rural_workers',
@@ -224,6 +230,8 @@ export const INDICATOR_IDS = [
   'approval',
   'gini',
   'income_real',
+  /** population below the fixed real basic-needs line (ADR-0029) */
+  'poverty_rate',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
   'net_migration',
@@ -780,6 +788,37 @@ export interface IndustryPrint {
   employment: Record<SectorId, number>
 }
 
+/**
+ * One household-budget survey release. The poverty-rate headline is a normal
+ * scalar indicator on the wall; this vector is the paperwork behind it: how
+ * national income is divided among five equal population groups, how much
+ * each fifth receives against the 1946 national mean, and how far below the
+ * basic-needs line the poor remain.
+ *
+ * The five figures are derived from the engine's socioeconomic cohorts but
+ * never expose those cohorts. They are lagged, noisy and revised like every
+ * other survey, and their shares sum to one because one release ranks and
+ * reconciles one set of household returns.
+ */
+export interface HouseholdSurveyPrint {
+  forQtr: Qtr
+  publishedAt: Qtr
+  revision: number
+  /** fractional half-width around each quintile income estimate; zero is the
+   * office's usual "cannot yet estimate the error" shrug */
+  incomeErrorBand: Ratio
+  /** absolute half-width around the poverty-gap ratio */
+  povertyGapErrorBand: Ratio
+  /** each quintile's real disposable income per head, national 1946 mean=100 */
+  incomeReal: Record<IncomeQuintileId, number>
+  /** share of total real disposable household income received by each fifth */
+  incomeShare: Record<IncomeQuintileId, Ratio>
+  /** mean normalized shortfall below the poverty line, counting non-poor as zero */
+  povertyGap: Ratio
+  /** fixed basic-needs line in the same national-1946-mean index as incomeReal */
+  povertyLine: number
+}
+
 /** One quarter's measurable truth, filed at measurement time. The office
  * revises against THIS worksheet later — and the capacity that existed when
  * the quarter happened decides forever whether it was surveyed at all. */
@@ -858,6 +897,13 @@ export interface StatRecord {
    * A LEVEL here; the published indicator indexes it against its own 1946
    * value. The level is the thing the Gini beside it cannot carry. */
   incomeMeanReal: Money
+  /** share below the fixed real basic-needs line */
+  povertyRate: Ratio
+  /** mean normalized shortfall below that line, non-poor counted as zero */
+  povertyGap: Ratio
+  /** the five equal-population groups behind the household-budget survey */
+  incomeQuintileReal: Record<IncomeQuintileId, Money>
+  incomeQuintileShare: Record<IncomeQuintileId, Ratio>
   /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
   birthRate: number
   deathRate: number
@@ -923,6 +969,9 @@ export interface StatsOffice {
   /** the industrial census, in publication order. A vector release rather
    * than an `IndicatorId`, for the reasons on `IndustryPrint`. */
   industry: IndustryPrint[]
+  /** household-budget survey releases, in publication order. Quintiles are a
+   * vector rather than five separate wall indicators (ADR-0029). */
+  households: HouseholdSurveyPrint[]
   news: NewsItem[]
 }
 
@@ -1032,7 +1081,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 34 // v34: the environment — pollution as a stock (ADR-0028)
+export const SCHEMA_VERSION = 35 // v35: poverty and the household income distribution (ADR-0029)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

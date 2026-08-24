@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 31. The short player-facing design is in
+*How the code is actually arranged, as of schema 35. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -172,7 +172,7 @@ interface TrueState {
   external: ExternalState      // partners, prices, reserves, FX, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
-  stats: StatsOffice           // prints, revision history, industrial census — the fog's own state
+  stats: StatsOffice           // prints, revisions, industry + household surveys — the fog's own state
   score: { discountedWelfare; discountWeight }   // accumulated as the run happens
 }
 ```
@@ -204,6 +204,7 @@ interface PublishedState {
                                    // unless rules.fullInstrumentation fits them all
   industry: IndustryPoint[]        // the industrial census: value added and employment by
                                    // sector, fogged. A VECTOR release, not an indicator (§3.2)
+  households: HouseholdIncomePoint[] // household quintiles + poverty gap, fogged (§3.2)
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
   policy: PolicyPoint[]            // …and what they were every quarter before now

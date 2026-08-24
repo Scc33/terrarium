@@ -336,7 +336,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
           { term: 'The wall', detail: 'The instruments, the ledger and the corridor plot. Everything you can see about the country.', meta: 'CENTRE' },
           { term: 'The cabinet', detail: 'Every lever, grouped by decision domain, with the draft-and-enact flow pinned below it.', meta: 'RIGHT' },
           { term: 'The wire', detail: 'Rumours and dispatches along the bottom. Some of them are wrong; that is the point.', meta: 'BOTTOM' },
-          { term: 'The offices', detail: 'Industry, accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
+          { term: 'The offices', detail: 'Households, industry, accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
         ],
       },
     ],
@@ -396,8 +396,9 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
       {
         heading: 'NOT EVERY SURVEY IS AN INSTRUMENT',
         body: [
-          'The office publishes one thing that is not a dial. The industrial census — in the industry office, on the header — reports what each industry produced and how many people it employed, and it is fogged exactly like everything else: gated on the same statistical capacity, released with the same lag, revised on the same schedule. It has no gauge because a share of the economy has no single honest face; a country that opens half agricultural and one that opens barely agricultural cannot be read against the same dial.',
+          'The office publishes two compositions that are not families of dials. The industrial census — in the industry office, on the header — reports what each industry produced and how many people it employed. The household survey ranks people into five equal fifths and reports each fifth’s real income and share of all household income. Both are fogged exactly like the wall: gated on statistical capacity, released with the same lag, revised on the same schedule.',
           'Because each industry is surveyed separately, the five figures do not add up to the published output, and the census states its own uncertainty per table rather than for the release: an enumerator can count heads at a factory gate and has to estimate what the factory made, so the jobs column is measured better than the output column and says so.',
+          'The household page keeps one quick poverty rate on the wall and the distribution behind it in the office. Poverty means income below one fixed real 1946 basket per person each quarter; the line does not rise when the country grows. The rate can move in steps because the economy models five classes rather than individual households, so the page also carries the poverty gap — how far below the line people remain — and that can improve before a whole class crosses.',
         ],
       },
       {

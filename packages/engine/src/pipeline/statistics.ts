@@ -10,17 +10,25 @@
 
 import { rngFor, type Seed } from '../rng/rng'
 import {
+  HOUSEHOLD_INCOME_SD,
+  HOUSEHOLD_POVERTY_GAP_SD,
+  HOUSEHOLD_SURVEY_FUNDED_AT,
   INDICATOR_FUNDED_AT,
   INDUSTRY_CENSUS_FUNDED_AT,
   INDUSTRY_EMPLOYMENT_SD,
   INDUSTRY_VALUE_ADDED_SD,
+  POVERTY_LINE_REAL,
 } from '../constants'
+import { clamp } from '../math'
 import {
+  INCOME_QUINTILE_IDS,
   INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
   STATUTE_IDS,
   type IndicatorId,
+  type HouseholdSurveyPrint,
+  type IncomeQuintileId,
   type IndustryPrint,
   type IndustryTableId,
   type NewsItem,
@@ -34,10 +42,9 @@ import type { PipelineStep } from './pipeline'
 import {
   approvalIndex,
   effectivePrice,
-  giniIndex,
+  householdIncomeDistribution,
   householdSavingRate,
   realConsumptionPerCapita,
-  realIncomePerHead,
   sectorValueAdded,
   technologyAttainment,
   termsOfTrade,
@@ -253,6 +260,18 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    // The headcount is an absolute basic-needs measure. Unlike the Gini it
+    // can fall when every household becomes richer without the distribution
+    // changing; unlike the income index it says how many people were left
+    // below the line.
+    id: 'poverty_rate',
+    trueValue: (h, q) => h[q].povertyRate * 100,
+    // Proportional sampling error keeps a low poverty rate from printing
+    // negative while remaining honest about a large poor population.
+    baseSd: 0.08,
+    relativeSd: true,
+  },
+  {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
@@ -331,6 +350,7 @@ const noiseScale = (cap: number) => 1 - 0.85 * cap
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
+  const households = householdIncomeDistribution(state)
   // the expenditure side: four non-negative claims on one quarter's output.
   // Consumption and exports come from the sector demand vectors, capital
   // formation is public and private together, and what is left of the state's
@@ -380,8 +400,12 @@ function recordOf(state: TrueState): StatRecord {
     approvalIndex: approvalIndex(state),
     priceFood: effectivePrice(state, 'agri'),
     priceFuel: effectivePrice(state, 'energy'),
-    gini: giniIndex(state),
-    incomeMeanReal: realIncomePerHead(state).mean,
+    gini: households.gini,
+    incomeMeanReal: households.mean,
+    povertyRate: households.povertyRate,
+    povertyGap: households.povertyGap,
+    incomeQuintileReal: { ...households.incomeQuintileReal },
+    incomeQuintileShare: { ...households.incomeQuintileShare },
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
     netMigrationRate:
@@ -574,6 +598,67 @@ function industryPrintsDue(
   return out
 }
 
+/**
+ * Household-budget survey releases. The office estimates five ranked real
+ * incomes, then reconciles their shares from that same set of estimates. That
+ * keeps the shares at exactly 100% and the quintile means ordered even though
+ * each underlying return carries independent sampling error.
+ */
+function householdPrintsDue(
+  record: StatRecord[],
+  publishedAt: number,
+  seed: Seed,
+  fullInstrumentation: boolean,
+): HouseholdSurveyPrint[] {
+  const out: HouseholdSurveyPrint[] = []
+  for (let r = 0; r < REVISION_DELAYS.length; r++) {
+    for (const lag of LAGS) {
+      const q = publishedAt - lag - REVISION_DELAYS[r]
+      if (q < 0 || q >= record.length) continue
+      const cap = record[q].statCapacity
+      if (!fullInstrumentation && cap < HOUSEHOLD_SURVEY_FUNDED_AT) continue
+      if (lagFor(cap) !== lag) continue
+
+      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const incomeSd = HOUSEHOLD_INCOME_SD * settling
+      const gapSd = HOUSEHOLD_POVERTY_GAP_SD * settling
+      const measuredIncome = INCOME_QUINTILE_IDS.map((id) => {
+        const rng = rngFor(seed, `obs:households:income:${id}:${q}:${r}`, 0)
+        return Math.max(0, record[q].incomeQuintileReal[id] * (1 + rng.normal(0, incomeSd)))
+      }).sort((a, b) => a - b)
+      const measuredTotal = measuredIncome.reduce((sum, value) => sum + value, 0)
+      const baseline = Math.max(record[0].incomeMeanReal, 1e-9)
+      const incomeReal = {} as Record<IncomeQuintileId, number>
+      const incomeShare = {} as Record<IncomeQuintileId, number>
+      for (let i = 0; i < INCOME_QUINTILE_IDS.length; i++) {
+        const id = INCOME_QUINTILE_IDS[i]
+        incomeReal[id] = 100 * measuredIncome[i] / baseline
+        incomeShare[id] = measuredTotal > 1e-9 ? measuredIncome[i] / measuredTotal : 0
+      }
+
+      const gapRng = rngFor(seed, `obs:households:poverty-gap:${q}:${r}`, 0)
+      const povertyGap = clamp(
+        record[q].povertyGap * (1 + gapRng.normal(0, gapSd)),
+        0,
+        1,
+      )
+      out.push({
+        forQtr: q,
+        publishedAt,
+        revision: r,
+        incomeErrorBand: cap >= 0.45 ? 1.96 * incomeSd : 0,
+        povertyGapErrorBand:
+          cap >= 0.45 ? 1.96 * gapSd * Math.abs(record[q].povertyGap) : 0,
+        incomeReal,
+        incomeShare,
+        povertyGap,
+        povertyLine: 100 * POVERTY_LINE_REAL / baseline,
+      })
+    }
+  }
+  return out
+}
+
 const NEWS_RULES: Array<{
   when(s: StatRecord): boolean
   tone: NewsItem['tone']
@@ -687,8 +772,18 @@ export const statistics: PipelineStep = {
     )
     const industry =
       censusDue.length > 0 ? [...state.stats.industry, ...censusDue] : state.stats.industry
+    const householdDue = householdPrintsDue(
+      record,
+      releaseDate,
+      seed,
+      state.meta.rules.fullInstrumentation,
+    )
+    const households =
+      householdDue.length > 0
+        ? [...state.stats.households, ...householdDue]
+        : state.stats.households
     const rumor = rumorFor(record[record.length - 1], seed)
     const news = rumor ? [...state.stats.news, rumor] : state.stats.news
-    return { ...state, stats: { record, series, industry, news } }
+    return { ...state, stats: { record, series, industry, households, news } }
   },
 }

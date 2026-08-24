@@ -467,6 +467,69 @@ test('financial overlay plots the position and the stance once surveyed', async 
   await expect(page).toHaveScreenshot('finance-overlay-banks.png')
 })
 
+test('household office shows poverty and both quintile views once surveyed', async ({ page }) => {
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page
+    .getByRole('combobox', { name: 'COUNTRY RECIPE' })
+    .selectOption({ label: 'Costona — The landowners’ settlement' })
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050' }).fill('1980')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  const count = page.getByRole('dialog', { name: 'THE COUNT' })
+  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+
+  await (await officeButton(page, 'HOUSEHOLDS')).click()
+  const households = page.getByRole('dialog', {
+    name: 'THE HOUSEHOLD OFFICE — INCOME AND POVERTY',
+  })
+  await expect(households.getByText('POVERTY RATE', { exact: true })).toBeVisible()
+  await expect(households.getByText('THE FIVE FIFTHS', { exact: true })).toBeVisible()
+
+  const fit = (await page.evaluate(`(() => {
+    const doc = document.scrollingElement;
+    const dialog = document.querySelector('[role="dialog"]');
+    const box = dialog?.getBoundingClientRect();
+    return {
+      horizontalPageScroll: (doc?.scrollWidth ?? 0) > (doc?.clientWidth ?? 0),
+      verticalPageScroll: (doc?.scrollHeight ?? 0) > (doc?.clientHeight ?? 0),
+      horizontalDialogScroll: (dialog?.scrollWidth ?? 0) > (dialog?.clientWidth ?? 0),
+      insideViewport:
+        box != null && box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight,
+    };
+  })()`)) as {
+    horizontalPageScroll: boolean
+    verticalPageScroll: boolean
+    horizontalDialogScroll: boolean
+    insideViewport: boolean
+  }
+  expect(fit).toEqual({
+    horizontalPageScroll: false,
+    verticalPageScroll: false,
+    horizontalDialogScroll: false,
+    insideViewport: true,
+  })
+
+  await page.mouse.move(0, 0)
+  await expect(page).toHaveScreenshot('households-income.png')
+
+  // The income figure is deliberately tall enough to read. Prove the rows
+  // and filing stamp remain reachable inside the modal's own scroll, without
+  // ever making the single-screen war room itself scroll.
+  const lastRow = households.getByRole('row', { name: /Highest fifth/ })
+  await lastRow.scrollIntoViewIfNeeded()
+  await expect(lastRow).toBeVisible()
+  const filingStamp = households.getByRole('contentinfo')
+  await filingStamp.scrollIntoViewIfNeeded()
+  await expect(filingStamp).toBeVisible()
+
+  await households.getByRole('button', { name: 'INCOME SHARE', exact: true }).click()
+  await expect(households.getByText('THIS SURVEY · SHARE OF INCOME', { exact: true })).toBeVisible()
+  await page.mouse.move(0, 0)
+  await expect(page).toHaveScreenshot('households-share.png')
+})
+
 test('census files net migration with the other population flows', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')
