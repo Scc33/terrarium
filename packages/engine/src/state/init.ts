@@ -315,13 +315,19 @@ export function init(
       savings, // retirees hold war bonds
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },
-      // Sealed from the SAME expression the Engel shift reads each quarter
-      // (real income per head), so the ratio is exactly 1 on the first tick
-      // and the basket opens on its authored weights. Prices open at 1 and the
-      // fuel dial at 0, so the price half is neutral at init too — every
-      // country in the catalogue starts on the recipe it was written with.
-      engelReference: lastRealIncome / Math.max(size, 1e-9),
-      engelIncome: lastRealIncome / Math.max(size, 1e-9),
+      // Sealed from the SAME expression the Engel shift reads each quarter —
+      // disposable income per head, and WITHOUT the 0.99 above. That discount
+      // is a deliberate bias for one reader, the loss-aversion multiplier, and
+      // it must not reach these two: `cohorts.run` moves `engelIncome` toward
+      // the undiscounted truth while the reference would have stayed
+      // discounted, so the ratio converged on 1/0.99 and every basket drifted
+      // ~1% toward luxuries on a stationary economy that had earned nothing.
+      // Both fields take the same value, so the opening ratio is still exactly
+      // 1; prices open at 1 and the fuel dial at 0, so the price half is
+      // neutral too, and every country starts on the recipe it was written
+      // with.
+      engelReference: incomeAfterTax / Math.max(size, 1e-9),
+      engelIncome: incomeAfterTax / Math.max(size, 1e-9),
       approval: 0.55, // a modest honeymoon
       enfranchisement: params.enfranchisement[cid],
       lastRealIncome,
