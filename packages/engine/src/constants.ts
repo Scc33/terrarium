@@ -113,7 +113,7 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
  * every country in the catalogue lost 6 to 10 points of service value-added
  * share while getting five to eight times richer, which is the most robust
  * regularity in structural change running backwards. Meridia now holds
- * 33.6% → 33.0% across four hundred quarters against 34.2% → 26.9%.
+ * 33.7% → 33.1% across four hundred quarters against 34.2% → 26.9%.
  *
  * It stops at FLAT rather than rising, and the stopping point is a measured
  * constraint rather than a preference. Services are staffed 60% by
@@ -122,7 +122,7 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
  * moving toward services raises the RETURN to being a professional and never
  * the NUMBER of them. Every point of correction is therefore bought with
  * inequality: `services: 0.45` does make the share rise, and costs 7.4 Gini
- * points and 21% developmental deposition against this setting's 5.8 and 15%.
+ * points and 21% developmental deposition against this setting's 5.8 and 16%.
  * See `docs/investigations/0015`; that gap has to close before this can go
  * further.
  */

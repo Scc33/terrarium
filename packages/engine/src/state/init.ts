@@ -254,9 +254,21 @@ export function init(
     const income =
       wageIncome + profitTotal * PROFIT_SHARE[cid] + transfersDelivered * TRANSFER_SHARE[cid]
     const size = params.cohortSizes[cid]
-    // slightly below true income so tick-0 bookkeeping shifts don't read
-    // as a recession through the loss-aversion multiplier
-    const lastRealIncome = income * 0.99
+    // The habitual standard of living, and it must be seeded on the SAME
+    // BASIS `cohorts.run` recomputes it on every quarter — wages AFTER income
+    // tax — or the EMA spends its first years walking down to a basis change
+    // rather than reacting to the economy. Seeded gross, the step was 3-9%
+    // and it fell only on the cohorts that earn wages: business owners and
+    // retirees have none, so the poorest cohorts inherited a habit they had
+    // never actually enjoyed while the richest inherited a correct one.
+    // `engelReference` is sealed from this, so a biased seed tips the whole
+    // basket (ADR-0029) — and `growth` below reads it through the
+    // loss-aversion multiplier, which is what the 0.99 is still for.
+    const incomeAfterTax =
+      wageIncome * (1 - 0.15 * taxEff) +
+      profitTotal * PROFIT_SHARE[cid] +
+      transfersDelivered * TRANSFER_SHARE[cid]
+    const lastRealIncome = incomeAfterTax * 0.99
     return {
       id: cid,
       size,

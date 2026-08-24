@@ -141,13 +141,19 @@ Like pollution, this **moves the baseline on purpose**, and like pollution the s
 
 | 1000 × 400q | passive before | passive after | developmental before | developmental after |
 |---|---|---|---|---|
-| real growth %/yr | 2.82 | **2.78** | 3.05 | **2.97** |
+| real growth %/yr | 2.82 | **2.83** | 3.05 | **3.01** |
 | mean inflation %/yr | 0.12 | **0.19** | −0.19 | **−0.11** |
-| unemployment % | 12.26 | **12.33** | 11.63 | **11.69** |
-| deposed | 6% | **6%** | 9% | **15%** |
+| unemployment % | 12.26 | **12.46** | 11.63 | **11.83** |
+| deposed | 6% | **7%** | 9% | **16%** |
 
-Random 120q is unmoved: 3.91 → 3.90 %/yr, 12.12 → 11.90 % unemployment, 29% → 30% deposed, no
-NaN, no price explosions.
+Random 120q is near-unmoved: 3.91 → 4.01 %/yr, 12.12 → 12.07 % unemployment, 29% → 29% deposed,
+no NaN, no price explosions.
+
+These "after" figures include a bookkeeping fix v35 forced into the open: `init` seeded
+`lastRealIncome` GROSS while `cohorts.run` recomputes it after income tax, a 3–9% basis step that
+fell only on wage-earning cohorts. `engelReference` is sealed from that field, so the anchor would
+have inherited the asymmetry. If you touch `init`'s cohort seeding, this is the invariant: the seed
+and `cohorts.run` must compute the same quantity the same way.
 
 **Passive holding still IS the calibration test.** The income term reads each cohort's own sealed
 1946 standard, so a do-nothing country never gets rich enough for it to bite. If a retune of
@@ -164,7 +170,7 @@ the Gini 0.3 points. `docs/investigations/0015`.
 Use **`pnpm composition`** as the evidence here, not the goldens: it runs investigation 0013's
 six arms in three tables (the isolated channel, the century transformation, and what a player
 with ordinary tenure actually gets). The number the fix exists to hold is Meridia's service
-value-added share at **33.6 → 33.0** across 400 quarters, against 34.2 → 26.9 before.
+value-added share at **33.7 → 33.1** across 400 quarters, against 34.2 → 26.9 before.
 
 `HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
 (`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.

@@ -102,12 +102,30 @@ interface Arm {
   /** re-issue every four quarters, to hold the order at a constant share of a
    * growing economy */
   reindexed?: boolean
+  /**
+   * Is this arm's defining policy ACTUALLY STANDING at the horizon?
+   *
+   * `runOne` is lenient by default, which is right for the shared capacity
+   * path — a ministry at full strength refuses more money and the runner
+   * shrugs. It is NOT right for the thing under test: a cabinet short of
+   * political capital has its `setDial` refused too, and the run then carries
+   * on and gets tabulated under a label like `tariff 60%` having never set a
+   * tariff. In a results table that reads as "the lever does nothing" rather
+   * than "the lever was never pulled" — the trap AGENTS.md records against
+   * lenient experiments, and the one `isolated()` avoids by charging no
+   * capital. Table 3 has to check instead, because refusal is the point of it.
+   */
+  standing?: (s: TrueState) => boolean
 }
 
 const subsidyArm = (sid: SectorId): Arm => ({
   id: `${sid} subsidy 5%GDP`,
   order: (s) => ({ kind: 'setDial', path: `subsidies.${sid}`, value: 0.05 * s.flows.nominalGdp }),
   reindexed: true,
+  // a re-indexed subsidy is standing only if it is still near the share it is
+  // supposed to be: a dial set once in 1948 and refused ever after is worth
+  // almost nothing by 2046, and would otherwise pass a `> 0` check
+  standing: (s) => (s.gov.dials.subsidies[sid] ?? 0) > 0.02 * s.flows.nominalGdp,
 })
 
 const ordersAt = (arm: Arm, tick: number): boolean =>
@@ -119,8 +137,16 @@ const ARMS: readonly Arm[] = [
   subsidyArm('agri'),
   subsidyArm('manuf'),
   subsidyArm('services'),
-  { id: 'tariff 60%', order: () => ({ kind: 'setDial', path: 'taxRates.tariff', value: 0.6 }) },
-  { id: 'free trade', order: () => ({ kind: 'setDial', path: 'taxRates.tariff', value: 0 }) },
+  {
+    id: 'tariff 60%',
+    order: () => ({ kind: 'setDial', path: 'taxRates.tariff', value: 0.6 }),
+    standing: (s) => s.gov.dials.taxRates.tariff > 0.5,
+  },
+  {
+    id: 'free trade',
+    order: () => ({ kind: 'setDial', path: 'taxRates.tariff', value: 0 }),
+    standing: (s) => s.gov.dials.taxRates.tariff < 0.01,
+  },
 ]
 
 /**
@@ -157,7 +183,10 @@ function isolated(seed: string, arm: Arm): Reading[] {
 }
 
 /** The player's run: ordinary pricing, ordinary tenure, ordinary refusals. */
-function played(seed: string, arm: Arm): { readings: Reading[]; deposedAt: number | null } {
+function played(
+  seed: string,
+  arm: Arm,
+): { reading: Reading; deposedAt: number | null; standing: boolean } {
   const policy: RunnerPolicy = (s, rng, tick) => [
     ...developmentalPolicy(s, rng, tick),
     ...(ordersAt(arm, tick) ? [arm.order!(s)] : []),
@@ -170,8 +199,13 @@ function played(seed: string, arm: Arm): { readings: Reading[]; deposedAt: numbe
     includeStateHash: false,
   })
   // trajectory carries no composition, so the horizon read comes off the final
-  // state; the arm is dropped when the government did not survive to it
-  return { readings: [read(run.finalState)], deposedAt: run.deposedAt }
+  // state; the arm is dropped when the government did not survive to it, and
+  // dropped again when its own order never took (see `Arm.standing`)
+  return {
+    reading: read(run.finalState),
+    deposedAt: run.deposedAt,
+    standing: arm.standing ? arm.standing(run.finalState) : true,
+  }
 }
 
 // ---------------------------------------------------------------- reporting
@@ -238,21 +272,37 @@ for (const mark of MARKS) {
 }
 
 // --- 3. what a player gets ------------------------------------------------
-console.log(`\n3. WHAT A PLAYER GETS — ordinary tenure and pricing, survivors only, q${TICKS}`)
-console.log([...HEAD, 'survived'.padStart(10)].join(' '))
+console.log(`\n3. WHAT A PLAYER GETS — ordinary tenure and pricing, q${TICKS}`)
+console.log(
+  'counted = survived AND the arm\'s own order is still standing; a refused order is not a',
+)
+console.log('measurement of the lever, and lenient mode does not say so on its own.')
+console.log([...HEAD, 'survived'.padStart(10), 'standing'.padStart(10)].join(' '))
 for (const arm of ARMS) {
   const runs = seeds.map((seed) => played(seed, arm))
   const alive = runs.filter((r) => r.deposedAt === null)
+  const counted = alive.filter((r) => r.standing)
+  const floor = Math.max(2, Math.ceil(0.4 * runs.length))
+  const enough = counted.length >= floor
+  // WHICH of the two filters emptied the sample is the whole information: a
+  // refused order means the lever was never measured, a deposed government
+  // means it was never survived, and reporting one as the other is the same
+  // way round as the mistake the standing check exists to prevent
+  const reason = alive.length < floor ? 'too few governments survived to the horizon' : 'the order was refused and never stood'
   console.log(
     [
       arm.id.padEnd(22),
       ...SECTOR_IDS.map((sid) =>
-        pct(median(alive.map((r) => r.readings[0].shares[sid]))).padStart(10),
+        (enough ? pct(median(counted.map((r) => r.reading.shares[sid]))) : '—').padStart(10),
       ),
-      num(median(alive.map((r) => r.readings[0].realGdp))).padStart(10),
+      (enough ? num(median(counted.map((r) => r.reading.realGdp))) : '—').padStart(10),
       `${alive.length}/${runs.length}`.padStart(10),
+      `${counted.length}/${alive.length}`.padStart(10),
     ].join(' '),
   )
+  if (!enough) {
+    console.log(`${''.padEnd(22)} ↑ no median reported — ${reason}`)
+  }
 }
 
 console.log(`\nwall time: ${((performance.now() - started) / 1000).toFixed(1)}s`)

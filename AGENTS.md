@@ -519,9 +519,16 @@ perfectly with no opinion about anything in the game. The first politics impleme
   and answers only to growth from there; the price term is neutral because prices open at 1. Both
   exponents are zero at their neutral constants, which is how the mechanism shipped moving
   `meta.schemaVersion` and nothing else, and then got calibrated under its own review.
+- **A seeded EMA must be seeded on the basis the step recomputes it on.** `init` seeded
+  `lastRealIncome` GROSS while `cohorts.run` computes it after income tax, so the habit walked down
+  a 3–9% basis change for its first years — and only for the cohorts that earn wages, so the
+  poorest inherited a standard of living they had never had and the richest inherited a correct
+  one. Invisible for as long as it was only a smoothing term; load-bearing the moment ADR-0029
+  sealed `engelReference` from it. The `0.99` beside it was already an attempt to absorb this and
+  was an order of magnitude too small.
 - **Only a country that develops pays for the income response, and passive is the check.** Fixing
-  the falling service share cost 15% developmental deposition against 9%, and left passive at 6%
-  and 2.78 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
+  the falling service share cost 16% developmental deposition against 9%, and left passive at 7%
+  and 2.83 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
   the pollution baseline. If a retune moves passive, the basket has become a tax on existence.
 - **What it costs is inequality, and the cause is a supply-side gap.** Services are staffed 60% by
   professionals, agriculture entirely by rural workers, and the class transition moves people

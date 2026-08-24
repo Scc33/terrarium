@@ -7,7 +7,9 @@ where `ENGEL_ELASTICITY` stops, so it is evidence for a shipped number rather th
 observation.
 
 **Measured at:** `d08d0ad`+ on 2026-08-23, Meridia, capacity-building government, 60 seeds ×
-400 quarters for the political columns and 1000 × 400 for the deposition rates.
+400 quarters for the political columns and 1000 × 400 for the deposition rates. The shipped row
+was re-measured after the `lastRealIncome` basis fix; the sweep rows were not, so compare them with
+each other rather than with the endpoints.
 
 ## The finding
 
@@ -37,7 +39,7 @@ Meridia, settled opening → q400; Gini and living standard are medians at q400;
 |---|---|---|---|---|---|---|
 | 0 (v34) | 0 | 34.2 → 26.9 | 0.456 | 3.47 | 6% | 9% |
 | +0.25 | −0.30 | 33.7 → 31.8 | 0.503 | 3.10 | — | — |
-| **+0.32** | **−0.35** | **33.6 → 33.0** | **0.514** | **3.00** | **6%** | **15%** |
+| **+0.32** | **−0.35** | **33.7 → 33.1** | **0.514** | **3.00** | **7%** | **16%** |
 | +0.45 | −0.35 | 33.5 → 34.6 | 0.527 | 2.88 | — | — |
 | +0.45 | −0.60 | 33.4 → 34.9 | 0.530 | 2.88 | 8% | 21% |
 
@@ -46,9 +48,11 @@ food onto manufacturing and energy (`agri −0.35` against `−0.60`, same servi
 by 0.3 points and deposition by two runs in sixty. **The services elasticity is the whole of it.**
 
 The passive column is the tell. A do-nothing country never gets rich enough for the income term to
-bite, so passive deposition is unchanged at 6% at the shipped setting — the same
-passive/developmental split ADR-0028 has, and for a related reason. Only a country that develops
-pays.
+bite, so passive deposition barely moves at the shipped setting — 6% to 7%, against a
+developmental 9% to 16% — the same passive/developmental split ADR-0028 has, and for a related
+reason. Only a country that develops pays. (The shipped row also carries the `lastRealIncome`
+basis fix landed alongside it; the intermediate rows were measured before it, so read the middle
+of this table for its SHAPE and the endpoints for their levels.)
 
 ## What was ruled out
 

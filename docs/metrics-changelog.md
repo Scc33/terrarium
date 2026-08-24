@@ -289,11 +289,16 @@ two shares side by side in a table, which is the only place the dual economy rea
   baseline to every digit.
 - **Then it moves the baseline, on purpose.** Every country used to shed 6–10 points of service
   value-added share across a century in which it got five to eight times richer; the fix raises the
-  attractor the catalogue converges into from ~25–31% to ~30–36%. Passive is unchanged at 6%
-  deposed (2.82 → 2.78 %/yr) because a do-nothing country never gets rich enough for the income
-  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 15%, and
+  attractor the catalogue converges into from ~25–31% to ~30–36%. Passive is near-unchanged at 7%
+  deposed (2.82 → 2.83 %/yr) because a do-nothing country never gets rich enough for the income
+  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 16%, and
   what it buys is inequality: services are staffed 60% by professionals and the class transition
   cannot make more of them (investigation 0015).
+- **One bookkeeping fix rides along, because this change made it load-bearing.** `init` seeded
+  `Cohort.lastRealIncome` from GROSS wage income while `cohorts.run` recomputes it from wages AFTER
+  income tax — a 3–9% basis step that the EMA spent its opening years walking down, and that fell
+  only on the cohorts which earn wages. `engelReference` is sealed from that field, so the anchor
+  inherited the asymmetry. Seeded on the same basis the step uses, both are right.
 - **`HOUSEHOLD_SUBSTITUTION` ships at 1**, deliberately. The CES half of issue #139 was
   implemented, swept over σ ∈ {1, 1.5, 2, 3} and rejected on measurement — the basket's price
   response rises exactly as the theory says while the industrial census does not follow it

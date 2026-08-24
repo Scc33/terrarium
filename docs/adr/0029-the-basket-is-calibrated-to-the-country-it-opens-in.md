@@ -97,8 +97,8 @@ change that touches every variable in the economy.
 ## Consequences
 
 **The catalogue's service share stops falling.** What the fix actually does is raise the
-*attractor* the catalogue converges into, from roughly 25–31% to 30–36%. Meridia holds 33.6 →
-33.0 across four hundred quarters. Veltravia (36.9 → 33.6) and Oranga (40.4 → 36.3) still fall,
+*attractor* the catalogue converges into, from roughly 25–31% to 30–36%. Meridia holds 33.7 →
+33.1 across four hundred quarters. Veltravia (37.1 → 33.7) and Oranga (40.0 → 36.0) still fall,
 because their recipes open above the demand-implied share and relax toward it — the same motion as
 before, to a destination that is no longer below where every country started.
 
@@ -107,12 +107,21 @@ before, to a destination that is no longer below where every country started.
 | | passive | | developmental | |
 |---|---|---|---|---|
 | | before | after | before | after |
-| real growth %/yr | 2.82 | 2.78 | 3.05 | 2.97 |
+| real growth %/yr | 2.82 | 2.83 | 3.05 | 3.01 |
 | mean inflation %/yr | 0.12 | 0.19 | −0.19 | −0.11 |
-| unemployment % | 12.26 | 12.33 | 11.63 | 11.69 |
-| deposed | 6% | **6%** | 9% | **15%** |
+| unemployment % | 12.26 | 12.46 | 11.63 | 11.83 |
+| deposed | 6% | **7%** | 9% | **16%** |
 
-Random 120q is unmoved (3.91 → 3.90 %/yr, 29% → 30% deposed, no NaN, no price explosions).
+Random 120q is near-unmoved (3.91 → 4.01 %/yr, 29% → 29% deposed, no NaN, no price explosions).
+
+The "after" column also carries a bookkeeping fix this change forced into the open, because
+`engelReference` is sealed from it: `init` seeded `lastRealIncome` from GROSS wage income while
+`cohorts.run` recomputes it from wages AFTER income tax, so the EMA spent its opening years walking
+down a 3–9% basis change. That step fell only on the cohorts that earn wages — business owners and
+retirees have none — so the poorest cohorts inherited a habitual standard they had never enjoyed
+while the richest inherited a correct one, and the Engel anchor would have inherited the same
+asymmetry. Seeded on the right basis, the opening no longer reads as a small recession through the
+loss-aversion multiplier, which is what `init`'s `0.99` was already trying and failing to absorb.
 
 **The passive column is the calibration test**, the same way the passive/developmental split is
 for pollution (ADR-0028). A do-nothing country never gets rich enough for the income term to bite,
