@@ -146,7 +146,7 @@ describe('the household basket', () => {
     // from roughly 25–31% to roughly 30–36%. So the bar is not "every country
     // rises": a country whose recipe opens ABOVE the demand-implied share
     // still relaxes down toward it, and Veltravia (37.0→33.9) and Oranga
-    // (39.8→36.1) do exactly that. That is convergence, and it is the same
+    // (39.7→36.1) do exactly that. That is convergence, and it is the same
     // motion it always was — the defect was that the destination was below
     // where every country started.
     //

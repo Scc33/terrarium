@@ -113,7 +113,7 @@ export const CONSUMPTION_WEIGHTS: Record<CohortId, Record<SectorId, number>> = {
  * every country in the catalogue lost 6 to 10 points of service value-added
  * share while getting five to eight times richer, which is the most robust
  * regularity in structural change running backwards. Meridia now holds
- * 33.6% → 33.2% across four hundred quarters against 34.2% → 26.9%.
+ * 33.7% → 33.2% across four hundred quarters against 34.2% → 26.9%.
  *
  * It stops at FLAT rather than rising, and the stopping point is a measured
  * constraint rather than a preference. Services are staffed 60% by

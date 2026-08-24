@@ -675,20 +675,20 @@ export function minimumWageFloor(state: TrueState): number {
  * the power zero is one — which is what let the mechanism ship inert and the
  * two recalibrations be reviewed one at a time.
  *
- * Income is read off `lastRealIncome`, the EMA the cohort already judges its
- * standard of living against, so the basket moves with the trend rather than
- * with one quarter's pay packet, and no simultaneity is created: the weights
- * this quarter are a function of last quarter's income and this quarter's
- * opening prices, both of them already on the state.
+ * Income is `engelIncome`, a PER-HEAD EMA of real income, so the basket moves
+ * with the trend rather than one quarter's pay packet and no simultaneity is
+ * created: the weights this quarter are a function of last quarter's income
+ * and this quarter's opening prices, both already on the state. It is its own
+ * field rather than `lastRealIncome / size` because that mixes a lagging
+ * aggregate with a current headcount — see the note on `Cohort.engelIncome`.
  */
 export function effectiveConsumptionWeights(
   state: TrueState,
   cohortId: CohortId,
 ): Record<SectorId, number> {
   const c = state.cohorts.find((x) => x.id === cohortId)!
-  const incomePerHead = c.lastRealIncome / Math.max(c.size, 1e-9)
   const ratio = clamp(
-    incomePerHead / Math.max(c.engelReference, 1e-9),
+    c.engelIncome / Math.max(c.engelReference, 1e-9),
     ENGEL_INCOME_RATIO_MIN,
     ENGEL_INCOME_RATIO_MAX,
   )

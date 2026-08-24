@@ -66,6 +66,22 @@ as a rich country that grew eightfold, which is not. The cross-sectional half of
 still authored by hand in `CONSUMPTION_WEIGHTS`, where rural workers spend 48% on food and
 business owners 20%.
 
+### The income it reads is per head, and kept as its own field
+
+`engelReference` is per head, so the thing compared against it must be too — and `lastRealIncome /
+size` is not, because it divides a LAGGING AGGREGATE EMA by a CURRENT headcount. A cohort the
+urbanisation flow is draining therefore looks richer than it is and one it is filling looks
+poorer, from membership moving rather than anyone's income changing. Measured, that reaches 1–4%
+at its worst over a century, and it is transient rather than a standing offset — but it points
+straight at the Engel term, so `Cohort.engelIncome` maintains the same 0.75/0.25 smoothing on a
+per-head basis instead.
+
+It is a separate field rather than a re-basing of `lastRealIncome` because that one is the
+habitual income households actually spend against, and the main damper of the business cycle —
+AGENTS.md records that the wage and employment gains were lowered until the cycle stopped
+resonating with the election period. Re-basing it is a calibration change, not a bookkeeping one,
+and it does not belong inside a demand-composition diff.
+
 ### `cohortCpi` stays arithmetic
 
 It is `Σ wᵢpᵢ` over the *current* basket, not the CES exact cost-of-living index. The exact index
@@ -98,7 +114,7 @@ change that touches every variable in the economy.
 
 **The catalogue's service share stops falling.** What the fix actually does is raise the
 *attractor* the catalogue converges into, from roughly 25–31% to 30–36%. Meridia holds 33.7 →
-33.2 across four hundred quarters. Veltravia (37.0 → 33.9) and Oranga (39.8 → 36.1) still fall,
+33.2 across four hundred quarters. Veltravia (37.0 → 33.9) and Oranga (39.7 → 36.1) still fall,
 because their recipes open above the demand-implied share and relax toward it — the same motion as
 before, to a destination that is no longer below where every country started.
 
@@ -107,12 +123,12 @@ before, to a destination that is no longer below where every country started.
 | | passive | | developmental | |
 |---|---|---|---|---|
 | | before | after | before | after |
-| real growth %/yr | 2.82 | 2.83 | 3.05 | 3.01 |
+| real growth %/yr | 2.82 | 2.84 | 3.05 | 3.02 |
 | mean inflation %/yr | 0.12 | 0.19 | −0.19 | −0.11 |
-| unemployment % | 12.26 | 12.39 | 11.63 | 11.76 |
+| unemployment % | 12.26 | 12.41 | 11.63 | 11.78 |
 | deposed | 6% | **7%** | 9% | **17%** |
 
-Random 120q is near-unmoved (3.91 → 4.05 %/yr, 29% → 29% deposed, no NaN, no price explosions).
+Random 120q is near-unmoved (3.91 → 4.07 %/yr, 29% → 29% deposed, no NaN, no price explosions).
 
 The "after" column also carries a bookkeeping fix this change forced into the open, because
 `engelReference` is sealed from it: `init` seeded `lastRealIncome` from GROSS wage income while

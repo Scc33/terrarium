@@ -363,6 +363,15 @@ export interface Cohort {
    * where its recipe put it and answers only to growth from there — the same
    * inherited-baseline rule as `environment.baseline` (ADR-0029). */
   engelReference: number
+  /** the smoothed standard of living the Engel shift actually reads, PER HEAD.
+   * Deliberately not `lastRealIncome / size`: that divides a lagging AGGREGATE
+   * EMA by a current headcount, so a cohort the urbanisation flow is draining
+   * looks richer than it is and one it is filling looks poorer — measured up to
+   * 4% at its worst over a century, entirely from membership moving. Kept as
+   * its own per-head EMA rather than re-basing `lastRealIncome`, because that
+   * one IS the habitual income households spend against and the main damper of
+   * the business cycle. */
+  engelIncome: number
   approval: Ratio
   enfranchisement: Ratio
   /** last tick's experienced real income (for growth calc) */

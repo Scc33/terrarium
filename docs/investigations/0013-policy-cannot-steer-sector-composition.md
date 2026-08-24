@@ -165,7 +165,7 @@ failing. The tool re-indexes annually.
 
 The falling service share was a modelling error and it is corrected. Household weights now shift
 with a cohort's real income (ADR-0029), which raises the attractor the catalogue converges into
-from roughly 25–31% to 30–36%. Meridia holds 33.6 → 33.2 across four hundred quarters against
+from roughly 25–31% to 30–36%. Meridia holds 33.7 → 33.2 across four hundred quarters against
 34.2 → 26.9. Countries that open ABOVE the demand-implied share still relax toward it — that is
 convergence, and the defect was that the destination sat below where every country started.
 

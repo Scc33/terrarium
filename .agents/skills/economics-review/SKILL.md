@@ -141,12 +141,12 @@ Like pollution, this **moves the baseline on purpose**, and like pollution the s
 
 | 1000 × 400q | passive before | passive after | developmental before | developmental after |
 |---|---|---|---|---|
-| real growth %/yr | 2.82 | **2.83** | 3.05 | **3.01** |
+| real growth %/yr | 2.82 | **2.84** | 3.05 | **3.02** |
 | mean inflation %/yr | 0.12 | **0.19** | −0.19 | **−0.11** |
-| unemployment % | 12.26 | **12.39** | 11.63 | **11.76** |
+| unemployment % | 12.26 | **12.41** | 11.63 | **11.78** |
 | deposed | 6% | **7%** | 9% | **17%** |
 
-Random 120q is near-unmoved: 3.91 → 4.05 %/yr, 12.12 → 12.01 % unemployment, 29% → 29% deposed,
+Random 120q is near-unmoved: 3.91 → 4.07 %/yr, 12.12 → 12.03 % unemployment, 29% → 29% deposed,
 no NaN, no price explosions.
 
 These "after" figures include a bookkeeping fix v35 forced into the open: `init` seeded
@@ -170,7 +170,7 @@ the Gini 0.3 points. `docs/investigations/0015`.
 Use **`pnpm composition`** as the evidence here, not the goldens: it runs investigation 0013's
 six arms in three tables (the isolated channel, the century transformation, and what a player
 with ordinary tenure actually gets). The number the fix exists to hold is Meridia's service
-value-added share at **33.6 → 33.2** across 400 quarters, against 34.2 → 26.9 before.
+value-added share at **33.7 → 33.2** across 400 quarters, against 34.2 → 26.9 before.
 
 `HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
 (`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.

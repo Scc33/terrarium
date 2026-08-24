@@ -268,7 +268,10 @@ two shares side by side in a table, which is the only place the dual economy rea
 
 ### schema 35 — The basket answers to income
 
-- **State +**: `Cohort.engelReference` — real income per head at init, sealed (ADR-0029). Nothing
+- **State +**: `Cohort.engelReference` (real income per head at init, sealed) and
+  `Cohort.engelIncome` (the per-head EMA compared against it) — ADR-0029. The second is a separate
+  field rather than `lastRealIncome / size` because that divides a lagging aggregate by a current
+  headcount, so a cohort urbanisation is draining reads as richer than it is. Nothing
   else changed shape: `cohort.consumptionWeights` still holds the authored recipe and still sums
   to 1. What changed is that **nothing reads it directly any more.** `production`, `cohorts` and
   `cohortCpi` all go through `effectiveConsumptionWeights(state, cohortId)`, which multiplies the
