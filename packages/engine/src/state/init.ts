@@ -23,6 +23,7 @@ import {
   LABOR_SHARE,
   LABOR_SOURCE,
   PC_START,
+  BOND_HOLDING,
   PROFIT_SHARE,
   RESERVES_INIT_QTRS,
   IMPORT_BASE_SHARE,
@@ -250,23 +251,33 @@ export function init(
         wageIncome += workers * wages[sid]
       }
     }
+    // Capital income on the SAME BASIS `cohorts.run` recomputes it: profits
+    // net of corporate tax, plus the coupon on the inherited debt. Seeded
+    // gross and coupon-less, the treasury booked the corporate tax as revenue
+    // AND the household booked it as income, and the bondholders' interest
+    // simply did not exist for one quarter — so the habit was 5-10% too high
+    // for business owners and 8-28% too LOW for retirees, who hold paper and
+    // earn no wages. Opposite signs, same bug as the wage leg below.
     const profitTotal = (1 - LABOR_SHARE) * gdp0
+    const profitIncome =
+      profitTotal * (1 - 0.2 * taxEff) * PROFIT_SHARE[cid] + interest0 * BOND_HOLDING[cid]
     const income =
-      wageIncome + profitTotal * PROFIT_SHARE[cid] + transfersDelivered * TRANSFER_SHARE[cid]
+      wageIncome + profitIncome + transfersDelivered * TRANSFER_SHARE[cid]
     const size = params.cohortSizes[cid]
-    // The habitual standard of living, and it must be seeded on the SAME
-    // BASIS `cohorts.run` recomputes it on every quarter — wages AFTER income
-    // tax — or the EMA spends its first years walking down to a basis change
-    // rather than reacting to the economy. Seeded gross, the step was 3-9%
-    // and it fell only on the cohorts that earn wages: business owners and
-    // retirees have none, so the poorest cohorts inherited a habit they had
-    // never actually enjoyed while the richest inherited a correct one.
-    // `engelReference` is sealed from this, so a biased seed tips the whole
-    // basket (ADR-0029) — and `growth` below reads it through the
-    // loss-aversion multiplier, which is what the 0.99 is still for.
+    // The habitual standard of living, and every leg of it must be seeded on
+    // the SAME BASIS `cohorts.run` recomputes it on — wages after income tax,
+    // profits after corporate tax, plus the coupon — or the EMA spends its
+    // first years walking to a basis change rather than reacting to the
+    // economy. Each leg was wrong in a different direction and for a different
+    // cohort, which is why one is not enough: gross wages cost the wage
+    // earners 3-9%, gross profits gave business owners 5-10% they never got,
+    // and the missing coupon took 8-28% from retirees, who hold paper and earn
+    // no wages. `engelReference` is sealed from this, so a biased seed tips
+    // that cohort's basket permanently (ADR-0029) — and `growth` below reads
+    // it through the loss-aversion multiplier, which is what the 0.99 is for.
     const incomeAfterTax =
       wageIncome * (1 - 0.15 * taxEff) +
-      profitTotal * PROFIT_SHARE[cid] +
+      profitIncome +
       transfersDelivered * TRANSFER_SHARE[cid]
     const lastRealIncome = incomeAfterTax * 0.99
     return {
@@ -275,7 +286,7 @@ export function init(
       employedIn,
       wageIncome,
       transferIncome: transfersDelivered * TRANSFER_SHARE[cid],
-      profitIncome: profitTotal * PROFIT_SHARE[cid],
+      profitIncome,
       savings: income * (cid === 'retirees' ? 8 : 1), // retirees hold war bonds
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },

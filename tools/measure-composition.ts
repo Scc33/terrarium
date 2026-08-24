@@ -2,7 +2,7 @@
  * Can policy steer what kind of country this is? — the repeatable form of
  * investigation 0013, and the regression check for ADR-0029.
  *
- *   pnpm composition -- --seeds 8 --ticks 240 --country meridia
+ *   pnpm composition -- --seeds 8 --ticks 400 --country meridia
  *
  * Three tables, and they answer three different questions. Reading one for
  * another's question is the mistake this file exists to make hard:
@@ -53,9 +53,18 @@ function arg(name: string, fallback: string): string {
 }
 
 const SEEDS = Number(arg('seeds', '8'))
-const TICKS = Number(arg('ticks', '240'))
+// 400 by default, because that is the horizon the claims this tool is cited
+// for are made at — the service-share regression in ADR-0029 and the
+// economics-review skill both quote a four-hundred-quarter figure, and a
+// default that stopped at 240 could not reproduce the evidence it is offered
+// as. Table 1 still reports the 0013 horizon as well, so the original
+// investigation stays comparable.
+const TICKS = Number(arg('ticks', '400'))
 const COUNTRY = arg('country', 'meridia') as CountryScenarioId
 const POLICY_AT = 8 // two years in, so the arms share an opening
+/** investigation 0013 published its six-arm table at 2006; keeping that
+ * horizon in table 1 is what makes any later run comparable with it */
+const LEGACY_HORIZON = 240
 
 if (!Number.isInteger(SEEDS) || SEEDS <= 0) throw new Error('--seeds must be a positive integer')
 if (!Number.isInteger(TICKS) || TICKS <= POLICY_AT) throw new Error(`--ticks must exceed ${POLICY_AT}`)
@@ -232,24 +241,28 @@ for (const arm of ARMS) {
   )
 }
 
-console.log(`\n1. THE CHANNEL — protected tenure, funded cabinet, value-added share at q${TICKS}`)
-console.log([...HEAD, 'd own share'.padStart(12)].join(' '))
 const passiveIsolated = isolatedRuns.get('passive')!
-for (const arm of ARMS) {
-  const runs = isolatedRuns.get(arm.id)!
-  const last = (rs: Reading[]) => rs[rs.length - 1]
-  const own = arm.id.includes('subsidy') ? (arm.id.split(' ')[0] as SectorId) : null
-  const delta = own
-    ? median(runs.map((rs, i) => last(rs).shares[own] - last(passiveIsolated[i]).shares[own]))
-    : NaN
-  console.log(
-    [
-      arm.id.padEnd(22),
-      ...SECTOR_IDS.map((sid) => pct(median(runs.map((rs) => last(rs).shares[sid]))).padStart(10)),
-      num(median(runs.map((rs) => last(rs).realGdp))).padStart(10),
-      (Number.isFinite(delta) ? `${delta >= 0 ? '+' : ''}${(100 * delta).toFixed(2)}pt` : '—').padStart(12),
-    ].join(' '),
-  )
+const HORIZONS = [...new Set([LEGACY_HORIZON, TICKS])].filter((t) => t <= TICKS).sort((a, b) => a - b)
+for (const horizon of HORIZONS) {
+  const note = horizon === LEGACY_HORIZON ? ' — investigation 0013\'s own horizon' : ''
+  console.log(`\n1. THE CHANNEL — protected tenure, funded cabinet, value-added share at q${horizon}${note}`)
+  console.log([...HEAD, 'd own share'.padStart(12)].join(' '))
+  const at = (rs: Reading[]) => rs[horizon - 1]
+  for (const arm of ARMS) {
+    const runs = isolatedRuns.get(arm.id)!
+    const own = arm.id.includes('subsidy') ? (arm.id.split(' ')[0] as SectorId) : null
+    const delta = own
+      ? median(runs.map((rs, i) => at(rs).shares[own] - at(passiveIsolated[i]).shares[own]))
+      : NaN
+    console.log(
+      [
+        arm.id.padEnd(22),
+        ...SECTOR_IDS.map((sid) => pct(median(runs.map((rs) => at(rs).shares[sid]))).padStart(10)),
+        num(median(runs.map((rs) => at(rs).realGdp))).padStart(10),
+        (Number.isFinite(delta) ? `${delta >= 0 ? '+' : ''}${(100 * delta).toFixed(2)}pt` : '—').padStart(12),
+      ].join(' '),
+    )
+  }
 }
 
 // --- 2. the transformation ------------------------------------------------

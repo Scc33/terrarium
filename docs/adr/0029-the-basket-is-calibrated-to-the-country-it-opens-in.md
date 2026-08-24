@@ -98,7 +98,7 @@ change that touches every variable in the economy.
 
 **The catalogue's service share stops falling.** What the fix actually does is raise the
 *attractor* the catalogue converges into, from roughly 25–31% to 30–36%. Meridia holds 33.7 →
-33.1 across four hundred quarters. Veltravia (37.1 → 33.7) and Oranga (40.0 → 36.0) still fall,
+33.2 across four hundred quarters. Veltravia (37.0 → 33.9) and Oranga (39.8 → 36.1) still fall,
 because their recipes open above the demand-implied share and relax toward it — the same motion as
 before, to a destination that is no longer below where every country started.
 
@@ -109,10 +109,10 @@ before, to a destination that is no longer below where every country started.
 | | before | after | before | after |
 | real growth %/yr | 2.82 | 2.83 | 3.05 | 3.01 |
 | mean inflation %/yr | 0.12 | 0.19 | −0.19 | −0.11 |
-| unemployment % | 12.26 | 12.46 | 11.63 | 11.83 |
-| deposed | 6% | **7%** | 9% | **16%** |
+| unemployment % | 12.26 | 12.39 | 11.63 | 11.76 |
+| deposed | 6% | **7%** | 9% | **17%** |
 
-Random 120q is near-unmoved (3.91 → 4.01 %/yr, 29% → 29% deposed, no NaN, no price explosions).
+Random 120q is near-unmoved (3.91 → 4.05 %/yr, 29% → 29% deposed, no NaN, no price explosions).
 
 The "after" column also carries a bookkeeping fix this change forced into the open, because
 `engelReference` is sealed from it: `init` seeded `lastRealIncome` from GROSS wage income while

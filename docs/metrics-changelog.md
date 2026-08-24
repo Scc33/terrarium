@@ -291,7 +291,7 @@ two shares side by side in a table, which is the only place the dual economy rea
   value-added share across a century in which it got five to eight times richer; the fix raises the
   attractor the catalogue converges into from ~25–31% to ~30–36%. Passive is near-unchanged at 7%
   deposed (2.82 → 2.83 %/yr) because a do-nothing country never gets rich enough for the income
-  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 16%, and
+  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 17%, and
   what it buys is inequality: services are staffed 60% by professionals and the class transition
   cannot make more of them (investigation 0015).
 - **One bookkeeping fix rides along, because this change made it load-bearing.** `init` seeded

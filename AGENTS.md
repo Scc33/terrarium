@@ -527,7 +527,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
   sealed `engelReference` from it. The `0.99` beside it was already an attempt to absorb this and
   was an order of magnitude too small.
 - **Only a country that develops pays for the income response, and passive is the check.** Fixing
-  the falling service share cost 16% developmental deposition against 9%, and left passive at 7%
+  the falling service share cost 17% developmental deposition against 9%, and left passive at 7%
   and 2.83 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
   the pollution baseline. If a retune moves passive, the basket has become a tax on existence.
 - **What it costs is inequality, and the cause is a supply-side gap.** Services are staffed 60% by
