@@ -28,6 +28,7 @@ import {
   type SectorId,
   type TrueState,
 } from '@terrarium/engine'
+import { validate } from '../../packages/engine/src/state/validate'
 
 /**
  * A capacity-building century with tenure protected, so what is measured is
@@ -165,6 +166,35 @@ describe('the household basket', () => {
     // demand side is actually pulling rather than the fall being damped
     for (const country of ['meridia', 'costona', 'kestrel'] as const) {
       expect(fell[country], `${country} service share, flat`).toBeLessThan(0.02)
+    }
+  })
+
+  it('fails safe AND loud when the income it reads is corrupt', () => {
+    // Both halves matter and they are different halves. `effectiveConsumptionWeights`
+    // must DEGRADE to the authored recipe, and `validate` must still SAY SO.
+    //
+    // The first version did neither. A non-finite income made every weight
+    // NaN, `raw > 0 ? raw : 0` coerced them to zero — and the one sector whose
+    // Engel elasticity is exactly zero kept a finite weight through the same
+    // corruption, so the total stayed above the empty-vector guard and the
+    // vector normalised onto that sector alone. Measured: 96% of the household
+    // budget in transport, every downstream finite check passing, and the
+    // invariant sweep silent. A guard that converts NaN to a number is not a
+    // guard, it is a laundry.
+    const opening = init(createCountryParams('meridia', 'nan'), 'nan')
+    for (const field of ['engelIncome', 'engelReference'] as const) {
+      const corrupt: TrueState = {
+        ...opening,
+        cohorts: opening.cohorts.map((c, i) => (i === 0 ? { ...c, [field]: NaN } : c)),
+      }
+      const id = corrupt.cohorts[0].id
+      const w = effectiveConsumptionWeights(corrupt, id)
+      for (const sid of SECTOR_IDS) {
+        expect(w[sid], `${field}/${sid} falls back to the recipe`).toBe(
+          corrupt.cohorts[0].consumptionWeights[sid],
+        )
+      }
+      expect(() => validate(corrupt), `${field} is reported`).toThrow(field)
     }
   })
 

@@ -801,10 +801,18 @@ export function effectiveConsumptionWeights(
     const engel = ENGEL_ELASTICITY[sid] === 0 ? 1 : Math.pow(ratio, ENGEL_ELASTICITY[sid])
     const price = priceExponent === 0 ? 1 : Math.pow(effectivePrice(state, sid), priceExponent)
     const raw = c.consumptionWeights[sid] * engel * price
+    // A non-finite raw falls back to the authored recipe WHOLESALE, and the
+    // test is on the value rather than `raw > 0`. Coercing it to zero instead
+    // does not fail loudly and does not fail safe: a sector whose elasticity
+    // is exactly zero keeps a finite weight through the same corruption, so
+    // the total stays above the guard, and the vector normalises to that one
+    // sector — measured, a NaN income put 96% of the household budget into
+    // transport, and every downstream finite check passed.
+    if (!Number.isFinite(raw)) return { ...c.consumptionWeights }
     out[sid] = raw > 0 ? raw : 0
     total += out[sid]
   }
-  if (!(total > 1e-9)) return { ...c.consumptionWeights }
+  if (!Number.isFinite(total) || total <= 1e-9) return { ...c.consumptionWeights }
   // The floor is applied AFTER normalising and only rebalances when it
   // actually binds, so at the neutral constants this returns the authored
   // weights bit for bit — which is what makes the inert proof available.

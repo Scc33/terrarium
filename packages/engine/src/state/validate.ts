@@ -61,6 +61,12 @@ export function validate(state: TrueState): void {
     // actually spends, and a NaN in it silently zeroes a sector's demand
     // rather than throwing anywhere (ADR-0030).
     finite(c.engelReference, `engelReference[${c.id}]`)
+    // Checked on the INPUT as well as the output, because the derived vector
+    // degrades to the authored recipe when the income is corrupt — which is
+    // the right thing for the economy and the wrong thing for an invariant
+    // sweep, since every finite check downstream would then pass while the
+    // EMA stayed broken for the rest of the run.
+    finite(c.engelIncome, `engelIncome[${c.id}]`)
     const effective = effectiveConsumptionWeights(state, c.id)
     let eSum = 0
     for (const sid of SECTOR_IDS) {
