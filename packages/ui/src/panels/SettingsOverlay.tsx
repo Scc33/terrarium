@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import type { SaveFile } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { Button, Modal } from '../components/ui'
+import { ProjectLinks } from '../components/ProjectLinks/ProjectLinks'
 import { useGame } from '../store/gameStore'
 
 export function SettingsOverlay({
@@ -80,9 +81,12 @@ export function SettingsOverlay({
             e.target.value = ''
           }}
         />
-        <div className="mt-2 font-dossier text-[11px] italic leading-relaxed text-dossier-ink/60">
-          Autosave runs every quarter. A save file is a bug report: if something looks wrong,
-          export and send it with a note about which quarter to look at.
+        <div className="mt-2 border-t border-dossier-ink/15 pt-3">
+          <p className="font-dossier text-[11px] italic leading-relaxed text-dossier-ink/60">
+            Autosave runs every quarter. A save file is a bug report: if something looks wrong,
+            export it and attach it with a note about which quarter to inspect.
+          </p>
+          <ProjectLinks surface="paper" className="mt-2" />
         </div>
       </div>
     </Modal>
