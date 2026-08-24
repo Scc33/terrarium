@@ -115,6 +115,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   approval: { lo: 20, hi: 80 },
   gini: { lo: 20, hi: 60 },
   income_real: 'ratchet',
+  // Schema 35, 12 seeds × 6 countries × 400 funded quarters: p01–p99
+  // 6.4–24.1%, extrema 5.7–45.8. Poverty cannot go below zero; the 50% rail
+  // clears the measured maximum while leaving the ordinary range legible.
+  poverty_rate: { lo: 0, hi: 50 },
   // Measured across the all-country funded century: -11.9..12.1, with
   // p01 -8.0 and p99 9.6. Keep zero centered: the sign is the story.
   net_migration: { lo: -15, hi: 15 },

@@ -45,6 +45,7 @@ describe('the published-state contract (§1.1)', () => {
       'rules',
       'indicators',
       'industry',
+      'households',
       'dials',
       'spendingRules',
       'statutes',
@@ -166,6 +167,22 @@ describe('the published-state contract (§1.1)', () => {
         expect(print.valueAdded[id]).not.toBe(truth[id].valueAdded)
         expect(print.employment[id]).not.toBe(truth[id].employment)
       }
+    }
+  })
+
+  it('the household distribution crosses as survey returns, never as exact cohorts', () => {
+    const state = play('contract-households', 30, 1)
+    const pub = observe(state)
+    expect(pub.households.length).toBeGreaterThan(0)
+    for (const print of pub.households) {
+      expect(print.forQtr).toBeLessThan(pub.tick)
+      expect(print.publishedAt).toBeGreaterThan(print.forQtr)
+      const truth = state.stats.record[print.forQtr]
+      const baseline = state.stats.record[0].incomeMeanReal
+      const exact = Object.entries(print.incomeReal).every(([id, value]) =>
+        value === 100 * truth.incomeQuintileReal[id as keyof typeof truth.incomeQuintileReal] / baseline,
+      )
+      expect(exact).toBe(false)
     }
   })
 
