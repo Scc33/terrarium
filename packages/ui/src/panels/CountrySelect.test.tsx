@@ -4,6 +4,7 @@ import { APPOINTMENTS, COUNTRY_CATALOG, GAME_RULE_IDS } from '@terrarium/engine'
 import { CountrySelect } from './CountrySelect'
 import { RULE_COPY } from '../gameRules'
 import { draftFrom } from '../countryDraft'
+import { NEW_ISSUE_URL, REPOSITORY_URL } from '../components/ProjectLinks/ProjectLinks'
 
 const noop = () => {}
 const props = {
@@ -55,6 +56,13 @@ describe('country selection', () => {
     expect(html).toContain('THE DRAFTING ROOM')
     expect(html).toContain('OPEN A NEW FILE')
     expect(html).toContain('FILE A DOSSIER FROM THE POUCH')
+  })
+
+  it('links the posting room to the public source and issue reporter', () => {
+    const html = renderToStaticMarkup(<CountrySelect {...props} />)
+
+    expect(html).toContain(`href="${REPOSITORY_URL}"`)
+    expect(html).toContain(`href="${NEW_ISSUE_URL}"`)
   })
 
   it('shows a filed draft on the shelf, and never claims a difficulty for it', () => {
