@@ -135,6 +135,40 @@ The golden replays are NOT evidence here: they moved 3540 values and every one b
 Measured cost of doing nothing, capacity-building century on Meridia: real GDP −6.8 %, consumption
 per head −5.7 %, death rate +4.8 % by 2046 against the same run with a clean air act.
 
+### The household basket (schema 35, ADR-0029)
+
+Like pollution, this **moves the baseline on purpose**, and like pollution the split is the test.
+
+| 1000 × 400q | passive before | passive after | developmental before | developmental after |
+|---|---|---|---|---|
+| real growth %/yr | 2.82 | **2.78** | 3.05 | **2.97** |
+| mean inflation %/yr | 0.12 | **0.19** | −0.19 | **−0.11** |
+| unemployment % | 12.26 | **12.33** | 11.63 | **11.69** |
+| deposed | 6% | **6%** | 9% | **15%** |
+
+Random 120q is unmoved: 3.91 → 3.90 %/yr, 12.12 → 11.90 % unemployment, 29% → 30% deposed, no
+NaN, no price explosions.
+
+**Passive holding still IS the calibration test.** The income term reads each cohort's own sealed
+1946 standard, so a do-nothing country never gets rich enough for it to bite. If a retune of
+`ENGEL_ELASTICITY` moves the passive column, the basket has stopped being a consequence of
+development and become a tax on existence — the same failure mode as reading the pollution burden
+against a global threshold.
+
+What the developmental column is paying for is inequality, not inflation: services are staffed 60%
+by professionals and the class transition cannot make more of them, so the Gini rises ~5.8 points
+by 2046. That cost scales with `ENGEL_ELASTICITY.services` and is nearly insensitive to
+agriculture's. Do not try to buy it back by softening the food elasticity — measured, that moves
+the Gini 0.3 points. `docs/investigations/0015`.
+
+Use **`pnpm composition`** as the evidence here, not the goldens: it runs investigation 0013's
+six arms in three tables (the isolated channel, the century transformation, and what a player
+with ordinary tenure actually gets). The number the fix exists to hold is Meridia's service
+value-added share at **33.6 → 33.0** across 400 quarters, against 34.2 → 26.9 before.
+
+`HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
+(`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a

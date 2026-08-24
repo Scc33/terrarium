@@ -1,6 +1,8 @@
 # 0013 — No lever in the game can steer sector composition, and the service share falls as the country gets rich
 
-**Status:** Open
+**Status:** Resolved — see the resolution at the foot of this file. Result 2 was a modelling
+error and is FIXED (ADR-0029). Result 1 was right about the symptom and wrong about the cause;
+the cause is in [0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md).
 
 **Raised by:** issue #97 ("if I wanted to become an export driven economy how would I do that?"), while
 scoping a steerability statute for the statute book (ADR-0027). The statute was not written: the
@@ -146,3 +148,48 @@ read, which is the ADR-0008 argument.
 Before doing either, re-measure: these numbers were taken with unlimited political capital and
 protected tenure, which is right for isolating a channel and wrong for saying what a player
 experiences.
+
+---
+
+## Resolution (2026-08-23, schema 35)
+
+Both halves were re-measured with `pnpm composition`, which is this investigation's method turned
+into a tool — the numbers above were taken by hand on a branch and nothing in the repo could
+reproduce them. It replicates the table to within a decimal, and it found one methodological
+error in doing so: **a subsidy dial set once is not a sustained subsidy.** Nominal GDP rises
+fortyfold over the century, so a cash figure posted in 1948 is worth almost nothing by 2006. Set
+once, the arms move 0.13–0.33 points rather than 0.8–1.2 — the lever switching itself off, not
+failing. The tool re-indexes annually.
+
+### Result 2 — FIXED
+
+The falling service share was a modelling error and it is corrected. Household weights now shift
+with a cohort's real income (ADR-0029), which raises the attractor the catalogue converges into
+from roughly 25–31% to 30–36%. Meridia holds 33.6 → 33.0 across four hundred quarters against
+34.2 → 26.9. Countries that open ABOVE the demand-implied share still relax toward it — that is
+convergence, and the defect was that the destination sat below where every country started.
+
+It stops at flat rather than rising, and the reason is measured:
+[0015](0015-a-service-economy-cannot-make-professionals.md).
+
+### Result 1 — right symptom, wrong cause
+
+This investigation attributed the missing steering to Cobb-Douglas unit price elasticity. That
+diagnosis was implemented as CES, swept over σ ∈ {1, 1.5, 2, 3}, and **rejected on measurement.**
+Two corrections:
+
+- **Cobb-Douglas pins the NOMINAL expenditure share, not the REAL value-added share.** Under unit
+  elasticity a price fall raises real quantity one-for-one, so a response to a price lever was
+  there all along. Raising σ raises the basket's response exactly as the theory says (+6.1% →
+  +10.3%) and the industrial census does not follow (+3.02 → +2.82 points): household consumption
+  is one part of final demand, and a cheap sector is an input to every other sector.
+- **What was actually binding is that a deficit-financed subsidy raises the price it was meant to
+  lower** — +3.4% on agriculture, +12.9% on services, because the money lands in profits and the
+  demand it creates outweighs the unit-cost relief. Paid for with tax, the same subsidy takes
+  21–33% off the sector's price and its composition effect nearly doubles. Nobody had measured
+  this, and it is why "the levers do not move composition" looked like an elasticity problem.
+
+The conclusion this investigation reached about #97 — that a steerability statute would have been
+a lever on a blocked channel — **still stands**, and so does the advice not to ship one yet. What
+changes is where to point the next attempt. Full evidence and three candidate directions:
+[0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md).

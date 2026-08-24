@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 34)
+## Current contract (schema 35)
 
 ### Inputs
 
@@ -265,6 +265,39 @@ two shares side by side in a table, which is the only place the dual economy rea
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 35 — The basket answers to income
+
+- **State +**: `Cohort.engelReference` — real income per head at init, sealed (ADR-0029). Nothing
+  else changed shape: `cohort.consumptionWeights` still holds the authored recipe and still sums
+  to 1. What changed is that **nothing reads it directly any more.** `production`, `cohorts` and
+  `cohortCpi` all go through `effectiveConsumptionWeights(state, cohortId)`, which multiplies the
+  recipe by an income term and a relative-price term and renormalises — the same
+  posted-rule-vs-effect split as `statuteForce` against `gov.statutes`.
+- **Pipeline —**: unchanged. No step added, none reordered, so this is **not** a step-order event
+  (ADR-0005) and no RNG substream moved.
+- **Inputs —**: no new lever, no new dial, no new statute, no new country parameter. This is a
+  behavioural change to a channel that already existed, and the player's desk is identical.
+- **Outputs —**: no new indicator. Three dial FACES were retuned against `pnpm ranges` because the
+  economy moved under them: `price_food` 50–160 → 40–180, `consumption_share` 70–85 → 65–85,
+  `unrest` 0–60 → 0–70. Faces are a UI contract, not an engine one, but they are listed here
+  because a face that no longer fits its series is how a schema bump reaches the player.
+- **The mechanism shipped INERT and was calibrated separately.** At `ENGEL_ELASTICITY = 0` and
+  `HOUSEHOLD_SUBSTITUTION = 1` both exponents are zero, so the derived vector is the authored one
+  bit for bit; `pnpm diff-state --moved-only` reported `meta.schemaVersion` and the five new
+  `engelReference` fields and nothing else, and the passive century re-measured at the standing
+  baseline to every digit.
+- **Then it moves the baseline, on purpose.** Every country used to shed 6–10 points of service
+  value-added share across a century in which it got five to eight times richer; the fix raises the
+  attractor the catalogue converges into from ~25–31% to ~30–36%. Passive is unchanged at 6%
+  deposed (2.82 → 2.78 %/yr) because a do-nothing country never gets rich enough for the income
+  term to bite — **that is the calibration test.** Developmental deposition moves 9% → 15%, and
+  what it buys is inequality: services are staffed 60% by professionals and the class transition
+  cannot make more of them (investigation 0015).
+- **`HOUSEHOLD_SUBSTITUTION` ships at 1**, deliberately. The CES half of issue #139 was
+  implemented, swept over σ ∈ {1, 1.5, 2, 3} and rejected on measurement — the basket's price
+  response rises exactly as the theory says while the industrial census does not follow it
+  (investigation 0016).
 
 ### schema 34 — The environment: what production costs outside the market
 
