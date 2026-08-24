@@ -1,5 +1,13 @@
 export { observe } from './observe'
 export {
+  createHistoricalDataExport,
+  DATA_EXPORT_FORMAT,
+  DATA_EXPORT_VERSION,
+  type HistoricalDataExport,
+  type IndicatorRelease,
+  type PublishedSnapshot,
+} from './dataExport'
+export {
   INDICATOR_IDS,
   BLOC_IDS,
   INSTITUTION_IDS,
