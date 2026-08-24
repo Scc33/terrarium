@@ -118,6 +118,19 @@ export interface RunSummary {
   deposedAt: number | null
 }
 
+/** Fine-grained, read-only hooks for diagnostic tooling. Action attempts are
+ * reported before application and accepted actions immediately afterward, so
+ * a caller can preserve the exact trigger even when a later action throws. */
+export interface RunObserver {
+  beforeTurn?(state: TrueState): void
+  onActionAttempt?(turn: TurnActions): void
+  onActionAccepted?(turn: TurnActions): void
+  /** Retained for callers that want the accepted actions batched by turn. */
+  onActions?(turn: TurnActions): void
+  afterActions?(state: TrueState): void
+  afterStep?(state: TrueState): void
+}
+
 export interface RunOptions {
   seed: string
   ticks: number
@@ -135,10 +148,7 @@ export interface RunOptions {
   rules?: GameMode | Partial<GameRules>
   /** Read-only probes for research and fuzz tooling. Successful generated or
    * scripted actions are reported before the tick; state is reported after it. */
-  observer?: {
-    onActions?(turn: TurnActions): void
-    afterStep?(state: TrueState): void
-  }
+  observer?: RunObserver
   /** tolerate illegal scripted/policy actions by skipping them (default true;
    * golden replays set false) */
   lenient?: boolean
@@ -277,21 +287,25 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
   let deposedAt: number | null = null
 
   for (let t = 0; t < opts.ticks; t++) {
+    opts.observer?.beforeTurn?.(s)
     const scripted = byTick.get(t) ?? []
     const generated = opts.policy
       ? opts.policy(s, rngFor(opts.policySeed ?? opts.seed, 'runner:policy', t), t)
       : []
     const accepted: Action[] = []
     for (const a of [...scripted, ...generated]) {
+      opts.observer?.onActionAttempt?.({ tick: t, actions: [a] })
       try {
         s = applyActions(s, [a])
         accepted.push(a)
+        opts.observer?.onActionAccepted?.({ tick: t, actions: [a] })
       } catch (e) {
         if (lenient && e instanceof IllegalActionError) illegalActionsSkipped++
         else throw e
       }
     }
     if (accepted.length > 0) opts.observer?.onActions?.({ tick: t, actions: accepted })
+    opts.observer?.afterActions?.(s)
     const before = s
     s = step(s)
     opts.observer?.afterStep?.(s)

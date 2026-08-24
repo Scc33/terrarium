@@ -36,6 +36,8 @@ import {
   type GameMode,
   type GameRules,
   type Rng,
+  type SectorId,
+  type TurnActions,
   type TrueState,
 } from '@terrarium/engine'
 import { policyFor, type PolicyId } from './policies'
@@ -62,39 +64,56 @@ export interface SampledCountry {
 }
 
 export type CountryFuzzFinding =
-  | { kind: 'price'; tick: number; sector: string; value: number }
+  | { kind: 'price'; tick: number; sector: SectorId; value: number }
   | { kind: 'deposition'; tick: number }
 
-export interface CountryFuzzFailureArtifact {
-  format: 'terrarium-country-fuzz-failure'
-  version: 1
+interface CountryFuzzArtifactBase {
   engine: { version: string; schema: number }
   sample: Omit<SampledCountry, 'params' | 'document'>
   country: CountryDocument
   policy: PolicyId
   rules: GameRules
   requestedTicks: number
+}
+
+export interface CountryFuzzFindingArtifact extends CountryFuzzArtifactBase {
+  format: 'terrarium-country-fuzz-finding'
+  version: 1
+  finding: CountryFuzzFinding
+  /** Replays the accepted actions through the quarter where the finding appeared. */
+  save: ReturnType<typeof createSave>
+}
+
+export interface CountryFuzzFailureArtifact extends CountryFuzzArtifactBase {
+  format: 'terrarium-country-fuzz-failure'
+  version: 2
   failure: {
-    kind: 'invariant' | 'price' | 'exception'
+    kind: 'invariant' | 'nan' | 'price' | 'exception'
     tick: number
+    phase: CountryFuzzFailurePhase
     error: string
     message: string
   }
+  /** The action being applied when an unexpected action error escaped. It is
+   * separate from the save because the save contains accepted actions only. */
+  attemptedAction: TurnActions | null
   /** Replays the accepted actions up to the quarter that exposed the failure. */
   save: ReturnType<typeof createSave>
 }
+
+export type CountryFuzzArtifact = CountryFuzzFindingArtifact | CountryFuzzFailureArtifact
 
 export type CountryFuzzOutcome =
   | {
       sample: SampledCountry
       summary: RunSummary
-      findings: CountryFuzzFinding[]
+      findings: CountryFuzzFindingArtifact[]
       failure: null
     }
   | {
       sample: SampledCountry
       summary: null
-      findings: CountryFuzzFinding[]
+      findings: CountryFuzzFindingArtifact[]
       failure: CountryFuzzFailureArtifact
     }
 
@@ -217,10 +236,19 @@ export function sampleCountry(
   }
 }
 
+export type CountryFuzzFailurePhase =
+  | 'initialization'
+  | 'policy'
+  | 'action'
+  | 'step'
+  | 'check'
+  | 'post-step'
+
 class CheckedStateFailure extends Error {
   constructor(
-    readonly kind: 'invariant' | 'price' | 'exception',
+    readonly kind: 'invariant' | 'nan' | 'price' | 'exception',
     readonly tick: number,
+    readonly phase: CountryFuzzFailurePhase,
     readonly originalName: string,
     message: string,
   ) {
@@ -228,15 +256,95 @@ class CheckedStateFailure extends Error {
   }
 }
 
-function checkedStateFailure(error: unknown, tick: number): CheckedStateFailure {
+function checkedStateFailure(
+  error: unknown,
+  tick: number,
+  phase: CountryFuzzFailurePhase,
+): CheckedStateFailure {
   if (error instanceof CheckedStateFailure) return error
   if (error instanceof InvariantError) {
-    return new CheckedStateFailure('invariant', tick, error.name, error.message)
+    return new CheckedStateFailure('invariant', tick, phase, error.name, error.message)
   }
   if (error instanceof Error) {
-    return new CheckedStateFailure('exception', tick, error.name, error.message)
+    return new CheckedStateFailure('exception', tick, phase, error.name, error.message)
   }
-  return new CheckedStateFailure('exception', tick, typeof error, String(error))
+  return new CheckedStateFailure('exception', tick, phase, typeof error, String(error))
+}
+
+function sampleMetadata(sample: SampledCountry): Omit<SampledCountry, 'params' | 'document'> {
+  return {
+    caseId: sample.caseId,
+    index: sample.index,
+    profile: sample.profile,
+    ageShape: sample.ageShape,
+    seeds: sample.seeds,
+  }
+}
+
+function acceptedActionsThrough(actionLog: ActionLog, tick: number): ActionLog {
+  return actionLog
+    .filter((turn) => turn.tick < tick)
+    .map((turn) => ({ tick: turn.tick, actions: [...turn.actions] }))
+}
+
+function appendAcceptedAction(actionLog: ActionLog, turn: TurnActions): void {
+  const previous = actionLog.at(-1)
+  if (previous?.tick === turn.tick) {
+    previous.actions.push(...turn.actions)
+  } else {
+    actionLog.push({ tick: turn.tick, actions: [...turn.actions] })
+  }
+}
+
+function artifactBase(
+  sample: SampledCountry,
+  options: CountryFuzzRunOptions,
+  rules: GameRules,
+): CountryFuzzArtifactBase {
+  return {
+    engine: { version: ENGINE_VERSION, schema: SCHEMA_VERSION },
+    sample: sampleMetadata(sample),
+    country: sample.document,
+    policy: options.policy,
+    rules,
+    requestedTicks: options.ticks,
+  }
+}
+
+function findingArtifact(
+  finding: CountryFuzzFinding,
+  sample: SampledCountry,
+  options: CountryFuzzRunOptions,
+  rules: GameRules,
+  actionLog: ActionLog,
+): CountryFuzzFindingArtifact {
+  return {
+    format: 'terrarium-country-fuzz-finding',
+    version: 1,
+    ...artifactBase(sample, options, rules),
+    finding,
+    save: createSave(
+      sample.params,
+      sample.seeds.simulation,
+      acceptedActionsThrough(actionLog, finding.tick),
+      finding.tick,
+      rules,
+    ),
+  }
+}
+
+function firstNonFiniteRunnerValue(state: TrueState): { field: string; value: number } | null {
+  const values: [string, number][] = [
+    ['flows.realGdp', state.flows.realGdp],
+    ['flows.nominalGdp', state.flows.nominalGdp],
+    ['flows.inflationQ', state.flows.inflationQ],
+    ['flows.unemployment', state.flows.unemployment],
+    ...SECTOR_IDS.map((id): [string, number] => [`market.prices.${id}`, state.market.prices[id]]),
+  ]
+  for (const [field, value] of values) {
+    if (!Number.isFinite(value)) return { field, value }
+  }
+  return null
 }
 
 export function runCountryFuzzCase(
@@ -244,11 +352,16 @@ export function runCountryFuzzCase(
   options: CountryFuzzRunOptions,
 ): CountryFuzzOutcome {
   const actionLog: ActionLog = []
-  const findings: CountryFuzzFinding[] = []
+  const findings: CountryFuzzFindingArtifact[] = []
   const strictPrices = options.strictPrices ?? sample.profile === 'recipe'
   const rules = gameRules(options.rules ?? 'standard')
   let lastObservedTick = 0
+  let phase: CountryFuzzFailurePhase = 'initialization'
+  let attemptedAction: TurnActions | null = null
   let firstPrice: Extract<CountryFuzzFinding, { kind: 'price' }> | null = null
+  // Callback mutations are deliberately read through accessors. TypeScript's
+  // local control-flow analysis cannot see that runSummary invokes them.
+  const currentPhase = (): CountryFuzzFailurePhase => phase
 
   try {
     const summary = runSummary({
@@ -259,14 +372,40 @@ export function runCountryFuzzCase(
       policy: policyFor(options.policy),
       rules,
       observer: {
-        onActions: (turn) => actionLog.push(turn),
+        beforeTurn: () => {
+          phase = 'policy'
+          attemptedAction = null
+        },
+        onActionAttempt: (turn) => {
+          phase = 'action'
+          attemptedAction = { tick: turn.tick, actions: [...turn.actions] }
+        },
+        onActionAccepted: (turn) => {
+          appendAcceptedAction(actionLog, turn)
+          attemptedAction = null
+        },
+        afterActions: () => {
+          phase = 'step'
+          attemptedAction = null
+        },
         afterStep: (state) => {
           lastObservedTick = state.meta.tick
+          phase = 'check'
           try {
             validate(state)
             options.checkState?.(state)
           } catch (error) {
-            throw checkedStateFailure(error, state.meta.tick)
+            throw checkedStateFailure(error, state.meta.tick, phase)
+          }
+          const nonFinite = firstNonFiniteRunnerValue(state)
+          if (nonFinite) {
+            throw new CheckedStateFailure(
+              'nan',
+              state.meta.tick,
+              phase,
+              'NonFiniteRunnerValue',
+              `${nonFinite.field} = ${String(nonFinite.value)} is not finite`,
+            )
           }
           for (const id of SECTOR_IDS) {
             const value = state.market.prices[id]
@@ -276,6 +415,7 @@ export function runCountryFuzzCase(
                 throw new CheckedStateFailure(
                   'price',
                   state.meta.tick,
+                  phase,
                   'PriceTripwire',
                   `price[${id}] = ${value} is outside [0.02,50]`,
                 )
@@ -283,42 +423,65 @@ export function runCountryFuzzCase(
               break
             }
           }
+          phase = 'post-step'
         },
       },
     })
 
-    if (firstPrice) findings.push(firstPrice)
-    if (summary.deposedAt !== null) findings.push({ kind: 'deposition', tick: summary.deposedAt })
+    if (summary.nanCount > 0) {
+      throw new CheckedStateFailure(
+        'nan',
+        lastObservedTick,
+        'post-step',
+        'RunnerNanCount',
+        `runner counted ${summary.nanCount} non-finite trajectory values`,
+      )
+    }
+    if (firstPrice) {
+      findings.push(findingArtifact(firstPrice, sample, options, rules, actionLog))
+    }
+    if (summary.deposedAt !== null) {
+      findings.push(findingArtifact(
+        { kind: 'deposition', tick: summary.deposedAt },
+        sample,
+        options,
+        rules,
+        actionLog,
+      ))
+    }
     return { sample, summary, findings, failure: null }
   } catch (error) {
-    const failure = checkedStateFailure(error, Math.min(options.ticks, lastObservedTick + 1))
-    if (firstPrice && failure.kind !== 'price') findings.push(firstPrice)
-    const save = createSave(sample.params, sample.seeds.simulation, actionLog, failure.tick, rules)
+    const failurePhase = currentPhase()
+    const failureTick = failurePhase === 'check' || failurePhase === 'post-step'
+      ? lastObservedTick
+      : Math.min(options.ticks, lastObservedTick + 1)
+    const failure = checkedStateFailure(error, failureTick, failurePhase)
+    if (firstPrice && failure.kind !== 'price') {
+      findings.push(findingArtifact(firstPrice, sample, options, rules, actionLog))
+    }
+    const save = createSave(
+      sample.params,
+      sample.seeds.simulation,
+      acceptedActionsThrough(actionLog, failure.tick),
+      failure.tick,
+      rules,
+    )
     return {
       sample,
       summary: null,
       findings,
       failure: {
         format: 'terrarium-country-fuzz-failure',
-        version: 1,
-        engine: { version: ENGINE_VERSION, schema: SCHEMA_VERSION },
-        sample: {
-          caseId: sample.caseId,
-          index: sample.index,
-          profile: sample.profile,
-          ageShape: sample.ageShape,
-          seeds: sample.seeds,
-        },
-        country: sample.document,
-        policy: options.policy,
-        rules,
-        requestedTicks: options.ticks,
+        version: 2,
+        ...artifactBase(sample, options, rules),
         failure: {
           kind: failure.kind,
           tick: failure.tick,
+          phase: failure.phase,
           error: failure.originalName,
           message: failure.message,
         },
+        attemptedAction,
         save,
       },
     }

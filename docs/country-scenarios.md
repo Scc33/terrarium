@@ -195,11 +195,13 @@ The profiles answer different questions:
 Every profile passes the materialized country through the document writer and parser, then calls
 the full engine `validate` after every quarter. An invariant failure is always a hard failure.
 For `draft` and `edges`, a late price excursion or deposition is a **finding**, not a verdict that
-the input is illegal or the engine is broken. The CLI writes a hard failure to
-`country-fuzz-failures/` as a country document plus engine/schema versions, all three seeds, rules,
-policy, failure quarter, and a save containing every accepted generated action. The save is the
-durable regression artifact; it does not depend on a future version of `randomPolicy` making the
-same choices.
+the input is illegal or the engine is broken. The CLI writes every finding and hard failure to
+`country-fuzz-artifacts/` with a content-addressed filename, so separate sweeps cannot silently
+overwrite one another. Each artifact carries the country document, engine/schema versions, all
+three seeds, rules, policy, exact quarter and a save containing every accepted generated action
+through that quarter. An action failure also records the attempted action separately: it must not
+enter a save that represents accepted decisions. These artifacts are the durable regression
+inputs; they do not depend on a future version of `randomPolicy` making the same choices.
 
 `tests/properties/country-fuzz.test.ts` is the small fixed CI corpus. Larger sweeps are research:
 use them to find a candidate, reduce it to one country and one mechanism, then run paired seeds and

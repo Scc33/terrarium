@@ -77,11 +77,99 @@ describe('checked fuzz runs', () => {
     expect(outcome.failure!.failure).toMatchObject({
       kind: 'invariant',
       tick: 20,
+      phase: 'check',
       message: 'forced test failure',
     })
+    expect(outcome.failure!.attemptedAction).toBeNull()
     expect(outcome.failure!.save.actionLog.length).toBeGreaterThan(0)
     expect(outcome.failure!.save.params).toEqual(countryFromDocument(outcome.failure!.country))
     expect(replay(outcome.failure!.save).meta.tick).toBe(20)
+  })
+
+  it('turns a non-strict finding into a self-contained replay artifact', () => {
+    const sample = sampleCountry('draft', 2, 'finding-fixture')
+    const outcome = runCountryFuzzCase(sample, { ticks: 30, policy: 'random' })
+    const artifact = outcome.findings.find((item) => item.finding.kind === 'deposition')
+
+    expect(artifact).toMatchObject({
+      format: 'terrarium-country-fuzz-finding',
+      sample: {
+        caseId: sample.caseId,
+        seeds: sample.seeds,
+      },
+      country: sample.document,
+      policy: 'random',
+      finding: { kind: 'deposition', tick: 21 },
+    })
+    expect(artifact!.save.actionLog.every((turn) => turn.tick < artifact!.finding.tick)).toBe(true)
+    expect(replay(artifact!.save).meta.tick).toBe(artifact!.finding.tick)
+  })
+
+  it('hard-fails a non-finite value counted by the runner', () => {
+    const sample = sampleCountry('recipe', 1, 'nan-artifact')
+    const outcome = runCountryFuzzCase(sample, {
+      ticks: 20,
+      policy: 'passive',
+      checkState: (state) => {
+        if (state.meta.tick === 10) state.flows.inflationQ = Number.NaN
+      },
+    })
+
+    expect(outcome.failure!.failure).toMatchObject({
+      kind: 'nan',
+      tick: 10,
+      phase: 'check',
+      error: 'NonFiniteRunnerValue',
+    })
+    expect(replay(outcome.failure!.save).meta.tick).toBe(10)
+  })
+
+  it('records the completed quarter when a post-step diagnostic throws', () => {
+    const sample = sampleCountry('recipe', 2, 'post-step-artifact')
+    const outcome = runCountryFuzzCase(sample, {
+      ticks: 30,
+      policy: 'passive',
+      checkState: (state) => {
+        if (state.meta.tick === 20) state.stats.news = null as never
+      },
+    })
+
+    expect(outcome.failure!.failure).toMatchObject({
+      kind: 'exception',
+      tick: 20,
+      phase: 'post-step',
+      error: 'TypeError',
+    })
+    expect(outcome.failure!.save.tick).toBe(20)
+  })
+
+  it('reports attempted and accepted actions independently', () => {
+    const sample = sampleCountry('recipe', 0, 'attempted-action')
+    const accepted: Action[] = []
+    const attempted: Action[] = []
+    const malformed = { kind: 'setDial', value: 0.3 } as unknown as Action
+    Object.defineProperty(malformed, 'path', {
+      get: () => { throw new Error('malformed action') },
+    })
+
+    expect(() => runOne({
+      seed: sample.seeds.simulation,
+      params: sample.params,
+      ticks: 1,
+      lenient: false,
+      policy: () => [
+        { kind: 'setDial', path: 'taxRates.income', value: 0.2 },
+        malformed,
+      ],
+      observer: {
+        onActionAttempt: (turn) => attempted.push(...turn.actions),
+        onActionAccepted: (turn) => accepted.push(...turn.actions),
+      },
+    })).toThrow()
+    expect(accepted).toHaveLength(1)
+    expect(attempted).toHaveLength(2)
+    expect(attempted[0]).toBe(accepted[0])
+    expect(attempted[1]).toBe(malformed)
   })
 
   it('lets policy variation move independently of simulation shocks', () => {

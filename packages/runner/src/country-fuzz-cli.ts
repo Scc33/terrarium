@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { writeCountryFuzzArtifact } from './country-fuzz-artifacts'
 import { COUNTRY_FUZZ_PROFILES, runCountryFuzzSweep, type CountryFuzzProfile } from './country-fuzz'
 import { summarize } from './metrics'
 import { POLICY_IDS, type PolicyId } from './policies'
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
   const policy = arg('policy', 'random') as PolicyId
   const seedPrefix = arg('seed', 'country-fuzz')
   const invocationDirectory = process.env.INIT_CWD ?? process.cwd()
-  const output = resolve(invocationDirectory, arg('output', 'country-fuzz-failures'))
+  const output = resolve(invocationDirectory, arg('output', 'country-fuzz-artifacts'))
 
   if (!COUNTRY_FUZZ_PROFILES.includes(profile)) {
     throw new Error(`unknown profile '${profile}'; use ${COUNTRY_FUZZ_PROFILES.join(', ')}`)
@@ -41,8 +41,8 @@ async function main(): Promise<void> {
   const failures = result.outcomes.filter((outcome) => outcome.failure !== null)
   const completed = result.outcomes.flatMap((outcome) => outcome.summary ? [outcome.summary] : [])
   const findings = result.outcomes.flatMap((outcome) => outcome.findings)
-  const priceFindings = findings.filter((finding) => finding.kind === 'price')
-  const depositions = findings.filter((finding) => finding.kind === 'deposition')
+  const priceFindings = findings.filter((artifact) => artifact.finding.kind === 'price')
+  const depositions = findings.filter((artifact) => artifact.finding.kind === 'deposition')
 
   console.log(
     `terrarium country fuzz: ${cases} cases × ${ticks} ticks, profile=${profile}, policy=${policy}`,
@@ -57,12 +57,20 @@ async function main(): Promise<void> {
   console.log(`  median inflation: ${median(completed.map((run) => run.meanAnnualInflation))}%/yr`)
   console.log(`  median unemployment: ${median(completed.map((run) => run.meanUnemployment))}%`)
 
+  const artifacts = [
+    ...findings,
+    ...failures.flatMap((outcome) => outcome.failure ? [outcome.failure] : []),
+  ]
+  for (const artifact of artifacts) {
+    const written = await writeCountryFuzzArtifact(output, artifact)
+    console.log(`  ${written.created ? 'wrote' : 'retained'} ${written.path}`)
+  }
   if (failures.length > 0) {
-    await mkdir(output, { recursive: true })
     for (const outcome of failures) {
-      const path = resolve(output, `${outcome.sample.caseId}.json`)
-      await writeFile(path, `${JSON.stringify(outcome.failure, null, 2)}\n`, 'utf8')
-      console.log(`  wrote ${path}`)
+      const failure = outcome.failure!.failure
+      console.log(
+        `  failure ${outcome.sample.caseId}: ${failure.kind} at q${failure.tick} (${failure.phase})`,
+      )
     }
     process.exitCode = 1
   }
