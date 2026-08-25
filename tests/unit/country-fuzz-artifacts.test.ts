@@ -30,6 +30,17 @@ function failureArtifact() {
 }
 
 describe('country-fuzz artifacts', () => {
+  it('ignores the CLI default artifact directory', async () => {
+    const [gitignore, cli] = await Promise.all([
+      readFile(resolve(process.cwd(), '.gitignore'), 'utf8'),
+      readFile(resolve(process.cwd(), 'packages/runner/src/country-fuzz-cli.ts'), 'utf8'),
+    ])
+    const defaultOutput = cli.match(/arg\('output', '([^']+)'\)/)?.[1]
+
+    expect(defaultOutput).toBeTruthy()
+    expect(gitignore.split(/\r?\n/)).toContain(defaultOutput)
+  })
+
   it('uses all artifact content to distinguish separate sweeps of one case', () => {
     const first = failureArtifact()
     const second = {
