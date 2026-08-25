@@ -96,6 +96,88 @@ test('no fitted instrument shears inside its board slot', async ({ page }) => {
   expect(overflowing).toEqual([])
 })
 
+/**
+ * The second thing a screenshot cannot tell you: whether a class did anything.
+ *
+ * An UNLAYERED css rule beats every `@layer`, including Tailwind's
+ * `utilities`. `index.css` shipped `button, input { font: inherit }` outside
+ * any layer, so every font utility on a button or input in the app was inert —
+ * present in the source, in the DOM, in the stylesheet, and doing nothing.
+ * Measured at the time: 21 of the 26 buttons on this page. It survived review
+ * because the `font` shorthand does not carry colour or letter-spacing, so the
+ * element was the right colour and the wrong size and face; and it survives a
+ * pixel diff because a baseline blessed under the bug looks exactly as
+ * self-consistent as one blessed without it.
+ *
+ * jsdom cannot see this at all — it needs a real cascade. So the invariant is
+ * asserted where the cascade is real: a font utility on an element must reach
+ * that element's computed style. This is deliberately general rather than a
+ * regression test for one rule, because the next unlayered `button` rule will
+ * break something else the same silent way.
+ */
+interface DeadUtility {
+  text: string
+  utility: string
+  want: string
+  got: string
+}
+
+/** Source text, like the probes above — this project has no DOM lib.
+ *
+ * NOTE: this is a template literal, so JS drops unknown escapes before the
+ * string ever reaches the page — `\s` arrives as `s`. Every backslash a
+ * regex needs is doubled here on purpose. The first version of this probe
+ * was not, so it split class lists on the letter "s", matched no utility,
+ * and passed green against the very bug it exists to catch. */
+const DEAD_UTILITY_PROBE = `(() => {
+  const SIZE = { 'text-xs': 12, 'text-sm': 14, 'text-base': 16, 'text-lg': 18, 'text-xl': 20, 'text-2xl': 24 }
+  const WEIGHT = { 'font-normal': 400, 'font-medium': 500, 'font-semibold': 600, 'font-bold': 700 }
+  const FAMILY = { 'font-mono': 'IBM Plex Mono', 'font-dossier': 'Source Serif 4' }
+  const dead = []
+  document.querySelectorAll('button, input').forEach((el) => {
+    const style = getComputedStyle(el)
+    const label = (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 40)
+    const report = (utility, want, got) => dead.push({ text: label, utility, want, got })
+    ;(el.getAttribute('class') || '').split(/\\s+/).filter(Boolean).forEach((raw) => {
+      // a variant only applies in its own state; judge the bare utility
+      const cls = raw.split(':').pop()
+      const px = SIZE[cls] ?? (cls.match(/^text-\\[(\\d+(?:\\.\\d+)?)px\\]$/)?.[1] !== undefined
+        ? Number(cls.match(/^text-\\[(\\d+(?:\\.\\d+)?)px\\]$/)[1])
+        : undefined)
+      if (px !== undefined && Math.abs(parseFloat(style.fontSize) - px) > 0.5) {
+        report(cls, px + 'px', style.fontSize)
+      }
+      if (WEIGHT[cls] !== undefined && Number(style.fontWeight) !== WEIGHT[cls]) {
+        report(cls, String(WEIGHT[cls]), style.fontWeight)
+      }
+      if (FAMILY[cls] !== undefined && !style.fontFamily.includes(FAMILY[cls])) {
+        report(cls, FAMILY[cls], style.fontFamily)
+      }
+      if (cls === 'italic' && style.fontStyle !== 'italic') report(cls, 'italic', style.fontStyle)
+      if (cls === 'cursor-help' && style.cursor !== 'help') report(cls, 'help', style.cursor)
+    })
+  })
+  return dead
+})()`
+
+test('a font utility on a button or input is not silently inert', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const dead = (await page.evaluate(DEAD_UTILITY_PROBE)) as DeadUtility[]
+
+  // guard against passing vacuously: the gallery must be rendering controls
+  // that actually carry font utilities for the probe to have judged anything
+  const carriers = await page
+    .locator('button, input')
+    .evaluateAll((els) =>
+      els.filter((el) => /\b(font-mono|font-dossier|text-\[|font-semibold|font-medium)/.test(el.getAttribute('class') ?? '')).length,
+    )
+  expect(carriers).toBeGreaterThan(10)
+  expect(dead).toEqual([])
+})
+
 test('rolling chart mode remains legible inside a fitted board slot', async ({ page }) => {
   await page.goto('/?gallery=1')
   await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
