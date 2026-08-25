@@ -58,7 +58,9 @@ export interface HistoricalDataExport {
     householdReleases: PublishedState['households']
     /** Exact government books, one row per quarter. */
     treasury: PublishedState['books']
-    /** Exact head counts and age pyramids, one row per quarter. */
+    /** Exact head counts, age pyramids and the rural/urban split, one row per
+     * quarter. The split is struck on the under-60s the register houses, not
+     * on the head count in the same row — see `PublishedState.census`. */
     census: PublishedState['census']
     /** The government's own dials and standing rules, one row per quarter. */
     policy: PublishedState['policy']

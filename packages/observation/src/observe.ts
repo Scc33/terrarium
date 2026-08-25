@@ -24,6 +24,7 @@ import {
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
   reformWindowOpen,
+  residence,
   statuteCompliance,
   statuteForce,
   STATUTE_IDS,
@@ -268,6 +269,7 @@ export function observe(state: TrueState): PublishedState {
       total: state.demography.pyramid.reduce((a, b) => a + b, 0),
       laborForce: totalLaborForce(state),
       pyramid: [...state.demography.pyramid],
+      residence: residence(state),
     },
     // the census over time — exact, like the treasury's books; the WHY of the
     // population's change (birth/death rates) stays fogged in the indicators
@@ -275,6 +277,7 @@ export function observe(state: TrueState): PublishedState {
       tick: r.tick,
       population: r.population,
       pyramid: r.pyramid,
+      residence: { ...r.residence },
     })),
     // the minute book: what the dials were set to, quarter by quarter. Exact
     // for the same reason the books are — a government is allowed to remember
