@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 37)
+## Current contract (schema 38)
 
 ### Inputs
 
@@ -161,6 +161,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
 | `capital_stock` | index | 0.30 | v1.5 | total capital stock |
+| `life_expectancy` | years at birth | 0.30 | v38 | period life expectancy from today's age-specific mortality schedule |
 | `net_migration` | per 1000/yr | 0.30 | v29 | arrivals minus departures, annualized per 1,000 residents |
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
 | `death_rate` | per 1000/yr | 0.30 | v8 | crude death rate |
@@ -286,6 +287,24 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 38 — Life expectancy is published
+
+- **State +**: `StatRecord.lifeExpectancy`, the life-table worksheet filed for every measured
+  quarter. It is derived from the age-specific mortality schedule the demographic engine already
+  applies; no new behavioural stock or causal channel is introduced.
+- **Outputs +**: fogged `life_expectancy`, in expected years at birth, unlocks at statistical
+  capacity 0.30 beside the civil register. It is period life expectancy: the expected lifetime
+  of a synthetic newborn if that quarter's mortality rates continued, not the current average age
+  at death. It therefore does not worsen merely because the existing population gets older.
+- **Presentation +**: one wall instrument and the latest settled print in the National Census.
+  The census continues to count heads and residence exactly; life expectancy follows the
+  registrar's ordinary lag, noise, revision and funding rules.
+- **Pipeline — / inputs —**: no step added or reordered, no new lever, country parameter or rule.
+  This is the health component HDI needs, but it deliberately adds neither an HDI composite nor a
+  healthcare policy before those mechanisms have been specified and calibrated.
+- **Measured face**: 12 seeds × 6 countries × 400 quarters put funded prints at p01–p99
+  47.8–58.2 years (extrema 44.2–59.8), fixing the dial at 45–60 years.
 
 ### schema 37 — The census counts where people live
 

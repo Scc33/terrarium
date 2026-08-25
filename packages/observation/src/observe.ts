@@ -69,6 +69,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   gini: { label: 'Income inequality', unit: 'Gini pts' },
   income_real: { label: 'Household income', unit: '1946=100' },
   poverty_rate: { label: 'Poverty rate', unit: '% of population' },
+  life_expectancy: { label: 'Life expectancy', unit: 'years at birth' },
   net_migration: { label: 'Net migration', unit: 'per 1000/yr' },
   birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
   death_rate: { label: 'Death rate', unit: 'per 1000/yr' },

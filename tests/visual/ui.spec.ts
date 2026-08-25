@@ -612,7 +612,7 @@ test('household office shows poverty and both quintile views once surveyed', asy
   await expect(page).toHaveScreenshot('households-share.png')
 })
 
-test('census files net migration with the other population flows', async ({ page }) => {
+test('census files life expectancy with the population flows', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')
   await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
@@ -626,6 +626,7 @@ test('census files net migration with the other population flows', async ({ page
   await page.getByRole('button', { name: /POP \/ LABOUR/ }).click()
   const census = page.getByRole('dialog', { name: 'THE NATIONAL CENSUS' })
   await expect(census.getByText('NET MIGRATION', { exact: true })).toBeVisible()
+  await expect(census.getByText(/LIFE \d+\.\d YRS/)).toBeVisible()
   await expect(page).toHaveScreenshot('census-migration.png')
 })
 
