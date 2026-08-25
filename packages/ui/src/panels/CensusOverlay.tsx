@@ -439,7 +439,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
           </div>
         )}
-        note="Heads are counted, so the count, its growth rate and the under-60 rural/urban split never lag or revise. Births, deaths, migration and life expectancy are surveyed, so they do. Life expectancy asks how long a newborn would live under today’s age-specific death rates; net migration is arrivals minus departures."
+        note="Head counts, growth and the under-60 rural/urban split are exact. Birth, death, migration and life expectancy reports lag and revise. Life expectancy is a newborn’s expected years under today’s age-specific death rates."
         footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">

@@ -626,8 +626,12 @@ test('census files life expectancy with the population flows', async ({ page }) 
   await page.getByRole('button', { name: /POP \/ LABOUR/ }).click()
   const census = page.getByRole('dialog', { name: 'THE NATIONAL CENSUS' })
   await expect(census.getByText('NET MIGRATION', { exact: true })).toBeVisible()
-  await expect(census.getByText(/LIFE \d+\.\d YRS/)).toBeVisible()
-  await expect(page).toHaveScreenshot('census-migration.png')
+  const lifeExpectancy = census.getByText(/LIFE \d+\.\d YRS/)
+  await expect(lifeExpectancy).toBeVisible()
+  await expect(lifeExpectancy).toBeInViewport()
+  // The suite-wide 1% tolerance can swallow one compact summary reading.
+  // Keep this baseline strict enough that a missing LIFE print is visible.
+  await expect(page).toHaveScreenshot('census-migration.png', { maxDiffPixels: 100 })
 })
 
 test('modal paperwork contains and restores keyboard focus', async ({ page }) => {
