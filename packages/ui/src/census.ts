@@ -24,6 +24,7 @@
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import type { PlotPoint } from './plot'
+import { SHARE_INKS, type Share, type StackRow } from './shares'
 
 /** One quarter of the exact register, as `PublishedState` files it. */
 export type CensusEntry = PublishedState['census'][number]
@@ -101,4 +102,105 @@ export function ageStructure(pyramid: readonly number[]): {
     retired,
     support: retired > 1e-9 ? working / retired : Infinity,
   }
+}
+
+// ------------------------------------------------- where the heads live
+
+/**
+ * The rural/urban split is on the EXACT side of the page for the same reason
+ * the head count is: a census form asks where you live, and a state with no
+ * statistical office can still add up its villages. What it cannot do without
+ * a survey is say how many of the townspeople are professionals rather than
+ * shopkeepers — so the engine publishes the residence question and keeps the
+ * occupational structure behind it fogged, in the industrial census.
+ *
+ * The base is the population the register CLASSIFIES, which is the under-60s:
+ * the engine gives everybody below the retirement band an occupation and with
+ * it somewhere to live, and gives nobody above it either. So `rural + urban`
+ * is smaller than the head count, and every reading here says so rather than
+ * dividing by a total the split does not cover. Splitting the 60+ at the
+ * working-age rate instead would be wrong in one direction for the whole
+ * century: during exactly the transition this figure exists to show, today's
+ * pensioners were young when the country was more rural.
+ */
+export type ResidenceId = 'rural' | 'urban'
+
+/**
+ * Draw order and words, countryside first: the transition reads as the city
+ * rising off the land beneath it, so the land is the floor of the stack. A
+ * total `Record`, so a third kind of place cannot ship unnamed.
+ *
+ * The two inks are picked for LIGHTNESS, not hue. A two-band chart has one
+ * boundary and it is the whole figure, so the pair has to separate where it
+ * touches — and the ramp's verdigris and slate sit at relative luminance
+ * 0.126 and 0.117, a contrast ratio of 1.07. Drawn side by side in a 42px
+ * band they are one mass, and a reader cannot see the boundary that IS the
+ * chart. Verdigris against ink is 2.75, and both take the brass scrub line
+ * without swallowing it. Field green under soot also happens to be the right
+ * picture.
+ */
+export const RESIDENCE_FACE: Record<ResidenceId, Omit<Share, 'value'>> = {
+  rural: {
+    key: 'rural',
+    label: 'COUNTRYSIDE',
+    ink: SHARE_INKS[1],
+    note: 'People living off the land — the cohort that works the fields.',
+  },
+  urban: {
+    key: 'urban',
+    label: 'TOWNS AND CITIES',
+    ink: SHARE_INKS[5],
+    note: 'People living an urban life: wage workers, professionals and owners of businesses.',
+  },
+}
+
+export const RESIDENCE_IDS = ['rural', 'urban'] as const satisfies readonly ResidenceId[]
+
+export interface ResidenceSplit {
+  /** heads in the countryside, millions */
+  rural: number
+  /** heads in towns and cities, millions */
+  urban: number
+  /** the two together — the population the register classifies, millions.
+   * Deliberately NOT the head count, which also holds the 60+. */
+  classified: number
+  /** urban as a share of the classified population, 0..1, or `null` when the
+   * register classifies nobody. Null rather than zero: a country whose
+   * under-60s have not been counted yet is not a country that is entirely
+   * rural, and the two are indistinguishable once one prints as 0 %. */
+  urbanShare: number | null
+}
+
+/** Takes anything that carries the split — a census row, or the live desk's
+ * `population`, which publishes it on the same base — so the page never has to
+ * assemble a fake census entry to read today's number. */
+export function residenceSplit(entry: Pick<CensusEntry, 'residence'>): ResidenceSplit {
+  const rural = Math.max(0, entry.residence.rural)
+  const urban = Math.max(0, entry.residence.urban)
+  const classified = rural + urban
+  return {
+    rural,
+    urban,
+    classified,
+    urbanShare: classified > 1e-9 ? urban / classified : null,
+  }
+}
+
+/** The century of the split, one row per quarter of the register — the
+ * question a single reading cannot answer, which is how fast the country
+ * emptied. Nothing is dropped for being partial: residence is counted, so a
+ * quarter either exists in the census or was never lived through. */
+export function residenceRows(census: readonly CensusEntry[]): StackRow[] {
+  return census
+    .map((entry) => {
+      const { rural, urban } = residenceSplit(entry)
+      return { tick: entry.tick, values: { rural, urban } }
+    })
+    .sort((a, b) => a.tick - b.tick)
+}
+
+/** The bands as `StackedAreaChart` wants them, carrying one quarter's heads
+ * as the legend's values. */
+export function residenceShares(split: ResidenceSplit): Share[] {
+  return RESIDENCE_IDS.map((id) => ({ ...RESIDENCE_FACE[id], value: split[id] }))
 }

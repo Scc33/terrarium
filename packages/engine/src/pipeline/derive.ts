@@ -49,6 +49,7 @@ import {
   CAPACITY_IDS,
   COHORT_IDS,
   INCOME_QUINTILE_IDS,
+  RETIREMENT_BAND,
   SECTOR_IDS,
   STATUTE_IDS,
   WORKING_BANDS,
@@ -540,6 +541,37 @@ export function discontentIndex(state: TrueState): { discontent: number; voicele
 export function urbanShare(state: TrueState): number {
   const s = state.demography.classShares
   return clamp(s.urban_workers + s.professionals + s.business_owners, 0, 1)
+}
+
+/**
+ * Where the counted population lives, in millions of heads.
+ *
+ * The residence question a census form asks — and deliberately NOT the
+ * occupational structure sitting next to it in the same record. `classShares`
+ * splits people four ways, and how many of them are professionals rather than
+ * owners is an ESTIMATE: it is what a labour-force survey exists to find out,
+ * which is why it stays behind the fog with the industrial census. Where
+ * somebody sleeps is a head you can count without an office, so it is exact,
+ * like the pyramid it is counted off.
+ *
+ * `rural + urban` is the population the register classifies, which is the
+ * UNDER-60s: the engine gives an occupation — and with it somewhere to live —
+ * to everyone below the retirement band and to nobody above it. The 60+ are
+ * left out rather than split at the working-age rate, because during exactly
+ * the transition this figure exists to show, today's pensioners were young
+ * when the country was more rural: that assumption would be wrong, and wrong
+ * in one direction, for the whole century.
+ *
+ * The split reads `urbanShare` rather than `classShares.rural_workers`, so
+ * what "urban" means has one home and the two halves always sum to the
+ * classified head count.
+ */
+export function residence(state: TrueState): { rural: number; urban: number } {
+  const pyramid = state.demography.pyramid
+  let classified = 0
+  for (let band = 0; band < RETIREMENT_BAND; band++) classified += pyramid[band] ?? 0
+  const urban = urbanShare(state)
+  return { rural: classified * (1 - urban), urban: classified * urban }
 }
 
 /** The corridor's x-axis: the Leviathan. What the ministries can do, plus the

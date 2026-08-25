@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 36)
+## Current contract (schema 37)
 
 ### Inputs
 
@@ -260,8 +260,8 @@ reconciled to the separately noised `income_real` headline.
 | `corridor` | v12 | state power, societal power, offset, half-width, in/out, and the full traced trail |
 | `campaign` | v12 | present only inside the campaign window: support, threshold, platform committed |
 | `lastElection` | v12 | the count: platform, support, swing, threshold, won, suppressed |
-| `population` | v6 | current total, labour force, age pyramid |
-| `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history) |
+| `population` | v6 | current total, labour force, age pyramid, and from v37 this quarter's `residence` split |
+| `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history), and from v37 the `residence` split — heads in the countryside and heads in towns and cities |
 | `policy[]` | v25 | per-quarter exact dials — every `DialState` lever (tax rates, policy rate, asset purchases, capital requirement) plus resolved appropriations, every sector subsidy as a total, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
 | `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always). Each item carries a `kind` from `NEWS_KINDS` (v31) so a consumer filters on the event rather than on its prose |
 | `reportCard` | v4 | present **only** once the run ends — see below |
@@ -286,6 +286,33 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 37 — The census counts where people live
+
+- **State +**: `StatRecord.residence` — `{ rural, urban }` in millions, filed every quarter
+  beside the head count and the pyramid it is counted off (#164).
+- **Outputs +**: `census[].residence` and `population.residence`, both **exact**. Where somebody
+  sleeps is a head you can count without a statistical office, so the rural/urban split sits on
+  the same side of the fog as the count itself, and it is drawn in the census overlay as a
+  stacked band across the century.
+- **What is NOT published**: the occupational structure underneath it. `demography.classShares`
+  splits people four ways — rural workers, urban workers, professionals, owners — and how many
+  of the townspeople are professionals rather than shopkeepers is an *estimate*, which is what
+  a labour-force survey exists to produce. It stays behind the fog with the industrial census,
+  and stays on the forbidden list in `tests/contract/published-state.test.ts`.
+- **The base is the under-60s, not the head count.** The engine gives everybody below the
+  retirement band an occupation and with it somewhere to live, and gives nobody above it either,
+  so `rural + urban` is smaller than `population` and every reading says which population it is
+  a share of. Splitting the 60+ at the working-age rate would be wrong in one direction for the
+  whole century: during exactly the transition the figure exists to show, today's pensioners were
+  young when the country was more rural.
+- **Inert**: `pnpm diff-state --moved-only` reported `meta.schemaVersion` and nothing else on all
+  three goldens (80 new fields hidden — 40 quarters × two numbers). Nothing in the pipeline reads
+  the new field; it is a measurement, not a mechanic.
+- **Measured** (400 fully-surveyed quarters, 2 seeds per country): agrarian Costona opens at
+  35 % urban and finishes near 75 %; industrial Veltravia opens at 78 % and moves about two
+  points. The opening split is a fact about the recipe, not a global constant. The share only
+  ever rises today — the engine's rural→urban flow stops in a slump but never reverses.
 
 ### schema 36 — The basket answers to income
 

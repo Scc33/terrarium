@@ -20,9 +20,24 @@
 import { useState } from 'react'
 import { AGE_BANDS, RETIREMENT_BAND, WORKING_BANDS } from '@terrarium/engine'
 import type { IndicatorPoint, PublishedState } from '@terrarium/observation'
-import { ageStructure, medianAge, populationGrowth } from '../census'
+import {
+  ageStructure,
+  medianAge,
+  populationGrowth,
+  residenceRows,
+  residenceShares,
+  residenceSplit,
+} from '../census'
 import type { PlotPoint } from '../plot'
-import { ChartFrame, Modal, OverlayLayout, TimeSeriesChart, Tooltip, TooltipLabel } from '../components/ui'
+import {
+  ChartFrame,
+  Modal,
+  OverlayLayout,
+  StackedAreaChart,
+  TimeSeriesChart,
+  Tooltip,
+  TooltipLabel,
+} from '../components/ui'
 
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 const bandLabel = (i: number) => (i === AGE_BANDS - 1 ? '80+' : `${i * 5}–${i * 5 + 4}`)
@@ -225,6 +240,94 @@ function CountAndGrowth({
   )
 }
 
+// ---- the transition that moves people, not the one that ages them ----
+//
+// A stacked band rather than a line, because the question the issue asks is
+// about a WHOLE being divided ("what portion lives rurally"), and the band's
+// own thickness is the answer at every date. Two categories, not four: the
+// register knows where a head sleeps, and only estimates what it does for a
+// living.
+//
+// It sits in the RIGHT column, under the pyramid, and that is a layout
+// decision as much as an editorial one. Editorially, the two are the census's
+// two questions — how old, and where — and both are read at the year the
+// scrubber is parked on, so they carry the same brass mark. Structurally, the
+// right column had ~265px of dead space under the pyramid while the left one
+// was already a hair taller than the modal: a third `ChartFrame` on the left
+// pushed the overlay 188px past the fold at 1280×720, which is where this
+// figure was born and where it did not stay. So it follows the column's own
+// idiom — a heading row, the figure, a reading — rather than the left
+// column's framed one, because a `ChartFrame` caption alone costs 53px.
+//
+// The width is passed EXPLICITLY. The chart is width-governed by a viewBox,
+// so a 560-wide default in a 300-wide column scales the 7.5px axis type down
+// to 4px, and an axis nobody can read is an axis that is not there. It must
+// MATCH the grid's right track below, which Tailwind requires be spelled out
+// as a literal (`lg:grid-cols-[minmax(0,1fr)_300px]`) and so cannot read this.
+const RESIDENCE_W = 300
+const RESIDENCE_H = 62
+
+function ResidenceBand({
+  census,
+  markTick,
+}: {
+  census: PublishedState['census']
+  markTick: number
+}) {
+  const shown = census.find((c) => c.tick === markTick) ?? census[census.length - 1]
+  const split = residenceSplit(shown)
+  const opening = residenceSplit(census[0])
+  const keys = residenceShares(split)
+  const pct = (v: number | null) => (v === null ? '—' : `${(100 * v).toFixed(0)}%`)
+  const summary =
+    split.urbanShare === null
+      ? 'Nobody is yet counted into the residence register.'
+      : `Where people lived from ${yearOf(census[0].tick)} to ${yearOf(census[census.length - 1].tick)}, as shares of the population under 60. In ${yearOf(shown.tick)}, ${split.urban.toFixed(1)} million lived in towns and cities and ${split.rural.toFixed(1)} million in the countryside — ${pct(split.urbanShare)} urban, against ${pct(opening.urbanShare)} in ${yearOf(census[0].tick)}.`
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-dossier-ink/20 pt-2">
+      {/* The row carries the type because BOTH its children read it: the label
+          takes all of it, and the reading beside it overrides everything except
+          the tracking. (This started life as a workaround for an unlayered
+          `button { font: inherit }` in `index.css` that made font utilities on
+          a `TooltipLabel` inert. That rule is gone — a utility on the label
+          would work now — but the row is still where the shared tracking
+          belongs.) */}
+      <div className="flex items-baseline justify-between font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/60">
+        <TooltipLabel
+          label="Where people live"
+          content="The share of the people the register places — everyone under 60 — living in towns and cities rather than on the land. Counted, not surveyed, so it never lags or revises. What those people do for a living is a survey question, and it lives in the industrial census."
+        >
+          WHERE THEY LIVE
+        </TooltipLabel>
+        <span className="font-mono text-sm font-semibold tabular-nums text-dossier-ink">
+          {pct(split.urbanShare)} URBAN
+        </span>
+      </div>
+      <StackedAreaChart
+        rows={residenceRows(census)}
+        keys={keys}
+        mode="share"
+        width={RESIDENCE_W}
+        height={RESIDENCE_H}
+        // the same year the pyramid above it is scrubbed to: the two halves of
+        // the census — how old people are and where they are — are read
+        // against each other or not at all
+        markTick={markTick}
+        summary={summary}
+      />
+      <div className="flex justify-between font-mono text-[8px] tabular-nums text-dossier-ink/70">
+        {keys.map((key) => (
+          <span key={key.key} className="flex items-center gap-1">
+            <span className="block h-1.5 w-1.5 shrink-0" style={{ backgroundColor: key.ink }} aria-hidden="true" />
+            {key.label} {key.value.toFixed(1)}M
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ---- the pyramid at a scrubbed year, with a faint 1946 ghost ----
 function Pyramid({ pyramid, ghost }: { pyramid: number[]; ghost: number[] }) {
   const selMax = Math.max(...pyramid, 1e-9)
@@ -268,7 +371,16 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const census = pub.census
   const [sel, setSel] = useState(census.length - 1)
   const idx = Math.min(sel, census.length - 1)
-  const shown = census[idx] ?? { tick: pub.tick, population: pub.population.total, pyramid: pub.population.pyramid }
+  // before the first quarter is filed the register is empty; the live desk
+  // carries the same three facts, so the fallback is a reading rather than a
+  // placeholder — including the split, which `pub.population` publishes on the
+  // same base the record does
+  const shown = census[idx] ?? {
+    tick: pub.tick,
+    population: pub.population.total,
+    pyramid: pub.population.pyramid,
+    residence: pub.population.residence,
+  }
 
   const birth = settled(pub.indicators.birth_rate?.points ?? [])
   const death = settled(pub.indicators.death_rate?.points ?? [])
@@ -283,6 +395,9 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   // the exact half of the story, computed from the exact register
   const growth = populationGrowth(census)
   const latestGrowth = growth[growth.length - 1]?.value
+  // the split as it stands now — the chart below tells the century, this
+  // answers "how urban is my country" without reading a chart at all
+  const urbanNow = residenceSplit(pub.population)
 
   return (
     <Modal title="THE NATIONAL CENSUS" onClose={onClose} size="wide">
@@ -300,11 +415,20 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
                   {signed(latestGrowth)}%/YR
                 </TooltipLabel>
               )}
+              {urbanNow.urbanShare !== null && (
+                <TooltipLabel
+                  label="Urban share"
+                  content="Of the people the register places — everyone under 60 — the share living in towns and cities rather than on the land. Counted, not surveyed. Older people are counted by age alone: the register gives them no address, and splitting them at the working-age rate would understate how rural the country was when they were young."
+                  className="font-mono text-[11px] font-semibold tabular-nums tracking-[0.1em] text-dossier-ink/75"
+                >
+                  {(100 * urbanNow.urbanShare).toFixed(0)}% URBAN
+                </TooltipLabel>
+              )}
             </span>
             <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
           </div>
         )}
-        note="Heads are counted, so the count and its growth rate never lag or revise. The three flows behind that growth — births, minus deaths, plus net migration — are surveyed, so they do. Net migration is arrivals minus departures: positive means more people arrived."
+        note="Heads are counted, so the count, its growth rate and the rural/urban split never lag or revise. The three flows behind that growth — births, minus deaths, plus net migration — are surveyed, so they do. Net migration is arrivals minus departures: positive means more people arrived. The split covers everyone under 60, the ages the register places."
         footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -357,6 +481,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               MED {median === null ? '—' : median.toFixed(0)}
             </TooltipLabel>
           </div>
+          {hasHistory && <ResidenceBand census={census} markTick={shown.tick} />}
         </div>
         </div>
       </OverlayLayout>
