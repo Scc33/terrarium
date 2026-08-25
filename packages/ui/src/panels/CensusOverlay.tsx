@@ -286,11 +286,13 @@ function ResidenceBand({
 
   return (
     <div className="flex flex-col gap-2 border-t border-dossier-ink/20 pt-2">
-      {/* The type size lives on the ROW, not on the label. `index.css` sets
-          `button, input { font: inherit }` UNLAYERED, and an unlayered rule
-          beats every `@layer` — so a `text-[9px]` on a `TooltipLabel` (which
-          renders a button) is in the DOM, in the stylesheet, and inert. This
-          heading shipped at 14px next to the pyramid's 9px because of it. */}
+      {/* The row carries the type because BOTH its children read it: the label
+          takes all of it, and the reading beside it overrides everything except
+          the tracking. (This started life as a workaround for an unlayered
+          `button { font: inherit }` in `index.css` that made font utilities on
+          a `TooltipLabel` inert. That rule is gone — a utility on the label
+          would work now — but the row is still where the shared tracking
+          belongs.) */}
       <div className="flex items-baseline justify-between font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/60">
         <TooltipLabel
           label="Where people live"

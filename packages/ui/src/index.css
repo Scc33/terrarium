@@ -64,24 +64,38 @@ body {
   color: var(--color-dossier-ink);
 }
 
-button,
-input {
-  font: inherit;
-}
+/*
+ * Element defaults belong in @layer base, NOT out here. An unlayered rule beats
+ * every @layer, including Tailwind's `utilities` — so an unlayered `button`
+ * rule silently wins against every utility a caller puts on a button, and the
+ * class is present in the source, in the DOM, in the stylesheet, and inert.
+ *
+ * This block used to carry `button, input { font: inherit }` unlayered, which
+ * killed font-size, font-weight, font-family, line-height and font-style on
+ * every button and input in the app. Colour and letter-spacing are not part of
+ * the `font` shorthand, so they kept working — which is exactly why it survived
+ * review: the element was the right colour and the wrong size and face. That
+ * rule is gone rather than layered, because Tailwind v4's preflight already
+ * ships it (`@layer base`, and over select/textarea too).
+ *
+ * `cursor: pointer` had the same defect: it beat `cursor-help` on every
+ * TooltipLabel. Layered, the utility wins again.
+ */
+@layer base {
+  button {
+    cursor: pointer;
+  }
 
-button {
-  cursor: pointer;
-}
+  button:disabled {
+    cursor: not-allowed;
+  }
 
-button:disabled {
-  cursor: not-allowed;
-}
-
-/* every numeral, both eras, one face */
-.tabular-nums,
-input,
-button {
-  font-variant-numeric: tabular-nums;
+  /* every numeral, both eras, one face */
+  .tabular-nums,
+  input,
+  button {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* range inputs restyled as brass-on-felt hardware */

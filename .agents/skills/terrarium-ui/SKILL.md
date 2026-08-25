@@ -98,20 +98,41 @@ least once, and all four are invisible in review AND in jsdom:
 That last one hid a gauge's upper-bound label for four milestones, and only appeared when a
 dial needed three digits instead of two.
 
-## The Tailwind trap
+## The Tailwind traps
 
-Tailwind scans source **text**. A template-literal class — `grid-rows-[${rows}]` — exists in
-the DOM and in no stylesheet, and fails completely silently. **Spell variants out as
-literals.**
+Two ways a class can be present in the source, present in the DOM, and do nothing.
 
-The same failure with the opposite cause: `index.css` sets `button, input { font: inherit }`
-**unlayered**, and an unlayered rule beats every `@layer` — including Tailwind v4's
-`utilities`. So a font utility on a `<button>` or `<input>` is in the source, in the DOM, in
-the stylesheet, and **inert**: `text-[9px]`, `font-semibold` and `font-mono` all lose to the
-shorthand. This bites `TooltipLabel` and `Button`, which render buttons. **Put the type size on
-the parent row and let the button inherit** — the census overlay's pyramid stats row is the
-pattern. Colour, tracking and everything outside the `font` shorthand still apply, which is
-what makes it hard to see: the label is the right colour and the wrong size.
+**1. The class never reaches the stylesheet.** Tailwind scans source **text**. A
+template-literal class — `grid-rows-[${rows}]` — exists in the DOM and in no stylesheet, and
+fails completely silently. **Spell variants out as literals.**
+
+**2. The class reaches the stylesheet and loses the cascade.** An **unlayered** rule beats
+every `@layer`, including Tailwind's `utilities`. So an unlayered element rule silently
+outranks every utility a caller puts on that element — the class is in the source, in the DOM,
+in the stylesheet, and inert.
+
+`index.css` shipped exactly this: `button, input { font: inherit }` outside any layer. The
+`font` shorthand sets font-size, font-weight, font-family, line-height and font-style, so
+**every font utility on a `<button>` or `<input>` in the app was dead** — measured, 21 of 26
+buttons on the gallery alone. Colour and letter-spacing are not part of the shorthand and kept
+working, which is what made it invisible in review: the element was the right colour and the
+wrong size and face. `Button`'s own `text-[9px]`/`font-mono` were among the casualties, and
+`TooltipLabel`s only looked right where they happened to inherit the correct size from their
+row. The same block's `cursor: pointer` beat `cursor-help` on every `TooltipLabel` too.
+
+Fixed by deleting the font rule — **Tailwind v4's preflight already ships it**, inside
+`@layer base`, and over `select`/`textarea` as well — and moving the surviving element
+defaults into `@layer base`. **Put element defaults in `@layer base`; never add an unlayered
+element rule.**
+
+Neither trap is visible in jsdom, and the second one is not visible in a screenshot diff
+either unless you know the intended size. To check a suspect element, compare its computed
+style against its own class list in a real browser:
+
+```js
+const el = document.querySelector('button.font-mono')
+getComputedStyle(el).fontSize // must match the text-[Npx] it carries
+```
 
 ## Dev tooling
 
