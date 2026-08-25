@@ -237,11 +237,34 @@ export interface PublishedState {
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit
   }>
-  /** Census-grade facts: the transition is the century. */
-  population: { total: number; laborForce: number; pyramid: number[] }
-  /** the census over time — exact head counts and age pyramids, one per
-   * quarter, no fog (heads are countable even when surveys aren't funded) */
-  census: Array<{ tick: Qtr; population: number; pyramid: number[] }>
+  /** Census-grade facts: the transition is the century. `residence` is this
+   * quarter's rural/urban split, in millions — the same reading `census[]`
+   * carries for every past quarter, and on the same base (the under-60s the
+   * register classifies, not `total`). */
+  population: {
+    total: number
+    laborForce: number
+    pyramid: number[]
+    residence: { rural: number; urban: number }
+  }
+  /** the census over time — exact head counts, age pyramids and the
+   * rural/urban split, one per quarter, no fog (heads are countable even when
+   * surveys aren't funded).
+   *
+   * `residence` is where those heads live, in millions. It sums to the
+   * population the register classifies — the under-60s — and NOT to
+   * `population`: the engine gives everybody below the retirement band an
+   * occupation and with it somewhere to live, and gives nobody above it
+   * either, so the 60+ are counted by age alone. The occupational structure
+   * behind the split is not published at all; how many of the urban are
+   * professionals rather than owners is a labour-survey estimate, and it
+   * stays behind the fog with the industrial census. */
+  census: Array<{
+    tick: Qtr
+    population: number
+    pyramid: number[]
+    residence: { rural: number; urban: number }
+  }>
   /** every quarter's dials, exact — the government's minute book. `dials`
    * above is only the current row of this, and a rate you set twenty quarters
    * ago is otherwise unrecoverable. Deliberately carries no denominator: the

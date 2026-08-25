@@ -10,6 +10,21 @@
  * The format has its own version because it is a consumer contract for people,
  * scripts, and a possible future MCP. It is not the engine state schema: the
  * engine/schema pair that produced the run remains attached under `run.version`.
+ *
+ * **`formatVersion` moves on BREAKING changes only** — a field removed,
+ * renamed, or re-typed. New fields and new tables arrive WITHIN a version:
+ * `records.householdReleases` did, and so did `census[].residence`. The
+ * integer has no minor half, so bumping it for additive growth would churn it
+ * on every new indicator, sector and statute, and it would still not let a
+ * consumer tell one v1 payload's field set from another's — the payloads
+ * already differ. What answers that question is `run.version`, which stamps
+ * the engine and schema that produced the file, against the field-by-field
+ * table in `docs/metrics-changelog.md`.
+ *
+ * The consequence for a consumer is worth stating because it is the one way
+ * this bites: **validate permissively.** A strict schema over this document —
+ * `additionalProperties: false`, a Zod `.strict()` — will reject the next
+ * ordinary release. Read the fields you know and ignore the rest.
  */
 
 import { FIRST_YEAR, type SaveFile } from '@terrarium/engine'
@@ -58,7 +73,9 @@ export interface HistoricalDataExport {
     householdReleases: PublishedState['households']
     /** Exact government books, one row per quarter. */
     treasury: PublishedState['books']
-    /** Exact head counts and age pyramids, one row per quarter. */
+    /** Exact head counts, age pyramids and the rural/urban split, one row per
+     * quarter. The split is struck on the under-60s the register houses, not
+     * on the head count in the same row — see `PublishedState.census`. */
     census: PublishedState['census']
     /** The government's own dials and standing rules, one row per quarter. */
     policy: PublishedState['policy']

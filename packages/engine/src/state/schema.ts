@@ -930,6 +930,13 @@ export interface StatRecord {
    * fog: you can always count people, even when you can't survey them */
   population: number
   pyramid: number[]
+  /** where those heads live, in millions — the other question a census form
+   * asks, and exact for the same reason. `rural + urban` is the population
+   * the register classifies (the under-60s), NOT `population`: see
+   * `derive.residence` for why the 60+ are counted by age alone rather than
+   * split at the working-age rate. The occupational structure behind the
+   * split stays fogged — a labour survey estimates that. */
+  residence: { rural: number; urban: number }
   /** terms of trade: world price of your export basket ÷ your import basket,
    * indexed to 1946=100 — what the customs statisticians would compile */
   termsOfTrade: number
@@ -1098,7 +1105,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 36 // v36: the basket answers to income and relative price (ADR-0030)
+export const SCHEMA_VERSION = 37 // v37: the census counts where people live (#164)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

@@ -104,6 +104,15 @@ Tailwind scans source **text**. A template-literal class — `grid-rows-[${rows}
 the DOM and in no stylesheet, and fails completely silently. **Spell variants out as
 literals.**
 
+The same failure with the opposite cause: `index.css` sets `button, input { font: inherit }`
+**unlayered**, and an unlayered rule beats every `@layer` — including Tailwind v4's
+`utilities`. So a font utility on a `<button>` or `<input>` is in the source, in the DOM, in
+the stylesheet, and **inert**: `text-[9px]`, `font-semibold` and `font-mono` all lose to the
+shorthand. This bites `TooltipLabel` and `Button`, which render buttons. **Put the type size on
+the parent row and let the button inherit** — the census overlay's pyramid stats row is the
+pattern. Colour, tracking and everything outside the `font` shorthand still apply, which is
+what makes it hard to see: the label is the right colour and the wrong size.
+
 ## Dev tooling
 
 - Backtick opens the dev console in `pnpm dev` (ADR-0010). SCENARIO runs a real game to a

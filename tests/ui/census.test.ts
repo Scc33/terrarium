@@ -14,7 +14,10 @@
  *  - indexing the record positionally, so the span silently changes the first
  *    time anything filters the census on the way to the page;
  *  - a median age that never moves, which would put a dead number beside a
- *    scrubber whose whole job is to show the transition.
+ *    scrubber whose whole job is to show the transition;
+ *  - a rural/urban share struck against the head count instead of against the
+ *    population the register actually houses, which prints low by exactly the
+ *    pensioner share and drifts further wrong the older the country gets.
  *
  * The cross-check in the last block is the load-bearing one: the engine's
  * cohort arithmetic makes the head count move by exactly births − deaths +
@@ -23,22 +26,33 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { AGE_BANDS } from '@terrarium/engine'
+import { AGE_BANDS, RETIREMENT_BAND } from '@terrarium/engine'
 import {
   GROWTH_LOOKBACK_QTRS,
+  RESIDENCE_IDS,
   ageStructure,
   medianAge,
   populationGrowth,
+  residenceRows,
+  residenceShares,
+  residenceSplit,
   type CensusEntry,
 } from '../../packages/ui/src/census'
 import { SURVEY_SEEDS, SURVEY_TICKS, eachQuarter } from './harness'
 
 const flat = (total: number) => Array<number>(AGE_BANDS).fill(total / AGE_BANDS)
-const entry = (tick: number, population: number): CensusEntry => ({
-  tick,
-  population,
-  pyramid: flat(population),
-})
+/** The register houses the under-60s, so a fixture's split is struck on a
+ * base SMALLER than its head count — the same relation the engine files, and
+ * the one a reading that divides by the wrong denominator gets wrong. */
+const entry = (tick: number, population: number, urban = 0.3): CensusEntry => {
+  const classified = (population * RETIREMENT_BAND) / AGE_BANDS
+  return {
+    tick,
+    population,
+    pyramid: flat(population),
+    residence: { rural: classified * (1 - urban), urban: classified * urban },
+  }
+}
 /** a census with one entry per quarter, populations given in order from 1946Q1 */
 const record = (populations: readonly number[]): CensusEntry[] =>
   populations.map((population, tick) => entry(tick, population))
@@ -138,6 +152,59 @@ describe('ageStructure', () => {
   })
 })
 
+describe('residenceSplit', () => {
+  it('strikes the share against the population the register houses', () => {
+    // 34M in a flat pyramid: 12 of 17 bands are under 60, so the register
+    // places 24M of them. A share taken against the head count instead would
+    // print 21% here rather than 30% — low, plausible, and wrong by the
+    // pensioner share every quarter.
+    const split = residenceSplit(entry(0, 34, 0.3))
+    expect(split.classified).toBeCloseTo((34 * RETIREMENT_BAND) / AGE_BANDS, 10)
+    expect(split.classified).toBeLessThan(34)
+    expect(split.urbanShare).toBeCloseTo(0.3, 10)
+    expect(split.rural + split.urban).toBeCloseTo(split.classified, 10)
+  })
+
+  it('has no share to report rather than reporting a country entirely on the land', () => {
+    // zero and null are different claims: one says everybody farms, the other
+    // says nobody has been placed yet. Rendered as "0%" the first is a
+    // confident, wrong, entirely plausible reading of an empty register.
+    const empty = residenceSplit({ residence: { rural: 0, urban: 0 } })
+    expect(empty.urbanShare).toBeNull()
+    expect(empty.classified).toBe(0)
+  })
+
+  it('refuses a negative side rather than passing it to a chart that drops it', () => {
+    // `stackPlot` floors a band at zero and draws nothing, which in review is
+    // indistinguishable from a country with nobody in the countryside
+    const broken = residenceSplit({ residence: { rural: -1, urban: 6 } })
+    expect(broken.rural).toBe(0)
+    expect(broken.urbanShare).toBe(1)
+  })
+})
+
+describe('residenceRows', () => {
+  it('gives every quarter both bands so the inks stay pinned to their categories', () => {
+    const rows = residenceRows(record([30, 31, 32]))
+    expect(rows).toHaveLength(3)
+    for (const row of rows) {
+      for (const id of RESIDENCE_IDS) expect(Number.isFinite(row.values[id])).toBe(true)
+    }
+  })
+
+  it('draws left to right whatever order the record arrives in', () => {
+    const scrambled = [entry(6, 33), entry(0, 30), entry(4, 32), entry(2, 31)]
+    expect(residenceRows(scrambled).map((r) => r.tick)).toEqual([0, 2, 4, 6])
+  })
+
+  it('names and inks both bands, in stack order with the land underneath', () => {
+    const keys = residenceShares(residenceSplit(entry(0, 30, 0.4)))
+    expect(keys.map((k) => k.key)).toEqual([...RESIDENCE_IDS])
+    expect(new Set(keys.map((k) => k.ink)).size).toBe(2)
+    for (const key of keys) expect(key.label.length).toBeGreaterThan(0)
+  })
+})
+
 // ---- against the century the engine actually produces ----
 
 describe('the exact register over a played century', () => {
@@ -208,6 +275,56 @@ describe('the exact register over a played century', () => {
     // start-of-quarter vs end-of-quarter denominators the rates are struck on
     expect(median).toBeLessThan(0.1)
     expect(sorted[sorted.length - 1]).toBeLessThan(1)
+  })
+
+  it('splits exactly the population the register houses, and nobody else', () => {
+    // The one arithmetic claim the page makes about the split: the two bands
+    // sum to the under-60s. If the engine ever houses the retired too, this
+    // fails here rather than on a chart whose bands would still sum to 100%.
+    let worst = 0
+    for (const seed of SURVEY_SEEDS.slice(0, 2)) {
+      eachQuarter(seed, SURVEY_TICKS, (pub, tick) => {
+        if (tick !== SURVEY_TICKS - 1) return
+        for (const c of pub.census) {
+          const under60 = c.pyramid.slice(0, RETIREMENT_BAND).reduce((a, b) => a + b, 0)
+          const split = residenceSplit(c)
+          worst = Math.max(worst, Math.abs(split.classified - under60))
+          expect(split.classified).toBeLessThan(c.population)
+          expect(split.urbanShare).not.toBeNull()
+          expect(split.urbanShare!).toBeGreaterThanOrEqual(0)
+          expect(split.urbanShare!).toBeLessThanOrEqual(1)
+        }
+      })
+    }
+    expect(worst).toBeLessThan(1e-9)
+  })
+
+  it('draws a transition, and one the country rather than the seed decides', () => {
+    // Measured over 400 fully-surveyed quarters, 2 seeds each: agrarian
+    // Costona opens at 35 % urban and finishes near 75 %, while industrial
+    // Veltravia opens at 78 % and has almost nowhere left to go. Both facts
+    // matter — the first is the chart having something to show, the second is
+    // the split being a fact about the recipe rather than a global constant,
+    // the same shape as the inherited pollution baseline. (Today the share
+    // only ever rises: the engine's rural→urban flow stops in a slump but
+    // never reverses. The band chart does not depend on that, so it is not
+    // pinned here.)
+    const span = (country: 'costona' | 'veltravia') => {
+      let opening = 0
+      let closing = 0
+      eachQuarter('ui-a', SURVEY_TICKS, (pub, tick) => {
+        if (tick !== SURVEY_TICKS - 1) return
+        opening = residenceSplit(pub.census[0]).urbanShare!
+        closing = residenceSplit(pub.census[pub.census.length - 1]).urbanShare!
+      }, country)
+      return { opening, closing }
+    }
+    const agrarian = span('costona')
+    const industrial = span('veltravia')
+    expect(agrarian.opening).toBeLessThan(0.45)
+    expect(agrarian.closing - agrarian.opening).toBeGreaterThan(0.25)
+    expect(industrial.opening).toBeGreaterThan(0.7)
+    expect(industrial.opening - agrarian.opening).toBeGreaterThan(0.25)
   })
 
   it('gives the scrubber a median age that actually moves', () => {

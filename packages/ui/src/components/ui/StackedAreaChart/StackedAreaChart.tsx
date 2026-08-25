@@ -21,12 +21,20 @@ export interface StackedAreaChartProps {
   markTick?: number
   height?: number
   format?: (value: number) => string
+  /** The viewBox width, and so the size the axis type is drawn AT. The
+   * container still governs the rendered width — but the SVG scales as one
+   * piece, so a 560-wide viewBox in a 300-wide column shrinks 7.5px labels to
+   * 4px. Pass the column's own width and the type comes out legible. */
+  width?: number
+  /** The reading for assistive technology. Defaults to the span and the
+   * category names; pass one when the caller can say more than that. */
+  summary?: string
 }
 
-const W = 560
+const DEFAULT_W = 560
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
-export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0) }: StackedAreaChartProps) {
+export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, format = (v) => v.toFixed(0), width: W = DEFAULT_W, summary }: StackedAreaChartProps) {
   const box = { w: W, h: height, padL: 30, padR: 6, padT: 6, padB: 14 }
   const plot = stackPlot(thin(rows, W / 2), keys, box, mode)
 
@@ -43,7 +51,9 @@ export function StackedAreaChart({ rows, keys, mode, markTick, height = 150, for
 
   const ticks = mode === 'share' ? [0, 0.25, 0.5, 0.75, 1] : [0, plot.yMax / 2, plot.yMax]
   const label = (v: number) => (mode === 'share' ? `${(100 * v).toFixed(0)}%` : format(v))
-  const reading = `${mode === 'share' ? 'Share' : 'Level'} history from ${yearOf(plot.x0)} to ${yearOf(plot.x1)} for ${keys.map((key) => key.label).join(', ')}.`
+  const reading =
+    summary ??
+    `${mode === 'share' ? 'Share' : 'Level'} history from ${yearOf(plot.x0)} to ${yearOf(plot.x1)} for ${keys.map((key) => key.label).join(', ')}.`
 
   // width-governed like every other chart in the dossier register: the viewBox
   // sets the proportions, the container sets the size. Stretching to a fixed
