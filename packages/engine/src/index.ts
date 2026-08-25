@@ -125,6 +125,7 @@ export function replay(save: SaveFile, untilTick?: number): TrueState {
 export {
   COUNTRY_ARCHETYPE_IDS,
   COUNTRY_CATALOG,
+  COUNTRY_DRAFT_DOMAIN,
   CURATED_COUNTRY_IDS,
   MERIDIA_PARAMS,
   InvalidCountryError,
@@ -139,6 +140,7 @@ export {
 export type {
   CountryArchetypeId,
   CountryDifficulty,
+  CountryDraftRange,
   CountryProfile,
   CountryScenarioId,
   CuratedCountryId,

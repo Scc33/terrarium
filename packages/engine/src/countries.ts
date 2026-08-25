@@ -38,6 +38,34 @@ export type CountryArchetypeId = (typeof COUNTRY_ARCHETYPE_IDS)[number]
 
 export type CountryDifficulty = 'introductory' | 'standard' | 'hard' | 'severe'
 
+export interface CountryDraftRange {
+  readonly min: number
+  readonly max: number
+}
+
+/**
+ * The finite part of the valid country space exposed by the drafting room.
+ *
+ * This is deliberately a drafting domain rather than another validator. Some
+ * engine inputs only have a mathematical lower bound (a cohort must be
+ * positive), while an authoring control and a useful fuzz sampler need a
+ * finite, meaningful rail. The validator remains the authority at the door;
+ * the UI and runner share these narrower ranges so neither invents a second
+ * idea of what a player can write.
+ */
+export const COUNTRY_DRAFT_DOMAIN = {
+  development: { min: 0.05, max: 1 },
+  openness: { min: 0, max: 2.5 },
+  cohortSize: { min: 0.1, max: 45 },
+  sectorMix: { min: 0.3, max: 4 },
+  debtToGdp: { min: 0, max: 1.5 },
+  creditToGdp: { min: 0.05, max: 1.5 },
+  reserveCoverage: { min: 0, max: 8 },
+  institution: { min: 0, max: 1 },
+  enfranchisement: { min: 0, max: 1 },
+  capacity: { min: 0, max: 1 },
+} as const satisfies Record<string, CountryDraftRange>
+
 /** Safe, static presentation metadata. The UI may read this catalogue; only
  * the worker calls createCountryParams and touches the actual parameter vector. */
 export interface CountryProfile {

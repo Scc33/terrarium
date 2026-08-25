@@ -22,6 +22,7 @@
     "test:visual:update": "playwright test --update-snapshots",
     "coverage": "vitest run --coverage",
     "batch": "pnpm --filter @terrarium/runner batch",
+    "country-fuzz": "pnpm --filter @terrarium/runner country-fuzz",
     "stability": "pnpm --filter @terrarium/runner stability",
     "export-feedback": "pnpm --filter @terrarium/runner export-feedback",
     "export-share": "tsx tools/measure-export-share.ts",
