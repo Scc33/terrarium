@@ -473,6 +473,16 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
         ],
       },
       {
+        heading: 'FOREIGN CAPITAL, AND WHO OWNS IT',
+        body: [
+          'Foreign money that builds a factory here is not a bonus for being open. It arrives as ordinary investment demand, it joins the capital stock, and from that quarter on somebody abroad has a claim on the profits of everything it built. The inflow lands on the balance of payments now; the remitted earnings leave household income every quarter afterwards. A country can raise its capital stock this way and still be poorer per head for having done it.',
+          'There is no dial marked foreign investment, deliberately: the flow is a product of what an investor is actually looking at, and most of what they are looking at is your country rather than your cabinet. How small it is, how open its recipe made it, how far its industries still are from the world’s methods, and how much of its capital foreigners already own. All four of those move against you as the country succeeds, so the share falls across a good century. The instrument is not a scoreboard.',
+          'What the cabinet does reach: the tariff, which raises the cost of the plant an investor would import and repels the marginal project; the administrative ministry, which is the largest single thing you can build for it, because a state that delivers is a state a foreign board will commit capital to; and price stability, which is less a lever than a way to lose one — past roughly eight percent annual inflation, contract risk shelves new projects, and a large deficit-financed programme will spend most of its quarters there.',
+          'The corporate tax looks like the lever and is a trap. Cut it and the inflow rises the same quarter, because what attracts a direct investor is after-tax profit as a share of the economy. Hold the cut for a generation and that share is competed back to where it started while the revenue is still gone — you have bought a larger foreign claim on a smaller economy. The same arithmetic runs in reverse through your own tax office: a stronger one collects more of the corporate rate you had already posted, so building it lowers the inflow while remaining one of the best things you can do for the country.',
+          'And a warning about succeeding. Research closes the gap between your methods and the world’s, and that gap is part of what attracted the capital in the first place. Funding it lowers foreign investment while raising output per head. That is the right trade, and the instrument will never say so.',
+        ],
+      },
+      {
         heading: 'DEBT AND THE PRESS',
         body: [
           'Debt is priced, not forbidden. A rising debt ratio raises the premium lenders charge; far enough out, they stop lending altogether and a deficit can only be printed. Printed money feeds inflation expectations, which feed prices, which the money interest is watching.',
