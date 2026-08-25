@@ -25,9 +25,10 @@ dist-ssr
 *.sln
 *.sw?
 
-# test coverage output
+# generated test and research output
 coverage
 country-fuzz-artifacts
+country-fuzz-failures
 
 # git worktrees checked out inside the repo. `git add -A` from the root stages
 # each one as a GITLINK — a 160000 entry pointing at whatever that branch's HEAD
