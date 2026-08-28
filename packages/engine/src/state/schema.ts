@@ -232,6 +232,9 @@ export const INDICATOR_IDS = [
   'income_real',
   /** population below the fixed real basic-needs line (ADR-0030) */
   'poverty_rate',
+  /** expected years lived by a synthetic newborn under today's age-specific
+   * mortality schedule — period life expectancy, not current age at death */
+  'life_expectancy',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
   'net_migration',
@@ -921,6 +924,8 @@ export interface StatRecord {
   /** the five equal-population groups behind the household-budget survey */
   incomeQuintileReal: Record<IncomeQuintileId, Money>
   incomeQuintileShare: Record<IncomeQuintileId, Ratio>
+  /** period life expectancy at birth from the age-specific mortality schedule */
+  lifeExpectancy: number
   /** crude birth/death rates (per 1000/yr) — what a civil registrar records */
   birthRate: number
   deathRate: number
@@ -1105,7 +1110,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 37 // v37: the census counts where people live (#164)
+export const SCHEMA_VERSION = 38 // v38: publish period life expectancy at birth
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

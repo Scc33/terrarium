@@ -274,6 +274,7 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   poverty_rate: HOUSEHOLD_SURVEY_FUNDED_AT,
   // border and civil-registration returns are reconciled with the same
   // population register that produces births and deaths
+  life_expectancy: 0.3,
   net_migration: 0.3,
   birth_rate: 0.3,
   death_rate: 0.3,
