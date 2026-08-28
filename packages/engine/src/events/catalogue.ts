@@ -114,7 +114,7 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     dispatches: [
       {
         headline: 'Rains return to the provinces',
-        body: 'The first steady weather in more than a year has the countryside planting again. Merchants expect a decent harvest and a quieter market.',
+        body: 'The first steady weather since the drought took hold has the countryside planting again. Merchants expect a decent harvest and a quieter market.',
       },
       {
         headline: 'The drought breaks',
@@ -865,7 +865,7 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
       market: [
         {
           headline: 'Shortages reported in the food trade',
-          body: 'Supermarket shelves have gaps in them and the buying departments are blaming each other. Consumers are simply buying twice as much of whatever is there.',
+          body: 'Supermarket shelves have gaps in them and the buying departments are blaming each other. Shoppers are simply clearing whatever is there.',
         },
       ],
     },
@@ -1022,7 +1022,7 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     dispatches: [
       {
         headline: 'Optimism reported in the country',
-        body: 'Households and firms alike say they expect better times. Order books and hire-purchase agreements agree with them.',
+        body: 'Households say they expect better times, and are spending as though they mean it. Hire-purchase agreements are being signed on the strength of it.',
       },
     ],
   },
@@ -1107,8 +1107,8 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     prominence: 'column',
     dispatches: [
       {
-        headline: 'Real earnings are going backwards',
-        body: 'Money wages have moved and what they buy has not kept up. Settlements agreed in good faith last year look thin now.',
+        headline: 'Households are going backwards',
+        body: 'What a household has left to spend, after tax and after prices, is less than it was. Settlements agreed in good faith last year look thin now.',
       },
     ],
   },
@@ -1119,8 +1119,8 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     prominence: 'column',
     dispatches: [
       {
-        headline: 'Wages are buying more than they did',
-        body: 'Earnings have outrun prices for long enough that households have begun to believe it. Hire-purchase agreements are being signed on the strength of it.',
+        headline: 'Households are better off than they were',
+        body: 'Take-home income has outrun prices for long enough that households have begun to believe it. Hire-purchase agreements are being signed on the strength of it.',
       },
     ],
   },
@@ -1767,7 +1767,14 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     ],
   },
   births_fall_away: {
-    kind: 'milestone',
+    // `rumor`, not `milestone`, and the distinction is the one the note above
+    // draws. The head count, where people sleep and the age structure are all
+    // countable without a statistical office — but the BIRTH RATE is a fogged
+    // indicator with a capacity gate, a lag and a band (`birth_rate`), so a
+    // crossing in it is the registrar's claim rather than an exact fact.
+    // `kind` is what downstream consumers filter on, so filing this as a
+    // milestone told them an unfunded survey reading was certain.
+    kind: 'rumor',
     desk: 'home',
     tone: 'neutral',
     prominence: 'column',

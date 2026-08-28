@@ -141,7 +141,10 @@ can be tested — anything pushed into a component becomes untestable:
   breaks ties on FILING order (pipeline order, so a drought precedes the crisis precedes the
   election that turned on both), and a quarter carrying nothing but briefs promotes them into the
   main column, because an empty column beside a full sidebar reads as a broken page rather than a
-  slow news day. `latestEdition` shows the most recent edition at or before now: more than half of
+  slow news day — and the OVERLAY has to drop to one grid track when it does, or the promotion
+  just moves the empty third to the other side (asserted in the browser, invisible in jsdom).
+  `tickerHeadlines` ranks the foot-of-wall strip the same way the page does, so the two never
+  disagree about one edition on one screen. `latestEdition` shows the most recent edition at or before now: more than half of
   all quarters are quiet, and a front page that blanked whenever THIS quarter carried nothing would
   be blank most of the time.
 - **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every

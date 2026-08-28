@@ -53,6 +53,46 @@ interface ShearReport {
   overBottom: number
 }
 
+interface BandSample {
+  sidebar: boolean
+  tracks: number
+}
+
+/** Pages back through editions and reports, for one WITH a sidebar and one
+ * without, how many grid tracks the band actually resolved to. Source text for
+ * the same reason as the probes below — no DOM lib. */
+const BAND_TRACK_PROBE = `(async () => {
+  const dialog = document.querySelector('[role="dialog"]')
+  if (!dialog) return []
+  // Re-queried every pass: React replaces the button node on re-render, so a
+  // reference captured once goes stale after the first click and every later
+  // click silently does nothing — which showed up as the probe only ever
+  // sampling one of the two layouts.
+  const earlier = () =>
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent.includes('EARLIER'))
+  const grid = () =>
+    [...dialog.querySelectorAll('div')].find(
+      (el) => getComputedStyle(el).display === 'grid' && el.querySelector('article'),
+    )
+  const sample = []
+  for (let i = 0; i < 40 && sample.length < 2; i++) {
+    const g = grid()
+    if (g) {
+      const sidebar = dialog.querySelector('aside') !== null
+      const tracks = getComputedStyle(g).gridTemplateColumns.split(' ').length
+      if (!sample.some((entry) => entry.sidebar === sidebar)) sample.push({ sidebar, tracks })
+    }
+    const back = earlier()
+    if (!back || back.disabled) break
+    back.click()
+    // Yield a macrotask so React can flush the click before the next pass
+    // reads the DOM. A tight synchronous loop never re-renders, so every
+    // iteration re-sampled the same edition and only one layout was ever seen.
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+  return sample
+})()`
+
 /** Passed to `page.evaluate` as source text, like the focus probe below: this
  * project has no DOM lib, so a callback would not typecheck. */
 const SHEAR_PROBE = `(() => {
@@ -588,6 +628,22 @@ test('the paper sets a front page and files a searchable archive', async ({ page
   for (let i = 0; i < 40 && (await lead.count()) === 0; i++) await earlier.click()
   await expect(lead).toHaveCount(1)
   await expect(page).toHaveScreenshot('wire-front-page.png')
+
+  // A briefs-only edition promotes its briefs into the main band — and the
+  // grid must drop to ONE track when it does, or the promoted stories sit in
+  // two thirds of the page beside an empty third, which is the broken-page
+  // look the promotion exists to remove. `pageBands` is unit-tested; only a
+  // real browser can say what the grid did with what it returned.
+  const bands = (await page.evaluate(BAND_TRACK_PROBE)) as BandSample[]
+  // Both cases must actually have been sampled. An `if (found)` guard here
+  // would turn "the probe never found a briefs-only edition" into a pass,
+  // which is the shape of an assertion that quietly stops asserting.
+  expect(bands.map((b) => b.sidebar).sort()).toEqual([false, true])
+  expect(bands.find((b) => b.sidebar)?.tracks, 'a page with briefs keeps two tracks').toBe(2)
+  expect(
+    bands.find((b) => !b.sidebar)?.tracks,
+    'a page without briefs must not leave an empty track',
+  ).toBe(1)
 
   await wire.getByRole('button', { name: 'ARCHIVE', exact: true }).click()
   await expect(wire.getByRole('searchbox', { name: 'Search every dispatch' })).toBeVisible()

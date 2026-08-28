@@ -29,14 +29,13 @@
  * 1958 archive.
  */
 
-import {
-  DESK_IDS,
-  OUTLETS,
-  PRESS_ERA_IDS,
-  type DeskId,
-  type NewsItem,
-  type Prominence,
-} from '@terrarium/engine'
+import { DESK_IDS, OUTLETS, PRESS_ERA_IDS, type DeskId, type Prominence } from '@terrarium/engine'
+// `NewsItem` is a PUBLISHED shape, so it comes from observation — the same
+// split `ui/src/finance.ts` already makes. The engine side of this import is
+// constant tuples and the types derived from them, which is what the boundary
+// allows the UI to see (`gameRules.ts` imports `GAME_RULE_IDS`/`GameRuleId`
+// the same way). Nothing here reaches into `engine/src/state/*`.
+import type { NewsItem } from '@terrarium/observation'
 
 export const DESK_ORDER: readonly DeskId[] = DESK_IDS
 

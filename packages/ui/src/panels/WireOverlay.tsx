@@ -26,8 +26,8 @@
  */
 
 import { useMemo, useState } from 'react'
-import { DESK_IDS, PRESS_ERAS, eraAtTick, type DeskId, type NewsItem } from '@terrarium/engine'
-import type { PublishedState } from '@terrarium/observation'
+import { DESK_IDS, PRESS_ERAS, eraAtTick, type DeskId } from '@terrarium/engine'
+import type { NewsItem, PublishedState } from '@terrarium/observation'
 import { Button, EmptyState, Modal, SectionHeading, SegmentedControl } from '../components/ui'
 import {
   adjacentEdition,
@@ -184,7 +184,16 @@ function FrontPage({ pub }: { pub: PublishedState }) {
           whole difference between this and the list it replaced. */}
       {edition.lead && <LeadStory item={edition.lead} />}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
+      {/* Two tracks only when there is something to put in the second one.
+          `pageBands` promotes a briefs-only edition into `main`, but an
+          unconditional `2fr 1fr` then squeezed those promoted stories into two
+          thirds of the page beside an empty third — reinstating the very
+          broken-page look the promotion exists to remove. Both variants are
+          spelled out as literals: Tailwind scans source TEXT, so a computed
+          class would be in the DOM and in no stylesheet. */}
+      <div
+        className={`grid grid-cols-1 gap-4 ${side.length > 0 ? 'sm:grid-cols-[2fr_1fr]' : 'sm:grid-cols-1'}`}
+      >
         <div className="flex min-w-0 flex-col gap-2.5">
           {edition.items.length === 0 && (
             <div className="font-mono text-[10px] tracking-[0.18em] text-wire-ink/50">

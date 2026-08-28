@@ -272,6 +272,9 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     when: (c) => c.now.householdSavingRate < 0.01,
   },
   { event: 'confidence_low', cls: 'report', salience: 3, when: (c) => c.now.confConsumer < 0.35 },
+  // Consumer confidence alone, so the copy speaks for households alone.
+  // Business confidence moves on its own target and can diverge; the dispatch
+  // used to claim firms agreed, which a pessimistic-firms quarter made false.
   { event: 'confidence_high', cls: 'report', salience: 2, when: (c) => c.now.confConsumer > 0.66 },
   {
     event: 'shops_quiet_and_full',
@@ -305,6 +308,12 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     when: (c) => c.now.unemployment < 0.05 || c.now.utilization > 0.97,
   },
   {
+    // `incomeMeanReal` is mean disposable HOUSEHOLD income — after tax, and
+    // including transfers and profits — not an aggregate real wage, which the
+    // worksheet does not carry. The copy says household income for that
+    // reason: it read "real earnings are going backwards", which a transfer
+    // expansion or a tax change could make false while market wages were flat
+    // or moving the other way.
     event: 'wage_packets_thin',
     cls: 'report',
     salience: 6,

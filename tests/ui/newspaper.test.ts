@@ -8,7 +8,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { DESK_IDS, OUTLETS, type NewsItem, type Prominence } from '@terrarium/engine'
+import { DESK_IDS, OUTLETS, type Prominence } from '@terrarium/engine'
+import type { NewsItem } from '@terrarium/observation'
 import {
   adjacentEdition,
   archive,

@@ -136,7 +136,15 @@ describe('a passive century', () => {
   })
 
   it('reports a milestone once, and only where it was crossed', () => {
-    const milestones = news.filter((n) => n.kind === 'milestone')
+    // Keyed off the RULE CLASS, not `kind`. The two are deliberately not the
+    // same thing: `cls: 'milestone'` is a desk behaviour (once per run,
+    // unbudgeted), while `kind` says how certain the reading is. A crossing in
+    // a fogged series — `births_fall_away`, off the capacity-gated birth-rate
+    // indicator — is a once-per-run milestone that publishes as a `rumor`.
+    const milestoneEvents = new Set(
+      CONDITION_RULES.filter((r) => r.cls === 'milestone').map((r) => r.event),
+    )
+    const milestones = news.filter((n) => milestoneEvents.has(n.event))
     const ids = milestones.map((n) => n.event)
     expect(new Set(ids).size).toBe(ids.length)
     // Nothing on the opening morning: a fact that was true when the country
