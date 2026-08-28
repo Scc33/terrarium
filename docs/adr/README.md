@@ -43,3 +43,4 @@ the old one and update the Status line of both.
 | [0028](0028-pollution-is-a-stock-that-damages-through-existing-channels.md) | Pollution is a stock the economy produces, and it damages through channels that already exist | Accepted |
 | [0029](0029-poverty-is-a-fixed-real-line-over-the-household-survey.md) | Poverty is a fixed real line over the household survey | Accepted |
 | [0030](0030-the-basket-is-calibrated-to-the-country-it-opens-in.md) | The consumption basket is calibrated to the country it opens in, and answers to income from there | Accepted |
+| [0031](0031-an-event-is-a-name-the-catalogue-words.md) | An event is a name; the catalogue words it | Accepted |

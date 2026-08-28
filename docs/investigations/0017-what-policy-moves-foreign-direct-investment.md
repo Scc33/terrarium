@@ -10,6 +10,10 @@ policies which change foreign direct investment?"
 **Measured at:** engine `3b7bb96`, 20 paired seeds × five authored countries × 16 scenarios ×
 400 quarters. The harness added with this investigation is `pnpm fdi -- --runs 20 --ticks 400`.
 
+Re-run after merging master at `9c67102` (life expectancy, and the event catalogue): every
+figure below is byte-identical. A published indicator is observation and the wire is
+presentation, so neither reaches this flow — which is the seam working, not a coincidence.
+
 ## The short answer
 
 Yes — four of them, and the two that look most like FDI policy are the two that do not work.

@@ -53,6 +53,46 @@ interface ShearReport {
   overBottom: number
 }
 
+interface BandSample {
+  sidebar: boolean
+  tracks: number
+}
+
+/** Pages back through editions and reports, for one WITH a sidebar and one
+ * without, how many grid tracks the band actually resolved to. Source text for
+ * the same reason as the probes below — no DOM lib. */
+const BAND_TRACK_PROBE = `(async () => {
+  const dialog = document.querySelector('[role="dialog"]')
+  if (!dialog) return []
+  // Re-queried every pass: React replaces the button node on re-render, so a
+  // reference captured once goes stale after the first click and every later
+  // click silently does nothing — which showed up as the probe only ever
+  // sampling one of the two layouts.
+  const earlier = () =>
+    [...dialog.querySelectorAll('button')].find((b) => b.textContent.includes('EARLIER'))
+  const grid = () =>
+    [...dialog.querySelectorAll('div')].find(
+      (el) => getComputedStyle(el).display === 'grid' && el.querySelector('article'),
+    )
+  const sample = []
+  for (let i = 0; i < 40 && sample.length < 2; i++) {
+    const g = grid()
+    if (g) {
+      const sidebar = dialog.querySelector('aside') !== null
+      const tracks = getComputedStyle(g).gridTemplateColumns.split(' ').length
+      if (!sample.some((entry) => entry.sidebar === sidebar)) sample.push({ sidebar, tracks })
+    }
+    const back = earlier()
+    if (!back || back.disabled) break
+    back.click()
+    // Yield a macrotask so React can flush the click before the next pass
+    // reads the DOM. A tight synchronous loop never re-renders, so every
+    // iteration re-sampled the same edition and only one layout was ever seen.
+    await new Promise((resolve) => setTimeout(resolve, 20))
+  }
+  return sample
+})()`
+
 /** Passed to `page.evaluate` as source text, like the focus probe below: this
  * project has no DOM lib, so a callback would not typecheck. */
 const SHEAR_PROBE = `(() => {
@@ -549,6 +589,69 @@ test('financial overlay plots the position and the stance once surveyed', async 
   await expect(page).toHaveScreenshot('finance-overlay-banks.png')
 })
 
+test('the paper sets a front page and files a searchable archive', async ({ page }) => {
+  // The wire was a reversed array printed as a column of shouting capitals,
+  // and #160 turned it into a newspaper. Everything that makes it one is
+  // layout — a lead in the serif at a size nothing else uses, its columns
+  // beside it, its briefs down the side, a masthead carrying the era — and
+  // jsdom cannot see any of it. `tests/ui/newspaper.test.ts` pins which story
+  // goes in which band; only this pins that the bands are set.
+  //
+  // The archive shot exists for one failure in particular: nine sections and
+  // a count apiece was a rail wider than the dialog, and `SegmentedControl`
+  // does not wrap, so the last desk was sheared off the right edge inside
+  // `overflow-hidden` — invisible to every vertical overflow probe there is.
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050', exact: true }).fill('1987')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('70')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+
+  // A scenario arrives with a completed election behind it, so the count
+  // scene opens over the wall; dismiss it before reaching for the wire.
+  const count = page.getByRole('dialog', { name: 'THE COUNT' })
+  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+
+  await page.getByRole('button', { name: 'Read every dispatch on the news wire' }).click()
+  const wire = page.getByRole('dialog', { name: 'THE WIRE' })
+  await expect(wire.getByText('BACK NUMBERS', { exact: true })).toBeVisible()
+
+  // Page back to an edition that actually leads on something. More than half
+  // of all quarters are quiet by design, so whichever one the scenario lands
+  // on is as likely as not to be a single brief — a true picture of a slow
+  // news day, and no evidence at all about the three bands this shot exists
+  // to prove. Deterministic for a fixed seed; bounded so a change that stops
+  // producing leads fails here rather than looping.
+  const earlier = wire.getByRole('button', { name: '← EARLIER' })
+  const lead = wire.getByRole('article', { name: 'Lead story' })
+  for (let i = 0; i < 40 && (await lead.count()) === 0; i++) await earlier.click()
+  await expect(lead).toHaveCount(1)
+  await expect(page).toHaveScreenshot('wire-front-page.png')
+
+  // A briefs-only edition promotes its briefs into the main band — and the
+  // grid must drop to ONE track when it does, or the promoted stories sit in
+  // two thirds of the page beside an empty third, which is the broken-page
+  // look the promotion exists to remove. `pageBands` is unit-tested; only a
+  // real browser can say what the grid did with what it returned.
+  const bands = (await page.evaluate(BAND_TRACK_PROBE)) as BandSample[]
+  // Both cases must actually have been sampled. An `if (found)` guard here
+  // would turn "the probe never found a briefs-only edition" into a pass,
+  // which is the shape of an assertion that quietly stops asserting.
+  expect(bands.map((b) => b.sidebar).sort()).toEqual([false, true])
+  expect(bands.find((b) => b.sidebar)?.tracks, 'a page with briefs keeps two tracks').toBe(2)
+  expect(
+    bands.find((b) => !b.sidebar)?.tracks,
+    'a page without briefs must not leave an empty track',
+  ).toBe(1)
+
+  await wire.getByRole('button', { name: 'ARCHIVE', exact: true }).click()
+  await expect(wire.getByRole('searchbox', { name: 'Search every dispatch' })).toBeVisible()
+  // Every section on the rail, including the last one.
+  await expect(wire.getByRole('button', { name: 'SCIENCE', exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('wire-archive.png')
+})
+
 test('household office shows poverty and both quintile views once surveyed', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')
@@ -612,7 +715,7 @@ test('household office shows poverty and both quintile views once surveyed', asy
   await expect(page).toHaveScreenshot('households-share.png')
 })
 
-test('census files net migration with the other population flows', async ({ page }) => {
+test('census files life expectancy with the population flows', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')
   await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
@@ -626,7 +729,12 @@ test('census files net migration with the other population flows', async ({ page
   await page.getByRole('button', { name: /POP \/ LABOUR/ }).click()
   const census = page.getByRole('dialog', { name: 'THE NATIONAL CENSUS' })
   await expect(census.getByText('NET MIGRATION', { exact: true })).toBeVisible()
-  await expect(page).toHaveScreenshot('census-migration.png')
+  const lifeExpectancy = census.getByText(/LIFE \d+\.\d YRS/)
+  await expect(lifeExpectancy).toBeVisible()
+  await expect(lifeExpectancy).toBeInViewport()
+  // The suite-wide 1% tolerance can swallow one compact summary reading.
+  // Keep this baseline strict enough that a missing LIFE print is visible.
+  await expect(page).toHaveScreenshot('census-migration.png', { maxDiffPixels: 100 })
 })
 
 test('modal paperwork contains and restores keyboard focus', async ({ page }) => {

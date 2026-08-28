@@ -41,15 +41,21 @@ import {
   BLOC_IDS,
   CAPACITY_IDS,
   COHORT_IDS,
+  DESK_IDS,
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
+  EVENT_IDS,
   FIRST_YEAR,
   GAME_RULE_IDS,
   INDICATOR_FUNDED_AT,
   INSTITUTION_IDS,
+  NEWS_REPORT_P,
+  NEWS_REPORTS_PER_QTR,
   PC_START,
+  PRESS_ERAS,
   REFORM_WINDOW_AT,
   REVOLT_AT,
+  type DeskId,
   STATUTE_IDS,
   STATUTE_LEVELS,
   STATUTE_PHASE_IN_QTRS,
@@ -95,6 +101,7 @@ export const MANUAL_CHAPTER_IDS = [
   'figures',
   'economy',
   'room',
+  'wire',
   'run',
 ] as const
 
@@ -107,6 +114,32 @@ export interface ManualChapter {
   /** one line under the title, and the spine's subtitle */
   blurb: string
   sections: readonly ManualSection[]
+}
+
+/** What the handbook calls each desk, and what it covers. Total `Record`s
+ * over the engine's `DeskId`, so a section added to the paper fails the build
+ * here until the manual can say what it is for — the same rule the lever,
+ * bloc and statute copy follows. */
+const DESK_MANUAL_NAMES: Record<DeskId, string> = {
+  home: 'HOME',
+  labour: 'LABOUR',
+  finance: 'FINANCE',
+  industry: 'INDUSTRY',
+  land: 'THE LAND',
+  politics: 'POLITICS',
+  abroad: 'ABROAD',
+  science: 'SCIENCE',
+}
+
+const DESK_MANUAL_NOTES: Record<DeskId, string> = {
+  home: 'The cost of living: the shops, the queues, what a household can afford, and the head count as the registrar reports it.',
+  labour: 'Work and pay — the queue at the factory gate, the unions, who is leaving the country and who is arriving, and how far apart the top and the bottom have drifted.',
+  finance: 'Banks, credit, the bourse, the currency and the public debt. The wire reaches this desk long before a bank supervisor is funded to.',
+  industry: 'What the country makes, and whether the plant is running. The transitions live here: the quarter the factories outweigh the fields, and the quarter the offices outweigh the factories.',
+  land: 'The harvest, the weather and the air. Droughts are announced here with certainty — nobody needs a statistical office to see the sky.',
+  politics: 'The government, the constitution and the street. Elections, coups, revolts, the corridor, and every reform or statute you sign.',
+  abroad: 'The world outside and what it is doing to you: the trading partners\u2019 booms and crises, fuel ruptures, the terms of trade, and foreign money arriving or leaving.',
+  science: 'Laboratories, schools and the frontier. A breakthrough is announced by the people who made it, so it reaches the page whether or not you can measure what it did.',
 }
 
 const LAST_YEAR = FIRST_YEAR + END_OF_HISTORY_TICK / 4
@@ -253,6 +286,71 @@ const roomSections = (): ManualSection[] => [
       `Unrest reads the hardship households actually experienced, not the unemployment rate — the subsistence valve keeps the impoverished nominally employed, so a country can be in real distress with a respectable labour figure. Above ${REFORM_WINDOW_AT.toFixed(2)} the reform window opens and the elites' veto is discounted. Above ${REVOLT_AT.toFixed(2)} the country is in revolutionary territory.`,
       'Repression damps grievance, but never to zero, and the strain it puts on the corridor is added outside that damping — so the boot always costs something it cannot pay for. It also erodes the press and labour rights while it stands, which is how an extractive government slowly stops being able to hear that anything is wrong.',
       'The corridor plot is the whole thesis in one figure: state capacity along one axis, what society can do for itself along the other, and prosperity in the narrow band where neither has escaped the other. A state with no society is despotism; a society with no state is anarchy. Both are outside the band, and both are reachable.',
+    ],
+  },
+]
+
+/**
+ * The press. Generated from the engine's own tables like every other chapter
+ * that LISTS something: the desks come from `DESK_IDS`, the ages from
+ * `PRESS_ERAS`, and the size of the catalogue is counted rather than claimed
+ * — so a desk, an age or a hundred more dispatches appear in the handbook the
+ * quarter they appear in the game, and a number here cannot drift away from
+ * the one the wire is actually using.
+ */
+const wireSections = (): ManualSection[] => [
+  {
+    heading: 'WHAT THE WIRE IS',
+    body: [
+      `The wire is a newspaper, not an instrument. It carries ${EVENT_IDS.length} distinct dispatches, and it prints no figures at all — deliberately and permanently. It is written from what is actually happening in the country rather than from what your statistical office has managed to measure, so a dispatch quoting a number would be a survey you never funded, arriving with no lag, no error band and no revision. What it gives you instead is qualitative: bread queues, idle men at the factory gates, whispers that the mint is running hot.`,
+      `That makes it the poor state's instrument. Early on, when almost nothing on the wall is fitted, the wire is the only thing telling you what the country feels like — and it is telling you the truth, unreliably. A condition that is true reaches the page about ${Math.round(100 * NEWS_REPORT_P)}% of the time it is noticed, and the desk files at most ${NEWS_REPORTS_PER_QTR} such reports in a quarter. Something that happened — a drought, a crisis, an election, a law — is never held back.`,
+    ],
+  },
+  {
+    heading: 'THE DESKS',
+    body: [
+      'Every dispatch is filed to a section. The archive filters on them, and the ticker along the foot of the screen tags each headline with the desk that filed it.',
+    ],
+    entries: DESK_IDS.map((id) => ({
+      term: DESK_MANUAL_NAMES[id],
+      detail: DESK_MANUAL_NOTES[id],
+    })),
+  },
+  {
+    heading: 'THE PAPER CHANGES WITH THE CENTURY',
+    body: [
+      'The same event does not read the same in every decade. A drought in the opening years is a failed harvest and provincial governors asking the capital about bread; the same drought in the nineteen-seventies is an emergency price for grain and a ministry promising a statement. The titles change too, and so does what a quiet quarter is filled with — rationing and the wireless early on, satellite dishes and dealing rooms later.',
+      'You will also see the paper stop being a paper. Press freedom is an institution you can widen or narrow like any other, and below a threshold the independent titles disappear from the bylines and the same events arrive over the state\u2019s own wire service instead. The dispatch is unchanged — a captured press never suppresses an event or softens its tone. What changes is who is telling you, which is information the instruments cannot carry.',
+    ],
+    entries: PRESS_ERAS.map((era) => ({
+      term: era.label,
+      detail: `From ${era.fromYear}.`,
+      meta: String(era.fromYear),
+    })),
+  },
+  {
+    heading: 'READING IT',
+    entries: [
+      {
+        term: 'The ticker',
+        detail: 'Along the foot of the war room: the three latest headlines, most important first. Select it to open the paper.',
+        meta: 'ALWAYS ON',
+      },
+      {
+        term: 'The front page',
+        detail: 'One quarter, set as a page — the lead story with the paragraph under it, its columns, its briefs. More than half of all quarters are quiet, so the page you are shown is the latest one that carried anything, and its date says which.',
+        meta: 'EDITION',
+      },
+      {
+        term: 'Back numbers',
+        detail: 'Page earlier and later through every edition the century printed, skipping the quarters nobody set type for.',
+        meta: 'EARLIER / LATER',
+      },
+      {
+        term: 'The archive',
+        detail: 'Every dispatch ever filed, newest first, filtered by section and searchable by any word in a headline, a paragraph, or a masthead. This is how you find the last banking crisis.',
+        meta: 'THE SPIKE',
+      },
     ],
   },
 ]
@@ -496,6 +594,12 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
     title: 'THE ROOM',
     blurb: 'Who has power, what they want, and what they charge.',
     sections: roomSections(),
+  },
+  wire: {
+    id: 'wire',
+    title: 'THE WIRE',
+    blurb: 'The newspaper: what it knows, what it will never print, and how to read it.',
+    sections: wireSections(),
   },
   run: {
     id: 'run',

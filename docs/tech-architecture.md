@@ -44,6 +44,12 @@ terrarium/
 │   │   │   │   ├── monetary.ts prices.ts
 │   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
 │   │   │   │   └── derive.ts     # pure read-models over state (no step owns them)
+│   │   │   ├── events/           # the wire (ADR-0031): a step names an event, this words it
+│   │   │   │   ├── ids.ts        # EVENT_IDS / DESK_IDS — a leaf, so schema.ts can type NewsItem
+│   │   │   │   ├── catalogue.ts  # every dispatch's copy, per press era. The only authored prose
+│   │   │   │   ├── eras.ts       # the century's six presses and their mastheads
+│   │   │   │   ├── file.ts       # an id → the NewsItem, drawn on obs:news:* substreams
+│   │   │   │   └── conditions.ts # the desk: what gets reported, budgeted and cooled
 │   │   │   ├── actions/          # Action union + apply/legality
 │   │   │   └── rng/rng.ts        # seeded PRNG + substream derivation (§6)
 │   │   └── package.json          # no dependencies, by rule
@@ -63,6 +69,7 @@ terrarium/
 │   │   │   ├── panels/           # header, rail, news wire, ledger, overlays
 │   │   │   ├── components/       # gauges, tiles, ink charts, labels
 │   │   │   ├── wallPlan.ts       # the height budget (pure, tested)
+│   │   │   ├── newspaper.ts      # editions, page bands, the archive (pure, tested) — ADR-0031
 │   │   │   ├── domains.ts        # FIXED per-indicator dial faces (ADR-0006)
 │   │   │   ├── shares.ts         # pie / stacked-band geometry (pure, tested)
 │   │   │   ├── maturity.ts       # diegetic per-instrument visual maturity
@@ -210,7 +217,10 @@ interface PublishedState {
   policy: PolicyPoint[]            // …and what they were every quarter before now
   revenue: RevenueSplit            // the treasury keeps exact books on itself
   outlays: OutlaySplit
-  news: NewsItem[]                 // qualitative signals; how the fog stays playable
+  news: NewsItem[]                 // the wire, as a newspaper (ADR-0031) — how the fog stays
+                                   // playable. Each item names its `event` and `desk` and
+                                   // carries a headline, a standfirst and the masthead that
+                                   // filed it. It never contains a figure, on purpose.
   reportCard?: ReportCard          // only once the run is over — no mid-run truth leak
 }
 ```

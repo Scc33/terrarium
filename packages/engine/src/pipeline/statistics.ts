@@ -19,6 +19,7 @@ import {
   INDUSTRY_VALUE_ADDED_SD,
   POVERTY_LINE_REAL,
 } from '../constants'
+import { conditionDispatches } from '../events/conditions'
 import { clamp } from '../math'
 import {
   INCOME_QUINTILE_IDS,
@@ -31,7 +32,6 @@ import {
   type IncomeQuintileId,
   type IndustryPrint,
   type IndustryTableId,
-  type NewsItem,
   type PolicyRecord,
   type SectorId,
   type StatPrint,
@@ -44,6 +44,7 @@ import {
   effectivePrice,
   householdIncomeDistribution,
   householdSavingRate,
+  lifeExpectancyAtBirth,
   realConsumptionPerCapita,
   residence,
   sectorValueAdded,
@@ -273,6 +274,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'life_expectancy',
+    trueValue: (h, q) => h[q].lifeExpectancy,
+    // Life tables are estimates even when deaths are registered: small errors
+    // in age-specific hazards accumulate over an entire synthetic lifetime.
+    baseSd: 1.5,
+  },
+  {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
@@ -407,6 +415,7 @@ function recordOf(state: TrueState): StatRecord {
     povertyGap: households.povertyGap,
     incomeQuintileReal: { ...households.incomeQuintileReal },
     incomeQuintileShare: { ...households.incomeQuintileShare },
+    lifeExpectancy: lifeExpectancyAtBirth(state),
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
     netMigrationRate:
@@ -661,98 +670,21 @@ function householdPrintsDue(
   return out
 }
 
-const NEWS_RULES: Array<{
-  when(s: StatRecord): boolean
-  tone: NewsItem['tone']
-  texts: string[]
-}> = [
-  {
-    when: (s) => s.satisfiedAgri < 0.93,
-    tone: 'bad',
-    texts: [
-      'Bread queues reported in the capital.',
-      'Grain merchants say the warehouses are thin.',
-      'Provincial papers report empty market stalls.',
-    ],
-  },
-  {
-    when: (s) => s.inflationQ * 4 > 0.12,
-    tone: 'bad',
-    texts: [
-      'Shopkeepers are repricing goods by the week.',
-      'Housewives protest the cost of the market basket.',
-      'Wage earners say pay packets no longer stretch.',
-    ],
-  },
-  {
-    when: (s) => s.unemployment > 0.12,
-    tone: 'bad',
-    texts: [
-      'Idle men gather at the factory gates.',
-      'The unions demand public works.',
-      'Provincial governors report men riding the rails for work.',
-    ],
-  },
-  {
-    when: (s) => s.printedShare > 0.005,
-    tone: 'bad',
-    texts: [
-      'Bank clerks whisper that the mint is running hot.',
-      'The treasury bill auction found few takers, dealers say.',
-    ],
-  },
-  {
-    when: (s) => s.reservesQtrs < 0.7,
-    tone: 'bad',
-    texts: [
-      'Importers scramble for foreign exchange.',
-      'The central bank is said to be counting its gold twice.',
-    ],
-  },
-  {
-    // the street needs no statistical office to be visible from a window
-    when: (s) => s.unrest > 0.5,
-    tone: 'bad',
-    texts: [
-      'Students and strikers march on the ministries.',
-      'The gendarmerie asks for reinforcements it does not have.',
-      'Pamphlets circulate in the provinces that no censor has seen.',
-    ],
-  },
-  {
-    when: (s) => s.utilization > 0.97,
-    tone: 'neutral',
-    texts: [
-      'Factories report order books full to year’s end.',
-      'Employers complain they cannot find hands.',
-    ],
-  },
-  {
-    when: (s) => s.inflationQ * 4 < 0.005 && s.unemployment < 0.08 && s.utilization > 0.8,
-    tone: 'good',
-    texts: [
-      'Steady trade and quiet prices, the merchants report.',
-      'The chamber of commerce calls conditions satisfactory.',
-    ],
-  },
-]
-
-/** The rumor mill: unreliable — real conditions surface ~60% of the time,
- * and one rumor per quarter is plenty. */
-function rumorFor(snap: StatRecord, seed: Seed): NewsItem | null {
-  const rng = rngFor(seed, 'obs:news', snap.tick)
-  for (const rule of NEWS_RULES) {
-    if (rule.when(snap) && rng.next() < 0.6) {
-      return {
-        tick: snap.tick,
-        text: rule.texts[Math.floor(rng.next() * rule.texts.length)],
-        tone: rule.tone,
-        kind: 'rumor',
-      }
-    }
-  }
-  return null
-}
+/**
+ * The rumour mill moved out (#160).
+ *
+ * It used to be a seven-rule table right here, each rule carrying two or
+ * three interchangeable sentences, and the office filed the FIRST rule that
+ * matched at a flat sixty per cent. That shape is why the wire read the same
+ * in 1949 and 2043: the first matching rule is nearly always the same rule,
+ * and nothing in it knew what decade it was.
+ *
+ * The rules now live in `events/conditions.ts`, the prose in
+ * `events/catalogue.ts`, and the office simply asks the desk what it filed.
+ * The sixty per cent survives as `NEWS_REPORT_P` — unreliability is the
+ * point, and a wire that reports every true thing is an instrument rather
+ * than a rumour.
+ */
 
 export const statistics: PipelineStep = {
   name: 'statistics',
@@ -784,8 +716,11 @@ export const statistics: PipelineStep = {
       householdDue.length > 0
         ? [...state.stats.households, ...householdDue]
         : state.stats.households
-    const rumor = rumorFor(record[record.length - 1], seed)
-    const news = rumor ? [...state.stats.news, rumor] : state.stats.news
+    // The desk reads the country AFTER the office has written this quarter's
+    // worksheet, so a condition reports on the quarter it describes rather
+    // than on the one before it.
+    const filed = conditionDispatches(state, record)
+    const news = filed.length > 0 ? [...state.stats.news, ...filed] : state.stats.news
     return { ...state, stats: { record, series, industry, households, news } }
   },
 }

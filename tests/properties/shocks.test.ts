@@ -22,11 +22,16 @@ describe('the crisis clock', () => {
   const news = states[states.length - 1].stats.news
 
   it('ticks: a century contains droughts and oil ruptures, and the wire says so', () => {
-    expect(news.filter((n) => n.text.startsWith('Drought')).length).toBeGreaterThan(0)
-    expect(news.filter((n) => n.text.includes('fuel markets')).length).toBeGreaterThan(0)
+    // Matched on `event`, not on prose. These assertions used to read
+    // `text.startsWith('Drought')`, which meant the crisis clock's whole
+    // regression test could be disabled by a copy-edit — the failure mode the
+    // finance overlay's crisis markers were moved off prose to avoid, and the
+    // one #160 found still living in the runner.
+    expect(news.filter((n) => n.event === 'drought_onset').length).toBeGreaterThan(0)
+    expect(news.filter((n) => n.event === 'fuel_shock').length).toBeGreaterThan(0)
     // every drought eventually breaks
-    expect(news.filter((n) => n.text.startsWith('Rains')).length).toBe(
-      news.filter((n) => n.text.startsWith('Drought')).length,
+    expect(news.filter((n) => n.event === 'drought_relief').length).toBe(
+      news.filter((n) => n.event === 'drought_onset').length,
     )
   })
 
@@ -39,7 +44,7 @@ describe('the crisis clock', () => {
   })
 
   it('oil ruptures are crises, not new normals: spikes on impact, home in the mean', () => {
-    const ruptures = news.filter((n) => n.text.includes('fuel markets'))
+    const ruptures = news.filter((n) => n.event === 'fuel_shock')
     // the jump is visible the quarter it lands
     for (const r of ruptures) {
       const before = states[Math.max(r.tick - 2, 0)].external.worldPrices.energy

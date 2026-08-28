@@ -254,7 +254,9 @@ describe('God mode keeps a test run alive', () => {
     expect(after.politics.inPower).toBe(true)
     expect(after.politics.quartersToElection).toBe(16)
     expect(after.politics.deposedAt).toBeNull()
-    expect(after.stats.news.at(-1)?.text).toContain('GOD MODE')
+    // The dispatch names itself; the prose is free to change. This asserted
+    // `text` contained 'GOD MODE' until #160 reworded it.
+    expect(after.stats.news.at(-1)?.event).toBe('election_protected')
   })
 })
 

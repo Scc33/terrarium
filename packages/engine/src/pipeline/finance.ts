@@ -52,6 +52,7 @@ import {
   LOAN_LOSS_BASE_Q,
   NATURAL_REAL_RATE,
 } from '../constants'
+import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import { SECTOR_IDS, type NewsItem, type Sector } from '../state/schema'
 import type { PipelineStep } from './pipeline'
@@ -119,12 +120,7 @@ export const finance: PipelineStep = {
       crisisQtrsLeft -= 1
       if (crisisQtrsLeft === 0) {
         crisisSeverity = 0
-        news.push({
-          tick: state.meta.tick,
-          text: 'The banks are recapitalized at last; credit begins to thaw.',
-          tone: 'good',
-          kind: 'banking_recovery',
-        })
+        news.push(fileDispatch(state, 'banking_recovery'))
       }
     } else {
       const leverageExcess = Math.max(0, prevRatio - CRISIS_LEVERAGE_SAFE)
@@ -153,23 +149,20 @@ export const finance: PipelineStep = {
           consumer: Math.min(confidence.consumer, CRISIS_CONF_SHOCK),
           business: Math.min(confidence.business, CRISIS_CONF_SHOCK),
         }
-        news.push({
-          tick: state.meta.tick,
-          text:
-            importPressure > 0.02
-              ? 'A sudden stop: foreign credit vanishes and the banks seize up.'
-              : 'Banking crisis: a great lender fails and credit freezes overnight.',
-          tone: 'bad',
-          kind: 'banking_crisis',
-        })
+        // Two events, one `kind`. The distinction is causal — a crisis
+        // imported through the foreign lending channel is not the same story
+        // as one the country's own leverage earned — and giving each its own
+        // id is what lets the copy say so without the crisis MARKERS on the
+        // fragility charts having to care which it was.
+        news.push(
+          fileDispatch(
+            state,
+            importPressure > 0.02 ? 'banking_crisis_sudden_stop' : 'banking_crisis',
+          ),
+        )
       } else if (fin.assetPrice < ASSET_BUBBLE_AT && assetPrice >= ASSET_BUBBLE_AT) {
         // a bubble cresting is not fog either — the financial pages crow
-        news.push({
-          tick: state.meta.tick,
-          text: 'Speculation runs hot; asset prices reach giddy new heights.',
-          tone: 'neutral',
-          kind: 'asset_bubble',
-        })
+        news.push(fileDispatch(state, 'asset_bubble'))
       }
     }
 

@@ -25,12 +25,14 @@ function settledAt(pts: { forQtr: number; value: number; revision: number }[], q
 }
 
 describe('vital registration is a fundable instrument', () => {
-  it('no birth/death/migration series until civil registration is funded', () => {
+  it('no birth/death/migration/life-expectancy series until civil registration is funded', () => {
     const poor = observe(play('vr-1', 16, 0.15)).indicators
+    expect(poor.life_expectancy).toBeUndefined()
     expect(poor.birth_rate).toBeUndefined()
     expect(poor.death_rate).toBeUndefined()
     expect(poor.net_migration).toBeUndefined()
     const funded = observe(play('vr-1', 16, 0.4)).indicators
+    expect(funded.life_expectancy).toBeDefined()
     expect(funded.birth_rate).toBeDefined()
     expect(funded.death_rate).toBeDefined()
     expect(funded.net_migration).toBeDefined()
@@ -38,6 +40,10 @@ describe('vital registration is a fundable instrument', () => {
     for (const p of [...funded.birth_rate!.points, ...funded.death_rate!.points]) {
       expect(p.value).toBeGreaterThan(2)
       expect(p.value).toBeLessThan(60)
+    }
+    for (const p of funded.life_expectancy!.points) {
+      expect(p.value).toBeGreaterThan(35)
+      expect(p.value).toBeLessThan(90)
     }
     for (const p of funded.net_migration!.points) expect(Number.isFinite(p.value)).toBe(true)
   })
@@ -61,6 +67,15 @@ describe('vital registration is a fundable instrument', () => {
     const q = 40
     const truth = s.stats.record[q].birthRate // the exact worksheet the office measured
     expect(Math.abs(settledAt(birth, q) - truth)).toBeLessThan(4) // within a few per 1000
+  })
+
+  it('publishes a life table, not the population age mix', () => {
+    const s = play('vr-life-table', 80, 0.8)
+    const life = observe(s).indicators.life_expectancy!.points
+    const q = 60
+    const truth = s.stats.record[q].lifeExpectancy
+    expect(Math.abs(settledAt(life, q) - truth)).toBeLessThan(3)
+    expect(truth).toBeGreaterThan(45)
   })
 
   it('the census is exact and needs no funding: population history is fog-free', () => {

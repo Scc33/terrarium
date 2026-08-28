@@ -274,6 +274,7 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   poverty_rate: HOUSEHOLD_SURVEY_FUNDED_AT,
   // border and civil-registration returns are reconciled with the same
   // population register that produces births and deaths
+  life_expectancy: 0.3,
   net_migration: 0.3,
   birth_rate: 0.3,
   death_rate: 0.3,
@@ -1239,3 +1240,89 @@ export const POSITION_GRADE_CUTS: Array<{ atLeast: number; grade: 'A' | 'B' | 'C
  * `pnpm inheritance` before touching them. */
 export const CARETAKER_CAPACITY_EVERY = 8 // quarters between ministry programmes
 export const CARETAKER_CAPACITY_SPEND = 2 // money per programme, per ministry
+
+// ---------- the news desk: how loud the wire is (#160) ----------
+/**
+ * These decide WHAT gets filed, so they are behavioural and live here with
+ * everything else that is (ADR-0007). The prose they select does not — that
+ * is `events/catalogue.ts`, and the era table that picks between its variants
+ * is beside it, because nothing economic reads either.
+ *
+ * The balance problem the wire has is not that it is too quiet. It is that
+ * with a hundred and thirty events and a hundred years, a naive "print
+ * everything that is true" desk files six dispatches a quarter, none of them
+ * distinguishable from the last six, and the player stops reading — at which
+ * point every hard event is invisible too, including the ones that are the
+ * only warning they get. So the desk is rate-limited, and the limit falls on
+ * CONDITION reports only: a fact that happened is always filed.
+ */
+/** how often a condition the desk noticed actually reaches the page. Held at
+ * the rumour mill's historic value: unreliability is the point, and a wire
+ * that reports every true thing is an instrument rather than a rumour. */
+export const NEWS_REPORT_P = 0.6
+/** most condition reports one quarter can carry, before colour. Two is a
+ * front page with a story and a second story; three read as a list. */
+export const NEWS_REPORTS_PER_QTR = 2
+/** quarters before the same event may be filed again. Long, and deliberately
+ * longer than a business cycle's slack phase: the identical unemployment
+ * dispatch three quarters running is what "boring and repetitive" meant. */
+export const NEWS_COOLDOWN_Q = 14
+/**
+ * …and the cooldown DOUBLES every time the same event is filed again, up to
+ * `NEWS_COOLDOWN_MAX_Q`.
+ *
+ * This is the fix for the failure a flat cooldown still has, which is visible
+ * the moment you read a century of it: a condition that is permanently true —
+ * an unschooled country, a captured press, comfortable reserves — re-files the
+ * instant its cooldown expires, and the paper prints the same sentence every
+ * fourteen quarters for eighty years. That is the original complaint back
+ * again with a longer period.
+ *
+ * Doubling makes a STANDING condition fade out (five or six mentions in a
+ * century) while leaving a genuinely recurrent one — a drought decade, a
+ * second banking crisis — free to come back, because those are separate
+ * events rather than one long fact. It needs no state: the filing count is
+ * read off the wire itself.
+ */
+export const NEWS_COOLDOWN_GROWTH = 2
+/** forty years. Past this the desk has said it enough. */
+export const NEWS_COOLDOWN_MAX_Q = 160
+/** how long a foreign partner must stay on one side of its boom/slump line
+ * before the wire will call the crossing again. The partner cycle is an AR(1)
+ * and wobbles across the threshold, which filed "the money centres turn
+ * cautious" three times in four quarters. A CRISIS is never suppressed this
+ * way — the runner's event windows and the harness read those.
+ *
+ * Six years, calibrated against the measured desk mix rather than guessed. At
+ * twelve quarters the twelve partner events were a quarter of every dispatch
+ * the century carried, and the ABROAD column drowned the paper in booms and
+ * slumps nobody could act on. A partner's cycle phase lasts years; the wire
+ * should say so once. */
+export const WORLD_PHASE_COOLDOWN_Q = 24
+/** a quarter carrying fewer dispatches than this is a thin page, and the desk
+ * reaches for colour to fill it */
+export const NEWS_THIN_PAGE_AT = 1
+/** chance a thin page gets a colour piece rather than running short. Not 1:
+ * an occasional genuinely empty quarter is what makes a busy one read as
+ * busy. */
+export const NEWS_COLOUR_P = 0.55
+/** quarters before the same colour piece may run again — much longer than a
+ * report's cooldown, because colour has no news value to renew it */
+export const NEWS_COLOUR_COOLDOWN_Q = 48
+/**
+ * Press-freedom stock below which the independent titles stop appearing and
+ * the state's own wire service files instead. The dispatch is unchanged: a
+ * captured press changes the masthead, never the story (see `events/eras.ts`
+ * for why that is load-bearing).
+ *
+ * Calibrated, not guessed. The catalogue opens between 0.08 (Costona) and
+ * 0.44 (Oranga), standard Meridia at 0.20, and passive play erodes rather
+ * than builds it. At the 0.35 this first shipped at, every curated country
+ * except Oranga and Veltravia opened captured and the independent roster was
+ * unreachable prose — the mechanic was dead on arrival at a number that
+ * looked entirely plausible on the page. At 0.15 the split runs through the
+ * middle of the catalogue: Costona and Kestrel open under the state's wire,
+ * everyone else opens free and can be pushed either way by reform or by
+ * repression, which is the contrast the masthead exists to carry.
+ */
+export const PRESS_CAPTURED_AT = 0.15

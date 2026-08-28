@@ -103,11 +103,12 @@ describe('the rest of world', () => {
   })
 
   it('the foreign pages are not fogged: a century of cycles reaches the wire', () => {
-    const news = states[states.length - 1].stats.news.map((n) => n.text)
-    const foreign = news.filter(
-      (t) => /world|foreign|commodity|money centres|region|manufacturing giant|sudden stop/i.test(t),
-    )
+    const news = states[states.length - 1].stats.news
+    const foreign = news.filter((n) => n.event.startsWith('world_'))
     expect(foreign.length).toBeGreaterThan(0)
+    // and they arrive on the foreign desk, which is what puts them in the
+    // paper's ABROAD column rather than leaving them to be found by grep
+    expect(foreign.every((n) => n.desk === 'abroad')).toBe(true)
   })
 })
 

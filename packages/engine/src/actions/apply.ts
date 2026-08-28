@@ -18,6 +18,8 @@
  * then DOES still has to propagate through the economy on its own.
  */
 
+import { fileDispatch } from '../events/file'
+import type { EventId } from '../events/ids'
 import {
   ASSET_PURCHASE_RATE_MAX,
   BLOC_DEFIANCE,
@@ -424,6 +426,60 @@ function checkCampaign(state: TrueState, action: Extract<Action, { kind: 'campai
 
 /** Quote one order using the same validation and cost formula as application.
  * The worker exposes this cost to the cabinet UI without exposing true state. */
+/**
+ * The government's own record, in the paper.
+ *
+ * Only the two DISCRETE acts qualify — a reform and a statute are single,
+ * dated, arguable decisions, and a newspaper would have led on either. Dial
+ * moves deliberately do not: a government that nudges the policy rate every
+ * quarter for eighty years would bury the wire under its own paperwork, and
+ * the minute book (`ui/src/policyRecord.ts`) already files exactly that,
+ * against exactly those dials, with the diffing rules that make it honest.
+ *
+ * This runs inside `applyAction`, before any pipeline step has — which is
+ * fine, because `fileDispatch` reads only the tick, the seed and the press.
+ * It draws on `obs:news:*`, so no economic substream is touched and an act
+ * that files a dispatch is otherwise identical to one that does not.
+ */
+function withDispatch(state: TrueState, event: EventId): TrueState {
+  return {
+    ...state,
+    stats: { ...state.stats, news: [...state.stats.news, fileDispatch(state, event)] },
+  }
+}
+
+/** Which event a reform raises, by institution and direction. A total
+ * `Record` over `InstitutionId`, so a sixth institution fails the build until
+ * the paper knows what to call widening it and narrowing it. */
+const REFORM_EVENTS: Record<InstitutionId, { up: EventId; down: EventId }> = {
+  suffrage: { up: 'reform_suffrage_up', down: 'reform_suffrage_down' },
+  press: { up: 'reform_press_up', down: 'reform_press_down' },
+  labor_rights: { up: 'reform_labor_rights_up', down: 'reform_labor_rights_down' },
+  courts: { up: 'reform_courts_up', down: 'reform_courts_down' },
+  repression: { up: 'reform_repression_up', down: 'reform_repression_down' },
+}
+
+/** And which a statute raises, climbing or descending its ladder. Total over
+ * `StatuteId` for the same reason. */
+const STATUTE_EVENTS: Record<StatuteId, { enacted: EventId; repealed: EventId }> = {
+  minimum_wage: {
+    enacted: 'statute_minimum_wage_enacted',
+    repealed: 'statute_minimum_wage_repealed',
+  },
+  compulsory_schooling: {
+    enacted: 'statute_compulsory_schooling_enacted',
+    repealed: 'statute_compulsory_schooling_repealed',
+  },
+  competition: {
+    enacted: 'statute_competition_enacted',
+    repealed: 'statute_competition_repealed',
+  },
+  emissions_standard: {
+    enacted: 'statute_emissions_standard_enacted',
+    repealed: 'statute_emissions_standard_repealed',
+  },
+}
+
 export function politicalCostOfAction(state: TrueState, action: Action): number {
   if (!state.politics.inPower) {
     throw new IllegalActionError('you have been deposed; the dials are no longer yours')
@@ -581,22 +637,23 @@ export function applyAction(state: TrueState, action: Action): TrueState {
         spendPc(state, cost, `reform ${institution}`),
         reformObjections(institution, direction),
       )
-      return {
+      const reformed: TrueState = {
         ...s,
         institutions: {
           ...s.institutions,
           stocks: { ...s.institutions.stocks, [institution]: target },
         },
       }
+      return withDispatch(reformed, REFORM_EVENTS[institution][direction > 0 ? 'up' : 'down'])
     }
     case 'enact': {
       const { statute, level } = action
-      checkStatute(state, statute, level)
+      const { current } = checkStatute(state, statute, level)
       const s = applyObjections(
         spendPc(state, cost, `enact ${statute}`),
         statuteObjections(state, statute, level),
       )
-      return {
+      const written: TrueState = {
         ...s,
         gov: {
           ...s.gov,
@@ -608,6 +665,12 @@ export function applyAction(state: TrueState, action: Action): TrueState {
           },
         },
       }
+      // A rung UP is an enactment and a rung DOWN is a repeal, whatever the
+      // ladder is called — the paper reports the direction of the change, not
+      // the level it landed on, because "the wage floor is raised again" is a
+      // different story from "a wage floor is written into law" only in a
+      // detail no headline carries.
+      return withDispatch(written, STATUTE_EVENTS[statute][level > current ? 'enacted' : 'repealed'])
     }
     case 'campaign': {
       const platform: PlatformId = action.platform
