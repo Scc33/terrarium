@@ -25,8 +25,11 @@ import {
   WORLD_PRICE_REVERT,
   WORLD_PRICE_VOL,
   WORLD_SUPPLY_PRICE_GAIN,
+  WORLD_PHASE_COOLDOWN_Q,
   WORLD_SUPPLY_WEIGHTS,
 } from '../constants'
+import { fileDispatch, fileIfNotRecent } from '../events/file'
+import type { EventId } from '../events/ids'
 import { clamp, sectorRecord } from '../math'
 import {
   PARTNER_IDS,
@@ -37,26 +40,29 @@ import {
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 
-const NEWS: Record<PartnerId, { boom: string; slump: string; crisis: string }> = {
+/** Which event each partner's phase raises. The COPY lives in
+ * `events/catalogue.ts` with everything else the wire says; this is only the
+ * mapping from a partner's cycle to a name. */
+const PARTNER_EVENTS: Record<PartnerId, { boom: EventId; slump: EventId; crisis: EventId }> = {
   commodity: {
-    boom: 'The commodity exporters are flush; raw-material prices ease worldwide.',
-    slump: 'The commodity bloc cuts output; raw materials grow scarce and dear.',
-    crisis: 'A commodity crash abroad: exporting nations slash output overnight.',
+    boom: 'world_commodity_boom',
+    slump: 'world_commodity_slump',
+    crisis: 'world_commodity_crisis',
   },
   manufacturing: {
-    boom: 'The manufacturing giant floods world markets with cheap goods.',
-    slump: 'The great workshop idles; foreign demand for your goods softens.',
-    crisis: 'The manufacturing giant seizes up; global supply chains snarl.',
+    boom: 'world_manufacturing_boom',
+    slump: 'world_manufacturing_slump',
+    crisis: 'world_manufacturing_crisis',
   },
   financial: {
-    boom: 'Easy money in the financial centres; foreign lending flows freely.',
-    slump: 'The money centres turn cautious; foreign credit tightens.',
-    crisis: 'A sudden stop: the world’s money centres freeze, lending dries up.',
+    boom: 'world_financial_boom',
+    slump: 'world_financial_slump',
+    crisis: 'world_financial_crisis',
   },
   regional: {
-    boom: 'The regional economy is booming; your neighbours are buying.',
-    slump: 'Recession spreads across the region; neighbours pull in their belts.',
-    crisis: 'The regional economy collapses into crisis, and it is next door.',
+    boom: 'world_regional_boom',
+    slump: 'world_regional_slump',
+    crisis: 'world_regional_crisis',
   },
 }
 
@@ -65,6 +71,9 @@ export const world: PipelineStep = {
   run(state, rng) {
     const { external } = state
     const news: NewsItem[] = []
+    const push = (item: NewsItem | null) => {
+      if (item) news.push(item)
+    }
 
     // --- advance each partner's cycle (AR(1) toward 1, with rare crises) ---
     const partners: WorldPartner[] = external.world.partners.map((p) => {
@@ -77,12 +86,19 @@ export const world: PipelineStep = {
       }
       a = clamp(a, PARTNER_ACTIVITY_MIN, PARTNER_ACTIVITY_MAX)
       // foreign news: crises always, booms/slumps only as they cross the line
-      if (crisis)
-        news.push({ tick: state.meta.tick, text: NEWS[p.id].crisis, tone: 'bad', kind: 'partner_crisis' })
+      // A crisis always files: the runner's event windows and the stability
+      // harness both read `partner_crisis`, so suppressing one would silently
+      // stop a foreign shock being excluded from the quiet tails.
+      //
+      // A boom or a slump is a threshold crossing on an AR(1), and a series
+      // that wobbles across its own line files the same dispatch three times
+      // in four quarters — which is noise reported as news. Those crossings
+      // wait out `WORLD_PHASE_COOLDOWN_Q`; nothing downstream reads them.
+      if (crisis) news.push(fileDispatch(state, PARTNER_EVENTS[p.id].crisis))
       else if (p.activity < PARTNER_BOOM_AT && a >= PARTNER_BOOM_AT)
-        news.push({ tick: state.meta.tick, text: NEWS[p.id].boom, tone: 'good', kind: 'partner_boom' })
+        push(fileIfNotRecent(state, PARTNER_EVENTS[p.id].boom, WORLD_PHASE_COOLDOWN_Q))
       else if (p.activity > PARTNER_SLUMP_AT && a <= PARTNER_SLUMP_AT)
-        news.push({ tick: state.meta.tick, text: NEWS[p.id].slump, tone: 'bad', kind: 'partner_slump' })
+        push(fileIfNotRecent(state, PARTNER_EVENTS[p.id].slump, WORLD_PHASE_COOLDOWN_Q))
       return { id: p.id, activity: a }
     })
     const activity = Object.fromEntries(partners.map((p) => [p.id, p.activity])) as Record<

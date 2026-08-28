@@ -36,6 +36,7 @@ import {
   REVOLT_AT,
   REVOLT_P,
 } from '../constants'
+import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import {
   ELECTION_PERIOD,
@@ -117,20 +118,10 @@ export const politics: PipelineStep = {
     const coupP = COUP_P * Math.max(0, hostility - COUP_AT) * (1 - inst.societalPower)
     const roll = rng.next()
     if (!protectedTenure && roll < revoltP) {
-      news.push({
-        tick: state.meta.tick,
-        text: 'Revolution: the crowds take the ministries and the government flees.',
-        tone: 'bad',
-        kind: 'revolt',
-      })
+      news.push(fileDispatch(state, 'revolt'))
       next = { ...next, inPower: false, quartersToElection: 0, deposedAt: state.meta.tick, deposedBy: 'revolt' }
     } else if (!protectedTenure && roll < revoltP + coupP) {
-      news.push({
-        tick: state.meta.tick,
-        text: 'The men who own the country have decided they no longer own the government.',
-        tone: 'bad',
-        kind: 'coup',
-      })
+      news.push(fileDispatch(state, 'coup'))
       next = { ...next, inPower: false, quartersToElection: 0, deposedAt: state.meta.tick, deposedBy: 'coup' }
     } else if (next.quartersToElection <= 0) {
       // --- polling day ---
@@ -161,18 +152,21 @@ export const politics: PipelineStep = {
         deposedAt: retainsOffice ? next.deposedAt : state.meta.tick,
         deposedBy: retainsOffice ? next.deposedBy : 'poll',
       }
-      news.push({
-        tick: state.meta.tick,
-        text: suppressed
-          ? 'The government is returned. The opposition was not on the ballot.'
-          : won
-            ? 'The government is returned at the polls.'
-            : protectedTenure
-              ? 'The government is defeated at the polls. GOD MODE keeps the simulation running.'
-              : 'The government has fallen at the polls.',
-        tone: won ? 'good' : 'bad',
-        kind: 'election',
-      })
+      // Four outcomes, four events, one `kind`. They were one dispatch with a
+      // nested ternary picking its own words and its own tone, which is
+      // exactly the shape that made a copy-edit a behavioural change.
+      news.push(
+        fileDispatch(
+          state,
+          suppressed
+            ? 'election_suppressed'
+            : won
+              ? 'election_won'
+              : protectedTenure
+                ? 'election_protected'
+                : 'election_lost',
+        ),
+      )
     }
 
     return {

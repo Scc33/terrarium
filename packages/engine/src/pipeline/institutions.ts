@@ -75,6 +75,7 @@ import {
   UNREST_IMMIGRATION,
   UNREST_REPRESSION,
 } from '../constants'
+import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import {
   BLOC_IDS,
@@ -395,32 +396,20 @@ export const institutions: PipelineStep = {
     // ground move under it, whatever its statistical office can measure.
     const settled: TrueState = { ...staged, institutions: next }
     const nowInCorridor = inCorridor(settled)
+    // Filed against `settled`, not `state`: the press-freedom stock that
+    // decides which masthead carries these has just been eroded by this very
+    // step, and a dispatch about the constitution should be attributed to the
+    // press as it stands after the change rather than before it.
     if (wasInCorridor && !nowInCorridor) {
       const strain = corridorStrain(settled)
-      news.push({
-        tick: state.meta.tick,
-        text:
-          strain.despotic > 0
-            ? 'The state has outgrown every check upon it; the ministries answer to no one.'
-            : 'The writ of the government no longer runs in the provinces.',
-        tone: 'bad',
-        kind: 'corridor_exit',
-      })
+      news.push(
+        fileDispatch(settled, strain.despotic > 0 ? 'corridor_exit_despotic' : 'corridor_exit_anarchic'),
+      )
     } else if (!wasInCorridor && nowInCorridor) {
-      news.push({
-        tick: state.meta.tick,
-        text: 'State and society find their balance again; the constitution holds.',
-        tone: 'good',
-        kind: 'corridor_return',
-      })
+      news.push(fileDispatch(settled, 'corridor_return'))
     }
     if (prev.unrest < REFORM_WINDOW_AT && next.unrest >= REFORM_WINDOW_AT) {
-      news.push({
-        tick: state.meta.tick,
-        text: 'The country is in ferment. Things impossible last year are suddenly negotiable.',
-        tone: 'neutral',
-        kind: 'reform_window',
-      })
+      news.push(fileDispatch(settled, 'reform_window'))
     }
 
     // --- Position: the path, banked as it happens, like welfare

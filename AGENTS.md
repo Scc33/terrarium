@@ -27,6 +27,7 @@ before starting one of these tasks** rather than working from this file's summar
 | `add-bloc-or-institution` | the politics layer — power, favour, veto pricing |
 | `terrarium-ui` | anything in `packages/ui` — tokens, the wall, charts, layout contracts |
 | `verify-the-wall` | proving a UI change fits, in a real browser at 1280×720 |
+| `add-an-event` | the news wire — a new dispatch, an era's voice, or what the desk reports |
 | `document-a-decision` | choosing between an ADR, an investigation, and a tuning lesson |
 
 ## Hard rules (mostly lint-enforced, but know why)
@@ -132,6 +133,20 @@ can be tested — anything pushed into a component becomes untestable:
   PROSE put every crisis marker one copy-edit from vanishing, and a chart with no markers looks
   exactly like a century with no crises.
 
+- **`ui/src/newspaper.ts`** — the paper's arithmetic: page order, the three bands, which edition
+  is on the desk, the archive filter. The lead of an edition is the story the ENGINE marked
+  `lead`, never one this module re-ranked from what it can see — the 1958 paper's idea of its own
+  lead story is what goes in the 1958 archive. Two decisions are pinned by
+  `tests/ui/newspaper.test.ts` because they are invisible in review and in jsdom: page order
+  breaks ties on FILING order (pipeline order, so a drought precedes the crisis precedes the
+  election that turned on both), and a quarter carrying nothing but briefs promotes them into the
+  main column, because an empty column beside a full sidebar reads as a broken page rather than a
+  slow news day — and the OVERLAY has to drop to one grid track when it does, or the promotion
+  just moves the empty third to the other side (asserted in the browser, invisible in jsdom).
+  `tickerHeadlines` ranks the foot-of-wall strip the same way the page does, so the two never
+  disagree about one edition on one screen. `latestEdition` shows the most recent edition at or before now: more than half of
+  all quarters are quiet, and a front page that blanked whenever THIS quarter carried nothing would
+  be blank most of the time.
 - **`ui/src/manual.ts`** and **`ui/src/levers.ts`** — the ministry handbook (ADR-0024). Every
   chapter that LISTS something the game has is generated from the engine's id lists — levers
   from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
@@ -168,8 +183,9 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   pipeline-order changes).
 - The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (currently ~99% stmts / ~90%
-  branch). It's a floor to prevent regression — raise it, never lower it to green a build.
+- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 39:
+  **96.6% stmts / 85.9% branch**; the ~99/~90 that stood here was stale by several versions).
+  It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
 - **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the
   `@typescript/native` alias, while the dependency literally named `typescript` is the TS 6
@@ -263,6 +279,51 @@ interregnum ran its entire 27 years at a constant income level: no demographic t
 at 35.3 per 1000 against 26.0, populations up to 7% too large, and a measured table that looked
 entirely plausible. That is the "don't conflate the two anchors" rule in the tuning lessons
 below, and a scoring gate is a new way to break it.
+
+### The wire is a newspaper (ADR-0031)
+
+`engine/src/events/` owns everything the wire says. A pipeline step NAMES an event
+(`fileDispatch(state, 'drought_onset')`); the catalogue words it, per era. Adding a dispatch is
+an id, a catalogue entry and a call site — that is the whole point, and it is what stopped the
+century reading the same in 1949 and 2043. → **`add-an-event` skill.**
+
+Four things are load-bearing:
+
+- **No dispatch ever prints a figure.** The wire is written from TRUE state — that is what lets
+  it tell a player with three fitted gauges that there are bread queues — so a number quoted off
+  that state would be a free, un-lagged, un-revised survey beside the ones they paid for, and the
+  fog would be over (ADR-0003). `tests/unit/events.test.ts` greps the catalogue for digits.
+- **Copy is drawn on `obs:news:*`, never a step's own rng**, so rewording a headline cannot move
+  the economy. `pipeline/technology.ts` keeps one deliberately STRANDED `rng.next()` for exactly
+  this: deleting it would shift every later draw in that step whenever a breakthrough fires.
+  The proof the whole system is inert is `pnpm diff-state --moved-only` (`meta.schemaVersion` and
+  the news array's own indices, nothing else) plus four bit-identical `pnpm batch` policies.
+- **Nothing downstream may match prose.** Filter on `event` or `kind`. `packages/runner/src/run.ts`
+  matched five exact sentences to find fuel shocks and foreign crises, and #160 broke it — the
+  stability harness then reported a growth upside that was an unexcluded oil shock, and it failed
+  loudly only by the luck of a threshold. This is the same debt `kind` was introduced to pay.
+- **A captured press changes the masthead, never the story.** Below `PRESS_CAPTURED_AT` the
+  independent titles stop appearing and the state's wire service files instead. No event is
+  dropped, no tone softened. The moment press freedom could delete a dispatch, `ui/src/finance.ts`
+  becomes a reader of the government's opinion of the wire, and a chart with no crisis markers
+  looks exactly like a century with no crises.
+
+Balance lives in the DESK (`events/conditions.ts`), not in the catalogue: a fact always files, a
+condition report is budgeted and cooled, and the budget counts what the quarter already carried so
+a drought crowds out the bond auction. `politics` runs AFTER `statistics`, so an election is not in
+that tally yet — the desk reserves a slot when the political clock is about to ring, which also
+covers a revolt or coup that pre-empts polling day. An unheralded coup cannot be anticipated
+without reaching into `politics`' substream, so it lands on top of a full page; that is rare, and
+being surprised is the correct thing for a page to be. **The cooldown escalates** — a flat one does not fix
+repetition, it sets its period, and a permanently true condition would print the same sentence
+every fourteen quarters for eighty years. `pnpm events` is the evidence, and its UNREACHED list is
+the part to read: three of the first thresholds shipped here were outside the measured
+distribution and one milestone compared services against manufacturing alone, which every curated
+country already exceeds on its opening morning.
+
+`ui/src/newspaper.ts` is the paper's pure half — page order, the bands, which edition is shown,
+the archive filter — and `panels/WireOverlay.tsx` paints what it returns. A page that leads on the
+wrong story is invisible in review AND in jsdom.
 
 ### The statute book (ADR-0027)
 
@@ -565,6 +626,13 @@ perfectly with no opinion about anything in the game. The first politics impleme
   this. The same trap caught the first `regulatedPolicy`: a top-rung enactment is priced near
   23 PC against the ~11 a capacity-building government holds, so two of three orders were
   refused as unaffordable and the "regulated" century was developmental to two decimals.
+- **A cooldown sets the PERIOD of repetition; it does not remove it.** The wire's first
+  anti-repetition rule was a flat fourteen quarters, which meant a permanently true condition — an
+  unschooled country, comfortable reserves — printed the identical sentence every fourteen quarters
+  for eighty years. That is the original complaint with a longer wavelength. The cooldown now
+  doubles per filing, so a STANDING condition fades to five or six mentions in a century while a
+  genuinely recurrent event is untouched (its gaps were never near the cooldown). Any "don't repeat
+  yourself" rule over a persistent state needs this shape.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a

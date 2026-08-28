@@ -216,6 +216,7 @@ export type {
   Money,
   NewsItem,
   NewsKind,
+  NewsTone,
   PlatformId,
   PoliticalState,
   PolicyRecord,
@@ -347,6 +348,33 @@ export {
   WELFARE_DISCOUNT_Q,
 } from './constants'
 export type { StatuteLevel } from './constants'
+// ---------- the wire (#160) ----------
+// The UI reads the catalogue to build the newspaper's section rails and its
+// archive filters, exactly as the manual reads the lever tables: a desk, an
+// era or an event added in the engine appears on the front page without
+// anyone editing a component. Prose and conditions stay behind the boundary —
+// `packages/ui` gets the id lists and the era table, never `conditionDispatches`.
+export {
+  NEWS_COLOUR_COOLDOWN_Q,
+  NEWS_COLOUR_P,
+  NEWS_COOLDOWN_GROWTH,
+  NEWS_COOLDOWN_MAX_Q,
+  NEWS_COOLDOWN_Q,
+  NEWS_REPORT_P,
+  NEWS_REPORTS_PER_QTR,
+  NEWS_THIN_PAGE_AT,
+  PRESS_CAPTURED_AT,
+  WORLD_PHASE_COOLDOWN_Q,
+} from './constants'
+export { DESK_IDS, EVENT_IDS, PROMINENCE_IDS, isEventId } from './events/ids'
+export type { DeskId, EventId, Prominence } from './events/ids'
+export { OUTLETS, PRESS_ERAS, PRESS_ERA_IDS, eraAtTick, eraAtYear, eraOrdinal } from './events/eras'
+export type { PressEra, PressEraId } from './events/eras'
+export { EVENT_CATALOGUE } from './events/catalogue'
+export type { Dispatch, EventDef } from './events/catalogue'
+export { CONDITION_RULES, cooldownFor, medianAge, reportBudget } from './events/conditions'
+export type { ConditionRule, EventContext, RuleClass } from './events/conditions'
+export { dispatchesFor, fileDispatch, outletFor } from './events/file'
 export { AGE_BANDS, PARTNER_IDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
 export type {
   DemographyState,

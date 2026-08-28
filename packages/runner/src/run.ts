@@ -75,13 +75,6 @@ export interface MacroDrivers {
 
 export type MacroEvent = 'drought' | 'fuel' | 'banking_crisis' | 'world_crisis'
 
-const WORLD_CRISIS_NEWS = new Set([
-  'A commodity crash abroad: exporting nations slash output overnight.',
-  'The manufacturing giant seizes up; global supply chains snarl.',
-  'A sudden stop: the world’s money centres freeze, lending dries up.',
-  'The regional economy collapses into crisis, and it is next door.',
-])
-
 export interface RunResult {
   seed: string
   /** scenario recipe used to create params; custom marks an explicit vector */
@@ -168,15 +161,24 @@ export function eventsBetween(before: TrueState, after: TrueState): MacroEvent[]
   if (before.finance.crisisQtrsLeft === 0 && after.finance.crisisQtrsLeft > 0) {
     events.push('banking_crisis')
   }
-  // Energy ruptures do not leave a dedicated state flag: the world step
-  // immediately begins reverting the jumped price. The onset wire item is
-  // therefore the durable runner-visible event marker.
+  // Energy ruptures and foreign crises leave no dedicated state flag: the
+  // world step immediately begins reverting the jumped price. The onset wire
+  // item is therefore the durable runner-visible event marker — matched on
+  // `kind`, never on prose.
+  //
+  // It WAS matched on prose, against four exact sentences and a fifth in a
+  // Set, and #160 is how that was found: rewording the wire silently stopped
+  // every fuel and world-crisis window being excluded from the quiet tails,
+  // and the stability harness reported a growth upside that was really an
+  // unexcluded oil shock. It failed loudly here only by luck of a threshold.
+  // This is the same failure the finance overlay's crisis markers were moved
+  // off prose to avoid; `kind` exists for exactly this.
   let fuel = false
   let worldCrisis = false
   for (let i = before.stats.news.length; i < after.stats.news.length; i++) {
-    const text = after.stats.news[i].text
-    if (text === 'Crisis abroad: world fuel markets are in tumult.') fuel = true
-    if (WORLD_CRISIS_NEWS.has(text)) worldCrisis = true
+    const { kind } = after.stats.news[i]
+    if (kind === 'fuel_shock') fuel = true
+    if (kind === 'partner_crisis') worldCrisis = true
   }
   if (fuel) events.push('fuel')
   if (worldCrisis) events.push('world_crisis')

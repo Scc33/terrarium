@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 38)
+## Current contract (schema 39)
 
 ### Inputs
 
@@ -264,7 +264,7 @@ reconciled to the separately noised `income_real` headline.
 | `population` | v6 | current total, labour force, age pyramid, and from v37 this quarter's `residence` split |
 | `census[]` | v8 | per-quarter exact head count + pyramid (the demographic history), and from v37 the `residence` split — heads in the countryside and heads in towns and cities |
 | `policy[]` | v25 | per-quarter exact dials — every `DialState` lever (tax rates, policy rate, asset purchases, capital requirement) plus resolved appropriations, every sector subsidy as a total, and the standing rule behind each programme with the quarter it was `votedAt` (the policy history) |
-| `news[]` | v1 | rumor wire (rumors fogged ~60%; shock & election dispatches always). Each item carries a `kind` from `NEWS_KINDS` (v31) so a consumer filters on the event rather than on its prose |
+| `news[]` | v1 | the wire, as a newspaper (v39). Each item carries `event` (a stable id from `EVENT_IDS`), `kind` (`NEWS_KINDS`, v31), `desk` (`DESK_IDS`, v39), `tone`, `prominence` (`lead`/`column`/`brief`, v39), `outlet` (the masthead that filed it, v39), `text` (headline) and `body` (standfirst, v39). Filter on `event` or `kind`, never on prose. **No dispatch ever contains a figure** — the wire is written from true state, so a quoted number would be an unfunded, un-lagged, un-revised instrument |
 | `reportCard` | v4 | present **only** once the run ends — see below |
 
 ### Outputs — the report card (§3.3, run-end only)
@@ -287,6 +287,33 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 39 — The wire becomes a newspaper
+
+- **State ±**: `NewsItem` grows from four fields to nine (#160, ADR-0031). `tick`, `kind`,
+  `tone` and `text` are unchanged; `event`, `desk`, `prominence`, `outlet` and `body` are new.
+  `NEWS_KINDS` gains `reform`, `statute`, `milestone` and `colour`.
+- **New id lists**: `EVENT_IDS` (every dispatch the wire can carry, ~136 at v39), `DESK_IDS`
+  (the eight sections of the paper), `PROMINENCE_IDS`, `PRESS_ERA_IDS` (the six presses of the
+  century). All exported from `@terrarium/engine`; the UI builds its section rail and archive
+  filters from them rather than from a second list.
+- **Outputs ±**: `news[]` carries the new fields. `formatVersion` on the data export stays at 1
+  — the change is additive, which is exactly the case that document tells consumers to validate
+  permissively for.
+- **Inputs**: unchanged. No new lever, no new parameter, no new rule.
+- **New raise sites**: `actions/apply.ts` now files a dispatch for a `reform` and for an
+  `enact`, so the government's own record appears in the paper. Dial moves deliberately do not —
+  the minute book (`ui/src/policyRecord.ts`) already files those, with the diffing rules that
+  make it honest.
+- **Economically inert, measured**: `pnpm diff-state --moved-only` reports `meta.schemaVersion`
+  and nothing else on all three goldens, and passive / developmental / random / regulated
+  batches are bit-identical to v38 — growth, inflation, unemployment and deposition to every
+  printed digit. All copy selection draws on `obs:news:*` substreams; `pipeline/technology.ts`
+  keeps one deliberately stranded `rng.next()` so removing the old phrasing draw could not
+  reshuffle that step.
+- **Consumers that must change**: anything matching wire prose. `packages/runner/src/run.ts`
+  matched five exact sentences to detect fuel shocks and foreign crises and now matches `kind`;
+  two property tests moved to `event`. Prose is not a contract and never was.
 
 ### schema 38 — Life expectancy is published
 

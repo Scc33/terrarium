@@ -41,4 +41,5 @@ every task, and these are not.
 | `add-bloc-or-institution` | the politics layer — power, favour, veto pricing |
 | `terrarium-ui` | anything in `packages/ui` — tokens, the wall, charts, layout contracts |
 | `verify-the-wall` | proving a UI change fits, in a real browser at 1280×720 |
+| `add-an-event` | the news wire — a new dispatch, an era's voice, or what the desk reports |
 | `document-a-decision` | choosing between an ADR, an investigation, and a tuning lesson |
