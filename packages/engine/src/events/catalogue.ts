@@ -22,6 +22,21 @@
  *    Qualitative prose is not a stylistic preference here; it is the boundary.
  *    `tests/properties/events.test.ts` greps the whole catalogue for digits.
  *
+ *    **A figure spelled out in words is still a figure**, and that is the part
+ *    the digit-grep cannot see. `land_no_longer_employs_the_country` shipped as
+ *    "Fewer than one worker in five is on the land" — a bucketed reading of the
+ *    industrial census, which is a survey the player has to fund, arriving free
+ *    on the wire. It was also, after the threshold was calibrated against the
+ *    measured distribution, not even true across its own trigger range.
+ *
+ *    The line to hold: a milestone over state that needs NO statistical office
+ *    may say what it is, because saying it costs the player nothing they would
+ *    otherwise buy — heads and where they sleep are countable (`ui/src/census.ts`),
+ *    so "the country is twice the size it was" is free. A milestone over a
+ *    FOGGED quantity — output per worker, the industrial census, anything with a
+ *    lag and a band — may report the direction and never the magnitude. This is
+ *    the same split `kind` already draws between `milestone` and `rumor`.
+ *
  * 2. **Copy is authored per era where the century would have said it
  *    differently, and inherited otherwise.** `dispatches` is the copy that
  *    always applies; `byEra` overrides it from that era onward, and
@@ -1384,7 +1399,7 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     prominence: 'lead',
     dispatches: [
       {
-        headline: 'Fewer than one worker in five is on the land',
+        headline: 'The land is no longer where the country works',
         body: 'The countryside that employed most of the country within living memory now employs a small minority of it. The villages are said to be quiet.',
       },
     ],
@@ -1408,8 +1423,8 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
     prominence: 'lead',
     dispatches: [
       {
-        headline: 'A worker now produces twice what a worker did',
-        body: 'Output for every hour worked has doubled since the war, which is the whole of the modern economic story in one line. The argument is over who has had the benefit.',
+        headline: 'A day’s work is not what it was',
+        body: 'Output for every hour worked has transformed since the war, which is the whole of the modern economic story in one line. The argument is over who has had the benefit.',
       },
     ],
   },

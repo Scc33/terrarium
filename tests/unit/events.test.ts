@@ -26,6 +26,7 @@ import {
   isEventId,
   medianAge,
   outletFor,
+  reportBudget,
   NEWS_COOLDOWN_MAX_Q,
   type EventId,
   type PressEraId,
@@ -215,5 +216,39 @@ describe('medianAge', () => {
 
   it('returns zero for a country with nobody in it', () => {
     expect(medianAge([0, 0, 0])).toBe(0)
+  })
+})
+
+describe('the report budget', () => {
+  // NEWS_REPORTS_PER_QTR is 2; these use a literal 2 so the arithmetic stays
+  // readable if the constant is retuned.
+  it('spends the whole page when nothing has been filed', () => {
+    expect(reportBudget(2, 0, 0, false)).toBe(2)
+  })
+
+  it('charges a milestone exactly once', () => {
+    // The regression. The first version subtracted milestones here AND then
+    // compared the running total (milestones included) against the result, so
+    // one milestone in an empty quarter left a slot free and then refused to
+    // spend it — a one-story front page that reads exactly like a quiet
+    // quarter. Invisible at century scale: milestones fire about once a run.
+    expect(reportBudget(2, 0, 1, false)).toBe(1)
+    expect(reportBudget(2, 0, 2, false)).toBe(0)
+  })
+
+  it('counts what the quarter already carried, which is the crowding-out rule', () => {
+    expect(reportBudget(2, 1, 0, false)).toBe(1)
+    expect(reportBudget(2, 2, 0, false)).toBe(0)
+  })
+
+  it('holds a slot for a political lead that has not been filed yet', () => {
+    // `politics` runs after `statistics`, so an election is not in the
+    // quarter's tally when the desk sits down.
+    expect(reportBudget(2, 0, 0, true)).toBe(1)
+    expect(reportBudget(2, 1, 0, true)).toBe(0)
+  })
+
+  it('never goes negative', () => {
+    expect(reportBudget(2, 5, 3, true)).toBe(0)
   })
 })

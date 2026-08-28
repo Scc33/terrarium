@@ -71,6 +71,28 @@ export function pageOrder(items: readonly NewsItem[]): NewsItem[] {
   return [...items].sort((a, b) => PROMINENCE_RANK[a.prominence] - PROMINENCE_RANK[b.prominence])
 }
 
+/**
+ * The headlines the ticker along the foot of the wall carries.
+ *
+ * Prominence first, so the strip leads on the same story the front page leads
+ * on; then the newest edition; then FILING ORDER within an edition, which is
+ * the part that is easy to lose. `news` arrives in filing order, so reversing
+ * it to get "newest first" also reverses two same-quarter, same-prominence
+ * dispatches — and the ticker then disagrees with the front page about which
+ * of them came first, for the same quarter, on the same screen. Sorting by
+ * tick descending on filing-ordered input keeps the two views telling one
+ * story, because both sorts here are stable.
+ */
+export function tickerHeadlines(
+  news: readonly NewsItem[],
+  count = 3,
+  window = 6,
+): NewsItem[] {
+  const recent = news.slice(-window)
+  const newestEditionFirst = [...recent].sort((a, b) => b.tick - a.tick)
+  return pageOrder(newestEditionFirst).slice(0, count)
+}
+
 /** Every quarter that carried at least one dispatch, oldest first. */
 export function editionTicks(news: readonly NewsItem[]): number[] {
   const ticks = new Set<number>()

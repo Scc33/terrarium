@@ -307,7 +307,11 @@ Four things are load-bearing:
 
 Balance lives in the DESK (`events/conditions.ts`), not in the catalogue: a fact always files, a
 condition report is budgeted and cooled, and the budget counts what the quarter already carried so
-a coup crowds out the bond auction. **The cooldown escalates** — a flat one does not fix
+a drought crowds out the bond auction. `politics` runs AFTER `statistics`, so an election is not in
+that tally yet — the desk reserves a slot when the political clock is about to ring, which also
+covers a revolt or coup that pre-empts polling day. An unheralded coup cannot be anticipated
+without reaching into `politics`' substream, so it lands on top of a full page; that is rare, and
+being surprised is the correct thing for a page to be. **The cooldown escalates** — a flat one does not fix
 repetition, it sets its period, and a permanently true condition would print the same sentence
 every fourteen quarters for eighty years. `pnpm events` is the evidence, and its UNREACHED list is
 the part to read: three of the first thresholds shipped here were outside the measured

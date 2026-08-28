@@ -76,6 +76,13 @@ un-revised survey sitting beside the ones the player had to fund, and ADR-0003's
 over. Qualitative prose is not a stylistic preference here; it is the boundary, and
 `tests/unit/events.test.ts` greps the whole catalogue for digits.
 
+A figure spelled out in words is still a figure, which the grep cannot see. The line: a milestone
+over state that needs no statistical office may say what it is, because heads and where they sleep
+are countable and saying so costs the player nothing they would otherwise buy. A milestone over a
+fogged quantity may report the direction and never the magnitude — the same split `kind` already
+draws between `milestone` and `rumor`. Two dispatches shipped on the wrong side of it and were
+reworded.
+
 **Copy is drawn on `obs:news:*` substreams, never an economic one.** Choosing different words
 must not move the economy. `technology.ts` keeps a bare `rng.next()` with a comment explaining
 that it is stranded on purpose: removing it would reshuffle every later draw in that step
@@ -84,7 +91,24 @@ whenever a breakthrough fires.
 **A fact always files; a report is budgeted.** Hard events raised by pipeline steps, and census
 milestones, are never rate-limited. Condition reports are capped per quarter, filed only at
 `NEWS_REPORT_P`, and cooled — and the budget counts what the quarter has ALREADY carried, so the
-quarter of a coup does not also run three paragraphs about the bond auction.
+quarter of a drought does not also run three paragraphs about the bond auction.
+
+The exception is worth stating because it is structural rather than an oversight: `politics` runs
+*after* `statistics` in the versioned tick order, so an election, revolt or coup is not in that
+tally when the desk sits down. The desk therefore reserves a slot whenever the political clock is
+about to ring, which is deterministic and covers polling day — and covers a revolt or coup that
+pre-empts it, since the reserved slot is simply filled by whatever the step files. An *unheralded*
+coup in an ordinary quarter is drawn from `politics`' own substream and cannot be anticipated
+without reaching into it, which would couple the wire to the economy's randomness. Those land on
+top of a full page. Moving the desk after `politics` would fix it and is not worth a pipeline
+reorder (ADR-0005 makes that a schema event) for a case this rare.
+
+**A milestone comes out of the page budget once.** It shipped coming out twice — subtracted when
+the budget was computed and again by a loop guard comparing the running total against it — so a
+single milestone in an otherwise quiet quarter left a slot free and then refused to spend it. The
+arithmetic is now a named function (`reportBudget`) with a unit test, because at century scale the
+bug was unobservable: milestones fire about once per run, and a sweep over twelve centuries
+produced one quarter in which the difference could even be seen.
 
 **The cooldown escalates.** A flat cooldown does not fix repetition; it changes its period. A
 permanently true condition — an unschooled country, comfortable reserves — re-files the instant

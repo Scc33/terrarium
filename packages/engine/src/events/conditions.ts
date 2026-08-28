@@ -620,6 +620,34 @@ function cooled(history: FilingHistory, event: EventId, tick: number, base: numb
   return tick - last >= cooldownFor(base, history.timesFiled.get(event) ?? 1)
 }
 
+/**
+ * How many condition reports the page still has room for.
+ *
+ * Pulled out and named because it is the one piece of arithmetic here that is
+ * easy to get wrong and impossible to see wrong: the first version subtracted
+ * the quarter's milestones from the budget and then ALSO compared the running
+ * total (milestones included) against the result, charging each milestone
+ * twice. A single milestone in an otherwise empty quarter left the budget at
+ * one and then refused to spend it — a one-story front page with a free slot
+ * on it, which reads exactly like a quiet quarter.
+ *
+ * It was invisible at century scale too: milestones fire about once per run,
+ * so a sweep over twelve centuries produced one quarter where the difference
+ * could even be observed. Hence a unit test over the arithmetic rather than a
+ * property test over the wire.
+ */
+export function reportBudget(
+  perQuarter: number,
+  alreadyThisQtr: number,
+  milestonesFiled: number,
+  politicalLeadPending: boolean,
+): number {
+  return Math.max(
+    0,
+    perQuarter - alreadyThisQtr - milestonesFiled - (politicalLeadPending ? 1 : 0),
+  )
+}
+
 export function buildContext(state: TrueState, record: readonly StatRecord[]): EventContext {
   const now = record[record.length - 1]
   return {
@@ -675,13 +703,37 @@ export function conditionDispatches(
   const filed: NewsItem[] = []
 
   // How much room is left on the page. Counting what the quarter has ALREADY
-  // carried is the crowding-out rule: a coup and a drought have both landed
-  // by the time the office reports, and the desk does not then also run three
-  // paragraphs about the bond auction.
+  // carried is the crowding-out rule: a drought and a banking crisis have both
+  // landed by the time the office reports, and the desk does not then also run
+  // three paragraphs about the bond auction.
   const alreadyThisQtr = state.stats.news.reduce(
     (n, item) => (item.tick === ctx.tick ? n + 1 : n),
     0,
   )
+
+  // …and one slot held back for a political lead that has not been filed yet.
+  //
+  // `politics` runs AFTER `statistics` in the versioned tick order, so unlike
+  // every other hard event a coup or an election is not in `alreadyThisQtr`
+  // when the desk sits down. Without this the crowding-out rule silently did
+  // not apply to the single loudest story the game has, and an election
+  // quarter carried its lead plus a full page of reports underneath it.
+  //
+  // Only the ELECTION half is knowable here, and that is the half worth
+  // having: the political clock is deterministic, so the desk can see polling
+  // day coming. A revolt or a coup is drawn from `politics`' own substream and
+  // cannot be anticipated without reaching into it — which would couple the
+  // wire to the economy's randomness, the one thing this module may never do.
+  // When a revolt or coup PRE-EMPTS an election, the reserved slot is simply
+  // filled by that instead, so the reservation covers those too whenever the
+  // clock was already ringing. An unheralded coup in an ordinary quarter still
+  // arrives on top of a full page; it is rare, and it is the correct thing for
+  // a page to be surprised by.
+  const politicalLeadPending =
+    state.politics.inPower &&
+    state.politics.deposedAt === null &&
+    ctx.tick >= state.meta.appointedAt &&
+    state.politics.quartersToElection - 1 <= 0
 
   // --- milestones: facts, unbudgeted, once per run, and only if crossed ---
   for (const rule of CONDITION_RULES) {
@@ -693,7 +745,21 @@ export function conditionDispatches(
   }
 
   // --- reports: budgeted, cooled, and unreliable on purpose ---
-  const budget = Math.max(0, NEWS_REPORTS_PER_QTR - alreadyThisQtr - filed.length)
+  //
+  // `filed` already holds this quarter's milestones, and they take page space
+  // like anything else, so they come out of the budget — ONCE. The first
+  // version subtracted them here and then compared the running total
+  // `filed.length` against the result, which charged every milestone twice: a
+  // single milestone in an otherwise empty quarter left `budget` at one and
+  // then broke out of the loop immediately, printing a one-story page with a
+  // free slot on it. Reports are counted on their own tally for that reason.
+  const budget = reportBudget(
+    NEWS_REPORTS_PER_QTR,
+    alreadyThisQtr,
+    filed.length,
+    politicalLeadPending,
+  )
+  let reportsFiled = 0
   if (budget > 0) {
     const candidates = CONDITION_RULES.filter(
       (rule) =>
@@ -713,9 +779,10 @@ export function conditionDispatches(
     const weight = (r: ConditionRule) => r.salience + (history.timesFiled.has(r.event) ? 0 : 2)
     const ranked = [...candidates].sort((a, b) => weight(b) - weight(a))
     for (const rule of ranked) {
-      if (filed.length >= budget) break
+      if (reportsFiled >= budget) break
       if (rng.next() >= NEWS_REPORT_P) continue
       filed.push(fileDispatch(state, rule.event))
+      reportsFiled += 1
     }
   }
 

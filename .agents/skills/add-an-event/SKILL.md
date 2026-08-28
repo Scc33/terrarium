@@ -53,7 +53,10 @@ byEra: { crisis: [{ headline: 'Oil crisis: the pumps run dry', body: '…' }] }
 
 ## Three rules that are load-bearing
 
-**No dispatch may contain a figure.** Not a digit, anywhere, ever. The wire is written from
+**No dispatch may contain a figure.** Not a digit, anywhere, ever — and not a figure spelled out
+in words either, which the digit-grep cannot catch. A milestone over EXACT state (heads, where
+they sleep) may say what it is; a milestone over a fogged quantity reports the direction and never
+the magnitude. The wire is written from
 TRUE state — that is what lets it tell a player with three fitted gauges that there are bread
 queues — so a dispatch quoting a number off that state would be a free, un-lagged, un-revised
 survey beside the ones they had to fund, and ADR-0003's fog would be over.
@@ -99,8 +102,9 @@ hard events that are a player's only warning are invisible too. So:
 
 - a fact always files; a report is capped at `NEWS_REPORTS_PER_QTR` and lands only at
   `NEWS_REPORT_P`;
-- the budget counts what the quarter has **already** carried, so a coup crowds out the bond
-  auction;
+- the budget counts what the quarter has **already** carried, so a drought crowds out the bond
+  auction — and because `politics` runs *after* `statistics`, the desk reserves a slot whenever the
+  political clock is about to ring, which covers polling day and anything that pre-empts it;
 - **the cooldown escalates** (`NEWS_COOLDOWN_GROWTH`). A flat cooldown does not fix repetition,
   it changes its period: a permanently true condition re-files the instant it expires and
   prints the same sentence every fourteen quarters for eighty years. Doubling fades a standing

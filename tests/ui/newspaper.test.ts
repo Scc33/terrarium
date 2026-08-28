@@ -19,6 +19,7 @@ import {
   latestEdition,
   pageBands,
   pageOrder,
+  tickerHeadlines,
 } from '../../packages/ui/src/newspaper'
 
 let n = 0
@@ -229,5 +230,33 @@ describe('setting a thin edition', () => {
     const { main, side } = pageBands(editionAt([], 4))
     expect(main).toHaveLength(0)
     expect(side).toHaveLength(0)
+  })
+})
+
+describe('the ticker', () => {
+  it('leads on the same story the front page leads on', () => {
+    const news = [item(8, 'brief'), item(8, 'lead', { text: 'the lead' }), item(8, 'column')]
+    expect(tickerHeadlines(news)[0].text).toBe('the lead')
+  })
+
+  it('shows the newest edition first at equal prominence', () => {
+    const news = [item(4, 'column', { text: 'older' }), item(8, 'column', { text: 'newer' })]
+    expect(tickerHeadlines(news).map((i) => i.text)).toEqual(['newer', 'older'])
+  })
+
+  it('keeps filing order inside one edition', () => {
+    // The trap: `news` arrives in filing order, so reversing it to get
+    // "newest first" also reverses two same-quarter, same-prominence
+    // dispatches — and the ticker then disagrees with the front page about
+    // which came first, for the same quarter, on the same screen.
+    const news = [item(8, 'column', { text: 'filed first' }), item(8, 'column', { text: 'filed second' })]
+    expect(tickerHeadlines(news).map((i) => i.text)).toEqual(['filed first', 'filed second'])
+    expect(tickerHeadlines(news).map((i) => i.text)).toEqual(
+      editionAt(news, 8).columns.map((i) => i.text),
+    )
+  })
+
+  it('carries nothing when the wire is empty', () => {
+    expect(tickerHeadlines([])).toEqual([])
   })
 })

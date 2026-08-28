@@ -8,19 +8,19 @@
  * whole job is to be worth opening: the standfirst, the byline, the back
  * numbers and the archive are all one click away in `WireOverlay`.
  *
- * Page order rather than arrival order is the one decision here. Within a
- * quarter, dispatches are appended in pipeline order, so a strict
- * most-recent-first ticker leads on whatever the LAST pipeline step happened
- * to file — which is the bond auction in the quarter of a coup. Sorting the
- * visible window by prominence puts the lead story first, exactly as the
- * front page does, so the ticker and the paper never disagree about what
- * mattered.
+ * Page order rather than arrival order is the one decision here, and it lives
+ * in `newspaper.ts` where it can be tested. Within a quarter, dispatches are
+ * appended in pipeline order, so a strict most-recent-first ticker leads on
+ * whatever the LAST pipeline step happened to file — which is the bond auction
+ * in the quarter of a coup. `tickerHeadlines` ranks by prominence, then by
+ * edition, then by filing order, so the ticker and the paper never disagree
+ * about what mattered OR about what came first.
  */
 
 import type { DeskId } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { Tooltip } from '../components/ui'
-import { pageOrder } from '../newspaper'
+import { tickerHeadlines } from '../newspaper'
 
 const qtrLabel = (q: number) => `${1946 + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
@@ -38,7 +38,7 @@ const DESK_TAGS: Record<DeskId, string> = {
 }
 
 export function NewsWire({ pub, onOpen }: { pub: PublishedState; onOpen: () => void }) {
-  const items = pageOrder([...pub.news].slice(-6).reverse()).slice(0, 3)
+  const items = tickerHeadlines(pub.news)
   return (
     <footer data-tour="wire" className="min-w-0 overflow-hidden border-t border-wire-ink/30 bg-wire-paper" aria-label="News wire">
       <Tooltip content="The paper's latest headlines. Select to read the edition and every back number.">

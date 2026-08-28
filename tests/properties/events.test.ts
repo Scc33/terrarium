@@ -152,6 +152,35 @@ describe('a passive century', () => {
   })
 })
 
+describe('the desk spends its budget', () => {
+  const state = century('wire-budget', 400)
+  const news = state.stats.news
+
+  // The other half of this — that a milestone is not charged against the page
+  // twice — is a unit test over `reportBudget` in `tests/unit/events.test.ts`
+  // rather than an assertion here. Milestones fire about once per century, so
+  // a sweep over twelve runs produced ONE quarter in which the difference was
+  // even observable: a property test over the wire could not tell the fix from
+  // the bug, which is the definition of a test that does not test anything.
+
+  it('holds a slot for polling day, which lands after the office reports', () => {
+    // `politics` runs after `statistics`, so an election is not in the
+    // quarter's tally when the desk sits down. Without a reservation the
+    // crowding-out rule did not apply to the loudest story in the game, and
+    // an election quarter carried its lead on top of a full page of reports.
+    const electionQuarters = new Set(
+      news.filter((n) => n.kind === 'election').map((n) => n.tick),
+    )
+    expect(electionQuarters.size).toBeGreaterThan(4)
+    for (const tick of electionQuarters) {
+      const reports = news.filter((n) => n.tick === tick && n.kind === 'rumor').length
+      expect(reports, `election quarter ${tick} carries a full page of reports`).toBeLessThan(
+        NEWS_REPORTS_PER_QTR,
+      )
+    }
+  })
+})
+
 describe('the wire is deterministic and replay-stable', () => {
   it('gives the same century for the same seed', () => {
     const a = century('wire-determinism', 120).stats.news

@@ -39,5 +39,6 @@ export {
   conditionDispatches,
   cooldownFor,
   medianAge,
+  reportBudget,
 } from './conditions'
 export type { ConditionRule, EventContext, RuleClass } from './conditions'
