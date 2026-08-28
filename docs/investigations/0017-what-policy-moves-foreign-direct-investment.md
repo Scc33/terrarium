@@ -18,45 +18,63 @@ Yes — four of them, and the two that look most like FDI policy are the two tha
 is a product of eleven multipliers and the real question is which of the eleven an order can
 reach, how far, and whether the century leaves it moved. Measured over a century of play:
 
-| what it does to FDI/GDP by Q400 | order |
+| what it does to FDI/GDP | order |
 |---|---|
-| **+30%** | build the administrative ministry (`investCapacity administrative`) |
-| **+6%** | remove the inherited 10% tariff — and −18% for a 40% tariff |
-| **−11%** | fund research at 5% of GDP, by closing the technique gap that attracted the capital |
-| **−50%** at Q160, and 66% of quarters price-unstable | finance a 15%-of-GDP transfers rule |
+| **+16% by Q160, +30% by Q400** | build the administrative ministry (`investCapacity administrative`) |
+| **+6%**, flat at every horizon | remove the inherited 10% tariff — and −18% for a 40% tariff |
+| **−9% by Q160, −11% by Q400** | fund research at 5% of GDP, by closing the technique gap that attracted the capital |
+| **−16% by Q160**, with two-thirds of quarters price-unstable | finance a 15%-of-GDP transfers rule |
 | **0%** | cut the corporate tax to zero |
 | **0%** | open or close the border; raise the bank-capital floor to 15% |
 
 The tariff is the only order whose instantaneous effect and its century effect are the same
 number. Everything else either compounds (administration) or is undone (the corporate tax).
 
+## How the factors are read
+
+Each of the eleven multipliers is measured by re-running the pure `foreignInvestment` step with
+that one input neutralized and dividing. Nothing in the harness re-implements the formula — a
+factor that moves in `foreignInvestment.ts` moves in these tables too.
+
+The state each ratio is taken on is the step's own **input**, reconstructed by re-running the
+prefix of `TICK_ORDER` from the post-order state. That matters: at the end of a tick,
+`production` and `prices` have recomputed profits, nominal GDP and inflation, and `labor` has
+already added this quarter's inflow to the foreign-owned stock — so a factor read there would
+have the saturation term reading its own output. The prefix is taken from `TICK_ORDER` itself,
+so a step inserted ahead of foreign investment joins it without an edit to the harness.
+
+(Measured both ways while fixing this: the boundary changes every factor in the third decimal
+and no conclusion below. It is corrected because a harness that is right by luck is not
+reusable, not because the answer moved.)
+
 ## What the flow is made of
 
-The eleven multipliers, each read by re-running the pure `foreignInvestment` step with that one
-input neutralized and dividing. Nothing in the harness re-implements the formula — a factor that
-moves in `foreignInvestment.ts` moves in this table too. Measured on the capacity-building arm,
-so the administration row rises by construction:
+Measured on the capacity-building arm, so the administration row rises by construction. "Reach"
+is what an order can do about the term: **ordered** — a dial or a capacity order moves this and
+nothing else; **indirect** — reachable only as a by-product of some other policy; **sealed** —
+no order reaches it at all.
 
-| factor | Q40 (1956) | Q120 (1976) | Q320 (2026) | reachable by an order? |
+| factor | Q40 (1956) | Q120 (1976) | Q320 (2026) | reach |
 |---|---:|---:|---:|---|
-| country terrain (size × access × development) | 0.925 | 0.833 | 0.728 | no |
-| catch-up room | 0.912 | 0.883 | 0.696 | only by closing it |
-| ownership saturation | 0.805 | 0.751 | 0.729 | only by filling it |
-| administration | 0.865 | 0.907 | 0.965 | **yes** |
-| tariff | 0.940 | 0.940 | 0.940 | **yes** |
-| corporate return | 1.273 | 1.282 | 1.150 | **yes, and it is undone** |
-| business confidence | 1.091 | 1.146 | 1.061 | only through the economy |
-| export intensity | 0.991 | 1.026 | 1.063 | only through the economy (see 0010) |
-| foreign cycle | 0.991 | 0.990 | 1.005 | no |
-| price stability | 1.000 | 1.000 | 1.000 | by accident (see below) |
-| banking crisis | 1.000 | 1.000 | 1.000 | by accident (see below) |
-| **realized inflow** | **0.74% of GDP** | **0.72%** | **0.43%** | |
+| country terrain (size × access × development) | 0.925 | 0.833 | 0.728 | sealed |
+| foreign cycle | 0.991 | 0.990 | 1.005 | sealed |
+| tariff | 0.940 | 0.940 | 0.940 | **ordered** |
+| corporate return | 1.275 | 1.284 | 1.149 | **ordered** |
+| administration | 0.864 | 0.906 | 0.965 | **ordered** |
+| catch-up room | 0.912 | 0.883 | 0.696 | indirect (research closes it) |
+| ownership saturation | 0.806 | 0.752 | 0.729 | indirect (success fills it) |
+| business confidence | 1.089 | 1.147 | 1.064 | indirect |
+| export intensity | 0.989 | 1.025 | 1.063 | indirect (see 0010) |
+| price stability | 1.000 | 1.000 | 1.000 | indirect, and only downward |
+| banking crisis | 1.000 | 1.000 | 1.000 | indirect, and too rare to steer |
+| **published inflow** | **0.73% of GDP** | **0.71%** | **0.44%** | |
 
-Two things are visible before any policy is applied. The three terrain terms multiply out from
-0.679 to 0.369 across the century, and no order touches any of them: **getting rich is what
-stops FDI**. And the two safety terms read 1.000 at every reference tick, because a government
-that is behaving never trips either — which is exactly why measuring them at a snapshot would
-have reported that they do not matter.
+Two things are visible before any policy is applied. Country terrain, the technique gap and
+foreign ownership multiply out from 0.680 to 0.369 across the century — the first is closed to
+every order, and the only orders that reach the other two push them the wrong way, so
+**getting rich is what stops FDI**. And the two safety terms read 1.000 at every reference tick,
+because a government that is behaving never trips either — which is exactly why measuring them
+at a snapshot would have reported that they do not matter.
 
 ## What one order is worth on the margin
 
@@ -68,13 +86,13 @@ held still. This is the order's upper bound in the quarter it lands, not a predi
 | tariff → 0 (from the inherited 10%) | +6.38% | +6.38% | +6.38% |
 | tariff → 40% | −19.15% | −19.15% | −19.15% |
 | tariff → 100% (the dial's maximum) | −57.45% | −57.45% | −57.45% |
-| corporate tax → 0 (from 20%) | +12.89% | +15.67% | **+19.14%** |
-| corporate tax → 50% | −19.34% | −23.50% | −28.71% |
-| corporate tax → 80% (the dial's maximum) | −38.68% | −47.00% | −57.42% |
-| administrative capacity → 1.00 * | +15.60% | +10.27% | +3.66% |
-| administrative capacity → 0.05 * | −18.55% | −22.31% | −26.97% |
-| tax capacity → 1.00 * | −7.20% | −4.98% | −1.88% |
-| all three, pointing the same way * | +34.86% | +31.09% | +26.10% |
+| corporate tax → 0 (from 20%) | +12.85% | +15.65% | **+19.11%** |
+| corporate tax → 50% | −19.27% | −23.47% | −28.67% |
+| corporate tax → 80% (the dial's maximum) | −38.55% | −46.94% | −57.34% |
+| administrative capacity → 1.00 * | +15.68% | +10.32% | +3.68% |
+| administrative capacity → 0.05 * | −18.49% | −22.27% | −26.95% |
+| tax capacity → 1.00 * | −7.23% | −5.01% | −1.89% |
+| all three, pointing the same way * | +34.92% | +31.13% | +26.10% |
 
 `*` is not an order: a capacity is bought a fraction of a point per quarter, so these are the
 channel's bound rather than something a cabinet can do in one turn.
@@ -85,10 +103,14 @@ tax office improves — because `returnFactor` reads *collected* after-tax profi
 
 ## What the century is worth
 
-Paired against the same seed and country under passive play, truncated at deposition, mean of
-the last eight quarters. Every arm re-attempts its own order each quarter until the engine
-accepts it, and the quarter it landed is recorded — a refused order produces a plausible row of
-near-zeros rather than an error.
+Paired against the same seed and country under passive play, mean of the last eight quarters.
+Every arm re-attempts its own order each quarter until the engine accepts it, and the quarter it
+landed is recorded — a refused order produces a plausible row of near-zeros rather than an error.
+
+A pair is included only if **both** arms were still governing through the horizon, so every
+column in this table — the FDI column included — is conditioned on survival. That is fine where
+almost everyone survives and load-bearing where they do not; the pair count is printed for
+exactly that reason.
 
 | scenario at Q160 | pairs | Δ FDI/GDP | Δ foreign-owned | Δ remitted | Δ capital | Δ GDP/head |
 |---|---:|---:|---:|---:|---:|---:|
@@ -100,7 +122,7 @@ near-zeros rather than an error.
 | corporate tax → 0 | 98 | **+0.1%** | +0.69 pp | +0.25 pp | −5.53% | −1.92% |
 | corporate tax → 50% | 98 | −4.9% | −0.09 pp | −0.27 pp | −8.53% | −3.45% |
 | research at 5% GDP | 92 | −8.8% | +0.19 pp | +0.03 pp | −4.76% | +3.58% |
-| transfers at 15% GDP | 58 | −15.7% | −3.45 pp | −0.56 pp | +76.24% | +37.03% |
+| transfers at 15% GDP | **58** | −15.7% | −3.45 pp | −0.56 pp | +76.24% | +37.03% |
 | tariff → 40% | 98 | −17.8% | −1.47 pp | −0.24 pp | −7.00% | −2.80% |
 | open border / closed border / bank capital 15% | 98 | ±0.1% | ±0.05 pp | 0.00 pp | ±1% | ±0.2% |
 
@@ -108,10 +130,13 @@ At Q400 the two working arms have compounded — administration alone is **+29.8
 combined programme **+36.3%**, against a passive level that has fallen to 0.37% of GDP — while
 the corporate-tax arm is still +0.2%.
 
-The transfers row is the one to read carefully: only 58 of 100 pairs are still governing at
-Q160 and 2 at Q400, so its capital and GDP columns are survivorship, not a result. Its FDI
-column is not, because the mechanism is visible in every quarter rather than only in the
-survivors (see "the accidental levers" below).
+**Do not quote the transfers row's capital or GDP columns.** 58 of 100 pairs survive to Q160 and
+2 to Q400, and a cabinet that governs for forty years while spending 15% of GDP on transfers is
+a selected draw, not a policy result: +76% capital is survivorship. The FDI column is drawn from
+the same 58 pairs and inherits the same conditioning, so the honest support for "inflationary
+finance is the strongest thing a cabinet can do to the inflow" is not this row — it is Part 5
+below, which is measured over every governed quarter of all 100 runs and does not require a run
+to reach the horizon at all.
 
 ## Why the corporate tax is a trap
 
@@ -120,13 +145,13 @@ arm by arm:
 
 | corporate return factor | Q20 | Q80 | Q160 | Q400 |
 |---|---:|---:|---:|---:|
-| passive | 1.433 | 1.343 | 1.372 | 1.336 |
-| corporate tax → 0 | 1.554 | 1.442 | 1.453 | **1.378** |
-| tax capacity | 1.418 | 1.284 | 1.264 | 1.160 |
-| all four capacities | 1.422 | 1.283 | 1.270 | **1.131** |
-| admin capacity | 1.433 | 1.346 | 1.373 | 1.337 |
+| passive | 1.423 | 1.341 | 1.372 | 1.335 |
+| corporate tax → 0 | 1.539 | 1.441 | 1.451 | **1.383** |
+| tax capacity | 1.408 | 1.283 | 1.263 | 1.160 |
+| all four capacities | 1.412 | 1.281 | 1.270 | **1.132** |
+| admin capacity | 1.423 | 1.343 | 1.374 | 1.336 |
 
-Abolishing the corporate tax buys +9% on the return term at Q20 and **+3.1% by Q400**, against
+Abolishing the corporate tax buys +8% on the return term at Q20 and **+3.6% by Q400**, against
 the +12.9–19.1% the marginal table promised. The term reads after-tax profits as a *share of
 GDP*, and a profit share is a price the economy competes back down; meanwhile the revenue is
 gone, and the arm ends the century with 5.5% less capital and 3.1% lower GDP per head than its
@@ -135,7 +160,7 @@ foreign-owned capital +0.49 pp and remittances +0.16 pp of GDP at Q400, on an un
 
 The same table carries the sharpest result in the study. Building all four ministries raises FDI
 by a third as much as building only administration (+10.3% against +29.8% at Q400) — and the gap
-is *entirely* the tax office. The return factor is 1.131 against 1.337, a ratio of 0.846; the
+is *entirely* the tax office. The return factor is 1.132 against 1.336, a ratio of 0.847; the
 FDI ratio between the two arms is 0.850. A capable tax office collects the corporate rate that
 was posted-but-uncollected, and hands the difference straight to `returnFactor`.
 
@@ -145,15 +170,17 @@ measure and the policy that maximizes it is not the policy that maximizes the co
 
 ## The accidental levers
 
-Price stability and the crisis multiplier never appear in a well-behaved century, so they have
-to be measured every governed quarter rather than at a reference tick:
+Price stability and the crisis multiplier never appear in a well-behaved century, so they are
+measured every governed quarter rather than at a reference tick. This is the one table in the
+study that does not condition on surviving to a horizon: a run deposed in 1970 contributes the
+quarters it governed.
 
 | arm | quarters with prices unstable | factor when they are | crisis quarters | mean drag |
 |---|---:|---:|---:|---:|
 | passive | 3.4% | 0.960 | 0.8% | 0.992 |
-| every deliberate arm above | 2.6–5.3% | 0.93–0.97 | 0.8–1.4% | 0.988–0.992 |
-| random policy | 17.4% | 0.933 | 5.3% | 0.947 |
-| **transfers at 15% GDP** | **66.0%** | 0.906 | **22.1%** | **0.780** |
+| every deliberate arm above | 2.6–5.2% | 0.93–0.97 | 0.8–1.4% | 0.988–0.992 |
+| random policy | 17.2% | 0.933 | 5.3% | 0.947 |
+| **transfers at 15% GDP** | **65.6%** | 0.906 | **22.1%** | **0.782** |
 
 Inflationary finance is the most powerful thing a cabinet can do to the inflow, and it only
 points down. `FDI_PRICE_INSTABILITY_AT` is an 8% annualized rate, and a large deficit-financed
@@ -219,10 +246,11 @@ who takes it for a scoreboard will conclude their policy is failing while it wor
 Nothing here is an engine bug, and no accounting problem was found. Three things follow, and
 none of them is a retune of this flow:
 
-1. **There is policy, and the game never says so.** The handbook's one line on foreign
-   investment describes what FDI *is*. The four channels that work — administration, the tariff,
-   price stability, and the research trade-off — are discoverable only by reading
-   `foreignInvestment.ts`. This is the cheapest fix and the one #146 is actually asking for.
+1. **There is policy, and the game never said so.** The handbook's one line on foreign
+   investment described what FDI *is*. The four channels that work — administration, the tariff,
+   price stability, and the research trade-off — were discoverable only by reading
+   `foreignInvestment.ts`. This is the cheapest fix and the one #146 is actually asking for; it
+   ships with this investigation as a section in the handbook's economy chapter.
 2. **The corporate tax is a designed trap and should probably stay one**, but a player who
    spends a century on it currently gets no signal that it was undone. That is a legibility
    question for [#97](https://github.com/Scc33/terrarium/issues/97), not a calibration one.
@@ -231,5 +259,5 @@ none of them is a retune of this flow:
    price, and prices re-equilibrate. Recorded as a tuning lesson in `AGENTS.md`, because it is
    not specific to FDI — it is how to predict which new lever will still be there in 2046.
 
-Re-measure before acting on any number above: `pnpm fdi -- --runs 20 --ticks 400`, about 70
+Re-measure before acting on any number above: `pnpm fdi -- --runs 20 --ticks 400`, about 80
 seconds.

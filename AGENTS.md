@@ -570,7 +570,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
   it lands and **+0.2 % over a century**, because `returnFactor` reads the after-tax profit SHARE
   and a profit share is competed straight back down — while the forgone revenue leaves the country
   5.5 % short of capital, so the cut buys more foreign ownership of a smaller economy. Building
-  the administrative ministry is worth +15.6 % on the margin and +29.8 % over the same century,
+  the administrative ministry is worth +15.7 % on the margin and +29.8 % over the same century,
   because a capacity is a stock nothing arbitrages away. The two rankings are in OPPOSITE ORDER,
   so measure a new lever at both horizons before quoting either. The same study's sharpest
   reading is that building all four ministries raises FDI a third as much as building only

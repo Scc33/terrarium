@@ -91,7 +91,37 @@ if (!Number.isInteger(TICKS) || TICKS < WINDOW) {
 
 // ---------- the pure step, re-run under a counterfactual ----------
 
-const FDI_STEP = TICK_ORDER.find((candidate) => candidate.name === 'foreignInvestment')!
+const FDI_INDEX = TICK_ORDER.findIndex((candidate) => candidate.name === 'foreignInvestment')
+const FDI_STEP = TICK_ORDER[FDI_INDEX]
+
+/**
+ * The exact state `foreignInvestment` will read this quarter.
+ *
+ * Every counterfactual below is a ratio between the step run on one state and
+ * the step run on a neutralized copy of it, so the state has to be the step's
+ * own INPUT. The end-of-tick state is not: `production` and `prices` have
+ * since recomputed profits, nominal GDP and inflation, and `labor` has already
+ * added this quarter's inflow to the foreign-owned stock — which would have
+ * the saturation term reading its own output.
+ *
+ * `RunObserver` has no per-step hook, so the prefix of the versioned tick is
+ * re-run here from the post-order state. That is exact rather than
+ * approximate: the steps are pure and each draws from a substream keyed by
+ * (seed, step name, tick), so this reproduces what `step` is about to compute.
+ * The prefix is taken from `TICK_ORDER` itself, so a step inserted ahead of
+ * foreign investment joins it without an edit here.
+ */
+function fdiStepInput(state: TrueState): TrueState {
+  let current = state
+  for (let index = 0; index < FDI_INDEX; index++) {
+    const pipelineStep = TICK_ORDER[index]
+    current = pipelineStep.run(
+      current,
+      rngFor(current.meta.seed, pipelineStep.name, current.meta.tick),
+    )
+  }
+  return current
+}
 
 /** Inward FDI as a share of nominal GDP, as the office's own worksheet takes
  * it: both sides quarterly, so the ratio is already the annual convention. */
@@ -151,25 +181,42 @@ const closeTechGap: Edit = (state) => ({
   },
 })
 
+/**
+ * What an order can do about a term. Deliberately three-way rather than a
+ * terrain/not-terrain boolean: catch-up room and ownership saturation look
+ * sealed from the cabinet desk and are not — research closes the technique gap
+ * the flow is reading, which is why funding it LOWERS the inflow, and every
+ * policy that attracts capital fills the saturation term that then repels it.
+ * Calling those terrain would answer this study's central question wrongly.
+ */
+type Reach =
+  /** a dial or a capacity order moves this term and nothing else */
+  | 'ordered'
+  /** only reachable as a by-product of some other policy */
+  | 'indirect'
+  /** no order reaches it at all */
+  | 'sealed'
+
 interface Factor {
   id: string
   /** what the neutralizing edit sets the factor to; the realized value is
    * `base / neutralized × pinned` */
   pinned: number
   neutralize: Edit
-  /** true when no player order can reach this term at all */
-  terrain?: boolean
+  reach: Reach
 }
 
 const FACTORS: readonly Factor[] = [
   {
     id: 'tariff',
     pinned: 1,
+    reach: 'ordered',
     neutralize: withDial('tariff', 0),
   },
   {
     id: 'corporate return',
     pinned: 1,
+    reach: 'ordered',
     // The return term is 1 at the normal after-tax profit share, so it is
     // neutralized by moving the profits rather than the rate: the rate the
     // government sets is only half of what an investor is looking at.
@@ -196,11 +243,12 @@ const FACTORS: readonly Factor[] = [
       }
     },
   },
-  { id: 'administration', pinned: 1, neutralize: withCapacity('administrative', 1) },
-  { id: 'export intensity', pinned: 1, neutralize: withExportShare(0.15) },
+  { id: 'administration', pinned: 1, reach: 'ordered', neutralize: withCapacity('administrative', 1) },
+  { id: 'export intensity', pinned: 1, reach: 'indirect', neutralize: withExportShare(0.15) },
   {
     id: 'business confidence',
     pinned: 1,
+    reach: 'indirect',
     neutralize: (state) => ({
       ...state,
       ledger: {
@@ -212,26 +260,38 @@ const FACTORS: readonly Factor[] = [
   {
     id: 'price stability',
     pinned: 1,
+    reach: 'indirect',
     neutralize: (state) => ({ ...state, flows: { ...state.flows, inflationQ: 0 } }),
   },
   {
     id: 'banking crisis',
     pinned: 1,
+    // the bank-capital floor is a dial, but it reaches this term only by
+    // changing how often a crisis happens at all
+    reach: 'indirect',
     neutralize: (state) => ({ ...state, finance: { ...state.finance, crisisQtrsLeft: 0 } }),
   },
-  { id: 'catch-up room', pinned: FDI_CATCHUP_FLOOR, neutralize: closeTechGap, terrain: true },
+  {
+    id: 'catch-up room',
+    pinned: FDI_CATCHUP_FLOOR,
+    // research closes this gap; that is what the research arm measures
+    reach: 'indirect',
+    neutralize: closeTechGap,
+  },
   {
     id: 'ownership saturation',
     pinned: 1,
+    // filled by the inflow every successful FDI policy produces
+    reach: 'indirect',
     neutralize: (state) => ({
       ...state,
       external: { ...state.external, foreignOwnedCapital: 0 },
     }),
-    terrain: true,
   },
   {
     id: 'foreign cycle',
     pinned: 1,
+    reach: 'sealed',
     neutralize: (state) => ({
       ...state,
       external: {
@@ -242,7 +302,6 @@ const FACTORS: readonly Factor[] = [
         },
       },
     }),
-    terrain: true,
   },
 ]
 
@@ -419,20 +478,24 @@ const TRACKED_FACTORS = [
 ] as const
 type TrackedFactor = (typeof TRACKED_FACTORS)[number]
 
-function point(state: TrueState): Point {
+function point(state: TrueState, input: TrueState): Point {
   const capital = state.sectors.reduce((sum, sector) => sum + sector.capital, 0)
   const population = state.demography.pyramid.reduce((sum, people) => sum + people, 0)
   const nominalGdp = Math.max(state.flows.nominalGdp, 1e-9)
   return {
     tick: state.meta.tick,
     inPower: state.politics.inPower,
+    // The office's own definition (`recordOf`): the value the step produced
+    // over THIS quarter's nominal GDP, so part 3 reads the same number the
+    // published instrument does...
     fdiShare: state.flows.foreignDirectInvestmentValue / nominalGdp,
     foreignOwnedShare: state.external.foreignOwnedCapital / Math.max(capital, 1e-9),
     remittanceShare: state.flows.foreignProfitRemittances / nominalGdp,
     capital,
     realGdpPerHead: state.flows.realGdp / Math.max(population, 1e-9),
+    // ...but the factors come from the step's own input, not from here.
     factors: Object.fromEntries(
-      TRACKED_FACTORS.map((id) => [id, factorOf(state, id)]),
+      TRACKED_FACTORS.map((id) => [id, factorOf(input, id)]),
     ) as Record<TrackedFactor, number>,
   }
 }
@@ -456,9 +519,16 @@ interface Reading {
   factors: Record<TrackedFactor, number>
 }
 
+/** A reference quarter kept whole for parts 1 and 2: the state the step read,
+ * beside the share the office went on to publish for it. */
+interface Reference {
+  input: TrueState
+  publishedShare: number
+}
+
 interface Sample {
   readings: Map<number, Reading>
-  references: Map<number, TrueState>
+  references: Map<number, Reference>
   points: Point[]
   /** the quarter the arm's own order came into force, or null if it never did */
   landedAt: number | null
@@ -485,8 +555,9 @@ function reading(points: readonly Point[], horizon: number): Reading {
 
 function sample(seed: string, country: CountryScenarioId, scenario: Scenario, keepReferences: boolean): Sample {
   const points: Point[] = []
-  const references = new Map<number, TrueState>()
+  const references = new Map<number, Reference>()
   let landedAt: number | null = null
+  let input: TrueState | null = null
   runOne({
     seed,
     country,
@@ -494,11 +565,18 @@ function sample(seed: string, country: CountryScenarioId, scenario: Scenario, ke
     policy: scenario.policy,
     includeStateHash: false,
     observer: {
+      afterActions(state) {
+        input = fdiStepInput(state)
+      },
       afterStep(state) {
-        points.push(point(state))
+        const measured = point(state, input!)
+        points.push(measured)
         if (landedAt === null && scenario.landed?.(state) === true) landedAt = state.meta.tick
         if (keepReferences && REFERENCE_TICKS.includes(state.meta.tick)) {
-          references.set(state.meta.tick, state)
+          references.set(state.meta.tick, {
+            input: input!,
+            publishedShare: measured.fdiShare,
+          })
         }
       },
     },
@@ -537,25 +615,37 @@ console.log(`wall time: ${((performance.now() - started) / 1000).toFixed(1)}s`)
 
 // PART 1 — where the flow comes from
 console.log('\nPART 1 - REALIZED FACTORS OF THE INFLOW (all-capacities arm, median over runs)')
-console.log('a factor of 1.00 is neutral; "terrain" is closed to every order.')
+console.log('a factor of 1.00 is neutral. REACH: what an order can do about it —')
+console.log('  ordered  = a dial or a capacity order moves this term and nothing else;')
+console.log('  indirect = only reachable as a by-product of some other policy;')
+console.log('  sealed   = no order reaches it at all.')
 const referenceSamples = samples.get('all-capacities')!
+const referencesAt = (tick: number): Reference[] =>
+  referenceSamples
+    .map((entry) => entry.references.get(tick))
+    .filter((entry): entry is Reference => entry !== undefined)
+
 for (const tick of REFERENCE_TICKS) {
-  const states = referenceSamples.map((entry) => entry.references.get(tick)).filter((s): s is TrueState => s !== undefined)
-  if (states.length === 0) continue
+  const references = referencesAt(tick)
+  if (references.length === 0) continue
+  const states = references.map((entry) => entry.input)
   console.log(`\n  Q${tick} (${1946 + Math.floor(tick / 4)})`)
-  console.log(['    factor'.padEnd(28), 'median'.padStart(8), 'p05'.padStart(8), 'p95'.padStart(8), ''].join(' '))
-  const structural = states.map((state) =>
-    fdiStructuralAttraction(
-      state.demography.pyramid.reduce((sum, people) => sum + people, 0),
-      state.params.development,
-      state.params.openness,
-    ),
-  )
-  const rows: { id: string; values: number[]; terrain: boolean }[] = [
-    { id: 'country terrain', values: structural, terrain: true },
+  console.log(['    factor'.padEnd(28), 'median'.padStart(8), 'p05'.padStart(8), 'p95'.padStart(8), 'reach'].join(' '))
+  const rows: { id: string; values: number[]; reach: Reach }[] = [
+    {
+      id: 'country terrain',
+      reach: 'sealed',
+      values: states.map((state) =>
+        fdiStructuralAttraction(
+          state.demography.pyramid.reduce((sum, people) => sum + people, 0),
+          state.params.development,
+          state.params.openness,
+        ),
+      ),
+    },
     ...FACTORS.map((factor) => ({
       id: factor.id,
-      terrain: factor.terrain === true,
+      reach: factor.reach,
       values: states.map(
         (state) => (fdiShare(state) / Math.max(fdiShare(factor.neutralize(state)), 1e-12)) * factor.pinned,
       ),
@@ -569,12 +659,12 @@ for (const tick of REFERENCE_TICKS) {
         stats.p50.toFixed(3).padStart(8),
         stats.p05.toFixed(3).padStart(8),
         stats.p95.toFixed(3).padStart(8),
-        row.terrain ? 'terrain' : '',
+        row.reach,
       ].join(' '),
     )
   }
   console.log(
-    `    realized inflow: ${(100 * median(states.map(fdiShare))).toFixed(2)}% of GDP`,
+    `    published inflow: ${(100 * median(references.map((entry) => entry.publishedShare))).toFixed(2)}% of GDP`,
   )
 }
 
@@ -585,9 +675,7 @@ console.log(
 )
 for (const entry of MARGINAL_ORDERS) {
   const cells = REFERENCE_TICKS.map((tick) => {
-    const states = referenceSamples
-      .map((sampled) => sampled.references.get(tick))
-      .filter((s): s is TrueState => s !== undefined)
+    const states = referencesAt(tick).map((reference) => reference.input)
     if (states.length === 0) return '-'.padStart(10)
     return signed(
       median(states.map((state) => 100 * (fdiShare(entry.edit(state)) / Math.max(fdiShare(state), 1e-12) - 1))),
@@ -595,7 +683,7 @@ for (const entry of MARGINAL_ORDERS) {
     ).padStart(10)
   })
   console.log([`  ${entry.id}${entry.order ? '' : ' *'}`.padEnd(40), ...cells].join(' '))
-  }
+}
 console.log('  * not an order: a capacity is bought a fraction of a point at a time.')
 
 /** The quarter the arm's order came into force. An arm whose order never
