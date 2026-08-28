@@ -626,6 +626,18 @@ perfectly with no opinion about anything in the game. The first politics impleme
   this. The same trap caught the first `regulatedPolicy`: a top-rung enactment is priced near
   23 PC against the ~11 a capacity-building government holds, so two of three orders were
   refused as unaffordable and the "regulated" century was developmental to two decimals.
+- **A lever that moves a PRICE gets undone; a lever that moves a STOCK compounds.** Cutting the
+  corporate tax to zero is worth +12.9 to +19.1 % of the foreign-investment inflow in the quarter
+  it lands and **+0.2 % over a century**, because `returnFactor` reads the after-tax profit SHARE
+  and a profit share is competed straight back down — while the forgone revenue leaves the country
+  5.5 % short of capital, so the cut buys more foreign ownership of a smaller economy. Building
+  the administrative ministry is worth +15.7 % on the margin and +29.8 % over the same century,
+  because a capacity is a stock nothing arbitrages away. The two rankings are in OPPOSITE ORDER,
+  so measure a new lever at both horizons before quoting either. The same study's sharpest
+  reading is that building all four ministries raises FDI a third as much as building only
+  administration, because a capable tax office collects the corporate rate that was
+  posted-but-uncollected and hands the difference to the same term — state-building is not
+  monotone in every channel. `docs/investigations/0017`, `pnpm fdi`.
 - **A cooldown sets the PERIOD of repetition; it does not remove it.** The wire's first
   anti-repetition rule was a flat fourteen quarters, which meant a permanently true condition — an
   unschooled country, comfortable reserves — printed the identical sentence every fourteen quarters
