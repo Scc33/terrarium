@@ -106,7 +106,7 @@ hard events that are a player's only warning are invisible too. So:
   prints the same sentence every fourteen quarters for eighty years. Doubling fades a standing
   condition to five or six mentions a century and leaves a genuinely recurrent event alone.
 
-Healthy shape, measured at v38: **0.56 dispatches per quarter, 55 % quiet quarters, at most 3
+Healthy shape, measured at v39: **0.56 dispatches per quarter, 55 % quiet quarters, at most 3
 in one quarter, ~131 of 136 events reachable**, no desk above about a quarter of the paper.
 
 ## The economics review

@@ -180,8 +180,8 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   pipeline-order changes).
 - The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 38:
-  **96.7% stmts / 85.8% branch**; the ~99/~90 that stood here was stale by several versions).
+- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 39:
+  **96.6% stmts / 85.9% branch**; the ~99/~90 that stood here was stale by several versions).
   It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
 - **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the

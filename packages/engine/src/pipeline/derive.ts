@@ -21,6 +21,7 @@ import {
   LABOR_ELASTICITY,
   LIVING_STANDARD_1946,
   MINIMUM_WAGE_ANCHOR,
+  MORT_BASE_ANNUAL,
   PARTICIPATION,
   POVERTY_LINE_REAL,
   RISK_PREMIUM_SLOPE,
@@ -45,6 +46,7 @@ import {
 } from '../constants'
 import { clamp } from '../math'
 import {
+  AGE_BANDS,
   BLOC_IDS,
   CAPACITY_IDS,
   COHORT_IDS,
@@ -61,6 +63,46 @@ import {
   type StatuteId,
   type TrueState,
 } from '../state/schema'
+
+/**
+ * Period life expectancy at birth implied by an annual mortality schedule.
+ *
+ * Each entry covers one five-year age band; the final 80+ band is open-ended.
+ * We integrate survival quarter by quarter because those are the hazards the
+ * demography step actually applies. This is a synthetic cohort under TODAY'S
+ * rates, not the average age at death in the current (possibly old) population.
+ */
+export function periodLifeExpectancy(annualMortality: readonly number[]): number {
+  if (annualMortality.length !== AGE_BANDS) {
+    throw new RangeError(`life table needs ${AGE_BANDS} age bands`)
+  }
+
+  let survivors = 1
+  let personYears = 0
+  for (let band = 0; band < AGE_BANDS - 1; band++) {
+    const quarterlyHazard = annualMortality[band] / 4
+    if (!Number.isFinite(quarterlyHazard) || quarterlyHazard < 0 || quarterlyHazard > 1) {
+      throw new RangeError('annual mortality must be finite and between 0 and 4')
+    }
+    for (let quarter = 0; quarter < 20; quarter++) {
+      personYears += 0.25 * survivors
+      survivors *= 1 - quarterlyHazard
+    }
+  }
+
+  const terminalHazard = annualMortality[AGE_BANDS - 1] / 4
+  if (!Number.isFinite(terminalHazard) || terminalHazard <= 0 || terminalHazard > 1) {
+    throw new RangeError('the open-ended age band needs positive annual mortality at most 4')
+  }
+  return personYears + (0.25 * survivors) / terminalHazard
+}
+
+/** Current period life expectancy, using the same age hazards as demography. */
+export function lifeExpectancyAtBirth(state: TrueState): number {
+  return periodLifeExpectancy(
+    MORT_BASE_ANNUAL.map((annualMortality) => annualMortality * state.demography.mortalityIndex),
+  )
+}
 
 /** The money interest's effective hostility: anger only has force when the
  * bloc holding the paper also has the power to stay away from the auction. */

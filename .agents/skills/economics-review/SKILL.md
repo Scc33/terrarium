@@ -277,8 +277,8 @@ spontaneously bubbles.
 `tests/properties/fuel-tax.test.ts` and `subsidy.test.ts` are the
 design's load-bearing claims. **If a change breaks them, the change is wrong, not the test.**
 
-`pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 38:
-96.7% stmts / 85.8% branch — the ~99/~90 that stood here was stale by several versions, which is
+`pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 39:
+96.6% stmts / 85.9% branch — the ~99/~90 that stood here was stale by several versions, which is
 exactly the trap this file warns about with baselines: a stale figure invites you to "fix" a
 regression nobody caused).
 It is a floor to prevent regression. Raise it; never lower it to green a build.

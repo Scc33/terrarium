@@ -44,6 +44,7 @@ import {
   effectivePrice,
   householdIncomeDistribution,
   householdSavingRate,
+  lifeExpectancyAtBirth,
   realConsumptionPerCapita,
   residence,
   sectorValueAdded,
@@ -273,6 +274,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     relativeSd: true,
   },
   {
+    id: 'life_expectancy',
+    trueValue: (h, q) => h[q].lifeExpectancy,
+    // Life tables are estimates even when deaths are registered: small errors
+    // in age-specific hazards accumulate over an entire synthetic lifetime.
+    baseSd: 1.5,
+  },
+  {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
@@ -407,6 +415,7 @@ function recordOf(state: TrueState): StatRecord {
     povertyGap: households.povertyGap,
     incomeQuintileReal: { ...households.incomeQuintileReal },
     incomeQuintileShare: { ...households.incomeQuintileShare },
+    lifeExpectancy: lifeExpectancyAtBirth(state),
     birthRate: state.demography.crudeBirthRate,
     deathRate: state.demography.crudeDeathRate,
     netMigrationRate:

@@ -4,9 +4,9 @@
  * the whole fog mechanic:
  *   • the head count and the age pyramid are EXACT — census-grade, always
  *     yours, scrubbable across the whole century;
- *   • birth, death and net-migration RATES are fogged — the demographic
- *     transition diagram only draws once you've funded civil registration,
- *     and even then it lags and wobbles like any published series.
+ *   • birth, death and net-migration RATES, plus period life expectancy, are
+ *     fogged — they only appear once you've funded civil registration, and
+ *     even then they lag and wobble like any published series.
  * You can always count how many people there are. Knowing why the number
  * moves is a thing you buy.
  *
@@ -286,11 +286,13 @@ function ResidenceBand({
 
   return (
     <div className="flex flex-col gap-2 border-t border-dossier-ink/20 pt-2">
-      {/* The type size lives on the ROW, not on the label. `index.css` sets
-          `button, input { font: inherit }` UNLAYERED, and an unlayered rule
-          beats every `@layer` — so a `text-[9px]` on a `TooltipLabel` (which
-          renders a button) is in the DOM, in the stylesheet, and inert. This
-          heading shipped at 14px next to the pyramid's 9px because of it. */}
+      {/* The row carries the type because BOTH its children read it: the label
+          takes all of it, and the reading beside it overrides everything except
+          the tracking. (This started life as a workaround for an unlayered
+          `button { font: inherit }` in `index.css` that made font utilities on
+          a `TooltipLabel` inert. That rule is gone — a utility on the label
+          would work now — but the row is still where the shared tracking
+          belongs.) */}
       <div className="flex items-baseline justify-between font-mono text-[9px] font-medium tracking-[0.25em] text-dossier-ink/60">
         <TooltipLabel
           label="Where people live"
@@ -383,6 +385,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   const birth = settled(pub.indicators.birth_rate?.points ?? [])
   const death = settled(pub.indicators.death_rate?.points ?? [])
   const migration = settled(pub.indicators.net_migration?.points ?? [])
+  const lifeExpectancy = settled(pub.indicators.life_expectancy?.points ?? [])
   const xMin = census[0]?.tick ?? 0
   const xMax = census[census.length - 1]?.tick ?? pub.tick
 
@@ -396,6 +399,7 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   // the split as it stands now — the chart below tells the century, this
   // answers "how urban is my country" without reading a chart at all
   const urbanNow = residenceSplit(pub.population)
+  const latestLifeExpectancy = lifeExpectancy[lifeExpectancy.length - 1]?.value
 
   return (
     <Modal title="THE NATIONAL CENSUS" onClose={onClose} size="wide">
@@ -422,11 +426,20 @@ export function CensusOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
                   {(100 * urbanNow.urbanShare).toFixed(0)}% URBAN
                 </TooltipLabel>
               )}
+              {latestLifeExpectancy !== undefined && (
+                <TooltipLabel
+                  label="Life expectancy"
+                  content="How many years a newborn would be expected to live if today’s death rates at every age continued. It is surveyed, so it can lag and revise; the exact head count cannot."
+                  className="font-mono text-[11px] font-semibold tabular-nums tracking-[0.1em] text-dossier-ink/75"
+                >
+                  LIFE {latestLifeExpectancy.toFixed(1)} YRS
+                </TooltipLabel>
+              )}
             </span>
             <span className="font-mono text-[10px] tracking-[0.15em] text-dossier-ink/60">LABOUR FORCE {pub.population.laborForce.toFixed(1)}M · {yearOf(pub.tick)}</span>
           </div>
         )}
-        note="Heads are counted, so the count, its growth rate and the rural/urban split never lag or revise. The three flows behind that growth — births, minus deaths, plus net migration — are surveyed, so they do. Net migration is arrivals minus departures: positive means more people arrived. The split covers everyone under 60, the ages the register places."
+        note="Head counts, growth and the under-60 rural/urban split are exact. Birth, death, migration and life expectancy reports lag and revise. Life expectancy is a newborn’s expected years under today’s age-specific death rates."
         footer="HEADS ARE COUNTABLE · THE RATES BEHIND THEM ARE NOT"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
