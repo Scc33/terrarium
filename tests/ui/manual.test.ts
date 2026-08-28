@@ -19,8 +19,11 @@ import {
   BLOC_IDS,
   CAPACITY_IDS,
   COHORT_IDS,
+  DESK_IDS,
+  EVENT_IDS,
   GAME_RULE_IDS,
   INSTITUTION_IDS,
+  PRESS_ERAS,
   SECTOR_IDS,
 } from '@terrarium/engine'
 import { INDICATOR_IDS } from '@terrarium/observation'
@@ -263,5 +266,37 @@ describe('the order of a quarter still matches the engine', () => {
       expect(entry.detail.length, entry.term).toBeGreaterThan(40)
       expect(entry.detail, entry.term).not.toBe(entry.term)
     }
+  })
+})
+
+describe('the wire chapter', () => {
+  const chapter = manualChapter('wire')
+
+  it('names every desk the engine has', () => {
+    const entries = chapter.sections.flatMap((s) => s.entries ?? []).map((e) => e.term)
+    // Generated from `DESK_IDS`, so a section added to the paper appears in
+    // the handbook the quarter it appears in the game — the ADR-0024 rule.
+    expect(entries).toContain('THE LAND')
+    expect(entries).toContain('SCIENCE')
+    const deskSection = chapter.sections.find((s) => s.heading === 'THE DESKS')
+    expect(deskSection?.entries).toHaveLength(DESK_IDS.length)
+  })
+
+  it('lists every press age with the year it starts', () => {
+    const ages = chapter.sections.find((s) => s.heading === 'THE PAPER CHANGES WITH THE CENTURY')
+    expect(ages?.entries).toHaveLength(PRESS_ERAS.length)
+    expect(ages?.entries?.map((e) => e.meta)).toEqual(PRESS_ERAS.map((e) => String(e.fromYear)))
+  })
+
+  it('counts the catalogue rather than claiming a number', () => {
+    // A hand-typed count would drift the first time anybody added a dispatch,
+    // and the handbook would be quietly wrong about the size of the game.
+    const prose = chapter.sections.flatMap((s) => s.body ?? []).join(' ')
+    expect(prose).toContain(`${EVENT_IDS.length} distinct dispatches`)
+  })
+
+  it('promises the wire prints no figures, which is the rule the engine holds', () => {
+    const prose = chapter.sections.flatMap((s) => s.body ?? []).join(' ')
+    expect(prose).toContain('prints no figures')
   })
 })

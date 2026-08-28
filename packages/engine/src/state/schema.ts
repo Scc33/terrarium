@@ -4,6 +4,7 @@
  */
 
 import type { Seed } from '../rng/rng'
+import type { DeskId, EventId, Prominence } from '../events/ids'
 
 export type Qtr = number // quarters since 1946Q1
 export type Money = number // base-year units
@@ -744,16 +745,57 @@ export const NEWS_KINDS = [
   'election',
   // the economy at large
   'breakthrough',
+  // the government's own record: the two acts discrete enough to date
+  'reform',
+  'statute',
+  /** a line the country crossed once and will not cross back — reported as
+   * FACT, so it is reserved for quantities that need no statistical office
+   * (heads, and where they live). Anything that needs a survey is a `rumor`
+   * however certain it feels. */
+  'milestone',
+  /** a slice of the age, tied to no state at all — the column that fills a
+   * quarter in which nothing happened */
+  'colour',
   /** the statistical office's rumor mill — a fogged hint, not an event */
   'rumor',
 ] as const
 export type NewsKind = (typeof NEWS_KINDS)[number]
 
+export type NewsTone = 'good' | 'bad' | 'neutral'
+
+/**
+ * One filed dispatch, exactly as it went out over the wire.
+ *
+ * Everything but `tick` is decided by `events/` — the pipeline step raising an
+ * event names the event and nothing else, so a copy-edit is a change to a
+ * table rather than a change to the economy. What is stored here is the
+ * RESOLVED story, not a reference to it: the copy that was current in 1958
+ * stays on the 1958 page for the rest of the run, and rewriting the catalogue
+ * cannot retroactively rewrite a save's back numbers.
+ *
+ * The wire carries no figures, deliberately and permanently. It is made from
+ * true state, so a dispatch quoting a number off that state would be an
+ * unfogged instrument nobody funded (ADR-0003). See `events/catalogue.ts`.
+ */
 export interface NewsItem {
   tick: Qtr
-  text: string
-  tone: 'good' | 'bad' | 'neutral'
+  /** which event this is — stable across every rewording */
+  event: EventId
+  /** the coarse category filters match on (crisis markers, and the like) */
   kind: NewsKind
+  /** which section of the paper filed it */
+  desk: DeskId
+  tone: NewsTone
+  /** how much of the page it takes */
+  prominence: Prominence
+  /** the masthead that carried it — the one place the wire says out loud what
+   * the press-freedom stock has been doing. Sealed at filing time, because
+   * the paper that printed it in 1958 is not the paper on the desk now. */
+  outlet: string
+  /** the headline */
+  text: string
+  /** the standfirst under it: what a reader of the day was told */
+  body: string
 }
 
 /** The two tables one census release carries. A `const` tuple like every
@@ -1105,7 +1147,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 37 // v37: the census counts where people live (#164)
+export const SCHEMA_VERSION = 38 // v38: the wire becomes a newspaper (#160)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

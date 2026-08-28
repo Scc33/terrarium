@@ -29,6 +29,7 @@ import {
   RESEARCH_STOCK_DECAY_Q,
   TECH_EXPOSURE,
 } from '../constants'
+import { fileDispatch } from '../events/file'
 import { clamp, sectorRecord } from '../math'
 import { FIRST_YEAR, SECTOR_IDS, type NewsItem, type SectorId, type TrueState } from '../state/schema'
 import type { PipelineStep } from './pipeline'
@@ -171,13 +172,6 @@ export function breakthroughHazard(
   return clamp((RESEARCH_FRONTIER_GAIN_Q * effort) / BREAKTHROUGH_SIZE, 0, BREAKTHROUGH_HAZARD_MAX)
 }
 
-const BREAKTHROUGH_NEWS = [
-  'National laboratories announce a breakthrough; the world will be some time catching up.',
-  'A domestic process patent is filed that nobody abroad can yet work around.',
-  'The state institutes publish a result the foreign journals will spend a decade arguing with.',
-  'Industry and the universities jointly demonstrate a technique with no precedent abroad.',
-]
-
 export const technology: PipelineStep = {
   name: 'technology',
   run(state, rng) {
@@ -199,15 +193,20 @@ export const technology: PipelineStep = {
     let frontier = historicalFrontier
     if (rng.next() < breakthroughHazard(state, research, intensity)) {
       frontier = historicalFrontier * (1 + BREAKTHROUGH_SIZE)
-      news.push({
-        tick: state.meta.tick,
-        // A hazard process clusters — two in a year is ordinary Poisson, not a
-        // bug — so the wire rotates its phrasing. One sentence repeated verbatim
-        // three quarters running reads as a stuck ticker rather than as luck.
-        text: BREAKTHROUGH_NEWS[Math.floor(rng.next() * BREAKTHROUGH_NEWS.length)],
-        tone: 'good',
-        kind: 'breakthrough',
-      })
+      // A hazard process clusters — two in a year is ordinary Poisson, not a
+      // bug — so the wire rotates its phrasing, and since #160 it rotates by
+      // ERA as well: a breakthrough in 1949 is an alloy and in 2030 it is a
+      // machine that was trained rather than programmed.
+      //
+      // The bare draw below is deliberate and must stay. The phrasing used to
+      // be chosen with it, off THIS step's economic substream; the wording now
+      // comes from `obs:news:breakthrough`, orthogonal to the economy, which
+      // is where it always belonged. Deleting the draw instead of stranding it
+      // would shift every later draw in this step whenever a breakthrough
+      // fires — so a copy-edit would rewrite the century, which is exactly the
+      // coupling the events module exists to remove.
+      rng.next()
+      news.push(fileDispatch(state, 'breakthrough'))
     }
 
     // each sector chases its own slice of the frontier; the gap closes at a

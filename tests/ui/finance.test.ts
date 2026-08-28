@@ -53,8 +53,25 @@ function seriesOf(id: string, values: Array<{ forQtr: number; value: number }>):
   } as IndicatorSeries
 }
 
+/** A wire item with everything the newspaper needs and nothing this module
+ * reads. `crisisEpisodes` matches on `kind` alone (that is the whole point of
+ * it), so the desk, the masthead and the copy are filler here — deliberately
+ * WRONG filler, in fact, so that a reader of this file cannot mistake these
+ * for real dispatches out of the catalogue. */
+const wireItem = (tick: number, kind: NewsItem['kind'], text = `${kind} at ${tick}`): NewsItem => ({
+  tick,
+  event: 'banking_crisis',
+  kind,
+  desk: 'finance',
+  tone: 'neutral',
+  prominence: 'column',
+  outlet: 'TEST WIRE',
+  text,
+  body: '',
+})
+
 const news = (items: Array<[number, NewsItem['kind']]>): NewsItem[] =>
-  items.map(([tick, kind]) => ({ tick, kind, text: `${kind} at ${tick}`, tone: 'neutral' }))
+  items.map(([tick, kind]) => wireItem(tick, kind))
 
 function pubWith(over: Partial<PublishedState>): PublishedState {
   return {
@@ -123,9 +140,9 @@ describe('reading the wire', () => {
     // a drought both mention crisis in their copy, and one of them is not a
     // banking crisis.
     const items: NewsItem[] = [
-      { tick: 5, kind: 'partner_crisis', text: 'Crisis abroad: a banking crisis grips the region.', tone: 'bad' },
-      { tick: 6, kind: 'fuel_shock', text: 'Crisis abroad: world fuel markets are in tumult.', tone: 'bad' },
-      { tick: 7, kind: 'rumor', text: 'The papers speak of a sudden stop.', tone: 'bad' },
+      wireItem(5, 'partner_crisis', 'Crisis abroad: a banking crisis grips the region.'),
+      wireItem(6, 'fuel_shock', 'Crisis abroad: world fuel markets are in tumult.'),
+      wireItem(7, 'rumor', 'The papers speak of a sudden stop.'),
     ]
     expect(crisisEpisodes(items)).toEqual([])
   })

@@ -33,7 +33,8 @@
     "diff-state": "tsx tools/diff-state.ts",
     "debt-baselines": "tsx tools/measure-debt-baselines.ts",
     "inheritance": "tsx tools/measure-inheritance.ts",
-    "ranges": "tsx tools/indicator-ranges.ts"
+    "ranges": "tsx tools/indicator-ranges.ts",
+    "events": "tsx tools/measure-events.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

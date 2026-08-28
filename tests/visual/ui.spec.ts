@@ -467,6 +467,53 @@ test('financial overlay plots the position and the stance once surveyed', async 
   await expect(page).toHaveScreenshot('finance-overlay-banks.png')
 })
 
+test('the paper sets a front page and files a searchable archive', async ({ page }) => {
+  // The wire was a reversed array printed as a column of shouting capitals,
+  // and #160 turned it into a newspaper. Everything that makes it one is
+  // layout — a lead in the serif at a size nothing else uses, its columns
+  // beside it, its briefs down the side, a masthead carrying the era — and
+  // jsdom cannot see any of it. `tests/ui/newspaper.test.ts` pins which story
+  // goes in which band; only this pins that the bands are set.
+  //
+  // The archive shot exists for one failure in particular: nine sections and
+  // a count apiece was a rail wider than the dialog, and `SegmentedControl`
+  // does not wrap, so the last desk was sheared off the right edge inside
+  // `overflow-hidden` — invisible to every vertical overflow probe there is.
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050', exact: true }).fill('1987')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('70')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+
+  // A scenario arrives with a completed election behind it, so the count
+  // scene opens over the wall; dismiss it before reaching for the wire.
+  const count = page.getByRole('dialog', { name: 'THE COUNT' })
+  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+
+  await page.getByRole('button', { name: 'Read every dispatch on the news wire' }).click()
+  const wire = page.getByRole('dialog', { name: 'THE WIRE' })
+  await expect(wire.getByText('BACK NUMBERS', { exact: true })).toBeVisible()
+
+  // Page back to an edition that actually leads on something. More than half
+  // of all quarters are quiet by design, so whichever one the scenario lands
+  // on is as likely as not to be a single brief — a true picture of a slow
+  // news day, and no evidence at all about the three bands this shot exists
+  // to prove. Deterministic for a fixed seed; bounded so a change that stops
+  // producing leads fails here rather than looping.
+  const earlier = wire.getByRole('button', { name: '← EARLIER' })
+  const lead = wire.getByRole('article', { name: 'Lead story' })
+  for (let i = 0; i < 40 && (await lead.count()) === 0; i++) await earlier.click()
+  await expect(lead).toHaveCount(1)
+  await expect(page).toHaveScreenshot('wire-front-page.png')
+
+  await wire.getByRole('button', { name: 'ARCHIVE', exact: true }).click()
+  await expect(wire.getByRole('searchbox', { name: 'Search every dispatch' })).toBeVisible()
+  // Every section on the rail, including the last one.
+  await expect(wire.getByRole('button', { name: 'SCIENCE', exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('wire-archive.png')
+})
+
 test('household office shows poverty and both quintile views once surveyed', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')
