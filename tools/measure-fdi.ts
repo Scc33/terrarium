@@ -54,6 +54,7 @@ import {
   CONF_NEUTRAL,
   FDI_CATCHUP_FLOOR,
   FDI_NORMAL_AFTER_TAX_PROFIT_SHARE,
+  FDI_REFERENCE_POPULATION,
   IMMIGRATION_LIMIT_MAX,
 } from '../packages/engine/src/constants'
 import { SECTOR_IDS } from '../packages/engine/src/state/schema'
@@ -465,6 +466,11 @@ interface Point {
    * the other three are the ones policy is supposed to move, and the whole
    * question is whether the century leaves them moved. */
   factors: Record<TrackedFactor, number>
+  /** Annualized, SIGNED, as the step read it. The instability drag is charged
+   * on `Math.abs`, so a deflation is as repellent as an inflation of the same
+   * size — and which side a century actually spends its unstable quarters on
+   * is a fact about the economy rather than about this term. */
+  inflationAnnual: number
 }
 
 /** Cheap enough to re-run every quarter for every arm; the step is pure and
@@ -497,6 +503,7 @@ function point(state: TrueState, input: TrueState): Point {
     factors: Object.fromEntries(
       TRACKED_FACTORS.map((id) => [id, factorOf(input, id)]),
     ) as Record<TrackedFactor, number>,
+    inflationAnnual: input.flows.inflationQ * 4,
   }
 }
 
@@ -631,16 +638,33 @@ for (const tick of REFERENCE_TICKS) {
   const states = references.map((entry) => entry.input)
   console.log(`\n  Q${tick} (${1946 + Math.floor(tick / 4)})`)
   console.log(['    factor'.padEnd(28), 'median'.padStart(8), 'p05'.padStart(8), 'p95'.padStart(8), 'reach'].join(' '))
+  // The structural draw is split rather than reported whole, because its
+  // three inputs have different reach: openness and development are sealed
+  // into the country recipe, while POPULATION is moved by the immigration
+  // limit — a dial. Both halves are read by calling the exported
+  // `fdiStructuralAttraction` at two populations and dividing, so neither
+  // re-implements the size elasticity. At the reference population the size
+  // term is 1 by construction, which is what makes the quotient exact.
+  const structuralAt = (state: TrueState, population: number) =>
+    fdiStructuralAttraction(population, state.params.development, state.params.openness)
+  const headcount = (state: TrueState) =>
+    state.demography.pyramid.reduce((sum, people) => sum + people, 0)
   const rows: { id: string; values: number[]; reach: Reach }[] = [
     {
-      id: 'country terrain',
+      id: 'trade access x development',
       reach: 'sealed',
-      values: states.map((state) =>
-        fdiStructuralAttraction(
-          state.demography.pyramid.reduce((sum, people) => sum + people, 0),
-          state.params.development,
-          state.params.openness,
-        ),
+      values: states.map((state) => structuralAt(state, FDI_REFERENCE_POPULATION)),
+    },
+    {
+      id: 'country size',
+      // the border is a dial, so this is reachable — measured at +-0.1% of the
+      // flow across the immigration limit's whole legal range, which is the
+      // result, not a reason to call it sealed
+      reach: 'indirect',
+      values: states.map(
+        (state) =>
+          structuralAt(state, headcount(state)) /
+          Math.max(structuralAt(state, FDI_REFERENCE_POPULATION), 1e-12),
       ),
     },
     ...FACTORS.map((factor) => ({
@@ -686,6 +710,24 @@ for (const entry of MARGINAL_ORDERS) {
 }
 console.log('  * not an order: a capacity is bought a fraction of a point at a time.')
 
+/**
+ * Was this run's own order actually in force for the whole window being read?
+ *
+ * Not decoration. An order that is refused for a century, or that lands at
+ * Q155 of a window running Q152-Q160, contributes a quarter that measured no
+ * intervention — and it lands in the median beside the ones that did,
+ * shrinking the very effect the arm exists to measure. That is the same
+ * failure the `insist` helper exists to prevent, one step further along: the
+ * order is no longer silently skipped, it is silently untreated.
+ *
+ * Arms with no landing predicate (the capacity paths, passive, random) are a
+ * programme rather than an event and are always included.
+ */
+function treated(scenario: Scenario, entry: Sample, horizon: number): boolean {
+  if (scenario.landed === undefined) return true
+  return entry.landedAt !== null && entry.landedAt <= horizon - WINDOW
+}
+
 /** The quarter the arm's order came into force. An arm whose order never
  * landed is not a quiet result — it is a row measuring nothing, so it says so
  * rather than printing a plausible column of near-zeros. */
@@ -703,7 +745,7 @@ for (const horizon of HORIZONS) {
   console.log(
     [
       '  scenario'.padEnd(22),
-      'paired'.padStart(9),
+      'treated'.padStart(9),
       'landed'.padStart(8),
       'FDI/GDP'.padStart(9),
       'd FDI'.padStart(9),
@@ -720,7 +762,9 @@ for (const horizon of HORIZONS) {
     const paired = entries.flatMap((entry, index) => {
       const current = entry.readings.get(horizon)!
       const control = passive[index].readings.get(horizon)!
-      return current.alive && control.alive ? [{ current, control }] : []
+      return current.alive && control.alive && treated(scenario, entry, horizon)
+        ? [{ current, control }]
+        : []
     })
     const relative = (pick: (r: Reading) => number): number =>
       median(paired.map(({ current, control }) => 100 * (pick(current) / Math.max(pick(control), 1e-12) - 1)))
@@ -784,11 +828,13 @@ for (let countryIndex = 0; countryIndex < CURATED_COUNTRY_IDS.length; countryInd
 
 // PART 5 — the two terms a cabinet reaches only by accident
 console.log('\nPART 5 - THE SAFETY TERMS, MEASURED EVERY GOVERNED QUARTER')
-console.log('  a quarter "binds" when the factor is below 0.999.')
+console.log('  a quarter "binds" when the factor is below 0.999. The drag is charged on the')
+console.log('  ABSOLUTE annualized rate, so the binding quarters are split by which side.')
 console.log(
   [
     '  scenario'.padEnd(22),
     'price binds'.padStart(12),
+    'of which defl'.padStart(14),
     'when it does'.padStart(13),
     'crisis binds'.padStart(13),
     'when it does'.padStart(13),
@@ -805,10 +851,19 @@ for (const scenario of scenarios) {
     const binding = governed.filter((point) => pick(point) < 0.999).map(pick)
     return binding.length === 0 ? '-' : median(binding).toFixed(3)
   }
+  /** Of the quarters where the price term bit, how many were falling prices
+   * rather than rising ones. */
+  const deflationShare = (): string => {
+    const binding = governed.filter((point) => point.factors['price stability'] < 0.999)
+    if (binding.length === 0) return '-'
+    const falling = binding.filter((point) => point.inflationAnnual < 0).length
+    return `${((100 * falling) / binding.length).toFixed(0)}%`
+  }
   console.log(
     [
       `  ${scenario.id}`.padEnd(22),
       share((point) => point.factors['price stability']).padStart(12),
+      deflationShare().padStart(14),
       depth((point) => point.factors['price stability']).padStart(13),
       share((point) => point.factors['banking crisis']).padStart(13),
       depth((point) => point.factors['banking crisis']).padStart(13),
@@ -842,7 +897,9 @@ function factorRow(id: TrackedFactor): void {
           const paired = entries.flatMap((entry, index) => {
             const current = entry.readings.get(horizon)!
             const control = passiveSamples[index].readings.get(horizon)!
-            return current.alive && control.alive ? [current] : []
+            return current.alive && control.alive && treated(scenario, entry, horizon)
+              ? [current]
+              : []
           })
           return median(paired.map((entry) => entry.factors[id])).toFixed(3).padStart(9)
         }),

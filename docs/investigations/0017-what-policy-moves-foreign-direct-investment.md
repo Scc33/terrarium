@@ -56,8 +56,9 @@ no order reaches it at all.
 
 | factor | Q40 (1956) | Q120 (1976) | Q320 (2026) | reach |
 |---|---:|---:|---:|---|
-| country terrain (size × access × development) | 0.925 | 0.833 | 0.728 | sealed |
+| trade access × development | 0.988 | 0.988 | 0.988 | sealed |
 | foreign cycle | 0.991 | 0.990 | 1.005 | sealed |
+| country size (population) | 0.937 | 0.882 | 0.806 | indirect (the border, measured inert) |
 | tariff | 0.940 | 0.940 | 0.940 | **ordered** |
 | corporate return | 1.275 | 1.284 | 1.149 | **ordered** |
 | administration | 0.864 | 0.906 | 0.965 | **ordered** |
@@ -69,12 +70,20 @@ no order reaches it at all.
 | banking crisis | 1.000 | 1.000 | 1.000 | indirect, and too rare to steer |
 | **published inflow** | **0.73% of GDP** | **0.71%** | **0.44%** | |
 
-Two things are visible before any policy is applied. Country terrain, the technique gap and
-foreign ownership multiply out from 0.680 to 0.369 across the century — the first is closed to
-every order, and the only orders that reach the other two push them the wrong way, so
-**getting rich is what stops FDI**. And the two safety terms read 1.000 at every reference tick,
-because a government that is behaving never trips either — which is exactly why measuring them
-at a snapshot would have reported that they do not matter.
+The structural draw is split rather than reported whole, because its three inputs have different
+reach. Openness and development are sealed into the country recipe and the sealed half is flat
+at 0.988 for the whole century. Population is not sealed — the immigration limit is a dial — but
+its whole legal range moves the flow by ±0.1%, so it is `indirect` and measurably inert. Both
+halves are read by calling the exported `fdiStructuralAttraction` at two populations and
+dividing, so neither re-implements the size elasticity. (Medians across five countries do not
+multiply, because a small country is also an open one; read the rows, not their product.)
+
+Two things are visible before any policy is applied. **Every part of the century-long decline is
+a term that success moves** — size 0.937 → 0.806, catch-up 0.912 → 0.696, saturation 0.806 →
+0.729 — while the genuinely sealed terms do not move at all. Getting rich is what stops FDI, and
+the only orders that reach any of the three push them the wrong way. And the two safety terms
+read 1.000 at every reference tick, because a government that is behaving never trips either —
+which is exactly why measuring them at a snapshot would have reported that they do not matter.
 
 ## What one order is worth on the margin
 
@@ -107,10 +116,19 @@ Paired against the same seed and country under passive play, mean of the last ei
 Every arm re-attempts its own order each quarter until the engine accepts it, and the quarter it
 landed is recorded — a refused order produces a plausible row of near-zeros rather than an error.
 
-A pair is included only if **both** arms were still governing through the horizon, so every
-column in this table — the FDI column included — is conditioned on survival. That is fine where
-almost everyone survives and load-bearing where they do not; the pair count is printed for
-exactly that reason.
+Two filters, and the counts in the first column are after both. A pair is included only if
+**both** arms were still governing through the horizon, so every column here — the FDI column
+included — is conditioned on survival. And an arm whose order is an event rather than a
+programme is included only where that order was **in force for the whole eight-quarter reading
+window**: an order refused for a century, or landing at Q155 of a window running Q152–Q160,
+otherwise contributes a quarter that measured no intervention to a median beside quarters that
+did. That is the `insist` trap one step further along — the order is no longer silently skipped,
+it is silently untreated.
+
+Measured, it binds only at the short horizon, and there it bites: at Q20 the transfers arm goes
+from −10.5% on 98 diluted pairs to **−12.7% on 61 treated ones**, and the closed-border arm's
+confident 98-pair zero turns out to rest on **5** pairs that had actually closed the border for
+the whole window. By Q80 every order has long since landed and the filter changes nothing.
 
 | scenario at Q160 | pairs | Δ FDI/GDP | Δ foreign-owned | Δ remitted | Δ capital | Δ GDP/head |
 |---|---:|---:|---:|---:|---:|---:|
@@ -175,16 +193,23 @@ measured every governed quarter rather than at a reference tick. This is the one
 study that does not condition on surviving to a horizon: a run deposed in 1970 contributes the
 quarters it governed.
 
-| arm | quarters with prices unstable | factor when they are | crisis quarters | mean drag |
-|---|---:|---:|---:|---:|
-| passive | 3.4% | 0.960 | 0.8% | 0.992 |
-| every deliberate arm above | 2.6–5.2% | 0.93–0.97 | 0.8–1.4% | 0.988–0.992 |
-| random policy | 17.2% | 0.933 | 5.3% | 0.947 |
-| **transfers at 15% GDP** | **65.6%** | 0.906 | **22.1%** | **0.782** |
+| arm | quarters with prices unstable | of which deflation | factor when they are | crisis quarters | mean drag |
+|---|---:|---:|---:|---:|---:|
+| passive | 3.4% | **45%** | 0.960 | 0.8% | 0.992 |
+| every deliberate arm above | 2.6–5.2% | 8–56% | 0.93–0.97 | 0.8–1.4% | 0.988–0.992 |
+| random policy | 17.2% | 31% | 0.933 | 5.3% | 0.947 |
+| **transfers at 15% GDP** | **65.6%** | 3% | 0.906 | **22.1%** | **0.782** |
 
 Inflationary finance is the most powerful thing a cabinet can do to the inflow, and it only
 points down. `FDI_PRICE_INSTABILITY_AT` is an 8% annualized rate, and a large deficit-financed
 transfer programme spends two-thirds of its quarters past it.
+
+But the drag is charged on `Math.abs(inflationQ × 4)`, and the deflation column is why that is
+worth stating rather than assuming: **45% of the passive arm's repelled quarters are falling
+prices, not rising ones**, and the corporate-tax-50% arm — a demand suppressant — reaches 56%.
+Only a deliberately inflationary programme is one-sided (transfers, 3%). A handbook sentence
+about "inflation past 8%" would therefore be wrong about nearly half the cases a do-nothing
+century produces, which is what the player-facing text now says instead.
 
 The corollary is that the macroprudential floor cannot work as FDI policy even though it reaches
 the sharpest term in the flow: the crisis multiplier is 0.30, but it binds in 0.8% of quarters,
@@ -194,8 +219,11 @@ event rarer than it already is.
 ## Three levers that reach a term and move nothing
 
 - **The border.** `fdiStructuralAttraction` has a population elasticity of 0.35, and the
-  immigration limit is a dial — but its whole legal range (0 to 0.02) moves the population too
-  little to matter. Measured at ±0.1% of the flow at every horizon.
+  immigration limit is a dial, so the size term is genuinely reachable rather than terrain — but
+  its whole legal range (0 to 0.02) moves the population too little to matter. Measured at ±0.1%
+  of the flow at every horizon. It is listed as `indirect` above on the strength of the mechanism
+  and inert on the strength of the measurement; those are different claims and the table keeps
+  them apart.
 - **The bank-capital floor**, above.
 - **Research**, in the direction nobody wants. Funding research at 5% of GDP lowers FDI by 8.8%
   at Q160 and 10.6% at Q400 while *raising* GDP per head 3.6–4.4%, because the catch-up term
