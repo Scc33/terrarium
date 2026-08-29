@@ -124,7 +124,7 @@ oversubscribed table, so on a developmental Meridia the professionals cohort rea
 employed for the last third of the century** (the ratio is clamped at zero) while urban workers
 read as **29–37% jobless** against a headline unemployment rate near 12%. Approval is scored
 against that number. ADR-0032 improves it — it is why urban workers' income per head rises from
-5.5x to 6.5x — and does not remove it.
+5.1x to 5.7x — and does not remove it.
 
 The fix is to let `LABOR_SOURCE` respond to who is available: a sector short of professionals
 staffs itself from urban workers instead, at some cost. That change has an obvious neutral

@@ -130,11 +130,19 @@ because the *number* cannot. Measured, the service wage does not pull away at al
 | service wage / agri wage | 2.418 | 2.840 | 2.259 | **1.914** |
 
 It rises for a decade and converges for ninety years. Real income per head, indexed to q4, at
-q400 — before the fix:
+q400 — before the fix, and NET OF INCOME TAX, taken from the engine's own
+`householdIncomeGroups` because this table sits beside the Gini and has to be the series the
+Gini is computed from:
 
 | rural | urban | professionals | business owners | retirees |
 |---|---|---|---|---|
-| **12.87** | 5.51 | **13.01** | 7.99 | **0.38** |
+| **11.98** | 5.07 | **12.03** | 7.99 | **0.38** |
+
+(The first version of the tool summed `Cohort.wageIncome`, which the engine stores GROSS, and
+read 12.87 / 5.51 / 13.01 / 7.99 / 0.38. The error grew across the run, because this arm builds
+tax capacity for a century, and it fell only on the wage-earning cohorts — which is exactly the
+comparison the table is used to make. Every conclusion below survived the correction; the
+wage-earning cohorts moved about 7%.)
 
 Professionals and rural workers track each other almost exactly. The Gini rise came from neither
 cohort named above:
@@ -143,7 +151,7 @@ cohort named above:
   across a century in which everyone else multiplies, because transfers are a fixed cash dial
   eroding against growth while the retired share of the population rises. That is #111's
   territory and ADR-0032 does not touch it.
-- **Urban workers lag badly**, 5.5x against rural's 12.9x, as the transition pours people into
+- **Urban workers lag badly**, 5.1x against rural's 12.0x, as the transition pours people into
   the cities faster than urban wages rise.
 
 ### The cost curve — answered, and the elasticity revisited
@@ -167,8 +175,8 @@ merely stopping its fall — which is the regularity
 
 The reason the whole cost curve moved is that the second leg by itself takes Meridia's Gini from
 0.512 to 0.451 and its living standard from 2.94 to 3.15: professionals' income per head falls
-13.0x → 7.5x as the class grows, and urban workers' — the cohort that was actually lagging —
-rises 5.5x → 6.5x.
+12.0x → 6.8x as the class grows, and urban workers' — the cohort that was actually lagging —
+rises 5.1x → 5.7x.
 
 ### What it did NOT do
 

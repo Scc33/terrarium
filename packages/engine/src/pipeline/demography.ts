@@ -125,10 +125,16 @@ export function professionalCeiling(d: DemographyState): number {
   const skills =
     Math.max(d.humanCapital, SCHOOLING_BASELINE_FLOOR) /
     Math.max(d.schoolingBaseline, SCHOOLING_BASELINE_FLOOR)
-  return Math.min(
-    PROFESSIONAL_SHARE_MAX,
-    d.professionalBaseline * Math.pow(Math.max(skills, 0), PROFESSIONAL_SCHOOLING_ELASTICITY),
-  )
+  const grown =
+    d.professionalBaseline * Math.pow(Math.max(skills, 0), PROFESSIONAL_SCHOOLING_ELASTICITY)
+  // The cap bounds GROWTH, so it is applied to what schooling grew and then
+  // lifted back to the opening share. A drafted country may legally put 45m
+  // professionals beside 0.1m of everyone else — 99% of its working classes —
+  // and a bare `Math.min` would hand it a ceiling below where it already is,
+  // which is the same "charged for its own recipe" failure as a one-sided
+  // floor, from the other end. Both bounds are guards on the RATIO; neither is
+  // allowed to move a country on its opening morning.
+  return Math.max(d.professionalBaseline, Math.min(PROFESSIONAL_SHARE_MAX, grown))
 }
 
 export interface MigrationFlow {

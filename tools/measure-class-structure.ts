@@ -20,10 +20,10 @@
  * was indeed pinned at 12.2% for four hundred quarters while rural fell
  * 48%→21%. But the service wage never pulled away: against agriculture it
  * went 2.42 → 1.91 over the century, and professionals' real income per head
- * tracked rural workers' almost exactly (13.0x against 12.9x, indexed to q4).
+ * tracked rural workers' almost exactly (12.0x against 12.0x, indexed to q4).
  * The Gini rise came from two cohorts 0015 never named — retirees ending at
- * 0.38x their own 1947 income per head, and urban workers lagging at 5.5x
- * against rural's 12.9x. Table 4 is where that shows.
+ * 0.38x their own 1947 income per head, and urban workers lagging at 5.1x
+ * against rural's 12.0x. Table 4 is where that shows.
  *
  * So the professionals gap was real as a SUPPLY fact and unproven as a
  * DISTRIBUTIONAL one. It was fixed on the supply argument alone (ADR-0032):
@@ -64,6 +64,7 @@ import {
   applyActions,
   createCountryParams,
   giniIndex,
+  householdIncomeGroups,
   init,
   livingStandard,
   sectorValueAdded,
@@ -73,7 +74,6 @@ import {
   type TrueState,
 } from '../packages/engine/src/index'
 import { COHORT_IDS, WORKING_CLASS_IDS, type WorkingClassId } from '../packages/engine/src/state/schema'
-import { cohortCpi } from '../packages/engine/src/pipeline/derive'
 import { summarize } from '../packages/runner/src/metrics'
 
 function arg(name: string, fallback: string): string {
@@ -130,13 +130,21 @@ function read(s: TrueState): Reading {
   let total = 0
   for (const sid of SECTOR_IDS) total += va[sid]
 
+  // The ENGINE'S OWN cohort income, not a second computation of it. Table 4
+  // sits beside the Gini in table 3 and exists to explain it, so it has to be
+  // the series the Gini is taken from — `giniIndex` reads
+  // `householdIncomeDistribution`, which reads this.
+  //
+  // Computed here by hand it was WRONG, and wrong in a way that grew: it
+  // summed `Cohort.wageIncome`, which the engine stores GROSS (`production`
+  // nets income tax out when it builds spending budgets, so the tax lands
+  // exactly once). This experiment builds tax capacity for a century, so the
+  // missing deduction widens as `taxEfficiency` rises — and it falls only on
+  // the wage-earning cohorts, which is precisely the comparison this table is
+  // used to make.
   const incomePerHead: Record<string, number> = {}
-  for (const c of s.cohorts) {
-    incomePerHead[c.id] =
-      (c.wageIncome + c.profitIncome + c.transferIncome) /
-      Math.max(cohortCpi(s, c.id), 1e-9) /
-      Math.max(c.size, 1e-9)
-  }
+  for (const c of s.cohorts) incomePerHead[c.id] = 0
+  for (const group of householdIncomeGroups(s)) incomePerHead[group.id] = group.realPerHead
 
   return {
     classShares,

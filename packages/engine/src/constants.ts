@@ -667,10 +667,18 @@ export const URBANIZATION_GAIN = 0.004
  * independently of this mechanism, so they are evidence about it.
  */
 export const PROFESSIONAL_SCHOOLING_ELASTICITY = 0.6
-/** …and no schooling programme can make more than this share of the
- * non-retired population professional. A drafted country may open with a
- * near-zero education capacity beside a large professional class, and the
- * ratio above would then licence a ceiling of several hundred percent. */
+/**
+ * …and no schooling programme can GROW the professional class past this share
+ * of the non-retired population. A drafted country may open with a near-zero
+ * education capacity beside a large professional class, and the ratio above
+ * would then licence a ceiling of several hundred percent.
+ *
+ * A ceiling on growth, never a ceiling on what a country may have inherited:
+ * `professionalCeiling` lifts its result back to the opening share, because
+ * the drafting room legally allows 45m professionals beside 0.1m of every
+ * other class and a country that opens above this number must not be told it
+ * is over its own limit.
+ */
 export const PROFESSIONAL_SHARE_MAX = 0.45
 /**
  * The smallest school system the ceiling's ratio can tell apart, applied to

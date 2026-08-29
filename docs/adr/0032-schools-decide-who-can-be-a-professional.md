@@ -20,7 +20,7 @@ people who do that work.
 Investigation 0015 raised this as a distributional problem: the return to being a professional
 would rise because the number could not. That claim was **measured and did not hold** — the
 service wage converges against agriculture's over the century (2.42 → 1.91) and professionals'
-real income per head tracks rural workers' almost exactly (13.0x against 12.9x, indexed to q4).
+real income per head tracks rural workers' almost exactly (12.0x against 12.0x, indexed to q4).
 The Gini rise 0015 attributed to professionals comes from retirees, whose fixed cash transfers
 erode against a century of growth, and from urban workers, who lag as the transition pours
 people into cities faster than urban wages rise.
@@ -115,8 +115,8 @@ Measured at `c269f17`, 1000 runs × 400 quarters, and the A/B is exact: at
 **The mechanism refunds the entire political cost of ADR-0030.** The basket took developmental
 deposition from 9% to 15% when it shipped; this takes it back to 7%. Meridia's Gini at q400
 falls from 0.512 to 0.451 and its living standard rises 2.94 → 3.15, because the scarcest and
-best-paid class stops being a fixed share: professionals' real income per head goes from 13.0x
-to 7.5x while urban workers' — the cohort that was actually lagging — goes 5.5x to 6.5x.
+best-paid class stops being a fixed share: professionals' real income per head goes from 12.0x
+to 6.8x while urban workers' — the cohort that was actually lagging — goes 5.1x to 5.7x.
 
 **Passive play is bit-identical, and that is the calibration test.** A government that never
 opens a school sits exactly on its opening ceiling, so `rise` is exactly zero and

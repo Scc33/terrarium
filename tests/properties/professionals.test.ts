@@ -25,6 +25,7 @@ import {
   init,
   PROFESSIONAL_SHARE_MAX,
   professionalCeiling,
+  pyramidFor,
   skillTightness,
   step,
   WORKING_CLASS_IDS,
@@ -77,7 +78,7 @@ function centuryFrom(
   return out
 }
 
-const professionals = (s: TrueState) => s.demography.classShares.professionals
+const professionals_ = (s: TrueState) => s.demography.classShares.professionals
 
 describe('schools make professionals', () => {
   it('is inert for a government that never opens a school, on every curated country', () => {
@@ -87,7 +88,7 @@ describe('schools make professionals', () => {
       for (const s of states) {
         // exact, not close: the passive century has to stay bit-identical, and
         // `x + 0 === x` is what makes it so
-        expect(professionals(s)).toBe(opening)
+        expect(professionals_(s)).toBe(opening)
         expect(s.demography.humanCapital).toBeLessThanOrEqual(s.demography.schoolingBaseline)
       }
     }
@@ -96,7 +97,7 @@ describe('schools make professionals', () => {
   it('opens a country on its own ceiling, whatever its recipe authored', () => {
     for (const country of CURATED_COUNTRY_IDS) {
       const s = init(createCountryParams(country, `open-${country}`), `open-${country}`)
-      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals(s), 12)
+      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals_(s), 12)
     }
   })
 
@@ -115,7 +116,42 @@ describe('schools make professionals', () => {
         capacities: { ...standardCountry.capacities, education },
       }
       const s = init(params, `draft-${education}`)
-      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals(s), 12)
+      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals_(s), 12)
+    }
+  })
+
+  it('…and a DRAFTED country that is nearly all professionals already', () => {
+    // The other end of the same invariant, and the other bound guarding the
+    // ratio. `COUNTRY_DRAFT_DOMAIN.cohortSize` is { min: 0.1, max: 45 }, so a
+    // player can legally put 45m professionals beside 0.1m of every other
+    // class — 99% of the working classes, far above `PROFESSIONAL_SHARE_MAX`.
+    // A bare `Math.min` against that cap handed such a country a ceiling below
+    // where it already was, which kills the mechanism and charges the country
+    // for its own recipe: the low-school bug above, from the opposite end.
+    for (const professionals of [3, 10, 20, 45]) {
+      const cohortSizes = {
+        rural_workers: 0.1,
+        urban_workers: 0.1,
+        professionals,
+        business_owners: 0.1,
+        retirees: 3,
+      }
+      const params = {
+        ...standardCountry,
+        cohortSizes,
+        pyramid: pyramidFor(cohortSizes, 'balanced'),
+      }
+      const s = init(params, `dense-${professionals}`)
+      expect(professionals_(s)).toBeGreaterThan(PROFESSIONAL_SHARE_MAX)
+      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals_(s), 12)
+    }
+  })
+
+  it('the cap still bounds GROWTH for a country that opens under it', () => {
+    // …and the lift above must not have turned the cap off. A well-schooled
+    // century on an ordinary recipe still cannot cross it.
+    for (const s of century('veltravia', 'cap-bound', CAPACITY_IDS)) {
+      expect(professionals_(s)).toBeLessThanOrEqual(PROFESSIONAL_SHARE_MAX + 1e-12)
     }
   })
 
@@ -126,12 +162,12 @@ describe('schools make professionals', () => {
     }
     const passive = centuryFrom(params, 'draft-passive', [])
     const opening = passive[0].demography.professionalBaseline
-    for (const s of passive) expect(professionals(s)).toBe(opening)
+    for (const s of passive) expect(professionals_(s)).toBe(opening)
 
     // and the mechanism is not merely disabled for it — the country that opens
     // with nothing has the most to gain
     const schooled = centuryFrom(params, 'draft-passive', ['education'])
-    expect(professionals(schooled[399])).toBeGreaterThan(opening + 0.05)
+    expect(professionals_(schooled[399])).toBeGreaterThan(opening + 0.05)
   })
 
   it('a schooling programme makes them: the flat line bends', () => {
@@ -140,24 +176,24 @@ describe('schools make professionals', () => {
     // measured at the shipped constants: 12.2% → 20%+ over four hundred
     // quarters. The assertion is deliberately loose about the level and strict
     // about the direction — this is a channel test, not a snapshot.
-    expect(professionals(schooled[399])).toBeGreaterThan(opening + 0.05)
+    expect(professionals_(schooled[399])).toBeGreaterThan(opening + 0.05)
     // and it takes a generation: skills lag the building programme, and the
     // crossing lags the skills
-    expect(professionals(schooled[39])).toBeLessThan(opening + 0.01)
+    expect(professionals_(schooled[39])).toBeLessThan(opening + 0.01)
   })
 
   it('it is the schools and not the spending: every other ministry buys none', () => {
     const others = CAPACITY_IDS.filter((id) => id !== 'education')
     const withoutSchools = century('meridia', 'no-schools', others)
     const opening = withoutSchools[0].demography.professionalBaseline
-    for (const s of withoutSchools) expect(professionals(s)).toBe(opening)
+    for (const s of withoutSchools) expect(professionals_(s)).toBe(opening)
   })
 
   it('never crosses its own ceiling, and never the absolute one', () => {
     for (const country of CURATED_COUNTRY_IDS) {
       for (const s of century(country, `ceiling-${country}`, CAPACITY_IDS)) {
-        expect(professionals(s)).toBeLessThanOrEqual(professionalCeiling(s.demography) + 1e-12)
-        expect(professionals(s)).toBeLessThanOrEqual(PROFESSIONAL_SHARE_MAX + 1e-12)
+        expect(professionals_(s)).toBeLessThanOrEqual(professionalCeiling(s.demography) + 1e-12)
+        expect(professionals_(s)).toBeLessThanOrEqual(PROFESSIONAL_SHARE_MAX + 1e-12)
       }
     }
   })
