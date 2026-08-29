@@ -35,6 +35,10 @@ import {
   MORT_INCOME_GAIN,
   MORT_SECULAR_Q,
   NATURAL_UNEMPLOYMENT,
+  PROFESSIONAL_SCHOOLING_ELASTICITY,
+  PROFESSIONAL_SHARE_MAX,
+  PROFESSIONALIZATION_GAIN,
+  SCHOOLING_BASELINE_FLOOR,
   URBANIZATION_GAIN,
   SCHOOLING_ATTAINMENT_GAIN,
   POLLUTION_MORTALITY_GAIN,
@@ -51,7 +55,7 @@ import {
   type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { livingStandard, meanLogConsumption, statuteForce } from './derive'
+import { livingStandard, meanLogConsumption, skillTightness, statuteForce } from './derive'
 
 const sumBands = (p: number[], from: number, to: number) => {
   let s = 0
@@ -93,6 +97,44 @@ export function classSizesFrom(
       ? { ...c, size: retired }
       : { ...c, size: nonRetired * classShares[c.id as WorkingClassId] },
   )
+}
+
+/**
+ * The largest share of the non-retired population that could be doing
+ * professional work, given how well schooled the workforce is.
+ *
+ * A RATIO to the pair the country opened with, never an absolute law. The
+ * catalogue authors opening professional shares from 7.1% (agrarian Costona)
+ * to 20.6% (maritime Oranga) beside opening school systems from 0.09 to 0.48,
+ * and a global curve through those points would move four of the five
+ * countries' class structures in 1946Q1 for their authored structure — the
+ * bug ADR-0028's pollution baseline exists to prevent, one register over. At
+ * the opening school system this returns exactly the opening share — for every
+ * legal vector, drafted ones with no schools at all included — which is why a
+ * passive century is bit-identical.
+ *
+ * `d.humanCapital` and not `gov.capacity.education`: it is the taught
+ * workforce that can staff a profession, not the building programme
+ * (ADR-0023). That is also what puts a generation between the policy and the
+ * class structure, on top of the crossing rate itself.
+ */
+export function professionalCeiling(d: DemographyState): number {
+  // Both sides floored, not just the denominator. At init the two are equal,
+  // so the ratio has to be exactly 1 for EVERY legal vector — including a
+  // drafted country whose education capacity is below the floor, or zero.
+  const skills =
+    Math.max(d.humanCapital, SCHOOLING_BASELINE_FLOOR) /
+    Math.max(d.schoolingBaseline, SCHOOLING_BASELINE_FLOOR)
+  const grown =
+    d.professionalBaseline * Math.pow(Math.max(skills, 0), PROFESSIONAL_SCHOOLING_ELASTICITY)
+  // The cap bounds GROWTH, so it is applied to what schooling grew and then
+  // lifted back to the opening share. A drafted country may legally put 45m
+  // professionals beside 0.1m of everyone else — 99% of its working classes —
+  // and a bare `Math.min` would hand it a ceiling below where it already is,
+  // which is the same "charged for its own recipe" failure as a one-sided
+  // floor, from the other end. Both bounds are guards on the RATIO; neither is
+  // allowed to move a country on its opening morning.
+  return Math.max(d.professionalBaseline, Math.min(PROFESSIONAL_SHARE_MAX, grown))
 }
 
 export interface MigrationFlow {
@@ -244,10 +286,50 @@ export const demography: PipelineStep = {
     const jobsPull = clamp(1 - 5 * (state.flows.unemployment - NATURAL_UNEMPLOYMENT), 0, 1)
     const move =
       URBANIZATION_GAIN * d.classShares.rural_workers * clamp(wageGap, 0, 1) * jobsPull
+
+    // --- and the second boundary: the city makes professionals, but only out
+    // of a schooled workforce (#169). Two separate facts, deliberately, and
+    // the whole mechanism is in which one is the ceiling and which the speed:
+    //
+    //   the SCHOOLS say how many people could do professional work — a ratio
+    //   to the pair this country opened with, so a government that never
+    //   builds a classroom sits on its own opening share forever;
+    //
+    //   the SHORTAGE says how many of them actually cross — professional work
+    //   going begging while urban labour sits idle is the same "people go
+    //   where the work is" fact the rural→urban leg above runs on.
+    //
+    // The shortage is read off `skillTightness` rather than a wage premium
+    // because there is no wage a professional earns that an urban worker does
+    // not: they share `wages.services`, and services is the LOW-wage sector
+    // until roughly 2005 in every century the catalogue runs. A premium gate
+    // would have been a mechanic nobody could reach.
+    //
+    // People only ever cross INTO the professions. Human capital is carried by
+    // people already at work, so a government that lets the schools rot lowers
+    // the ceiling below where the country already is and the leg simply stops
+    // — it does not un-teach anybody.
+    const ceiling = professionalCeiling(d)
+    const tightness = skillTightness(state)
+    const shortage = clamp(
+      tightness.professionals / Math.max(tightness.urban_workers, 1e-9) - 1,
+      0,
+      1,
+    )
+    const urbanAfterMove = d.classShares.urban_workers + move
+    const rise = Math.min(
+      urbanAfterMove,
+      PROFESSIONALIZATION_GAIN *
+        Math.max(0, ceiling - d.classShares.professionals) *
+        shortage *
+        jobsPull,
+    )
+
     const classShares = {
       ...d.classShares,
       rural_workers: d.classShares.rural_workers - move,
-      urban_workers: d.classShares.urban_workers + move,
+      urban_workers: urbanAfterMove - rise,
+      professionals: d.classShares.professionals + rise,
     }
 
     const nonRetired = sumBands(pyramid, 0, RETIREMENT_BAND - 1)

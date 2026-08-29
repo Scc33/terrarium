@@ -168,6 +168,7 @@ export type { Action, ActionLog, DialPath, TurnActions } from './actions/types'
 export {
   SECTOR_IDS,
   COHORT_IDS,
+  WORKING_CLASS_IDS,
   INCOME_QUINTILE_IDS,
   CAPACITY_IDS,
   GAME_RULE_IDS,
@@ -281,6 +282,7 @@ export {
   inCorridor,
   residence,
   schoolingWithdrawal,
+  skillTightness,
   statePower,
   statuteCompliance,
   statuteForce,
@@ -288,7 +290,7 @@ export {
   urbanShare,
 } from './pipeline/derive'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
-export { migrationFlow, vitalRates } from './pipeline/demography'
+export { migrationFlow, professionalCeiling, vitalRates } from './pipeline/demography'
 export { droughtHazardMultiplier } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'
 export type { MigrationFlow } from './pipeline/demography'
@@ -325,6 +327,7 @@ export {
   IMMIGRATION_LIMIT_MAX,
   LEGITIMACY_GRADE_ELECTIONS,
   NATURAL_UNEMPLOYMENT,
+  PROFESSIONAL_SHARE_MAX,
   PC_COST_CAMPAIGN,
   PC_COST_CAPACITY,
   PC_COST_REFORM,

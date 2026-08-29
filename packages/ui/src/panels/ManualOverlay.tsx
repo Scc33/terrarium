@@ -34,7 +34,14 @@ function EntryRow({ entry }: { entry: ManualEntry }) {
           {entry.term.toUpperCase()}
         </span>
         {entry.meta && (
-          <span className="shrink-0 font-mono text-[8px] tracking-[0.14em] text-dossier-ink/50">
+          // NOT `shrink-0`. The meta is authored copy (`LEVER_COPY[id].effect`
+          // and friends), so its length is set somewhere else entirely — and a
+          // shrink-0 span in a flex row keeps its max-content width and shears
+          // off the right edge of the overlay rather than wrapping. That is
+          // the WallTile horizontal failure mode, and it is invisible to both
+          // review and jsdom: the element does not overflow ITS OWN box, so
+          // the standard scrollWidth probe reports nothing.
+          <span className="max-w-full text-right font-mono text-[8px] tracking-[0.14em] text-dossier-ink/50">
             {entry.meta.toUpperCase()}
           </span>
         )}

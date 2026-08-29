@@ -19,6 +19,7 @@ import {
   HOUSEHOLD_SUBSTITUTION,
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
+  LABOR_SOURCE,
   LIVING_STANDARD_1946,
   MINIMUM_WAGE_ANCHOR,
   MORT_BASE_ANNUAL,
@@ -263,6 +264,39 @@ export function laborForce(state: TrueState): Record<CohortId, number> {
 
 export function totalLaborForce(state: TrueState): number {
   return COHORT_IDS.reduce((s, id) => s + (laborForce(state)[id] ?? 0), 0)
+}
+
+/**
+ * How short the economy is of each cohort's KIND of work: the jobs the
+ * staffing table hands a cohort, against the people in it.
+ *
+ * `LABOR_SOURCE` splits every sector's payroll by a fixed recipe, so this
+ * ratio is an accounting fact rather than a constraint — nothing stops it
+ * exceeding 1, and measured it does, badly: a developmental Meridia asks for
+ * 1.7 professionals for every professional it has by 2046 while leaving a
+ * fifth of its urban workers unaccounted for. That imbalance is the shortage
+ * the second leg of the class transition answers, and it is the honest signal
+ * to read, because the wage table cannot express a skill premium INSIDE a
+ * sector: professionals and urban workers both earn `wages.services`, and
+ * services is the low-wage sector for the first sixty years of every century
+ * the catalogue runs.
+ *
+ * Cohorts nobody employs (owners, retirees) report 0.
+ */
+export function skillTightness(state: TrueState): Record<CohortId, number> {
+  const lf = laborForce(state)
+  const out = {} as Record<CohortId, number>
+  for (const id of COHORT_IDS) out[id] = 0
+  for (const sector of state.sectors) {
+    for (const id of COHORT_IDS) {
+      const share = LABOR_SOURCE[sector.id][id] ?? 0
+      if (share > 0) out[id] += sector.employment * share
+    }
+  }
+  for (const id of COHORT_IDS) {
+    out[id] = lf[id] > 1e-9 ? out[id] / lf[id] : 0
+  }
+  return out
 }
 
 /** Enfranchisement-weighted approval — the electorate as the ballot box

@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 39)
+## Current contract (schema 40)
 
 ### Inputs
 
@@ -287,6 +287,30 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 40 — Schools make professionals
+
+- **State +**: `DemographyState.professionalBaseline` and `.schoolingBaseline` — the professional
+  share and the workforce skills the country OPENED with, sealed at `init` from the country
+  recipe and never written again (#169, ADR-0032). Both are true state and stay behind the fog.
+- **Behaviour ±**: the class transition gets a second boundary, urban worker → professional.
+  `professionalCeiling` is a ratio to the sealed pair, so a government that never opens a school
+  sits on its opening share forever; the crossing rate is gated on `skillTightness`, the jobs
+  `LABOR_SOURCE` hands a cohort against the people in it.
+- **Constants ±**: `PROFESSIONAL_SCHOOLING_ELASTICITY` (0.6, regressed off the five curated
+  recipes), `PROFESSIONALIZATION_GAIN`, `PROFESSIONAL_SHARE_MAX`, `SCHOOLING_BASELINE_FLOOR` are
+  new. **`ENGEL_ELASTICITY.services` moves 0.32 → 0.45** — the acceptance criterion issue #169
+  wrote for itself, now that the constraint the 0.32 compromised with is gone.
+- **Inputs**: unchanged. No new lever, no new parameter, no new rule, and no new replay input —
+  saves carry no TrueState, so every existing save reconstructs both baselines at `init`.
+- **Outputs**: unchanged. No new indicator; nothing crosses the observation boundary.
+- **Baselines**: passive play is **bit-identical** under the demography change alone, verified on
+  all five curated countries over 400 quarters and by `pnpm diff-state --moved-only`. The Engel
+  move is what shifts the goldens: services output +0.09–0.15%, manufacturing/energy/transport
+  down, real GDP −0.03% at 40 quarters — demand into services at a small Baumol cost.
+  Developmental deposition **15% → 7%** over 1000 × 400q; passive 7% → 8% and 2.84 → 2.83 %/yr.
+- **Test pins moved**: `tests/properties/future-stability.test.ts` developmental survivors 19 →
+  23, passive unchanged at 27.
 
 ### schema 39 — The wire becomes a newspaper
 
