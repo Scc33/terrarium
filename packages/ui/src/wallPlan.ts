@@ -52,13 +52,13 @@ export const DOCKED_MIN_H = 150
 export const SECTION_BAR_H = 20
 /** how many instruments the board holds */
 export const BOARD_SLOTS = 4
-/** The watch board stays four-up, but the complete roster becomes six-up on
- * a full desktop. Schema 28's migration instrument would otherwise force a
- * seventh rack row and consume the wall's final headroom. The strips already
- * drop delta magnitudes in this register, and the browser test proves their
- * ten-character labels remain intact. This is a density decision, not a sixth
- * full-size gauge. */
-export const DESKTOP_RACK_COLS = 6
+/** The watch board stays four-up, but the complete roster becomes seven-up on
+ * a full desktop. Schema 40's constructed development index would otherwise
+ * consume the rack's last row of headroom. The seven-bay register keeps names
+ * and readings, moving delta magnitude and release age into each strip's
+ * tooltip; the browser test proves ten-character names remain intact. This is
+ * a density decision, not a seventh full-size gauge. */
+export const DESKTOP_RACK_COLS = 7
 
 /** the dials a new government finds already on the wall: the two halves of
  * the misery index, the growth number politics actually reads, and the poll

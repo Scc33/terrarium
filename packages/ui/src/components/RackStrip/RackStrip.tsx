@@ -18,7 +18,7 @@
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import type { InstrumentAccess } from '../../maturity'
 import { gaugeDomain } from '../../domains'
-import { NAMES, readingDigits } from '../labels'
+import { humanDevelopmentBreakdown, NAMES, readingDigits } from '../labels'
 import { quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { RACK_ROW_H } from '../../wallPlan'
 import { Tooltip } from '../ui'
@@ -39,7 +39,7 @@ function Delta({ delta, digits, className }: { delta: number | null; digits: num
   const magnitude = Math.abs(delta).toFixed(digits)
   return (
     <span
-      className={`tabular-nums ${className}`}
+      className={`rack-delta tabular-nums ${className}`}
       aria-label={`Change since the previous quarter: ${delta > 0 ? '+' : '-'}${magnitude}`}
     >
       {delta > 0 ? '▲' : '▼'}
@@ -66,7 +66,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
         ? 'border-dossier-brass/70 bg-dossier-paper text-dossier-ink hover:border-dossier-ink/60'
         : 'border-dossier-brass/60 bg-dossier-brass/80 text-dossier-ink/80 hover:border-dossier-ink/50'
   const help = latest
-    ? `${names.note} Latest reading: ${latest.value.toFixed(readingDigits(latest.value))}. It was already ${latest.lag} quarter${latest.lag === 1 ? '' : 's'} old when published.${stamped ? ' The office later revised this figure.' : ''} Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
+    ? `${names.note} Latest reading: ${latest.value.toFixed(readingDigits(latest.value, indicator))}.${latest.components ? ` Components: ${humanDevelopmentBreakdown(latest.components)}.` : ''} It was already ${latest.lag} quarter${latest.lag === 1 ? '' : 's'} old when published.${stamped ? ' The office later revised this figure.' : ''} Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
     : access.availability === 'awaiting'
       ? `${names.needs} is funded, but its first report has not arrived. Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
       : `This measurement needs ${names.needs}. Raise the statistics office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)} to unlock it.`
@@ -81,10 +81,9 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
         aria-label={help}
         aria-pressed={pinned}
       >
-        {/* A few pixels are load-bearing in the populated six-column roster:
-            w-5 leaves ten-character names only 57px once value, direction and
-            release age arrive. w-3.5 still holds “04”; the literal 3px gaps and
-            right padding return the remaining width without shrinking type. */}
+        {/* A few pixels are load-bearing in the populated desktop roster:
+            w-3.5 still holds “04”; the dense seven-bay register moves direction
+            and release age into the tooltip rather than truncating this name. */}
         <span
           className={`flex h-full shrink-0 items-center justify-center border-r font-mono text-[8px] font-medium leading-none ${latest ? 'w-3.5' : 'w-5'} ${
             pinned
@@ -108,14 +107,14 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
               </span>
             )}
             <span className="font-medium tabular-nums">
-              {latest.value.toFixed(readingDigits(latest.value))}
+              {latest.value.toFixed(readingDigits(latest.value, indicator))}
             </span>
             <Delta
               delta={quarterDelta(points)}
-              digits={readingDigits(latest.value)}
+              digits={readingDigits(latest.value, indicator)}
               className="text-[9px] opacity-70"
             />
-            <span className="text-[9px] opacity-50">{latest.lag}Q</span>
+            <span className="rack-release-age text-[9px] opacity-50">{latest.lag}Q</span>
           </span>
         ) : (
           <span className="max-w-[52%] shrink-0 truncate font-mono text-[8px] tracking-[0.08em] opacity-75">

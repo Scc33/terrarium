@@ -209,6 +209,7 @@ export type {
   GameRules,
   GovernmentState,
   HouseholdSurveyPrint,
+  HumanDevelopmentDimensions,
   IndicatorId,
   IncomeQuintileId,
   InstitutionId,
@@ -243,6 +244,11 @@ export type {
   TickFlows,
   TrueState,
 } from './state/schema'
+export {
+  humanDevelopmentDimensions,
+  humanDevelopmentIndex,
+  type HumanDevelopmentInputs,
+} from './humanDevelopment'
 export { TICK_ORDER } from './pipeline/pipeline'
 export {
   potentialOutput,
@@ -320,6 +326,10 @@ export {
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,
   HOUSEHOLD_SURVEY_FUNDED_AT,
+  HUMAN_DEVELOPMENT_INCOME_MAX,
+  HUMAN_DEVELOPMENT_INCOME_MIN,
+  HUMAN_DEVELOPMENT_LIFE_MAX,
+  HUMAN_DEVELOPMENT_LIFE_MIN,
   INDUSTRY_CENSUS_FUNDED_AT,
   IMMIGRATION_LIMIT_DEFAULT,
   IMMIGRATION_LIMIT_MAX,

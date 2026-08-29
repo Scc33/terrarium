@@ -9,7 +9,12 @@ import {
 import { observe } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 import { taxEfficiency } from '../../packages/engine/src/constants'
-import { INDICATOR_SPECS } from '../../packages/engine/src/pipeline/statistics'
+import {
+  INDICATOR_SPECS,
+  isDirectIndicatorSpec,
+} from '../../packages/engine/src/pipeline/statistics'
+
+const DIRECT_INDICATOR_SPECS = INDICATOR_SPECS.filter(isDirectIndicatorSpec)
 
 const withStats = (statistical: number) => ({
   ...standardCountry,
@@ -27,7 +32,7 @@ describe('the national accounts instruments', () => {
     const state = play('accounts-real', 16)
     const q = state.stats.record.length - 1
     const record = state.stats.record
-    const growth = INDICATOR_SPECS.find((spec) => spec.id === 'gdp_growth')!
+    const growth = DIRECT_INDICATOR_SPECS.find((spec) => spec.id === 'gdp_growth')!
     const truth = growth.trueValue(record, q)
     const nominalPriceShock = record.map((row, i) =>
       i === q ? { ...row, nominalGdp: row.nominalGdp * 10 } : row,
@@ -44,7 +49,7 @@ describe('the national accounts instruments', () => {
     const state = play('accounts-debt', 16)
     const q = state.stats.record.length - 1
     const record = state.stats.record
-    const debtRatio = INDICATOR_SPECS.find((spec) => spec.id === 'debt_to_gdp')!
+    const debtRatio = DIRECT_INDICATOR_SPECS.find((spec) => spec.id === 'debt_to_gdp')!
 
     expect(debtRatio.trueValue(record, q)).toBeCloseTo(
       (100 * record[q].debt) / (4 * record[q].nominalGdp),

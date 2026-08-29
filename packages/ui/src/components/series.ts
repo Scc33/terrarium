@@ -7,7 +7,7 @@
  */
 
 import { FIRST_YEAR } from '@terrarium/engine'
-import type { IndicatorSeries } from '@terrarium/observation'
+import type { HumanDevelopmentDimensions, IndicatorSeries } from '@terrarium/observation'
 
 export interface ShapedPoint {
   forQtr: number
@@ -28,6 +28,7 @@ export interface ShapedPoint {
    * dossier's history strip. The loud mark is `stampWorthyRevision`. */
   visiblyRevised: boolean
   levels?: { real: number; nominal: number }
+  components?: HumanDevelopmentDimensions
 }
 
 export function shapeSeries(series: IndicatorSeries, windowQtrs: number, now: number): ShapedPoint[] {
@@ -46,12 +47,14 @@ export function shapeSeries(series: IndicatorSeries, windowQtrs: number, now: nu
         revisionDelta: 0,
         visiblyRevised: false,
         levels: p.levels,
+        components: p.components,
       })
     } else if (p.revision > cur.revision) {
       cur.value = p.value
       cur.errorBand = p.errorBand
       cur.revision = p.revision
       cur.levels = p.levels ?? cur.levels
+      cur.components = p.components ?? cur.components
       cur.revisionDelta = p.value - cur.firstPrint
       cur.visiblyRevised = Math.abs(cur.revisionDelta) > cur.firstBand * 0.5
     }
@@ -107,6 +110,7 @@ export function rollingAverage(
       revisionDelta,
       visiblyRevised: Math.abs(revisionDelta) > firstBand * 0.5,
       levels: latest.levels,
+      components: latest.components,
     })
   }
 

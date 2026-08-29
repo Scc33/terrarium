@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 39)
+## Current contract (schema 40)
 
 ### Inputs
 
@@ -168,6 +168,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
 | `labor_force_participation` | % of population | 0.35 | v22 | labour force ÷ census population |
 | `human_capital` | idx | 0.35 | v30 | slow workforce knowledge-and-skills stock ×100 |
+| `human_development` | index 0–1 | 0.35 | v40 | geometric mean of aligned published health, workforce-skills and real-output-per-head dimensions |
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
@@ -188,8 +189,10 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unrest` | idx | 0.40 | v12 | revolutionary pressure ×100 — what collated provincial reports would show |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
-additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
-rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal ticker.
+additionally carries level estimates, while `human_development` carries its normalized
+`{ health, skills, income }` components. Lag, noise, and error bands shrink as statistical
+capacity rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal
+ticker.
 
 ### Outputs — the industrial census (fogged, and not an indicator)
 
@@ -287,6 +290,32 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 40 — Human development is constructed from the published record
+
+- **Outputs +**: fogged `human_development`, a 0–1 Terrarium Human Development Index. Health
+  normalizes the `life_expectancy` print from 20–85 years; education uses the 0–1
+  `human_capital` workforce-skills stock; income logarithmically normalizes the
+  `gdp_per_capita` print between fixed 2.5–200 engine units. Their geometric mean is the
+  headline. It unlocks at statistical capacity 0.35, the most demanding component gate.
+- **Publication contract**: the index joins component releases for the same reference quarter
+  and revision. It publishes nothing until all three exist, reissues when their aligned
+  revision arrives, and draws no independent observation noise. Its error band is propagated
+  from the three component bands, and each point carries the normalized
+  `{ health, skills, income }` values displayed beside the headline.
+- **Boundary**: this is explicitly Terrarium's proxy, not literal UNDP HDI: workforce skills
+  are not mean/expected years of schooling, and real domestic output in engine units is not PPP
+  gross national income. The index is informational only and does not enter approval, political
+  capital or the report card; Gini and poverty remain separate distributional readings.
+- **Long-run evidence**: `pnpm hdi-analysis` over 12 seeds × 6 authored countries × 400
+  quarters measured p01–p99 0.304–0.783 (extrema 0.254–0.804), with no component clamped at
+  either rail. Log-variance contributions were health 10.3%, skills 51.5%, income 38.2%, so the
+  composite is not a renamed income series.
+- **Layout**: the 37th wall instrument moves the full-desktop rack to an explicit seven-column
+  dense register. Names and readings remain visible; delta magnitude and release age remain in
+  the accessible strip tooltip and return in the roomier four-column register.
+- **Pipeline — / inputs —**: no step added or reordered, no lever or country input added, and no
+  economic behavior changed.
 
 ### schema 39 — The wire becomes a newspaper
 

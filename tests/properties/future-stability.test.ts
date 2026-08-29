@@ -46,6 +46,22 @@ describe('the playable economy through 2050', () => {
       expect(era.publishedRealGrowth.count, `${era.era.label} GDP sample`).toBeGreaterThan(250)
       expect(era.publishedRealGrowth.p01, `${era.era.label} published growth downside`).toBeGreaterThan(-30)
       expect(era.publishedRealGrowth.p99, `${era.era.label} published growth upside`).toBeLessThan(35)
+      expect(
+        era.publishedHumanDevelopment.count,
+        `${era.era.label} human-development sample`,
+      ).toBeGreaterThan(100)
+      expect(
+        era.publishedHumanDevelopment.p01,
+        `${era.era.label} human development collapsed`,
+      ).toBeGreaterThan(0)
+      expect(
+        era.publishedHumanDevelopment.p99,
+        `${era.era.label} human development saturated`,
+      ).toBeLessThan(1)
+      expect(
+        era.publishedHumanDevelopment.p99 - era.publishedHumanDevelopment.p01,
+        `${era.era.label} human development became degenerate`,
+      ).toBeGreaterThan(0.05)
       expect(era.quietQuarters, `${era.era.label} quiet sample`).toBeGreaterThan(500)
       expect(era.quietInflation.p01, `${era.era.label} quiet inflation downside`).toBeGreaterThan(-10)
       expect(era.quietInflation.p99, `${era.era.label} quiet inflation upside`).toBeLessThan(10)

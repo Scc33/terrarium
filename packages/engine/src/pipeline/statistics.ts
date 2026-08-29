@@ -21,6 +21,7 @@ import {
 } from '../constants'
 import { conditionDispatches } from '../events/conditions'
 import { clamp } from '../math'
+import { humanDevelopmentDimensions, humanDevelopmentIndex } from '../humanDevelopment'
 import {
   INCOME_QUINTILE_IDS,
   INDUSTRY_TABLE_IDS,
@@ -53,8 +54,8 @@ import {
   totalLaborForce,
 } from './derive'
 
-interface IndicatorSpec {
-  id: IndicatorId
+interface DirectIndicatorSpec {
+  id: Exclude<IndicatorId, 'human_development'>
   /** true value for measured quarter q (may need q−1 for growth) */
   trueValue(record: StatRecord[], q: number): number
   baseSd: number // first-print noise, in indicator units, at zero capacity
@@ -66,6 +67,23 @@ interface IndicatorSpec {
    * even when the office is too poor to compile anything else quickly */
   fastLag?: boolean
 }
+
+const HUMAN_DEVELOPMENT_COMPONENT_IDS = [
+  'life_expectancy',
+  'human_capital',
+  'gdp_per_capita',
+] as const satisfies readonly IndicatorId[]
+
+interface ConstructedIndicatorSpec {
+  id: 'human_development'
+  /** Constructed releases read official component prints, never TrueState. */
+  derivedFrom: typeof HUMAN_DEVELOPMENT_COMPONENT_IDS
+}
+
+type IndicatorSpec = DirectIndicatorSpec | ConstructedIndicatorSpec
+
+export const isDirectIndicatorSpec = (spec: IndicatorSpec): spec is DirectIndicatorSpec =>
+  'trueValue' in spec
 
 export const INDICATOR_SPECS: IndicatorSpec[] = [
   {
@@ -281,6 +299,10 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 1.5,
   },
   {
+    id: 'human_development',
+    derivedFrom: HUMAN_DEVELOPMENT_COMPONENT_IDS,
+  },
+  {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
@@ -494,7 +516,7 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
  * sandbox that also handed over exact figures would be the truth inspector
  * with extra steps, and the fog is what politics reads. */
 function printsDue(
-  spec: IndicatorSpec,
+  spec: DirectIndicatorSpec,
   record: StatRecord[],
   publishedAt: number,
   seed: Seed,
@@ -529,6 +551,83 @@ function printsDue(
       }
       out.push(print)
     }
+  }
+  return out
+}
+
+interface AlignedDevelopmentPrints {
+  life: StatPrint
+  skills: StatPrint
+  income: StatPrint
+}
+
+function alignedDevelopmentPrints(
+  series: Partial<Record<IndicatorId, StatPrint[]>>,
+  forQtr: number,
+  revision: number,
+): AlignedDevelopmentPrints | null {
+  const find = (id: IndicatorId) =>
+    series[id]?.find((print) => print.forQtr === forQtr && print.revision === revision)
+  const life = find('life_expectancy')
+  const skills = find('human_capital')
+  const income = find('gdp_per_capita')
+  return life && skills && income ? { life, skills, income } : null
+}
+
+function dimensionsForPrints(
+  prints: AlignedDevelopmentPrints,
+  direction: -1 | 0 | 1,
+) {
+  return humanDevelopmentDimensions({
+    lifeExpectancy: prints.life.value + direction * prints.life.errorBand,
+    workforceSkills: prints.skills.value + direction * prints.skills.errorBand,
+    realGdpPerCapita: prints.income.value + direction * prints.income.errorBand,
+  })
+}
+
+/**
+ * Releases of Terrarium's Human Development Index dated `publishedAt`.
+ *
+ * This is intentionally a join over the office's RELEASES, not a fourth
+ * `trueValue` specification. A candidate exists only when all three inputs
+ * have the same reference quarter and revision; its value and band are fully
+ * determined by those prints, with no `obs:human_development` RNG stream.
+ */
+export function humanDevelopmentPrintsDue(
+  series: Partial<Record<IndicatorId, StatPrint[]>>,
+  publishedAt: number,
+): StatPrint[] {
+  const candidates = new Map<string, { forQtr: number; revision: number }>()
+  for (const id of HUMAN_DEVELOPMENT_COMPONENT_IDS) {
+    for (const print of series[id] ?? []) {
+      if (print.publishedAt !== publishedAt) continue
+      candidates.set(`${print.forQtr}:${print.revision}`, {
+        forQtr: print.forQtr,
+        revision: print.revision,
+      })
+    }
+  }
+
+  const existing = new Set(
+    (series.human_development ?? []).map((print) => `${print.forQtr}:${print.revision}`),
+  )
+  const out: StatPrint[] = []
+  for (const [key, candidate] of candidates) {
+    if (existing.has(key)) continue
+    const aligned = alignedDevelopmentPrints(series, candidate.forQtr, candidate.revision)
+    if (!aligned) continue
+    const components = dimensionsForPrints(aligned, 0)
+    const value = humanDevelopmentIndex(components)
+    const low = humanDevelopmentIndex(dimensionsForPrints(aligned, -1))
+    const high = humanDevelopmentIndex(dimensionsForPrints(aligned, 1))
+    out.push({
+      forQtr: candidate.forQtr,
+      publishedAt,
+      revision: candidate.revision,
+      value,
+      errorBand: Math.max(value - low, high - value),
+      components,
+    })
   }
   return out
 }
@@ -695,8 +794,16 @@ export const statistics: PipelineStep = {
     const releaseDate = state.meta.tick + 1
     const series = { ...state.stats.series }
     for (const spec of INDICATOR_SPECS) {
+      if (!isDirectIndicatorSpec(spec)) continue
       const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]
+    }
+    const developmentDue = humanDevelopmentPrintsDue(series, releaseDate)
+    if (developmentDue.length > 0) {
+      series.human_development = [
+        ...(series.human_development ?? []),
+        ...developmentDue,
+      ]
     }
     const censusDue = industryPrintsDue(
       record,

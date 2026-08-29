@@ -20,7 +20,13 @@
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
-import { complementReading, NAMES, readingDigits } from '../labels'
+import {
+  complementReading,
+  HUMAN_DEVELOPMENT_COMPONENTS,
+  humanDevelopmentBreakdown,
+  NAMES,
+  readingDigits,
+} from '../labels'
 import { qtrLabel, quarterDelta, shapeSeries, stampWorthyRevision } from '../series'
 import { WallTile } from '../WallTile/WallTile'
 import { Tooltip, TooltipLabel } from '../ui'
@@ -79,7 +85,7 @@ export function AnalogGauge({
   const complement = complementReading(indicator, latest.value)
   // one rule for the whole tile, so the headline, its band, the delta chip and
   // the revision row can never disagree about how precise this print was
-  const digits = readingDigits(latest.value)
+  const digits = readingDigits(latest.value, indicator)
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
 
   const header = (
@@ -124,16 +130,28 @@ export function AnalogGauge({
           </span>
         </div>
       </Tooltip>
-      <div className="flex justify-between gap-1 overflow-hidden border-t border-dossier-ink/20 px-3 py-0.5">
-        {points.slice(-4, -1).map((p) => (
-          <span key={p.forQtr} className="truncate font-mono text-[9px] tabular-nums text-dossier-ink/60">
-            {qtrLabel(p.forQtr).slice(2)}{' '}
-            <span className={p.visiblyRevised ? 'font-medium text-dossier-warn' : ''}>
-              {p.value.toFixed(digits)}
+      {latest.components ? (
+        <Tooltip content={`Current normalized components: ${humanDevelopmentBreakdown(latest.components)}. Each runs from zero to one; the index is their geometric mean.`}>
+          <div tabIndex={0} className="flex justify-between gap-1 overflow-hidden border-t border-dossier-ink/20 px-3 py-0.5 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass">
+            {HUMAN_DEVELOPMENT_COMPONENTS.map(({ key, label }) => (
+              <span key={key} className="truncate font-mono text-[8px] tabular-nums text-dossier-ink/65">
+                {label} {latest.components![key].toFixed(2)}
+              </span>
+            ))}
+          </div>
+        </Tooltip>
+      ) : (
+        <div className="flex justify-between gap-1 overflow-hidden border-t border-dossier-ink/20 px-3 py-0.5">
+          {points.slice(-4, -1).map((p) => (
+            <span key={p.forQtr} className="truncate font-mono text-[9px] tabular-nums text-dossier-ink/60">
+              {qtrLabel(p.forQtr).slice(2)}{' '}
+              <span className={p.visiblyRevised ? 'font-medium text-dossier-warn' : ''}>
+                {p.value.toFixed(digits)}
+              </span>
             </span>
-          </span>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 

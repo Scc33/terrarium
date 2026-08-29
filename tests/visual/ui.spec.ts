@@ -413,7 +413,7 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
   // The pending-state rack is the easy case: every strip ends in the short
   // word PENDING. Fill the office and let real values, deltas and release ages
   // arrive — those are the tracks that can squeeze a ten-character name out
-  // of the six-column desktop roster.
+  // of the seven-column desktop roster.
   await page.keyboard.press('Backquote')
   await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
   await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
@@ -454,6 +454,33 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
     rackBelowFold: false,
   })
   expect(browserErrors).toEqual([])
+})
+
+test('human development shows its three published components on the wall', async ({ page }) => {
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  const advance = page.getByRole('button', { name: 'ADVANCE QUARTER' })
+  for (let i = 0; i < 12; i++) await advance.click()
+  await expect(page.getByText('1949 Q1', { exact: true })).toBeVisible()
+
+  await page.locator('.instrument-rack').getByText('HDI', { exact: true }).click()
+  const instrument = page.locator('.instrument-board > div').filter({
+    has: page.getByRole('button', { name: 'Explain HUMAN DEVELOPMENT', exact: true }),
+  })
+  await expect(instrument).toBeVisible()
+  const components = instrument.getByText(/^H\/S\/I /)
+  await expect(components).toBeVisible()
+  await components.hover()
+  await expect(page.getByRole('tooltip')).toContainText(
+    /health \d\.\d{2}, skills \d\.\d{2}, income \d\.\d{2}/,
+  )
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('tooltip')).toBeHidden()
+  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+  await expect(instrument).toHaveScreenshot('human-development-terminal.png')
 })
 
 test('cabinet draft review', async ({ page }) => {

@@ -21,6 +21,7 @@ export {
   type IndicatorId,
   type IndicatorPoint,
   type IndicatorSeries,
+  type HumanDevelopmentDimensions,
   // the production side, by industry — a fogged vector release, not a dial
   type IndustryPoint,
   type IndustryTableId,

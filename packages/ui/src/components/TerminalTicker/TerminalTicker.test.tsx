@@ -64,4 +64,20 @@ describe('TerminalTicker', () => {
     expect(NAMES.asset_prices.note).toContain('Growth alone does not move the ratio')
     expect(NAMES.asset_prices.note).not.toContain('compared with 1946')
   })
+
+  it('keeps the human-development components beside the terminal readout', () => {
+    const development: IndicatorSeries = {
+      id: 'human_development', label: 'Human development', unit: 'index 0–1',
+      points: [
+        { forQtr: 0, publishedAt: 1, value: 0.5, revision: 0, errorBand: 0.02, components: { health: 0.4, skills: 0.5, income: 0.6 } },
+        { forQtr: 1, publishedAt: 2, value: 0.55, revision: 0, errorBand: 0.01, components: { health: 0.45, skills: 0.55, income: 0.65 } },
+      ],
+    }
+    const html = renderToStaticMarkup(
+      <TerminalTicker indicator="human_development" series={development} now={2} />,
+    )
+
+    expect(html).toContain('0.550')
+    expect(html).toContain('H/S/I 0.45/0.55/0.65')
+  })
 })
