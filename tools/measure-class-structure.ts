@@ -1,61 +1,61 @@
 /**
- * Can the labour force follow demand? — the baseline table for issue #169, and
- * the acceptance check for anything that changes the class transition.
+ * Can the labour force follow demand? — the baseline table for issue #169 and
+ * ADR-0032, and the acceptance check for anything that changes the class
+ * transition in `pipeline/demography.ts`.
  *
  *   pnpm class-structure -- --seeds 12 --ticks 400 --country meridia
  *
- * Investigation 0015 found that `professionals` is a FIXED share of the
- * non-retired population for the whole century, because the class transition in
- * `pipeline/demography.ts` moves people rural → urban and into no other class:
+ * ## What this measured, and what it settled
  *
- *     rural_workers: d.classShares.rural_workers - move,
- *     urban_workers: d.classShares.urban_workers + move,
+ * Investigation 0015 found that `professionals` was a FIXED share of the
+ * non-retired population for the whole century, because the class transition
+ * moved people rural → urban and into no other class. Services are staffed
+ * 60% from professionals, so it concluded that when demand moves toward
+ * services the RETURN to being a professional rises while the NUMBER cannot —
+ * and that this was why `ENGEL_ELASTICITY.services` shipped at 0.32 rather
+ * than the 0.45 that makes the service share genuinely rise.
  *
- * Services are staffed 60% from professionals, so investigation 0015 concluded
- * that when demand moves toward services the RETURN to being a professional
- * rises while the NUMBER cannot — and that this is why
- * `ENGEL_ELASTICITY.services` ships at 0.32 rather than the 0.45 that would
- * make the service share genuinely rise.
+ * **THE FIRST HALF WAS RIGHT AND THE SECOND HALF WAS NOT.** This tool was
+ * written to check it and contradicted it on the first run. `professionals`
+ * was indeed pinned at 12.2% for four hundred quarters while rural fell
+ * 48%→21%. But the service wage never pulled away: against agriculture it
+ * went 2.42 → 1.91 over the century, and professionals' real income per head
+ * tracked rural workers' almost exactly (13.0x against 12.9x, indexed to q4).
+ * The Gini rise came from two cohorts 0015 never named — retirees ending at
+ * 0.38x their own 1947 income per head, and urban workers lagging at 5.5x
+ * against rural's 12.9x. Table 4 is where that shows.
  *
- * **THE FIRST HALF OF THAT IS RIGHT AND THE SECOND HALF IS NOT.** This tool
- * was written to check it and immediately contradicted it. `professionals` is
- * indeed pinned at 12.2% for four hundred quarters while rural falls 48%→21%.
- * But the service wage does NOT pull away: against agriculture it goes
- * 2.42 → 1.91 over the century, and professionals' real income per head tracks
- * rural workers' almost exactly (13.0x against 12.9x, indexed to q4).
+ * So the professionals gap was real as a SUPPLY fact and unproven as a
+ * DISTRIBUTIONAL one. It was fixed on the supply argument alone (ADR-0032):
+ * schools set a ceiling on how many people can do professional work, the
+ * shortage of professional work decides how many cross, and the answer to the
+ * distributional question turned out to be yes anyway — six Gini points, and
+ * developmental deposition halved from 15% to 7%.
  *
- * Table 4 says where the Gini actually comes from, and it is neither of the
- * cohorts 0015 named:
+ * Four tables, and the last one is the one to read first:
  *
- *   - **retirees end at 0.38x their own 1947 income per head** — they get
- *     absolutely poorer across a century in which everyone else multiplies.
- *     Transfers are a fixed cash dial that erodes against growth while the
- *     retired share of the population rises (see issue #111 on pensions).
- *   - **urban workers lag badly**, 5.5x against rural's 12.9x, as the class
- *     transition pours people into the cities faster than urban wages rise.
- *
- * So the professionals gap is real as a SUPPLY fact and unproven as a
- * DISTRIBUTIONAL one, and the cost curve in 0015 needs its channel identified
- * before anyone tunes against it. That is the open question this tool exists to
- * carry.
- *
- * Three tables, and the middle one is the finding:
- *
- * 1. **THE CLASS STRUCTURE** — where people are, quarter by quarter. A fix
- *    shows up here first, as `professionals` ceasing to be a flat line.
+ * 1. **THE CLASS STRUCTURE** — where people are, quarter by quarter. A
+ *    regression shows up here first, as `professionals` going flat again.
  * 2. **THE PREMIUM** — what service work earns against farm work, beside the
  *    service share pulling on it. Read the vs-AGRI column: the vs-mean one is
  *    compressed mechanically as services grow into the mean, and it is printed
- *    only so that confound is visible rather than lurking.
- * 3. **WHAT IT COSTS** — Gini, living standard and deposition, which is the
- *    column investigation 0015's cost curve is denominated in.
- * 4. **WHO PULLS AWAY** — real income per head by cohort, indexed. This is the
- *    table that falsified the story above, and the one to read first.
+ *    only so that confound is visible rather than lurking. Neither is what the
+ *    transition is gated on, and the reason is here: services is the LOW-wage
+ *    sector until roughly 2005, so a wage-premium gate would have been a
+ *    mechanic nobody could reach.
+ * 3. **WHAT IT COSTS** — Gini, living standard and deposition, the columns
+ *    investigation 0015's cost curve is denominated in.
+ * 4. **WHO PULLS AWAY** — real income per head by cohort, indexed. The table
+ *    that falsified the story above, and the one that still carries the open
+ *    question: retirees get absolutely poorer across a century in which
+ *    everyone else multiplies, because transfers are a fixed cash dial eroding
+ *    against growth while the retired share of the population rises. That is
+ *    #111's territory, not the basket's, and it is untouched by ADR-0032.
  *
- * The elasticity sweep in that investigation cannot be reproduced by a tool:
- * `ENGEL_ELASTICITY` is a compile-time constant, so varying it means editing
- * `engine/src/constants.ts` between runs. What this reproduces is one ROW of
- * that curve. Change the demography, re-run, and compare the row.
+ * The elasticity sweep in 0015 cannot be reproduced by a tool: `ENGEL_ELASTICITY`
+ * is a compile-time constant, so varying it means editing `engine/src/constants.ts`
+ * between runs. What this reproduces is one ROW of that curve. Change the
+ * demography, re-run, and compare the row.
  */
 
 import {
@@ -229,7 +229,9 @@ const last = median(runs.map((rs) => at(rs, MARKS[MARKS.length - 1]).classShares
 console.log(
   `\n   professionals moved ${(100 * (last - first)).toFixed(2)} points across the run. ` +
     (Math.abs(last - first) < 0.005
-      ? 'FLAT — the labour force cannot follow demand (#169).'
+      ? 'FLAT — either this government never opened a school (correct: the ' +
+        'ceiling is a ratio to what the country inherited) or the second leg ' +
+        'of the transition has broken (#169, ADR-0032).'
       : 'It moves: the transition has a second destination.'),
 )
 

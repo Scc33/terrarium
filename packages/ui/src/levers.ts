@@ -202,11 +202,11 @@ export const CAPACITY_COPY: Record<CapacityId, CapacityCopy> = {
   },
   education: {
     label: 'Schools',
-    hint: 'Builds schools. Their graduates raise workforce skills over decades; skilled people help the country use better technology, staff research and gradually lower birth rates.',
+    hint: 'Builds schools. Their graduates raise workforce skills over decades; skilled people staff the professions, help the country use better technology, staff research and gradually lower birth rates.',
     effect:
-      'Workforce skills rise slowly, then lift technology absorption, research and social organization while changing the demographic future.',
+      'Workforce skills rise slowly, then set the professional class and lift technology, research and social organization.',
     detail:
-      'The slowest lever in the game and the one with the longest reach — and the only one that acts through a second stock rather than directly. Funding builds the school system in eight quarters; what technology, research, fertility and social organization actually read is WORKFORCE SKILLS, which closes about one percent of its gap to the schools each quarter. That is a half-life near seventeen years. Finishing a classroom is not the same event as a taught generation entering work, and the instrument between the two is on the wall so you can watch the gap close.',
+      'The slowest lever in the game and the one with the longest reach — and the only one that acts through a second stock rather than directly. Funding builds the school system in eight quarters; what technology, research, fertility and social organization actually read is WORKFORCE SKILLS, which closes about one percent of its gap to the schools each quarter. That is a half-life near seventeen years. It also sets the ceiling on how many of your people can do professional work: without it the country moves labour off the land into the cities and no further, however badly the professions are short-staffed. Finishing a classroom is not the same event as a taught generation entering work, and the instrument between the two is on the wall so you can watch the gap close.',
   },
 }
 

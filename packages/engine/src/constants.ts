@@ -130,7 +130,7 @@ export const ENGEL_ELASTICITY: Record<SectorId, number> = {
   agri: -0.35,
   manuf: -0.15,
   energy: -0.15,
-  services: 0.32,
+  services: 0.45,
   transport: 0,
 }
 
@@ -645,6 +645,40 @@ export const SUBSISTENCE_CAP = 0.92
 
 /** rural→urban drift per quarter per unit of urban/rural wage gap */
 export const URBANIZATION_GAIN = 0.004
+
+/**
+ * The SECOND boundary the class transition crosses: urban worker →
+ * professional (#169). Schools decide how many people CAN cross it; the
+ * shortage of professional work decides how many do.
+ *
+ * The ceiling is relative to the pair the country opened with —
+ * `demography.professionalBaseline` at `demography.schoolingBaseline` — for
+ * the reason ADR-0028's pollution baseline and ADR-0030's `engelReference`
+ * are: the catalogue authors an opening professional share anywhere between
+ * 7.1% (Costona) and 20.6% (Oranga), and an absolute law would move every
+ * country's class structure on its opening morning for its authored
+ * structure. At the shipped elasticity a country that never schools anybody
+ * sits exactly on its own ceiling forever, which is what makes the passive
+ * century inert.
+ *
+ * The exponent is MEASURED off the catalogue rather than chosen: regressing
+ * ln(opening professional share) on ln(opening education capacity) across the
+ * five curated recipes gives a slope of 0.59. The recipes were authored
+ * independently of this mechanism, so they are evidence about it.
+ */
+export const PROFESSIONAL_SCHOOLING_ELASTICITY = 0.6
+/** …and no schooling programme can make more than this share of the
+ * non-retired population professional. A drafted country may open with a
+ * near-zero education capacity beside a large professional class, and the
+ * ratio above would then licence a ceiling of several hundred percent. */
+export const PROFESSIONAL_SHARE_MAX = 0.45
+/** the smallest opening school system the ratio is allowed to divide by */
+export const SCHOOLING_BASELINE_FLOOR = 0.02
+/** share of the remaining headroom to the ceiling crossed per quarter, per
+ * unit of relative professional shortage. With the shortage running 0.2–1.0
+ * over a developmental century this is a ~25-year half-life — a generational
+ * clock, like the workforce-skills stock feeding it. */
+export const PROFESSIONALIZATION_GAIN = 0.02
 /** working-age share of the non-retired population in the 1946 standard
  * pyramid — normalizes workerShareMult to 1 at init */
 export const BASE_WORKER_SHARE = 0.608
