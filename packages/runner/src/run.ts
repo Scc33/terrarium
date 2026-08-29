@@ -22,6 +22,7 @@ import {
   type CountryScenarioId,
   type GameMode,
   type GameRules,
+  type Qtr,
   type Rng,
   type SectorId,
   type TurnActions,
@@ -139,6 +140,11 @@ export interface RunOptions {
   /** Immutable rules for the run. Ordinary balance baselines omit this and
    * retain the standard rules. */
   rules?: GameMode | Partial<GameRules>
+  /** The quarter the player takes office (ADR-0021). Balance baselines omit
+   * it and open in 1946. It exists here so a tool can replay a real save on
+   * the runner: `init` has always taken it, and a run that dropped it would
+   * quietly score a different country from the one the save holds. */
+  appointedAt?: Qtr
   /** Read-only probes for research and fuzz tooling. Successful generated or
    * scripted actions are reported before the tick; state is reported after it. */
   observer?: RunObserver
@@ -282,7 +288,7 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
   for (const t of opts.script ?? []) byTick.set(t.tick, t.actions)
   const lenient = opts.lenient !== false
 
-  let s = init(params, opts.seed, opts.rules)
+  let s = init(params, opts.seed, opts.rules, opts.appointedAt ?? 0)
   let nanCount = 0
   let priceExplosions = 0
   let illegalActionsSkipped = 0
