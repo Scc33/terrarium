@@ -130,7 +130,7 @@ export const ENGEL_ELASTICITY: Record<SectorId, number> = {
   agri: -0.35,
   manuf: -0.15,
   energy: -0.15,
-  services: 0.32,
+  services: 0.45,
   transport: 0,
 }
 
@@ -224,7 +224,7 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
  * return. Poverty, inequality and the quintile books unlock together because
  * they are three readings of the same enumerators' schedules. */
 export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
-/** Terrarium Human Development Index goalposts (ADR-0032). Health retains
+/** Terrarium Human Development Index goalposts (ADR-0033). Health retains
  * UNDP's canonical 20–85-year range. Income uses engine units, not PPP dollars:
  * a schema-38 funded all-country century measured p01–p99 6.3–113.8, while
  * 400 validator-legal draft countries measured 2.60–183.23. Round outward to
@@ -657,6 +657,58 @@ export const SUBSISTENCE_CAP = 0.92
 
 /** rural→urban drift per quarter per unit of urban/rural wage gap */
 export const URBANIZATION_GAIN = 0.004
+
+/**
+ * The SECOND boundary the class transition crosses: urban worker →
+ * professional (#169). Schools decide how many people CAN cross it; the
+ * shortage of professional work decides how many do.
+ *
+ * The ceiling is relative to the pair the country opened with —
+ * `demography.professionalBaseline` at `demography.schoolingBaseline` — for
+ * the reason ADR-0028's pollution baseline and ADR-0030's `engelReference`
+ * are: the catalogue authors an opening professional share anywhere between
+ * 7.1% (Costona) and 20.6% (Oranga), and an absolute law would move every
+ * country's class structure on its opening morning for its authored
+ * structure. At the shipped elasticity a country that never schools anybody
+ * sits exactly on its own ceiling forever, which is what makes the passive
+ * century inert.
+ *
+ * The exponent is MEASURED off the catalogue rather than chosen: regressing
+ * ln(opening professional share) on ln(opening education capacity) across the
+ * five curated recipes gives a slope of 0.59. The recipes were authored
+ * independently of this mechanism, so they are evidence about it.
+ */
+export const PROFESSIONAL_SCHOOLING_ELASTICITY = 0.6
+/**
+ * …and no schooling programme can GROW the professional class past this share
+ * of the non-retired population. A drafted country may open with a near-zero
+ * education capacity beside a large professional class, and the ratio above
+ * would then licence a ceiling of several hundred percent.
+ *
+ * A ceiling on growth, never a ceiling on what a country may have inherited:
+ * `professionalCeiling` lifts its result back to the opening share, because
+ * the drafting room legally allows 45m professionals beside 0.1m of every
+ * other class and a country that opens above this number must not be told it
+ * is over its own limit.
+ */
+export const PROFESSIONAL_SHARE_MAX = 0.45
+/**
+ * The smallest school system the ceiling's ratio can tell apart, applied to
+ * BOTH SIDES of it. Flooring only the denominator is a bug, and it is the
+ * ADR-0028 bug in miniature: the drafting room legally allows an education
+ * capacity of zero, and at init `humanCapital` equals `schoolingBaseline`, so
+ * a one-sided floor opens such a country at `(schoolingBaseline / 0.02)^0.6`
+ * of its own professional share — zero, when it drafted no schools at all —
+ * and charges it for its authored structure on its opening morning. Floored on
+ * both sides the opening ratio is exactly 1 for every legal vector, curated or
+ * drafted, which is the invariant `professionalCeiling` is built on.
+ */
+export const SCHOOLING_BASELINE_FLOOR = 0.02
+/** share of the remaining headroom to the ceiling crossed per quarter, per
+ * unit of relative professional shortage. With the shortage running 0.2–1.0
+ * over a developmental century this is a ~25-year half-life — a generational
+ * clock, like the workforce-skills stock feeding it. */
+export const PROFESSIONALIZATION_GAIN = 0.02
 /** working-age share of the non-retired population in the 1946 standard
  * pyramid — normalizes workerShareMult to 1 at init */
 export const BASE_WORKER_SHARE = 0.608

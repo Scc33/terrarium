@@ -53,7 +53,7 @@ export const SECTION_BAR_H = 20
 /** how many instruments the board holds */
 export const BOARD_SLOTS = 4
 /** The watch board stays four-up, but the complete roster becomes seven-up on
- * a full desktop. Schema 40's constructed development index would otherwise
+ * a full desktop. Schema 41's constructed development index would otherwise
  * consume the rack's last row of headroom. The seven-bay register keeps names
  * and readings, moving delta magnitude and release age into each strip's
  * tooltip; the browser test proves ten-character names remain intact. This is

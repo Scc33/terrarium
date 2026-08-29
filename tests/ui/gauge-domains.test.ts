@@ -142,6 +142,24 @@ describe('the faces fit the economy the engine actually produces', () => {
    * and a lot means the face is wrong. If a retune pushes an indicator's
    * normal life off its dial, this fails and names the indicator.
    */
+  const NO_HISTORY: readonly number[] = []
+
+  /**
+   * This test is expensive ON PURPOSE and cannot be made cheap by shrinking
+   * it: `SURVEY_TICKS` is 400 because the per-capita accounts stay inside
+   * their faces until after 2006, and it sweeps the whole catalogue because a
+   * face that fits Meridia can peg on Costona. So it publishes a full
+   * `PublishedState` for 8000 quarters, and profiled that `observe` is 83% of
+   * the runtime — nothing here can trim it.
+   *
+   * It runs in ~24s locally and had been passing on CI at roughly 60s, which
+   * is to say it was sitting a couple of seconds under vitest's default and
+   * failing the moment a runner had a bad day. An explicit budget is the
+   * honest fix; shortening the survey would make the test pass by measuring
+   * less, which is the failure mode its own comment warns about.
+   */
+  const SURVEY_TIMEOUT_MS = 240_000
+
   it('no instrument spends more than 2% of its published life pegged', () => {
     const total = new Map<IndicatorId, number>()
     const pegged = new Map<IndicatorId, number>()
@@ -152,20 +170,21 @@ describe('the faces fit the economy the engine actually produces', () => {
           for (const id of INDICATOR_IDS) {
             const series = pub.indicators[id]
             if (!series) continue
-            // Prints are append-only in publication order. Walk back through
-            // only this quarter's additions instead of filtering the entire
-            // century every quarter — the old O(q² × indicators) scan sat on
-            // CI's 60-second timeout once the 37th instrument joined the wall.
-            // Fixed faces also ignore history by definition; only the three
-            // ratchets need their accumulated values rebuilt.
-            const face = INDICATOR_FACE[id]
-            const domain = face === 'ratchet'
-              ? gaugeDomain(id, series.points.map((p) => p.value))
-              : face
-            for (let index = series.points.length - 1; index >= 0; index--) {
-              const p = series.points[index]
-              if (p.publishedAt < tick) break
-              if (p.publishedAt > tick) continue
+            // only judge the print the player is looking at this quarter
+            const latest = series.points.filter((p) => p.publishedAt === tick)
+            if (latest.length === 0) continue
+            // Only a RATCHETING face reads the history — `gaugeDomain` ignores
+            // `values` for a fixed one, and says so. Mapping the whole
+            // published series every quarter for all 29 instruments was
+            // quadratic in SURVEY_TICKS and threw the result away 28 times out
+            // of 29. Worth removing, though it is not where the time goes:
+            // profiled, this survey is 17.4s of `observe`, 2.5s of `step` and
+            // 1.5s of this map.
+            const domain = gaugeDomain(
+              id,
+              INDICATOR_FACE[id] === 'ratchet' ? series.points.map((p) => p.value) : NO_HISTORY,
+            )
+            for (const p of latest) {
               total.set(id, (total.get(id) ?? 0) + 1)
               if (readNeedle(domain, p.value).pegged) pegged.set(id, (pegged.get(id) ?? 0) + 1)
             }
@@ -181,5 +200,5 @@ describe('the faces fit the economy the engine actually produces', () => {
       if (rate > 0.02) offenders.push(`${id} pegged ${(rate * 100).toFixed(1)}% of ${n} prints`)
     }
     expect(offenders, 'a dial face no longer fits its indicator — retune INDICATOR_FACE').toEqual([])
-  })
+  }, SURVEY_TIMEOUT_MS)
 })

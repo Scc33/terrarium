@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 40. The short player-facing design is in
+*How the code is actually arranged, as of schema 41. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -229,7 +229,7 @@ A point in an `IndicatorSeries` is a `StatPrint` — the figure *exactly as rele
 `forQtr`, `publishedAt`, `value`, `revision`, and the error band the office confessed.
 The `human_development` print additionally carries its normalized `health`, `skills`, and
 `income` components. It is constructed from aligned official releases in the statistics step,
-not from hidden state and not by a second observation draw (ADR-0031).
+not from hidden state and not by a second observation draw (ADR-0033).
 
 ### 3.2 Not every fogged output is an indicator
 
@@ -338,7 +338,7 @@ The Terrarium Human Development Index is the geometric mean of three normalized 
 returns: period life expectancy, workforce skills, and annual real GDP per head. The first keeps
 UNDP's 20–85-year goalposts; skills use their existing 0–1 stock; income uses fixed 2.5–200 engine
 units on a logarithmic scale. It joins only prints with the same quarter and revision, carries no
-independent noise, and is explicitly a proxy rather than literal UNDP HDI (ADR-0032).
+independent noise, and is explicitly a proxy rather than literal UNDP HDI (ADR-0033).
 
 Foreign direct investment is an owned capital stock, not another name for openness (ADR-0018).
 Small-country scale and external access set the structural FDI/GDP draw; the mean of sector

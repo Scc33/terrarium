@@ -131,8 +131,8 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // 47.8–58.2 years, extrema 44.2–59.8. Round to a five-year lower rail and
   // the measured maximum; exceptional mortality crises should peg visibly.
   life_expectancy: { lo: 45, hi: 60 },
-  // Schema 40, 12 seeds × 6 countries × 400 funded quarters: p01–p99
-  // 0.304–0.783, extrema 0.254–0.804, with no component clamped. ADR-0032
+  // Schema 41, 12 seeds × 6 countries × 400 funded quarters: p01–p99
+  // 0.304–0.783, extrema 0.254–0.804, with no component clamped. ADR-0033
   // defines the quantity on 0–1 fixed goalposts, so the honest face is the
   // complete interval rather than a range-fitted crop of today's catalogue.
   human_development: { lo: 0, hi: 1 },

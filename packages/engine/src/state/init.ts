@@ -136,6 +136,14 @@ function initialDemography(params: CountryParams): DemographyState {
     humanCapital:
       (params.capacities.education as number | undefined) ?? EDUCATION_1946,
     classShares,
+    // The pair the professional ceiling is a ratio to. Read off the recipe
+    // rather than a constant, so opening a country gives back that country:
+    // at the opening school system the ceiling IS the opening share, and the
+    // second leg of the class transition contributes nothing until the
+    // government schools somebody.
+    professionalBaseline: classShares.professionals,
+    schoolingBaseline:
+      (params.capacities.education as number | undefined) ?? EDUCATION_1946,
   }
 }
 

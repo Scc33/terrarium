@@ -111,3 +111,15 @@ Three directions, in the order the evidence supports them:
 Re-run `pnpm composition` and the tax-funded arms after any of the three. The number to beat is
 **+3.02 points**, which is what the best available price lever achieves on agriculture today with
 its financing fixed and the household basket left at unit elasticity.
+
+## Update (2026-08-28, schema 40)
+
+A third channel has since been measured and ruled out, and it narrows the three directions above
+to one. The labour force is not a route to composition either: six points of the population moved
+into the professional class changes the service value-added share by **−0.22 points**, because
+cohort income in this engine does not depend on cohort size. See
+[0018](0018-composition-cannot-hear-the-class-structure.md).
+
+That leaves **direction 2 — capital allocation** — as the only recommendation here still
+standing, and it now has a specific address: `pipeline/labor.ts` allocates every unit of
+investment in the economy by utilization pressure alone, with no policy input of any kind.

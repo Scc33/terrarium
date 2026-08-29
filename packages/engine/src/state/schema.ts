@@ -237,7 +237,7 @@ export const INDICATOR_IDS = [
    * mortality schedule — period life expectancy, not current age at death */
   'life_expectancy',
   /** Terrarium's three-dimension development composite: aligned published
-   * life expectancy, workforce skills and real output per head (ADR-0032) */
+   * life expectancy, workforce skills and real output per head (ADR-0033) */
   'human_development',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
@@ -358,6 +358,14 @@ export interface DemographyState {
   humanCapital: Ratio
   /** how the non-retired population splits into the four working classes */
   classShares: Record<WorkingClassId, Ratio>
+  /** the professional share this country OPENED with, and the workforce
+   * skills it opened with. Sealed at init and never written again: the
+   * professional ceiling is a ratio to this pair, so a country that never
+   * schools anybody stays exactly where its recipe put it, and no country is
+   * charged on its opening morning for the structure it was authored with
+   * (the ADR-0028 baseline argument, applied to people rather than air). */
+  professionalBaseline: Ratio
+  schoolingBaseline: Ratio
 }
 
 // ---------- population ----------
@@ -1166,7 +1174,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 40 // v40: publish the Terrarium Human Development Index
+export const SCHEMA_VERSION = 41 // v41: publish the Terrarium Human Development Index
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

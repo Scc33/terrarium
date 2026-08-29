@@ -1,4 +1,4 @@
-# ADR-0032 — Human development is a proxy composite of aligned published returns
+# ADR-0033 — Human development is a proxy composite of aligned published returns
 
 **Status:** Accepted · **Date:** 2026-08-28
 
@@ -70,11 +70,11 @@ national average can hide distribution by construction.
 
 ## Consequences
 
-- Schema 40 adds one indicator and an optional component record on `StatPrint`; existing replay
+- Schema 41 adds one indicator and an optional component record on `StatPrint`; existing replay
   inputs remain loadable and deterministically produce the new public record.
 - Funding is set at 0.35, the workforce-skills component's gate. Full instrumentation lifts the
   component gates as usual but does not lift their lags, noise or revisions.
-- `pnpm hdi-analysis` is the standing long-run check. At schema 40, 12 seeds × 6 authored
+- `pnpm hdi-analysis` is the standing long-run check. At schema 41, 12 seeds × 6 authored
   countries × 400 quarters measured HDI p01–p99 0.304–0.783, no clamped components, and log-index
   variance contributions of 10.3% health, 51.5% skills and 38.2% income. The index is neither
   saturated nor a renamed income series; it is most sensitive to the model's education stock.

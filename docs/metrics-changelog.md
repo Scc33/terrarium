@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 40)
+## Current contract (schema 41)
 
 ### Inputs
 
@@ -168,7 +168,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
 | `labor_force_participation` | % of population | 0.35 | v22 | labour force ÷ census population |
 | `human_capital` | idx | 0.35 | v30 | slow workforce knowledge-and-skills stock ×100 |
-| `human_development` | index 0–1 | 0.35 | v40 | geometric mean of aligned published health, workforce-skills and real-output-per-head dimensions |
+| `human_development` | index 0–1 | 0.35 | v41 | geometric mean of aligned published health, workforce-skills and real-output-per-head dimensions |
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
@@ -291,7 +291,7 @@ reconciled to the separately noised `income_real` headline.
 
 ## Version history — what each release added to the contract
 
-### schema 40 — Human development is constructed from the published record
+### schema 41 — Human development is constructed from the published record
 
 - **Outputs +**: fogged `human_development`, a 0–1 Terrarium Human Development Index. Health
   normalizes the `life_expectancy` print from 20–85 years; education uses the 0–1
@@ -316,6 +316,30 @@ reconciled to the separately noised `income_real` headline.
   the accessible strip tooltip and return in the roomier four-column register.
 - **Pipeline — / inputs —**: no step added or reordered, no lever or country input added, and no
   economic behavior changed.
+
+### schema 40 — Schools make professionals
+
+- **State +**: `DemographyState.professionalBaseline` and `.schoolingBaseline` — the professional
+  share and the workforce skills the country OPENED with, sealed at `init` from the country
+  recipe and never written again (#169, ADR-0032). Both are true state and stay behind the fog.
+- **Behaviour ±**: the class transition gets a second boundary, urban worker → professional.
+  `professionalCeiling` is a ratio to the sealed pair, so a government that never opens a school
+  sits on its opening share forever; the crossing rate is gated on `skillTightness`, the jobs
+  `LABOR_SOURCE` hands a cohort against the people in it.
+- **Constants ±**: `PROFESSIONAL_SCHOOLING_ELASTICITY` (0.6, regressed off the five curated
+  recipes), `PROFESSIONALIZATION_GAIN`, `PROFESSIONAL_SHARE_MAX`, `SCHOOLING_BASELINE_FLOOR` are
+  new. **`ENGEL_ELASTICITY.services` moves 0.32 → 0.45** — the acceptance criterion issue #169
+  wrote for itself, now that the constraint the 0.32 compromised with is gone.
+- **Inputs**: unchanged. No new lever, no new parameter, no new rule, and no new replay input —
+  saves carry no TrueState, so every existing save reconstructs both baselines at `init`.
+- **Outputs**: unchanged. No new indicator; nothing crosses the observation boundary.
+- **Baselines**: passive play is **bit-identical** under the demography change alone, verified on
+  all five curated countries over 400 quarters and by `pnpm diff-state --moved-only`. The Engel
+  move is what shifts the goldens: services output +0.09–0.15%, manufacturing/energy/transport
+  down, real GDP −0.03% at 40 quarters — demand into services at a small Baumol cost.
+  Developmental deposition **15% → 7%** over 1000 × 400q; passive 7% → 8% and 2.84 → 2.83 %/yr.
+- **Test pins moved**: `tests/properties/future-stability.test.ts` developmental survivors 19 →
+  23, passive unchanged at 27.
 
 ### schema 39 — The wire becomes a newspaper
 

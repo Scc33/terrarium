@@ -1,6 +1,10 @@
 # 0015 — A service economy raises the return to being a professional, and can never make more of them
 
-**Status:** Open
+**Status:** Resolved — see the resolution at the foot of this file. The SUPPLY half was right
+and is fixed (ADR-0032, schema 40). The DISTRIBUTIONAL half — that the return to being a
+professional rises — was **falsified on measurement**: there is no premium, and the Gini rise
+this document attributes to professionals comes from retirees and urban workers. Fixing the
+supply half lowered the Gini six points anyway, for a reason this document did not anticipate.
 
 **Raised by:** calibrating the Engel response in ADR-0030. This is the constraint that decided
 where `ENGEL_ELASTICITY` stops, so it is evidence for a shipped number rather than an idle
@@ -93,3 +97,90 @@ whether the Gini still rises with the services elasticity once the labour force 
 If it does not, `ENGEL_ELASTICITY.services` should be revisited immediately — the shipped 0.32 is
 a compromise with a constraint, not a measurement of Engel's Law, and the service share stopping
 flat rather than rising is the visible cost of it.
+
+
+---
+
+## Resolution (2026-08-28, schema 40)
+
+Both halves were re-measured with `pnpm class-structure`, which is this investigation's method
+turned into a tool — the numbers above were taken by hand and nothing in the repo could
+reproduce them. Half of them did not survive.
+
+### The supply fact — CONFIRMED, and fixed
+
+`professionals` was indeed pinned at 12.2% of the non-retired population for four hundred
+quarters while rural workers fell 48.4% → 21.3%. That is now a second boundary on the class
+transition: schools set a ceiling on how many people could do professional work, and the
+shortage of professional work decides how many cross (**ADR-0032**). Meridia under a
+capacity-building government reaches 22.0% by 2046.
+
+The mechanism is gated on the **shortage** (`skillTightness`) rather than on a wage premium,
+because the first implementation used a premium and could not be reached: professionals and
+urban workers share `wages.services`, and services is the LOW-wage sector until roughly 2005 in
+every century the catalogue runs.
+
+### The distributional story — NOT CONFIRMED
+
+The claim was that when demand moves toward services the *return* to being a professional rises
+because the *number* cannot. Measured, the service wage does not pull away at all:
+
+| | q4 | q40 | q240 | q400 |
+|---|---|---|---|---|
+| service wage / agri wage | 2.418 | 2.840 | 2.259 | **1.914** |
+
+It rises for a decade and converges for ninety years. Real income per head, indexed to q4, at
+q400 — before the fix, and NET OF INCOME TAX, taken from the engine's own
+`householdIncomeGroups` because this table sits beside the Gini and has to be the series the
+Gini is computed from:
+
+| rural | urban | professionals | business owners | retirees |
+|---|---|---|---|---|
+| **11.98** | 5.07 | **12.03** | 7.99 | **0.38** |
+
+(The first version of the tool summed `Cohort.wageIncome`, which the engine stores GROSS, and
+read 12.87 / 5.51 / 13.01 / 7.99 / 0.38. The error grew across the run, because this arm builds
+tax capacity for a century, and it fell only on the wage-earning cohorts — which is exactly the
+comparison the table is used to make. Every conclusion below survived the correction; the
+wage-earning cohorts moved about 7%.)
+
+Professionals and rural workers track each other almost exactly. The Gini rise came from neither
+cohort named above:
+
+- **Retirees end at just over a third of their own 1947 income per head** — absolutely poorer
+  across a century in which everyone else multiplies, because transfers are a fixed cash dial
+  eroding against growth while the retired share of the population rises. That is #111's
+  territory and ADR-0032 does not touch it.
+- **Urban workers lag badly**, 5.1x against rural's 12.0x, as the transition pours people into
+  the cities faster than urban wages rise.
+
+### The cost curve — answered, and the elasticity revisited
+
+The question this document set for itself was *"whether the Gini still rises with the services
+elasticity once the labour force can follow demand."* Measured with the second leg in place,
+at services η ∈ {0.32, 0.45, 0.60}:
+
+| services η (with the leg) | service VA, open → q400 | Gini q400 | living std q400 | developmental deposed |
+|---|---|---|---|---|
+| 0.32 | 33.5 → 32.9 | 0.451 | 3.15 | **7%** |
+| **0.45 (now shipped)** | **33.4 → 34.2** | **0.455** | **3.07** | **7%** |
+| 0.60 | 33.3 → 35.5 | 0.459 | 2.99 | **7%** |
+
+**Deposition has decoupled from the elasticity entirely** — flat at 7% across a range where
+schema 39 ran 9% → 15% → 21%. What the elasticity still trades is the service share against the
+Gini and the living standard, which is Baumol and is honest. So `ENGEL_ELASTICITY.services`
+ships at **0.45**, the lowest setting at which the service share rises with income rather than
+merely stopping its fall — which is the regularity
+[0013](0013-policy-cannot-steer-sector-composition.md) flagged as running backwards.
+
+The reason the whole cost curve moved is that the second leg by itself takes Meridia's Gini from
+0.512 to 0.451 and its living standard from 2.94 to 3.15: professionals' income per head falls
+12.0x → 6.8x as the class grows, and urban workers' — the cohort that was actually lagging —
+rises 5.1x → 5.7x.
+
+### What it did NOT do
+
+It did not make the economy steerable. Six points of professionals moves the service value-added
+share by **−0.22 points**, because cohort income in this engine does not depend on cohort size.
+That is [0018](0018-composition-cannot-hear-the-class-structure.md), and it is where #97 goes
+next.
