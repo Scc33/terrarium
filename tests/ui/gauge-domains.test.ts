@@ -152,11 +152,20 @@ describe('the faces fit the economy the engine actually produces', () => {
           for (const id of INDICATOR_IDS) {
             const series = pub.indicators[id]
             if (!series) continue
-            // only judge the print the player is looking at this quarter
-            const latest = series.points.filter((p) => p.publishedAt === tick)
-            if (latest.length === 0) continue
-            const domain = gaugeDomain(id, series.points.map((p) => p.value))
-            for (const p of latest) {
+            // Prints are append-only in publication order. Walk back through
+            // only this quarter's additions instead of filtering the entire
+            // century every quarter — the old O(q² × indicators) scan sat on
+            // CI's 60-second timeout once the 37th instrument joined the wall.
+            // Fixed faces also ignore history by definition; only the three
+            // ratchets need their accumulated values rebuilt.
+            const face = INDICATOR_FACE[id]
+            const domain = face === 'ratchet'
+              ? gaugeDomain(id, series.points.map((p) => p.value))
+              : face
+            for (let index = series.points.length - 1; index >= 0; index--) {
+              const p = series.points[index]
+              if (p.publishedAt < tick) break
+              if (p.publishedAt > tick) continue
               total.set(id, (total.get(id) ?? 0) + 1)
               if (readNeedle(domain, p.value).pegged) pegged.set(id, (pegged.get(id) ?? 0) + 1)
             }
