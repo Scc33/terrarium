@@ -38,7 +38,8 @@ drift. Re-measure before acting on one.
 | [0012](0012-compulsory-schooling-reverses-late-century.md) | Compulsory schooling pays for forty years and then stops paying | Open |
 | [0013](0013-policy-cannot-steer-sector-composition.md) | No lever steers sector composition, and the service share falls as the country gets rich | Resolved (ADR-0030, and 0016) |
 | [0014](0014-returns-to-capital-stock.md) | Why does a larger capital stock not permanently raise growth? | Resolved (level versus rate) |
-| [0015](0015-a-service-economy-cannot-make-professionals.md) | A service economy raises the return to being a professional and can never make more of them | Open |
+| [0015](0015-a-service-economy-cannot-make-professionals.md) | A service economy raises the return to being a professional and can never make more of them | Resolved (supply half fixed by ADR-0032; distributional half falsified) |
 | [0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md) | A household price elasticity does not reach the industrial census, and a deficit-financed subsidy raises the price it was meant to lower | Resolved (CES rejected) |
 | [0017](0017-what-policy-moves-foreign-direct-investment.md) | Which policies change foreign direct investment? | Resolved (reachability and legibility) |
-| [0018](0018-what-a-played-century-hits-its-head-on.md) | What does a well-played century hit its head on? | Open |
+| [0018](0018-composition-cannot-hear-the-class-structure.md) | Composition cannot hear the class structure, because cohort income does not know how many people are in the cohort | Open — the live constraint on #97 |
+| [0019](0019-what-a-played-century-hits-its-head-on.md) | What does a well-played century hit its head on? | Open |

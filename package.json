@@ -29,6 +29,7 @@
     "neutral-rate": "tsx tools/measure-neutral-rate.ts",
     "capital-returns": "tsx tools/measure-capital-returns.ts",
     "composition": "tsx tools/measure-composition.ts",
+    "class-structure": "tsx tools/measure-class-structure.ts",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "replay": "tsx tools/replay-save.ts",

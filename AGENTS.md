@@ -183,7 +183,7 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   actually does, and neither artifact the game writes hands you the true state on its own — a
   save is replay inputs, the data export is the fog. The tool replays the log through the engine
   and prints the truth beside counterfactual arms on the SAME country and seed, so "the player
-  stopped there" and "the model stops there" stop looking identical. Investigation 0018 is what
+  stopped there" and "the model stops there" stop looking identical. Investigation 0019 is what
   it was built for. Its `maximal` arm is a ceiling probe, never a baseline.
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
@@ -598,13 +598,43 @@ perfectly with no opinion about anything in the game. The first politics impleme
   the falling service share cost 15% developmental deposition against 9%, and left passive at 7%
   and 2.84 %/yr — a do-nothing country never gets rich enough for the term to bite. Same shape as
   the pollution baseline. If a retune moves passive, the basket has become a tax on existence.
-- **What it costs is inequality, and the cause is a supply-side gap.** Services are staffed 60% by
-  professionals, agriculture entirely by rural workers, and the class transition moves people
-  rural → urban and nowhere else — so demand shifting toward services raises the RETURN to being a
-  professional and never the NUMBER of them (Gini +5.8 points by 2046). The cost scales with
-  `ENGEL_ELASTICITY.services` and is insensitive to agriculture's, which is why it stops at 0.32
-  and the service share stops flat rather than rising. `docs/investigations/0015` has the cost
-  curve any fix has to reproduce.
+- **What it cost was inequality, and the cause was a supply-side gap that is now closed
+  (ADR-0032).** Services are staffed 60% by professionals and the class transition used to move
+  people rural → urban and nowhere else, so `professionals` was a fixed 12.2% of the non-retired
+  population for four hundred quarters. It now has a second boundary: SCHOOLS set the ceiling —
+  a ratio to the pair the country opened with, so passive play is bit-identical — and the
+  SHORTAGE of professional work decides who crosses. That refunded the whole political cost of
+  the basket: developmental deposition 15% → 7%, Meridia's Gini 0.512 → 0.451, and
+  `ENGEL_ELASTICITY.services` went 0.32 → 0.45, so the service share now RISES with income
+  (33.4 → 34.2) instead of stopping flat. **Deposition is now flat at 7% across η ∈ {0.32, 0.45,
+  0.60}** where it used to run 9% → 15% → 21%; what the elasticity still trades is the service
+  share against the Gini and the living standard, which is Baumol. `docs/investigations/0015`.
+- **A gate has to be reachable in the units the model actually has.** The first version of that
+  second boundary was gated on a service wage premium, mirroring the wage gap that already pulls
+  people into the cities. It is unreachable, and not marginally: professionals and urban workers
+  both earn `wages.services`, so there is no wage a professional earns that an urban worker does
+  not — and services is the LOW-wage sector until roughly 2005 in every century the catalogue
+  runs (0.64–0.83 against the industrial mean). The gate clamped to zero for the first sixty
+  years of the playable century and the mechanism looked correct in code review. It is gated on
+  `skillTightness` instead: the jobs `LABOR_SOURCE` hands a cohort against the people in it,
+  which is where the shortage is actually visible.
+- **Cohort income does not know how many people are in the cohort, so demography cannot reach
+  composition.** `LABOR_SOURCE` splits each sector's payroll by a fixed recipe and `PROFIT_SHARE`
+  / `TRANSFER_SHARE` are fixed too, so moving a head between cohorts transfers no money — it
+  divides the same wage bill differently. Measured: six points of the population moved into the
+  professional class moves the Gini 3.7 points and the service value-added share **−0.22
+  points**. Cohort size reaches income per head (and therefore the Gini, approval, vital rates,
+  migration and the Engel weights), the labour force, and politics. It does not reach the
+  industrial census. This is the third measured wall in front of #97 and it rules out the labour
+  force the way 0016 ruled out elasticities; what is left is capital allocation, which
+  `pipeline/labor.ts` currently does by utilization pressure with no policy input at all.
+  `docs/investigations/0018`.
+- **The staffing table asks for people who do not exist, and nothing stops it.** `skillTightness`
+  runs to 1.7 for professionals on a developmental Meridia and 2.5 on Costona, while urban
+  workers sit at 0.6–0.8. Sector employment is set by demanded output and the only labour-supply
+  limits in the model are the aggregate `0.97 × lf` ceiling and agriculture's subsistence cap.
+  That also means `cohorts.run` scores professionals as fully employed and urban workers as
+  29–37% jobless against a headline near 12%. ADR-0032 improves it and does not remove it.
 - **A price elasticity in the basket does not reach the industrial census — measured, not assumed.**
   CES was implemented and swept over σ ∈ {1, 1.5, 2, 3}: the basket's response to a 25% price fall
   rises monotonically (+6.1% → +10.3%) and the value-added share does not follow (+3.02 → +2.82
@@ -613,8 +643,8 @@ perfectly with no opinion about anything in the game. The first politics impleme
   is that a deficit-financed subsidy RAISES the price it was meant to lower** — +3.4% on
   agriculture, +12.9% on services — because the money lands in profits and the demand outweighs
   the unit-cost relief; tax-funded, the same subsidy takes 21–33% off the price. Point the next
-  steerability attempt at the financing or at capital allocation, not at an elasticity.
-  `docs/investigations/0016`.
+  steerability attempt at capital allocation — 0018 has since ruled out the labour force too, so
+  that is the only direction 0016 named still standing. `docs/investigations/0016`.
 - **A mechanism test and a baseline sweep measure different things, and a statute is where
   they diverge most.** `tests/properties/statutes.test.ts` protects tenure and funds the
   cabinet, deliberately, so that what it measures is the CHANNEL — and it reports the

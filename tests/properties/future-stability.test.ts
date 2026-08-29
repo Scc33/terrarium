@@ -127,8 +127,21 @@ describe('the playable economy through 2050', () => {
     // therefore read as a small recession nobody had. A fixed cohort of a few
     // dozen runs cannot resolve seven points of deposition, so read this as a
     // tail and explosion guard and the batch as the survival measurement.
+    //
+    // v40 (schools make professionals, ADR-0032) gains the DEVELOPMENTAL
+    // cohort four survivors, nineteen to twenty-three, and leaves passive at
+    // twenty-seven — the same split as v34, in the opposite direction and for
+    // the mirror-image reason. A country that never builds a classroom sits on
+    // its opening professional share forever, so the mechanism cannot reach
+    // the passive cohort at all; a country that schools converts its scarcest
+    // and best-paid class from a fixed share into a growing one, and the Gini
+    // falls six points for it. The 1000x400q batch moves the same way and
+    // further: developmental deposition goes 15% back to 7%, which is the
+    // whole political cost the v35 basket charged, refunded. Raising
+    // `ENGEL_ELASTICITY.services` from 0.32 to 0.45 in the same release spends
+    // none of it back here.
     expect(passiveTrend.survivors).toBe(27)
-    expect(developmentalTrend.survivors).toBe(19)
+    expect(developmentalTrend.survivors).toBe(23)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,
     // lifting this fixed passive sample from 2.79% to 2.81% without changing

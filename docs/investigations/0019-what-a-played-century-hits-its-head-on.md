@@ -1,4 +1,4 @@
-# 0018 — What a well-played century hits its head on
+# 0019 — What a well-played century hits its head on
 
 **Status:** Open. Five separate ceilings, measured; none of them is a bug, and at least two of
 them are visible to the player as a flat line with no explanation.

@@ -115,6 +115,8 @@ describe('the published-state contract (§1.1)', () => {
       'workerShareMult',
       'humanCapital',
       'classShares',
+      'professionalBaseline',
+      'schoolingBaseline',
       'crudeBirthRate',
       'crudeDeathRate',
       'netMigrationQ',
