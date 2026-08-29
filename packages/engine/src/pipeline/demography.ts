@@ -109,8 +109,9 @@ export function classSizesFrom(
  * and a global curve through those points would move four of the five
  * countries' class structures in 1946Q1 for their authored structure — the
  * bug ADR-0028's pollution baseline exists to prevent, one register over. At
- * the opening school system this returns exactly the opening share, which is
- * why a passive century is bit-identical.
+ * the opening school system this returns exactly the opening share — for every
+ * legal vector, drafted ones with no schools at all included — which is why a
+ * passive century is bit-identical.
  *
  * `d.humanCapital` and not `gov.capacity.education`: it is the taught
  * workforce that can staff a profession, not the building programme
@@ -118,7 +119,12 @@ export function classSizesFrom(
  * class structure, on top of the crossing rate itself.
  */
 export function professionalCeiling(d: DemographyState): number {
-  const skills = d.humanCapital / Math.max(d.schoolingBaseline, SCHOOLING_BASELINE_FLOOR)
+  // Both sides floored, not just the denominator. At init the two are equal,
+  // so the ratio has to be exactly 1 for EVERY legal vector — including a
+  // drafted country whose education capacity is below the floor, or zero.
+  const skills =
+    Math.max(d.humanCapital, SCHOOLING_BASELINE_FLOOR) /
+    Math.max(d.schoolingBaseline, SCHOOLING_BASELINE_FLOOR)
   return Math.min(
     PROFESSIONAL_SHARE_MAX,
     d.professionalBaseline * Math.pow(Math.max(skills, 0), PROFESSIONAL_SCHOOLING_ELASTICITY),

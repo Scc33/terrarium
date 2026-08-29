@@ -29,8 +29,10 @@ import {
   step,
   WORKING_CLASS_IDS,
   type CapacityId,
+  type CountryParams,
   type TrueState,
 } from '@terrarium/engine'
+import { standardCountry } from '@terrarium/fixtures'
 
 /** A century under one government. `fund` names the ministries it builds; an
  * empty list is a passive century. Tenure is protected and capital unlimited
@@ -42,7 +44,18 @@ function century(
   fund: readonly CapacityId[],
   ticks = 400,
 ): TrueState[] {
-  let s: TrueState = init(createCountryParams(country, seed), seed, {
+  return centuryFrom(createCountryParams(country, seed), seed, fund, ticks)
+}
+
+/** The same century from a params vector, so a DRAFTED country can be driven
+ * through it — the curated recipes cannot reach the edges of the legal box. */
+function centuryFrom(
+  params: CountryParams,
+  seed: string,
+  fund: readonly CapacityId[],
+  ticks = 400,
+): TrueState[] {
+  let s: TrueState = init(params, seed, {
     protectedTenure: true,
     unlimitedCapital: true,
   })
@@ -85,6 +98,40 @@ describe('schools make professionals', () => {
       const s = init(createCountryParams(country, `open-${country}`), `open-${country}`)
       expect(professionalCeiling(s.demography)).toBeCloseTo(professionals(s), 12)
     }
+  })
+
+  it('…including a DRAFTED country with barely any schools, or none at all', () => {
+    // The curated recipes all open between 0.09 and 0.48, so they cannot see
+    // the case that matters: `validateCountryParams` allows an education
+    // capacity anywhere in [0,1] and the drafting room mirrors it exactly, so
+    // a player can author a country with no school system whatever. Flooring
+    // only the DENOMINATOR of the ceiling's ratio opened such a country at a
+    // fraction of its own professional share — zero, at education zero — which
+    // is ADR-0028's bug in a second register, and the loop above was blind to
+    // it by construction.
+    for (const education of [0, 0.001, 0.005, 0.019, 0.02, 0.5, 1]) {
+      const params = {
+        ...standardCountry,
+        capacities: { ...standardCountry.capacities, education },
+      }
+      const s = init(params, `draft-${education}`)
+      expect(professionalCeiling(s.demography)).toBeCloseTo(professionals(s), 12)
+    }
+  })
+
+  it('a schoolless draft is inert until it builds schools, and then it is not', () => {
+    const params = {
+      ...standardCountry,
+      capacities: { ...standardCountry.capacities, education: 0 },
+    }
+    const passive = centuryFrom(params, 'draft-passive', [])
+    const opening = passive[0].demography.professionalBaseline
+    for (const s of passive) expect(professionals(s)).toBe(opening)
+
+    // and the mechanism is not merely disabled for it — the country that opens
+    // with nothing has the most to gain
+    const schooled = centuryFrom(params, 'draft-passive', ['education'])
+    expect(professionals(schooled[399])).toBeGreaterThan(opening + 0.05)
   })
 
   it('a schooling programme makes them: the flat line bends', () => {

@@ -672,7 +672,17 @@ export const PROFESSIONAL_SCHOOLING_ELASTICITY = 0.6
  * near-zero education capacity beside a large professional class, and the
  * ratio above would then licence a ceiling of several hundred percent. */
 export const PROFESSIONAL_SHARE_MAX = 0.45
-/** the smallest opening school system the ratio is allowed to divide by */
+/**
+ * The smallest school system the ceiling's ratio can tell apart, applied to
+ * BOTH SIDES of it. Flooring only the denominator is a bug, and it is the
+ * ADR-0028 bug in miniature: the drafting room legally allows an education
+ * capacity of zero, and at init `humanCapital` equals `schoolingBaseline`, so
+ * a one-sided floor opens such a country at `(schoolingBaseline / 0.02)^0.6`
+ * of its own professional share — zero, when it drafted no schools at all —
+ * and charges it for its authored structure on its opening morning. Floored on
+ * both sides the opening ratio is exactly 1 for every legal vector, curated or
+ * drafted, which is the invariant `professionalCeiling` is built on.
+ */
 export const SCHOOLING_BASELINE_FLOOR = 0.02
 /** share of the remaining headroom to the ceiling crossed per quarter, per
  * unit of relative professional shortage. With the shortage running 0.2–1.0

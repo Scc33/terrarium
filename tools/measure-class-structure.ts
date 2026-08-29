@@ -175,8 +175,25 @@ function govern(seed: string): Reading[] {
   return out
 }
 
-/** The same policy WITHOUT protection, purely to count depositions — the
- * column the cost curve in investigation 0015 is denominated in. */
+/**
+ * The PLAYABLE arm: the same orders, on the same cadence, with neither of the
+ * two safeties `govern` runs under. It differs from the tables above in more
+ * than tenure and that is deliberate — an ordinary cabinet is charged for its
+ * orders, so some of them are refused as unaffordable, and a deposition rate
+ * measured with a cabinet that was never billed would not be a deposition rate
+ * anybody experiences.
+ *
+ * It is labelled as its own arm rather than "the same policy unprotected" for
+ * exactly that reason. It was BOTH, once: the cadence here was every eight
+ * quarters against the tables' four, so the column silently mixed a funding
+ * difference into what it called the price of losing protection.
+ *
+ * Read it as a smoke reading. At the default eight seeds it cannot resolve the
+ * effect — it printed 25% both before and after ADR-0032, while the 1000 x 400q
+ * batch moved 15% to 7%. `pnpm batch --policy developmental` is the
+ * measurement; this is here so a catastrophic regression is visible without
+ * leaving the tool.
+ */
 function deposedShare(seeds: readonly string[]): number {
   let deposed = 0
   for (const seed of seeds) {
@@ -184,12 +201,12 @@ function deposedShare(seeds: readonly string[]): number {
     let fell = false
     for (let t = 0; t < TICKS && !fell; t++) {
       let staged = s
-      if (t % 8 === 0) {
+      if (t % 4 === 0) {
         for (const target of CAPACITY_IDS) {
           try {
             staged = applyActions(staged, [{ kind: 'investCapacity', target, amount: 2 }])
           } catch {
-            continue
+            continue // refused: at full strength, or beyond what the cabinet can pay
           }
         }
       }
@@ -207,7 +224,14 @@ const pct = (v: number): string => `${(100 * v).toFixed(1)}%`
 const seeds = Array.from({ length: SEEDS }, (_, i) => `class-${COUNTRY}-${i}`)
 const started = performance.now()
 const runs = seeds.map(govern)
-const MARKS = [4, 40, 120, 240, 400].filter((t) => t <= TICKS)
+// The last mark is always the last quarter actually run, so `--ticks 300`
+// reports its own endpoint rather than q240, and the verdict line below means
+// what it says when it claims "across the run". Without it a run shorter than
+// the first standard mark leaves MARKS empty and the tool dereferences
+// undefined instead of reporting anything.
+const MARKS = [...new Set([...[4, 40, 120, 240, 400].filter((t) => t <= TICKS), TICKS])].sort(
+  (a, b) => a - b,
+)
 const at = (rs: Reading[], mark: number) => rs[mark - 1]
 
 console.log(`class structure: ${SEEDS} seeds x ${TICKS} ticks on ${COUNTRY}`)
@@ -266,9 +290,16 @@ for (const mark of MARKS) {
     ].join(' '),
   )
 }
-console.log(`\n   deposed (unprotected, same policy): ${pct(deposedShare(seeds))} of ${SEEDS} runs`)
+console.log(
+  `\n   deposed (playable arm — same orders, ordinary tenure AND ordinary capital, so` +
+    ` some are refused): ${pct(deposedShare(seeds))} of ${SEEDS} runs.` +
+    `\n   A smoke reading at this sample size; pnpm batch --policy developmental is the measurement.`,
+)
 
-console.log('\n4. WHO PULLS AWAY — real income per head, indexed to q4')
+// indexed to the FIRST MARK, which is q4 at any ordinary --ticks and is not
+// when the run is shorter than that. Read it off MARKS rather than writing it
+// down, or the header stops being true exactly when the table gets strange.
+console.log(`\n4. WHO PULLS AWAY — real income per head, indexed to q${MARKS[0]}`)
 console.log(['quarter'.padEnd(10), ...COHORT_IDS.map((id) => id.slice(0, 14).padStart(16))].join(' '))
 const base = Object.fromEntries(
   COHORT_IDS.map((id) => [id, median(runs.map((rs) => at(rs, MARKS[0]).incomePerHead[id]))]),
