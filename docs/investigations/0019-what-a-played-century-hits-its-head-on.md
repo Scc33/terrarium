@@ -1,7 +1,9 @@
 # 0019 — What a well-played century hits its head on
 
 **Status:** Open. Five separate ceilings, measured; none of them is a bug, and at least two of
-them are visible to the player as a flat line with no explanation.
+them are visible to the player as a flat line with no explanation. The sixth finding — that the
+dials the player read all this on do not fit the game — is spun off as
+[issue #190](https://github.com/Scc33/terrarium/issues/190).
 
 **Raised by:** [issue #180](https://github.com/Scc33/terrarium/issues/180) — a real game of
 Oranga played end to end in god mode, exported as a save and a published-history file, with five
@@ -223,7 +225,9 @@ by hand, for one dial, and wrote down why.
 The obvious fix touches no engine code: give `eachQuarter` arms besides its capacity policy (a
 maximal builder, a money-dial government, an extractive one), re-run `pnpm ranges`, re-cut the
 faces. One game, one country, one seed is not a population — but 98.2% against a 2% bar does not
-leave the direction in doubt.
+leave the direction in doubt, and re-running the widened sweep is what measures the rest.
+
+Carried as [issue #190](https://github.com/Scc33/terrarium/issues/190).
 
 ## What this implies (nobody has ruled on any of it)
 
@@ -238,8 +242,9 @@ leave the direction in doubt.
 - `human_capital` and the schooling statute are two representations of one fact.
 - The poverty rate needs either a relative line, within-cohort dispersion, or both — and the
   poverty *gap* (already computed) is the smoother of the two figures.
-- **The dial-fit survey needs to sample policy, not just time and country.** This is the one
-  item here that is cheap, engine-free, and blocks reading any of the others off the wall.
+- **The dial-fit survey needs to sample policy, not just time and country**
+  ([#190](https://github.com/Scc33/terrarium/issues/190)). This is the one item here that is
+  cheap, engine-free, and blocks reading any of the others off the wall.
 
 ## Re-running this
 
