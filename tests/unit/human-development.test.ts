@@ -4,6 +4,7 @@ import {
   HUMAN_DEVELOPMENT_INCOME_MIN,
   HUMAN_DEVELOPMENT_LIFE_MAX,
   HUMAN_DEVELOPMENT_LIFE_MIN,
+  INDICATOR_FUNDED_AT,
   humanDevelopmentDimensions,
   humanDevelopmentIndex,
   type IndicatorId,
@@ -79,19 +80,31 @@ const alignedSeries = (
   ...overrides,
 })
 
+const officeRecord = (statCapacity = INDICATOR_FUNDED_AT.human_development) =>
+  Array.from({ length: 9 }, () => ({ statCapacity }))
+
 describe('human-development publication', () => {
   it('publishes nothing until all three component releases align', () => {
-    expect(humanDevelopmentPrintsDue(alignedSeries({ gdp_per_capita: [] }), 10)).toEqual([])
+    expect(
+      humanDevelopmentPrintsDue(
+        alignedSeries({ gdp_per_capita: [] }),
+        officeRecord(),
+        10,
+        false,
+      ),
+    ).toEqual([])
     expect(
       humanDevelopmentPrintsDue(
         alignedSeries({ gdp_per_capita: [print(Math.sqrt(500), { forQtr: 7 })] }),
+        officeRecord(),
         10,
+        false,
       ),
     ).toEqual([])
   })
 
   it('is exactly constructed from published inputs, with no extra noise or hidden-state input', () => {
-    const [release] = humanDevelopmentPrintsDue(alignedSeries(), 10)
+    const [release] = humanDevelopmentPrintsDue(alignedSeries(), officeRecord(), 10, false)
 
     expect(release).toMatchObject({
       forQtr: 8,
@@ -105,7 +118,7 @@ describe('human-development publication', () => {
 
   it('reissues the composite when the aligned component revision arrives', () => {
     const first = alignedSeries()
-    const firstRelease = humanDevelopmentPrintsDue(first, 10)[0]
+    const firstRelease = humanDevelopmentPrintsDue(first, officeRecord(), 10, false)[0]
     const revision = {
       life_expectancy: [...first.life_expectancy!, print(59, { publishedAt: 12, revision: 1 })],
       human_capital: [...first.human_capital!, print(60, { publishedAt: 12, revision: 1 })],
@@ -113,7 +126,7 @@ describe('human-development publication', () => {
       human_development: [firstRelease],
     }
 
-    const [revised] = humanDevelopmentPrintsDue(revision, 12)
+    const [revised] = humanDevelopmentPrintsDue(revision, officeRecord(), 12, false)
     expect(revised.revision).toBe(1)
     expect(revised.forQtr).toBe(firstRelease.forQtr)
     expect(revised.value).not.toBe(firstRelease.value)
@@ -126,10 +139,26 @@ describe('human-development publication', () => {
         human_capital: [print(50, { errorBand: 3 })],
         gdp_per_capita: [print(Math.sqrt(500), { errorBand: 2 })],
       }),
+      officeRecord(),
       10,
+      false,
     )
 
     expect(release.errorBand).toBeGreaterThan(0)
     expect(release.errorBand).toBeLessThan(0.1)
+  })
+
+  it('enforces its declared funding gate, which full instrumentation alone can lift', () => {
+    const belowGate = INDICATOR_FUNDED_AT.human_development - 0.01
+
+    expect(
+      humanDevelopmentPrintsDue(alignedSeries(), officeRecord(belowGate), 10, false),
+    ).toEqual([])
+    expect(
+      humanDevelopmentPrintsDue(alignedSeries(), officeRecord(belowGate), 10, true),
+    ).toHaveLength(1)
+    expect(
+      humanDevelopmentPrintsDue(alignedSeries(), officeRecord(), 10, false),
+    ).toHaveLength(1)
   })
 })

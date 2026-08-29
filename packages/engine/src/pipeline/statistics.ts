@@ -590,12 +590,17 @@ function dimensionsForPrints(
  *
  * This is intentionally a join over the office's RELEASES, not a fourth
  * `trueValue` specification. A candidate exists only when all three inputs
- * have the same reference quarter and revision; its value and band are fully
- * determined by those prints, with no `obs:human_development` RNG stream.
+ * have the same reference quarter and revision, and when the office met the
+ * composite's own funding gate in that reference quarter. Its value and band
+ * are fully determined by those prints, with no `obs:human_development` RNG
+ * stream. `fullInstrumentation` lifts this funding gate just as it does for a
+ * direct indicator; it does not invent a component print that has not arrived.
  */
 export function humanDevelopmentPrintsDue(
   series: Partial<Record<IndicatorId, StatPrint[]>>,
+  record: readonly Pick<StatRecord, 'statCapacity'>[],
   publishedAt: number,
+  fullInstrumentation: boolean,
 ): StatPrint[] {
   const candidates = new Map<string, { forQtr: number; revision: number }>()
   for (const id of HUMAN_DEVELOPMENT_COMPONENT_IDS) {
@@ -614,6 +619,9 @@ export function humanDevelopmentPrintsDue(
   const out: StatPrint[] = []
   for (const [key, candidate] of candidates) {
     if (existing.has(key)) continue
+    const cap = record[candidate.forQtr]?.statCapacity
+    if (cap === undefined) continue
+    if (!fullInstrumentation && cap < INDICATOR_FUNDED_AT.human_development) continue
     const aligned = alignedDevelopmentPrints(series, candidate.forQtr, candidate.revision)
     if (!aligned) continue
     const components = dimensionsForPrints(aligned, 0)
@@ -798,7 +806,12 @@ export const statistics: PipelineStep = {
       const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]
     }
-    const developmentDue = humanDevelopmentPrintsDue(series, releaseDate)
+    const developmentDue = humanDevelopmentPrintsDue(
+      series,
+      record,
+      releaseDate,
+      state.meta.rules.fullInstrumentation,
+    )
     if (developmentDue.length > 0) {
       series.human_development = [
         ...(series.human_development ?? []),
