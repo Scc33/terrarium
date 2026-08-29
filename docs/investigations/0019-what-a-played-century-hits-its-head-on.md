@@ -13,9 +13,9 @@ sandbox rules on. The harness added with this investigation is
 `pnpm replay <save-or-export.json>`.
 
 The save was written at schema 39 and replays cleanly at 40 — a save carries no TrueState — but
-three of the player's 231 orders are now refused by the current engine and skipped, which the
-tool reports. Every conclusion below survived the re-measurement; no headline moved by more
-than 5%.
+five of the player's 231 orders are now refused by the current engine, and their turns are
+discarded exactly as the game's own loader discards them. The tool says so in its own output.
+Every conclusion below survived the re-measurement; no headline moved by more than 5%.
 
 ## The run
 
@@ -73,9 +73,9 @@ the identical log with only the other three statutes removed:
 
 | log variant | emissions compliance | force | emissions/head | pollution | life exp | living |
 |---|---|---|---|---|---|---|
-| as played (4 statutes) | 0.594 | 0.505 | 3.70 | **2.58** | 65.4 | 15.07 |
+| as played (4 statutes) | 0.595 | 0.505 | 3.69 | **2.58** | 65.4 | 15.07 |
 | only the emissions standard | 0.799 | 0.679 | 2.28 | **1.60** | 67.0 | 14.48 |
-| no emissions standard | 0.530 | 0.000 | 6.96 | **4.79** | 61.4 | 14.82 |
+| no emissions standard | 0.531 | 0.000 | 6.99 | **4.79** | 61.4 | 14.86 |
 
 The country's inherited baseline is 1.094. **Enacting one law instead of four leaves the burden
 essentially flat for a century**, for 3.9% of the living standard.
@@ -106,12 +106,19 @@ Predicted against measured per sector at the end of the run, with `absorption = 
 | sector | exposure | predicted | measured |
 |---|---|---|---|
 | services | 0.45 | 97.9 | 97.9 |
-| transport | 0.75 | 94.1 | 94.7 |
-| agri | 0.85 | 92.9 | 93.8 |
-| energy | 0.90 | 92.3 | 93.3 |
-| manuf | 1.00 | 91.1 | 92.5 |
+| transport | 0.75 | 94.6 | 94.7 |
+| agri | 0.85 | 93.6 | 93.8 |
+| energy | 0.90 | 93.1 | 93.3 |
+| manuf | 1.00 | 92.1 | 92.5 |
 
-The aggregate lands at 94.0 predicted, 94.8 measured. The run is *at* its ceiling, and the
+The aggregate lands at 94.6 predicted, 94.8 measured — every sector within 0.4 points of where
+the arithmetic says it must come to rest.
+
+`rate` is state-dependent and the fixed point has to be solved rather than evaluated: the engine
+scales its research catch-up term by `catchupBySector`, which fades only at the frontier itself,
+so a resting position above `RESEARCH_FRONTIER_START` still has research working on it. The first
+version of this document dropped that term and printed 94.0 — a zero-research bound, and biased
+in the direction that makes a run look like it still has headroom. The run is *at* its ceiling, and the
 ceiling has nothing in it the player controls, because **`absorptiveCapacity` clamped at 1 in
 1991** — uncapped it reaches 1.105 by 2026, so every point of human capital and every unit of
 openness bought after 1991 buys exactly zero catch-up speed. What is left is `CATCHUP_Q = 0.02`

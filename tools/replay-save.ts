@@ -13,13 +13,18 @@
  * neither one hands you the TRUE state a balance question is asked about.
  * This replays the log through the engine and prints the truth beside it.
  *
- * Three things it deliberately does:
+ * Four things it deliberately does:
  *
  * - **It accepts either file the game writes.** The records office exports a
  *   `SaveFile`; the data export wraps that same save under `run` beside the
  *   published history (`packages/observation/src/dataExport.ts`). A reader
  *   that took only one of them would send half the people who have a run to
  *   hand-editing JSON first.
+ * - **It replays the log the way the GAME'S LOADER would** (`lenient: 'turn'`),
+ *   not the way a runner policy is scored. An old save may stage an order this
+ *   build refuses; the loader discards that whole turn, so a tool claiming to
+ *   show "the century they played" has to discard it too or it reports a
+ *   country the game itself would not open.
  * - **Counterfactual arms replay the interregnum from the save's own log.**
  *   The caretaker's orders are in `actionLog` (ADR-0021), so an arm that
  *   dropped them would compare the player's century against a country that
@@ -30,23 +35,39 @@
  *   mortality floor, an education capacity of one, a catch-up rate against a
  *   moving frontier — and "the player stopped at 65" and "the model stops at
  *   65" are different findings that look identical in a trajectory.
+ *
+ * The decisions live in exported functions rather than in the CLI body, and
+ * that is not tidiness. The first version of this file put argument parsing,
+ * arm selection and the fixed point inline, where no test could reach them,
+ * and review found four bugs in exactly that half: a `--arms passive,log` that
+ * labelled the passive century as the played one, a positional filename that
+ * swallowed `--every 20`, a zero-quarter save that crashed, and a research
+ * term missing from the ceiling. `tests/tools/replay-save.test.ts` pins them.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import {
   CATCHUP_Q,
   FRONTIER_OWN_DRIFT_Q,
   MORT_BASE_ANNUAL,
   MORT_FLOOR,
+  RESEARCH_CATCHUP_GAIN_Q,
+  RESEARCH_FRONTIER_START,
+  RESEARCH_STOCK_DECAY_Q,
   TECH_EXPOSURE,
 } from '../packages/engine/src/constants'
 import {
+  CAPACITY_IDS,
+  END_OF_HISTORY_TICK,
+  ENGINE_VERSION,
   POVERTY_LINE_REAL,
+  SCHEMA_VERSION,
   SECTOR_IDS,
   STATUTE_IDS,
   STATUTE_LEVELS,
-  CAPACITY_IDS,
   absorptiveCapacity,
+  appointmentTick,
   frontierGrowthAt,
   householdIncomeDistribution,
   lifeExpectancyAtBirth,
@@ -56,7 +77,6 @@ import {
   totalLaborForce,
   type Action,
   type ActionLog,
-  type CountryParams,
   type GameRules,
   type Qtr,
   type SaveFile,
@@ -65,37 +85,74 @@ import {
 import { developmentalPolicy, type RunnerPolicy } from '../packages/runner/src/policies'
 import { runOne } from '../packages/runner/src/run'
 
+export const ARM_IDS = ['log', 'passive', 'developmental', 'maximal'] as const
+export type ArmId = (typeof ARM_IDS)[number]
+
 // ---------- arguments ----------
-function flag(name: string, fallback: string): string {
-  const prefix = `--${name}=`
-  const inline = process.argv.find((value) => value.startsWith(prefix))
-  if (inline) return inline.slice(prefix.length)
-  const index = process.argv.indexOf(`--${name}`)
-  return index >= 0 ? (process.argv[index + 1] ?? fallback) : fallback
+/** Flags that take a SEPARATE value token. Parsing has to know them, because
+ * otherwise `pnpm replay --every 20 save.json` reads `20` as the filename —
+ * which it did, and the error it produced blamed the file. */
+const VALUED_FLAGS = ['every', 'csv', 'arms', 'ticks'] as const
+
+export interface ReplayArgs {
+  file: string
+  every: number
+  csvPath: string
+  arms: ArmId[]
+  /** an explicit `--ticks`, or null to replay the save's whole horizon */
+  ticks: number | null
 }
 
-const ARM_IDS = ['log', 'passive', 'developmental', 'maximal'] as const
-type ArmId = (typeof ARM_IDS)[number]
+export function parseArgs(argv: readonly string[]): ReplayArgs {
+  const flag = (name: string): string | undefined => {
+    const inline = argv.find((value) => value.startsWith(`--${name}=`))
+    if (inline) return inline.slice(name.length + 3)
+    const index = argv.indexOf(`--${name}`)
+    return index >= 0 ? argv[index + 1] : undefined
+  }
 
-const file = process.argv.slice(2).find((value) => !value.startsWith('--'))
-if (!file) {
-  console.error('usage: pnpm replay <save-or-export.json> [--arms …] [--every N] [--csv out.csv]')
-  process.exit(1)
+  // Walk the tokens so a flag's value can never be mistaken for the file.
+  let file: string | undefined
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i]
+    if (token.startsWith('--')) {
+      const name = token.slice(2).split('=')[0]
+      if (!token.includes('=') && (VALUED_FLAGS as readonly string[]).includes(name)) i++
+      continue
+    }
+    file ??= token
+  }
+  if (!file) throw new Error('usage: pnpm replay <save-or-export.json> [--arms …] [--every N] [--csv out.csv] [--ticks N]')
+
+  const every = Number(flag('every') ?? 40)
+  if (!Number.isInteger(every) || every <= 0) throw new Error('--every must be a positive integer')
+
+  const rawTicks = flag('ticks')
+  const ticks = rawTicks === undefined ? null : Number(rawTicks)
+  if (ticks !== null && (!Number.isInteger(ticks) || ticks <= 0)) {
+    throw new Error('--ticks must be a positive integer')
+  }
+
+  // Every name is checked. A silently dropped typo finishes without the
+  // counterfactual the experiment was asking for, and looks like it worked.
+  const names = (flag('arms') ?? ARM_IDS.join(',')).split(',').map((id) => id.trim()).filter(Boolean)
+  const unknown = names.filter((id) => !(ARM_IDS as readonly string[]).includes(id))
+  if (unknown.length > 0) {
+    throw new Error(`unknown arm${unknown.length > 1 ? 's' : ''} ${unknown.join(', ')} — pick from ${ARM_IDS.join(', ')}`)
+  }
+  if (names.length === 0) throw new Error(`--arms must name some of: ${ARM_IDS.join(', ')}`)
+
+  // The log arm always leads: it is the subject, and everything singular the
+  // report prints (ceilings, CSV, sector detail) is read off it BY ID, so the
+  // order here is presentation only.
+  const arms = [...new Set(names as ArmId[])]
+  return { file, every, csvPath: flag('csv') ?? '', arms: ['log', ...arms.filter((id) => id !== 'log')], ticks }
 }
-const every = Number(flag('every', '40'))
-if (!Number.isInteger(every) || every <= 0) throw new Error('--every must be a positive integer')
-const csvPath = flag('csv', '')
-const arms = flag('arms', 'log,passive,developmental,maximal')
-  .split(',')
-  .map((id) => id.trim())
-  .filter((id): id is ArmId => (ARM_IDS as readonly string[]).includes(id))
-if (arms.length === 0) throw new Error(`--arms must name some of: ${ARM_IDS.join(', ')}`)
-if (!arms.includes('log')) arms.unshift('log')
 
 // ---------- the file ----------
 /** Either artifact the game writes. The data export embeds the exact save it
  * was taken from, so unwrapping it is reading the same document. */
-function loadSave(path: string): SaveFile {
+export function loadSave(path: string): SaveFile {
   const parsed = JSON.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>
   const save = ('run' in parsed ? parsed.run : parsed) as SaveFile
   if (!save?.params || !save?.seed || !Array.isArray(save.actionLog)) {
@@ -104,11 +161,37 @@ function loadSave(path: string): SaveFile {
   return save
 }
 
-const save = loadSave(file)
-const params: CountryParams = save.params
-const rules = (save.rules ?? save.mode ?? 'standard') as GameRules | string
-const appointedAt: Qtr = save.appointedAt ?? 0
-const ticks = Number(flag('ticks', String(save.tick)))
+export interface ReplayPlan {
+  /** the save's own appointment, normalized the way `init` normalizes it */
+  appointedAt: Qtr
+  /** quarters to run — never past the save's own record */
+  ticks: number
+}
+
+/**
+ * What this save may legally be asked for.
+ *
+ * Both checks exist because the tool reaches `runOne` rather than the engine's
+ * `replay()`, which enforces them itself. Without them a hand-edited save that
+ * stopped inside its own interregnum reports a caretaker's quarters as a
+ * played game (with every order quoted and none charged), and a `--ticks`
+ * beyond the record appends action-free quarters and calls them played.
+ */
+export function planReplay(save: SaveFile, requestedTicks: number | null): ReplayPlan {
+  const appointedAt = appointmentTick(save.appointedAt ?? 0)
+  if (appointedAt > Math.min(save.tick, END_OF_HISTORY_TICK)) {
+    throw new Error(
+      `the run was saved at quarter ${save.tick} but its government does not take office until ${appointedAt}`,
+    )
+  }
+  if (requestedTicks !== null && requestedTicks > save.tick) {
+    throw new Error(
+      `--ticks ${requestedTicks} runs past the save's own record (${save.tick} quarters); ` +
+      'the extra quarters would be action-free and would not be the century that was played',
+    )
+  }
+  return { appointedAt, ticks: requestedTicks ?? save.tick }
+}
 
 // ---------- policies for the counterfactual arms ----------
 /** Build every ministry, legislate to the top of every ladder, fund research
@@ -122,7 +205,7 @@ const ticks = Number(flag('ticks', String(save.tick)))
  * every year until the book actually reads the top rung, because an enactment
  * that a deposed or broke cabinet silently refused looks exactly like a
  * statute that does nothing (see the tuning lessons in AGENTS.md). */
-const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
+export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
   const actions: Action[] = []
   const gdp = Math.max(state.flows.nominalGdp, 1e-9)
   if (tick % 4 === 0) {
@@ -150,7 +233,7 @@ const POLICIES: Record<Exclude<ArmId, 'log'>, RunnerPolicy | undefined> = {
 }
 
 // ---------- what one quarter of the truth looks like ----------
-interface Reading {
+export interface Reading {
   tick: number
   year: number
   realGdp: number
@@ -161,7 +244,11 @@ interface Reading {
    * substitute: a state that invests everything raises one and not the other. */
   livingStandard: number
   unemployment: number
-  inflationYoY: number
+  /** THIS QUARTER's inflation, annualized. Deliberately not called
+   * year-on-year: it compounds one quarter four times rather than measuring
+   * four distinct quarters, and in a volatile run the two differ materially
+   * while both look plausible. */
+  inflationAnnualizedQ: number
   debtToGdp: number
   lifeExpectancy: number
   mortalityIndex: number
@@ -181,7 +268,7 @@ interface Reading {
   inPower: number
 }
 
-function read(state: TrueState): Reading {
+export function read(state: TrueState): Reading {
   const population = state.demography.pyramid.reduce((sum, n) => sum + n, 0)
   const households = householdIncomeDistribution(state)
   const realGdp = state.flows.realGdp
@@ -193,7 +280,7 @@ function read(state: TrueState): Reading {
     gdpPerHead: realGdp / Math.max(population, 1e-9),
     livingStandard: livingStandard(state),
     unemployment: 100 * state.flows.unemployment,
-    inflationYoY: 100 * (Math.pow(1 + state.flows.inflationQ, 4) - 1),
+    inflationAnnualizedQ: 100 * (Math.pow(1 + state.flows.inflationQ, 4) - 1),
     debtToGdp: 100 * (state.gov.debt / Math.max(4 * state.flows.nominalGdp, 1e-9)),
     lifeExpectancy: lifeExpectancyAtBirth(state),
     mortalityIndex: state.demography.mortalityIndex,
@@ -216,7 +303,7 @@ function read(state: TrueState): Reading {
 }
 
 // ---------- run one arm ----------
-interface Arm {
+export interface Arm {
   id: ArmId
   readings: Reading[]
   final: TrueState
@@ -225,24 +312,26 @@ interface Arm {
   nanCount: number
 }
 
-function runArm(id: ArmId): Arm {
+export function runArm(id: ArmId, save: SaveFile, plan: ReplayPlan): Arm {
   // Every arm inherits the same interregnum: before the player took office the
   // caretaker's orders are the country's own history, and they are in the log.
   const script: ActionLog =
-    id === 'log' ? save.actionLog : save.actionLog.filter((turn) => turn.tick < appointedAt)
+    id === 'log' ? save.actionLog : save.actionLog.filter((turn) => turn.tick < plan.appointedAt)
   const policy = id === 'log' ? undefined : POLICIES[id]
   const readings: Reading[] = []
   const result = runOne({
     seed: save.seed,
-    ticks,
-    params,
+    ticks: plan.ticks,
+    params: save.params,
     script,
-    rules: rules as GameRules,
-    appointedAt,
+    rules: (save.rules ?? save.mode ?? 'standard') as GameRules,
+    appointedAt: plan.appointedAt,
+    // The loader's semantics, not the policy-scoring ones — see the header.
+    lenient: 'turn',
     policy:
       policy === undefined
         ? undefined
-        : (state, rng, tick) => (tick < appointedAt ? [] : policy(state, rng, tick)),
+        : (state, rng, tick) => (tick < plan.appointedAt ? [] : policy(state, rng, tick)),
     includeStateHash: false,
     observer: {
       afterStep(state) {
@@ -261,17 +350,48 @@ function runArm(id: ArmId): Arm {
 }
 
 // ---------- the ceilings the model itself sets ----------
-/** Where a bounded series stops, read off the constants rather than off a run.
- * `note` says what binds; a series with no structural bound says so. */
-function ceilings(final: TrueState): Array<{ id: string; ceiling: string; note: string }> {
+/**
+ * Where `technology_attainment` comes to rest, output-weighted.
+ *
+ * Attainment chases a target that runs away at the frontier's own rate, so the
+ * ratio rests where the two growth rates are equal. Per sector, with
+ * `p = attained / target`:
+ *
+ *   drift + rate(p) × (1 − p) / p = g_target      ⇒      p = rate(p) / (rate(p) + g − drift)
+ *
+ * `rate` DEPENDS on `p`, because the engine scales the research catch-up term
+ * by `catchupBySector`, which fades to zero only at the frontier itself
+ * (`RESEARCH_FRONTIER_START` is 0.7, and a resting position is normally above
+ * it but below one). Dropping that term — as the first version of this did —
+ * understates the rate and so understates the ceiling, and does it in the
+ * direction that makes a run look like it still has headroom. So this iterates
+ * the map above to its fixed point instead of evaluating a zero-research
+ * formula once.
+ */
+export function technologyCeiling(final: TrueState): { resting: number; absorption: number; frontierQ: number } {
   const absorption = absorptiveCapacity(final)
-  // The catch-up fixed point: attainment grows at drift + rate × (gap), the
-  // target at the frontier's rate, so the ratio rests where they are equal.
-  // The research term vanishes as a sector reaches the frontier, which is why
-  // only the floor rate appears here.
   const frontierQ = frontierGrowthAt(final.meta.tick) / 4
-  const restingRatio = (exposure: number): number =>
-    1 / (1 + Math.max(0, exposure * frontierQ - FRONTIER_OWN_DRIFT_Q) / Math.max(CATCHUP_Q * absorption, 1e-9))
+  const intensity = final.tech.researchStock * RESEARCH_STOCK_DECAY_Q
+
+  const restingRatio = (exposure: number): number => {
+    const g = exposure * frontierQ - FRONTIER_OWN_DRIFT_Q
+    if (g <= 0) return 1
+    let p = 1
+    for (let i = 0; i < 128; i++) {
+      const frontierShare = Math.min(
+        1,
+        Math.max(0, (p - RESEARCH_FRONTIER_START) / (1 - RESEARCH_FRONTIER_START)),
+      )
+      const rate =
+        CATCHUP_Q * absorption +
+        absorption * RESEARCH_CATCHUP_GAIN_Q * intensity * (1 - frontierShare)
+      const next = rate / (rate + g)
+      if (Math.abs(next - p) < 1e-12) return next
+      p = next
+    }
+    return p
+  }
+
   let weighted = 0
   let weight = 0
   for (const sector of final.sectors) {
@@ -279,7 +399,13 @@ function ceilings(final: TrueState): Array<{ id: string; ceiling: string; note: 
     weighted += w * restingRatio(TECH_EXPOSURE[sector.id])
     weight += w
   }
-  const techResting = weight > 1e-9 ? weighted / weight : NaN
+  return { resting: weight > 1e-9 ? weighted / weight : NaN, absorption, frontierQ }
+}
+
+/** Where a bounded series stops, read off the constants rather than off a run.
+ * `note` says what binds; a series with no structural bound says so. */
+export function ceilings(final: TrueState): Array<{ id: string; ceiling: string; note: string }> {
+  const { resting, absorption, frontierQ } = technologyCeiling(final)
   return [
     {
       id: 'life_expectancy',
@@ -293,10 +419,10 @@ function ceilings(final: TrueState): Array<{ id: string; ceiling: string; note: 
     },
     {
       id: 'technology_attainment',
-      ceiling: `${(100 * techResting).toFixed(1)}`,
+      ceiling: `${(100 * resting).toFixed(1)}`,
       note:
-        `output-weighted catch-up fixed point at this run's absorption ${absorption.toFixed(2)} ` +
-        `and frontier growth ${(400 * frontierQ).toFixed(1)}%/yr — research raises the frontier too`,
+        `output-weighted catch-up fixed point at this run's absorption ${absorption.toFixed(2)}, ` +
+        `research intensity and frontier growth ${(400 * frontierQ).toFixed(1)}%/yr — research raises the frontier too`,
     },
     {
       id: 'poverty_rate',
@@ -312,25 +438,6 @@ function ceilings(final: TrueState): Array<{ id: string; ceiling: string; note: 
 }
 
 // ---------- output ----------
-const kinds = new Map<string, number>()
-for (const turn of save.actionLog) {
-  for (const action of turn.actions) kinds.set(action.kind, (kinds.get(action.kind) ?? 0) + 1)
-}
-
-console.log(`\n=== ${params.name} — ${file} ===`)
-console.log(
-  `  engine ${save.version.engine} schema ${save.version.schema}  seed ${save.seed}  ` +
-  `${ticks} quarters (${1946 + Math.floor(ticks / 4)})  appointed ${appointedAt}`,
-)
-console.log(`  rules ${typeof rules === 'string' ? rules : JSON.stringify(rules)}`)
-console.log(
-  `  ${save.actionLog.length} turns, ` +
-  `${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`,
-)
-
-const results = arms.map(runArm)
-const log = results[0]
-
 const COLUMNS: Array<[keyof Reading, string, number]> = [
   ['gdpPerHead', 'gdp/head', 2],
   ['livingStandard', 'living', 2],
@@ -346,60 +453,113 @@ const COLUMNS: Array<[keyof Reading, string, number]> = [
   ['participation', 'partic', 1],
 ]
 
-console.log(`\n--- the played century, true state every ${every} quarters ---`)
-console.log(
-  'year  ' + COLUMNS.map(([, label]) => label.padStart(9)).join(''),
-)
-for (const reading of log.readings) {
-  if (reading.tick % every !== 0 && reading !== log.readings[log.readings.length - 1]) continue
-  console.log(
-    String(reading.year).padEnd(6) +
-    COLUMNS.map(([key, , dp]) => (reading[key] as number).toFixed(dp).padStart(9)).join(''),
-  )
-}
+function main(argv: readonly string[]): void {
+  const args = parseArgs(argv)
+  const save = loadSave(args.file)
+  const plan = planReplay(save, args.ticks)
 
-if (results.length > 1) {
-  console.log('\n--- the same country and seed under other governments, at the end ---')
-  console.log('arm            ' + COLUMNS.map(([, label]) => label.padStart(9)).join('') + '   skipped')
-  for (const arm of results) {
-    const last = arm.readings[arm.readings.length - 1]
-    const deposed = arm.deposedAt === null ? '' : ` (deposed ${1946 + Math.floor(arm.deposedAt / 4)})`
+  const kinds = new Map<string, number>()
+  for (const turn of save.actionLog) {
+    for (const action of turn.actions) kinds.set(action.kind, (kinds.get(action.kind) ?? 0) + 1)
+  }
+
+  console.log(`\n=== ${save.params.name} — ${args.file} ===`)
+  // Both stamps, always. The replay runs on the CURRENTLY INSTALLED engine
+  // whatever the file was written by, so labelling these numbers with the
+  // save's own version would file today's behaviour under an old schema — and
+  // an investigation stamped that way is unreproducible by construction.
+  console.log(
+    `  save written by engine ${save.version?.engine ?? '?'} schema ${save.version?.schema ?? '?'}; ` +
+    `replayed by engine ${ENGINE_VERSION} schema ${SCHEMA_VERSION}`,
+  )
+  console.log(
+    `  seed ${save.seed}  ${plan.ticks} quarters (${1946 + Math.floor(plan.ticks / 4)})  ` +
+    `appointed ${plan.appointedAt}`,
+  )
+  console.log(`  rules ${JSON.stringify(save.rules ?? save.mode ?? 'standard')}`)
+  console.log(`  ${save.actionLog.length} turns, ${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`)
+
+  const results = args.arms.map((id) => runArm(id, save, plan))
+  // By id, never by position: an arm list is presentation order, and reading
+  // the subject off `results[0]` labelled `--arms passive,log`'s passive
+  // century as the played one — in the table, the ceilings and the CSV alike.
+  const log = results.find((arm) => arm.id === 'log')
+  if (!log) throw new Error('the played-log arm is always run')
+
+  if (log.readings.length === 0) {
+    // A save the worker writes the moment a posting opens has no quarters in
+    // it yet. That is a valid file, not an error, and it has nothing to report.
+    console.log('\n  this save has not completed a quarter yet — nothing to replay.\n')
+    return
+  }
+
+  console.log(`\n--- the played century, true state every ${args.every} quarters ---`)
+  console.log('year  ' + COLUMNS.map(([, label]) => label.padStart(9)).join(''))
+  const lastReading = log.readings[log.readings.length - 1]
+  for (const reading of log.readings) {
+    if (reading.tick % args.every !== 0 && reading !== lastReading) continue
     console.log(
-      arm.id.padEnd(15) +
-      COLUMNS.map(([key, , dp]) => (last[key] as number).toFixed(dp).padStart(9)).join('') +
-      `   ${String(arm.illegalActionsSkipped).padStart(5)}${deposed}`,
+      String(reading.year).padEnd(6) +
+      COLUMNS.map(([key, , dp]) => (reading[key] as number).toFixed(dp).padStart(9)).join(''),
     )
   }
+
+  if (results.length > 1) {
+    console.log('\n--- the same country and seed under other governments, at the end ---')
+    console.log('arm            ' + COLUMNS.map(([, label]) => label.padStart(9)).join('') + '   skipped')
+    for (const arm of results) {
+      const last = arm.readings[arm.readings.length - 1]
+      if (!last) continue
+      const deposed = arm.deposedAt === null ? '' : ` (deposed ${1946 + Math.floor(arm.deposedAt / 4)})`
+      console.log(
+        arm.id.padEnd(15) +
+        COLUMNS.map(([key, , dp]) => (last[key] as number).toFixed(dp).padStart(9)).join('') +
+        `   ${String(arm.illegalActionsSkipped).padStart(5)}${deposed}`,
+      )
+    }
+    if (log.illegalActionsSkipped > 0) {
+      console.log(
+        `\n  NOTE: ${log.illegalActionsSkipped} of this save's own orders are refused by the ` +
+        `installed engine and their turns were discarded, exactly as the game's loader would. ` +
+        `This is no longer bit-for-bit the century that was played.`,
+      )
+    }
+  }
+
+  console.log('\n--- where the model itself stops ---')
+  for (const row of ceilings(log.final)) {
+    console.log(`  ${row.id.padEnd(23)} ${row.ceiling.padStart(12)}   ${row.note}`)
+  }
+
+  if (log.nanCount > 0) console.log(`\n  WARNING: ${log.nanCount} non-finite readings in the replay`)
+
+  if (args.csvPath) {
+    const keys = Object.keys(log.readings[0]) as Array<keyof Reading>
+    const rows = [keys.join(',')]
+    for (const reading of log.readings) rows.push(keys.map((k) => reading[k]).join(','))
+    writeFileSync(args.csvPath, rows.join('\n') + '\n')
+    console.log(`\n  wrote ${log.readings.length} quarters of true state to ${args.csvPath}`)
+  }
+
+  // Sectoral detail is cheap and is the first thing asked after any composition
+  // question; print it once at the end rather than adding five more columns.
+  console.log('\n--- final sector detail (played century) ---')
+  console.log('sector      output   attained    target   position')
+  for (const sid of SECTOR_IDS) {
+    const sector = log.final.sectors.find((s) => s.id === sid)
+    if (!sector) continue
+    const target = Math.pow(log.final.tech.frontier, TECH_EXPOSURE[sid])
+    const attained = log.final.tech.attained[sid]
+    console.log(
+      `${sid.padEnd(10)} ${sector.output.toFixed(1).padStart(7)} ` +
+      `${attained.toFixed(2).padStart(10)} ${target.toFixed(2).padStart(9)} ` +
+      `${(100 * attained / target).toFixed(1).padStart(10)}%`,
+    )
+  }
+  console.log()
 }
 
-console.log('\n--- where the model itself stops ---')
-for (const row of ceilings(log.final)) {
-  console.log(`  ${row.id.padEnd(23)} ${row.ceiling.padStart(12)}   ${row.note}`)
+// Run only as a CLI, so the decisions above stay importable by tests.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main(process.argv.slice(2))
 }
-
-if (log.nanCount > 0) console.log(`\n  WARNING: ${log.nanCount} non-finite readings in the replay`)
-
-if (csvPath) {
-  const keys = Object.keys(log.readings[0]) as Array<keyof Reading>
-  const rows = [keys.join(',')]
-  for (const reading of log.readings) rows.push(keys.map((k) => reading[k]).join(','))
-  writeFileSync(csvPath, rows.join('\n') + '\n')
-  console.log(`\n  wrote ${log.readings.length} quarters of true state to ${csvPath}`)
-}
-
-// Sectoral detail is cheap and is the first thing asked after any composition
-// question; print it once at the end rather than adding five more columns.
-console.log('\n--- final sector detail (played century) ---')
-console.log('sector      output   attained    target   position')
-for (const sid of SECTOR_IDS) {
-  const sector = log.final.sectors.find((s) => s.id === sid)
-  if (!sector) continue
-  const target = Math.pow(log.final.tech.frontier, TECH_EXPOSURE[sid])
-  const attained = log.final.tech.attained[sid]
-  console.log(
-    `${sid.padEnd(10)} ${sector.output.toFixed(1).padStart(7)} ` +
-    `${attained.toFixed(2).padStart(10)} ${target.toFixed(2).padStart(9)} ` +
-    `${(100 * attained / target).toFixed(1).padStart(10)}%`,
-  )
-}
-console.log()
