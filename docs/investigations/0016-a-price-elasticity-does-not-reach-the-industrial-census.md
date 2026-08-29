@@ -118,7 +118,7 @@ A third channel has since been measured and ruled out, and it narrows the three 
 to one. The labour force is not a route to composition either: six points of the population moved
 into the professional class changes the service value-added share by **−0.22 points**, because
 cohort income in this engine does not depend on cohort size. See
-[0017](0017-composition-cannot-hear-the-class-structure.md).
+[0018](0018-composition-cannot-hear-the-class-structure.md).
 
 That leaves **direction 2 — capital allocation** — as the only recommendation here still
 standing, and it now has a specific address: `pipeline/labor.ts` allocates every unit of

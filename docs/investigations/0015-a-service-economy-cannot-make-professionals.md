@@ -174,5 +174,5 @@ rises 5.5x → 6.5x.
 
 It did not make the economy steerable. Six points of professionals moves the service value-added
 share by **−0.22 points**, because cohort income in this engine does not depend on cohort size.
-That is [0017](0017-composition-cannot-hear-the-class-structure.md), and it is where #97 goes
+That is [0018](0018-composition-cannot-hear-the-class-structure.md), and it is where #97 goes
 next.

@@ -193,7 +193,7 @@ The conclusion this investigation reached about #97 — that a steerability stat
 a lever on a blocked channel — **still stands**, and so does the advice not to ship one yet. What
 changes is where to point the next attempt. Full evidence and three candidate directions:
 [0016](0016-a-price-elasticity-does-not-reach-the-industrial-census.md), narrowed to one by
-[0017](0017-composition-cannot-hear-the-class-structure.md).
+[0018](0018-composition-cannot-hear-the-class-structure.md).
 
 Result 2's remaining half also closed at schema 40. The service share had stopped at flat rather
 than rising because `ENGEL_ELASTICITY.services` was capped by the professionals constraint;

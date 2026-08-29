@@ -1,4 +1,4 @@
-# 0017 — Composition cannot hear the class structure, because cohort income does not know how many people are in the cohort
+# 0018 — Composition cannot hear the class structure, because cohort income does not know how many people are in the cohort
 
 **Status:** Open — and it is the live constraint on issue #97 (steerability)
 

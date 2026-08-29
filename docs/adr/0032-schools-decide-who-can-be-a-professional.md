@@ -94,7 +94,7 @@ step from the farm to a profession skips the rung the urbanization leg exists to
 itself from urban workers instead. This is a real defect — the staffing table is a wage-split
 recipe whose implied headcounts are already impossible — but it is a different change with a
 much larger blast radius, and it is where the steerability question has to be aimed next. See
-[investigation 0017](../investigations/0017-composition-cannot-hear-the-class-structure.md).
+[investigation 0018](../investigations/0018-composition-cannot-hear-the-class-structure.md).
 
 **Nothing**, and let the player answer a rising professional premium with transfers and the
 statute book. This was 0015's third candidate and it was defensible when the premium was
@@ -147,7 +147,7 @@ professionals moves the service value-added share by −0.22 points. Cohort inco
 is independent of cohort size — `LABOR_SOURCE` splits each sector's payroll by a fixed recipe —
 so demography can reach distribution, participation, vital rates and politics, and cannot reach
 the industrial census at all. Anyone reading this ADR as an answer to #97 should read
-[investigation 0017](../investigations/0017-composition-cannot-hear-the-class-structure.md)
+[investigation 0018](../investigations/0018-composition-cannot-hear-the-class-structure.md)
 instead.
 
 **Two new sealed fields** (`professionalBaseline`, `schoolingBaseline`) and no new replay input.

@@ -532,6 +532,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm export-feedback -- --runs 40 --openness all` | paired foreign-demand and household-feedback counterfactuals |
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
 | `pnpm neutral-rate -- --runs 40 --ticks 160` | implied neutral-rate ranges and paired fixed-rate transmission |
+| `pnpm fdi -- --runs 20 --ticks 400` | the foreign-investment flow decomposed into its factors, then the marginal and century value of every order that reaches one |
 | `pnpm architecture` | scan the source and open the engine atlas on localhost:4174 |
 | `pnpm architecture:build` | regenerate and production-build the engine atlas |
 | `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |
