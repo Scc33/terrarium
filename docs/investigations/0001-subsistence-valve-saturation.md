@@ -1,6 +1,9 @@
 # 0001 — The subsistence valve is saturated for most of the century
 
-**Status:** Open
+**Status:** Open — the valve finding stands. The question this document left open ("more than
+one *type* of unemployment... the reachable version of the idea lives" in the rural/urban split)
+was taken up and measured in
+[0020](0020-the-headline-hides-three-labour-markets.md).
 **Raised by:** an attempt to ship an `underemployment` indicator, which was measured, found
 unreachable, and abandoned before it reached a PR.
 **Measured at:** `a0cf497`, 6 seeds × 400 quarters, decade means.
