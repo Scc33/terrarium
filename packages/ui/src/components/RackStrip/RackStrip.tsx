@@ -53,6 +53,13 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
   const { maturity } = access
   const points = series ? shapeSeries(series, 24, now) : []
   const latest = points.length ? points[points.length - 1] : null
+  const digits = latest ? readingDigits(latest.value, indicator) : 0
+  const delta = latest ? quarterDelta(points) : null
+  const reportedDelta =
+    delta === null || Math.abs(delta) < Math.pow(10, -digits) / 2 ? null : delta
+  const deltaHelp = reportedDelta === null
+    ? ''
+    : ` Change since the previous quarter: ${reportedDelta > 0 ? 'up' : 'down'} ${Math.abs(reportedDelta).toFixed(digits)}.`
   const stamped = series
     ? stampWorthyRevision(points, gaugeDomain(indicator, series.points.map((p) => p.value)))
     : null
@@ -66,7 +73,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
         ? 'border-dossier-brass/70 bg-dossier-paper text-dossier-ink hover:border-dossier-ink/60'
         : 'border-dossier-brass/60 bg-dossier-brass/80 text-dossier-ink/80 hover:border-dossier-ink/50'
   const help = latest
-    ? `${names.note} Latest reading: ${latest.value.toFixed(readingDigits(latest.value, indicator))}.${latest.components ? ` Components: ${humanDevelopmentBreakdown(latest.components)}.` : ''} It was already ${latest.lag} quarter${latest.lag === 1 ? '' : 's'} old when published.${stamped ? ' The office later revised this figure.' : ''} Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
+    ? `${names.note} Latest reading: ${latest.value.toFixed(digits)}.${deltaHelp}${latest.components ? ` Components: ${humanDevelopmentBreakdown(latest.components)}.` : ''} It was already ${latest.lag} quarter${latest.lag === 1 ? '' : 's'} old when published.${stamped ? ' The office later revised this figure.' : ''} Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
     : access.availability === 'awaiting'
       ? `${names.needs} is funded, but its first report has not arrived. Select to ${pinned ? 'replace it on' : 'put it on'} the watch board.`
       : `This measurement needs ${names.needs}. Raise the statistics office from ${Math.round(access.currentCapacity * 100)} to ${Math.round(access.fundedAt * 100)} to unlock it.`
@@ -107,11 +114,11 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
               </span>
             )}
             <span className="font-medium tabular-nums">
-              {latest.value.toFixed(readingDigits(latest.value, indicator))}
+              {latest.value.toFixed(digits)}
             </span>
             <Delta
-              delta={quarterDelta(points)}
-              digits={readingDigits(latest.value, indicator)}
+              delta={delta}
+              digits={digits}
               className="text-[9px] opacity-70"
             />
             <span className="rack-release-age text-[9px] opacity-50">{latest.lag}Q</span>

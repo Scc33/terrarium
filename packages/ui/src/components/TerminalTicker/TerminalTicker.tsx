@@ -41,7 +41,13 @@
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { FACE_MARK } from '../../domains'
-import { complementReading, humanDevelopmentBreakdown, NAMES, readingDigits } from '../labels'
+import {
+  complementReading,
+  formatUncertainty,
+  humanDevelopmentBreakdown,
+  NAMES,
+  readingDigits,
+} from '../labels'
 import {
   qtrLabel,
   quarterDelta,
@@ -192,7 +198,7 @@ export function TerminalTicker({
         )}
         <span className="whitespace-nowrap">
           {latest.value.toFixed(digits)}
-          {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(indicator === 'human_development' ? 3 : 1)}</span>}
+          {latest.errorBand > 0 && <span className="opacity-60">±{formatUncertainty(indicator, latest.errorBand)}</span>}
           {(() => {
             const d = quarterDelta(allPoints)
             if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
@@ -234,7 +240,7 @@ export function TerminalTicker({
           return (
             <>
               {view.rollingMonths && <div className="opacity-60">{view.rollingMonths}M ROLLING AVG</div>}
-              {p.errorBand > 0 && <div className="opacity-60">±{p.errorBand.toFixed(1)}</div>}
+              {p.errorBand > 0 && <div className="opacity-60">±{formatUncertainty(indicator, p.errorBand)}</div>}
               {p.visiblyRevised ? (
                 <div className="text-terminal-alert">
                   <s>{p.firstPrint.toFixed(digits)}</s> REVISED

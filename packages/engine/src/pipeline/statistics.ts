@@ -74,6 +74,8 @@ const HUMAN_DEVELOPMENT_COMPONENT_IDS = [
   'gdp_per_capita',
 ] as const satisfies readonly IndicatorId[]
 
+type HumanDevelopmentComponentId = (typeof HUMAN_DEVELOPMENT_COMPONENT_IDS)[number]
+
 interface ConstructedIndicatorSpec {
   id: 'human_development'
   /** Constructed releases read official component prints, never TrueState. */
@@ -378,6 +380,20 @@ const LAGS = [1, 2]
 const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
 const noiseScale = (cap: number) => 1 - 0.85 * cap
 
+/** The three source specs determine the date on which an aligned component
+ * can exist. Build this tiny index once rather than searching all 37 specs for
+ * every candidate composite. It also turns a missing direct spec into a loud
+ * startup error instead of a permanently blank HDI plate. */
+const HUMAN_DEVELOPMENT_COMPONENT_SPECS = new Map(
+  HUMAN_DEVELOPMENT_COMPONENT_IDS.map((id) => {
+    const spec = INDICATOR_SPECS.find((candidate) => candidate.id === id)
+    if (!spec || !isDirectIndicatorSpec(spec)) {
+      throw new Error(`human development component ${id} needs a direct indicator spec`)
+    }
+    return [id, spec] as const
+  }),
+)
+
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
@@ -561,13 +577,42 @@ interface AlignedDevelopmentPrints {
   income: StatPrint
 }
 
+/** Series are append-only in publication-date order. Binary-search the first
+ * release in one date's bucket, then walk only that bucket; a century archive
+ * therefore costs O(log n + releases today), not O(n), each quarter. */
+function printsPublishedAt(
+  points: readonly StatPrint[],
+  publishedAt: number,
+): readonly StatPrint[] {
+  let lo = 0
+  let hi = points.length
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (points[mid].publishedAt < publishedAt) lo = mid + 1
+    else hi = mid
+  }
+  let end = lo
+  while (end < points.length && points[end].publishedAt === publishedAt) end++
+  return points.slice(lo, end)
+}
+
 function alignedDevelopmentPrints(
   series: Partial<Record<IndicatorId, StatPrint[]>>,
+  record: readonly Pick<StatRecord, 'statCapacity'>[],
   forQtr: number,
   revision: number,
 ): AlignedDevelopmentPrints | null {
-  const find = (id: IndicatorId) =>
-    series[id]?.find((print) => print.forQtr === forQtr && print.revision === revision)
+  const cap = record[forQtr]?.statCapacity
+  const revisionDelay = REVISION_DELAYS[revision]
+  if (cap === undefined || revisionDelay === undefined) return null
+  const find = (id: HumanDevelopmentComponentId) => {
+    const spec = HUMAN_DEVELOPMENT_COMPONENT_SPECS.get(id)!
+    const componentPublishedAt =
+      forQtr + (spec.fastLag ? 1 : lagFor(cap)) + revisionDelay
+    return printsPublishedAt(series[id] ?? [], componentPublishedAt).find(
+      (print) => print.forQtr === forQtr && print.revision === revision,
+    )
+  }
   const life = find('life_expectancy')
   const skills = find('human_capital')
   const income = find('gdp_per_capita')
@@ -604,8 +649,7 @@ export function humanDevelopmentPrintsDue(
 ): StatPrint[] {
   const candidates = new Map<string, { forQtr: number; revision: number }>()
   for (const id of HUMAN_DEVELOPMENT_COMPONENT_IDS) {
-    for (const print of series[id] ?? []) {
-      if (print.publishedAt !== publishedAt) continue
+    for (const print of printsPublishedAt(series[id] ?? [], publishedAt)) {
       candidates.set(`${print.forQtr}:${print.revision}`, {
         forQtr: print.forQtr,
         revision: print.revision,
@@ -614,7 +658,9 @@ export function humanDevelopmentPrintsDue(
   }
 
   const existing = new Set(
-    (series.human_development ?? []).map((print) => `${print.forQtr}:${print.revision}`),
+    printsPublishedAt(series.human_development ?? [], publishedAt).map(
+      (print) => `${print.forQtr}:${print.revision}`,
+    ),
   )
   const out: StatPrint[] = []
   for (const [key, candidate] of candidates) {
@@ -622,7 +668,12 @@ export function humanDevelopmentPrintsDue(
     const cap = record[candidate.forQtr]?.statCapacity
     if (cap === undefined) continue
     if (!fullInstrumentation && cap < INDICATOR_FUNDED_AT.human_development) continue
-    const aligned = alignedDevelopmentPrints(series, candidate.forQtr, candidate.revision)
+    const aligned = alignedDevelopmentPrints(
+      series,
+      record,
+      candidate.forQtr,
+      candidate.revision,
+    )
     if (!aligned) continue
     const components = dimensionsForPrints(aligned, 0)
     const value = humanDevelopmentIndex(components)

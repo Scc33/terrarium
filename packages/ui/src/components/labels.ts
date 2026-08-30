@@ -92,6 +92,12 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
 export const readingDigits = (value: number, indicator?: IndicatorId): number =>
   indicator === 'human_development' ? 3 : Math.abs(value) >= 100 ? 0 : 1
 
+/** The HDI's propagated band lives in hundredths, so one decimal would turn
+ * real uncertainty into ±0.0. Every surface that quotes a terminal-era band
+ * uses this formatter rather than choosing its own precision. */
+export const formatUncertainty = (indicator: IndicatorId, errorBand: number): string =>
+  errorBand.toFixed(indicator === 'human_development' ? 3 : 1)
+
 export const HUMAN_DEVELOPMENT_COMPONENTS = [
   { key: 'health', label: 'HEALTH' },
   { key: 'skills', label: 'SKILLS' },

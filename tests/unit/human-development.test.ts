@@ -80,8 +80,10 @@ const alignedSeries = (
   ...overrides,
 })
 
-const officeRecord = (statCapacity = INDICATOR_FUNDED_AT.human_development) =>
-  Array.from({ length: 9 }, () => ({ statCapacity }))
+const officeRecord = (
+  statCapacity = INDICATOR_FUNDED_AT.human_development,
+  quarters = 9,
+) => Array.from({ length: quarters }, () => ({ statCapacity }))
 
 describe('human-development publication', () => {
   it('publishes nothing until all three component releases align', () => {
@@ -160,5 +162,39 @@ describe('human-development publication', () => {
     expect(
       humanDevelopmentPrintsDue(alignedSeries(), officeRecord(), 10, false),
     ).toHaveLength(1)
+  })
+
+  it('indexes the release-date bucket without rescanning the century archive', () => {
+    const currentQtr = 1000
+    const publishedAt = currentQtr + 2
+    let indexedReads = 0
+    const withArchive = (value: number): StatPrint[] => {
+      const points = Array.from({ length: currentQtr }, (_, forQtr) =>
+        print(value, { forQtr, publishedAt: forQtr + 2 }),
+      )
+      points.push(print(value, { forQtr: currentQtr, publishedAt }))
+      return new Proxy(points, {
+        get(target, property, receiver) {
+          if (typeof property === 'string' && /^\d+$/.test(property)) indexedReads++
+          return Reflect.get(target, property, receiver)
+        },
+      })
+    }
+
+    const releases = humanDevelopmentPrintsDue(
+      {
+        life_expectancy: withArchive(52.5),
+        human_capital: withArchive(50),
+        gdp_per_capita: withArchive(Math.sqrt(500)),
+      },
+      officeRecord(INDICATOR_FUNDED_AT.human_development, currentQtr + 1),
+      publishedAt,
+      false,
+    )
+
+    expect(releases).toHaveLength(1)
+    // A full scan reads more than 3,000 entries here. Binary lookup plus the
+    // one-release buckets remains logarithmic as the archive grows.
+    expect(indexedReads).toBeLessThan(200)
   })
 })

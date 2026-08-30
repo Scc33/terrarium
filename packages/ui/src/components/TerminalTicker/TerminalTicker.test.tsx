@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { IndicatorSeries } from '@terrarium/observation'
 import { TerminalTicker } from './TerminalTicker'
-import { NAMES } from '../labels'
+import { formatUncertainty, NAMES } from '../labels'
 
 const series: IndicatorSeries = {
   id: 'inflation', label: 'Inflation', unit: '%',
@@ -78,6 +78,12 @@ describe('TerminalTicker', () => {
     )
 
     expect(html).toContain('0.550')
+    expect(html).toContain('±0.010')
     expect(html).toContain('H/S/I 0.45/0.55/0.65')
+  })
+
+  it('uses the same honest uncertainty precision in the footer and chart hover', () => {
+    expect(formatUncertainty('human_development', 0.01)).toBe('0.010')
+    expect(formatUncertainty('inflation', 0.1)).toBe('0.1')
   })
 })
