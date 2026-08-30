@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   check:
-    name: typecheck · lint · test
+    name: typecheck · lint · build · test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +37,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      - name: Build production app
+        run: pnpm build
 
       - name: Test (with coverage thresholds)
         run: pnpm coverage
