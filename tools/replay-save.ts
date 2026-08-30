@@ -179,7 +179,12 @@ export interface ReplayPlan {
  */
 export function planReplay(save: SaveFile, requestedTicks: number | null): ReplayPlan {
   const appointedAt = appointmentTick(save.appointedAt ?? 0)
-  if (appointedAt > Math.min(save.tick, END_OF_HISTORY_TICK)) {
+  // The same clamp `replayWindow` applies in the loader. A save can carry a
+  // tick past the close — hand-edited, or written by a build whose calendar
+  // ran further — and simulating quarters after the game has ended reports a
+  // country the game itself would never show, having claimed to match it.
+  const closes = Math.min(save.tick, END_OF_HISTORY_TICK)
+  if (appointedAt > closes) {
     throw new Error(
       `the run was saved at quarter ${save.tick} but its government does not take office until ${appointedAt}`,
     )
@@ -190,7 +195,7 @@ export function planReplay(save: SaveFile, requestedTicks: number | null): Repla
       'the extra quarters would be action-free and would not be the century that was played',
     )
   }
-  return { appointedAt, ticks: requestedTicks ?? save.tick }
+  return { appointedAt, ticks: Math.min(requestedTicks ?? closes, closes) }
 }
 
 // ---------- policies for the counterfactual arms ----------
@@ -220,8 +225,17 @@ export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
         actions.push({ kind: 'enact', statute: id, level: top })
       }
     }
-    actions.push({ kind: 'setSpendingRule', programme: 'research', mode: 'gdpShare', value: 0.05 })
-    actions.push({ kind: 'setSpendingRule', programme: 'investment', mode: 'gdpShare', value: 0.08 })
+    // Vote a rule only while it is not already the rule. `setSpendingRule`
+    // charges the base political-capital cost even for an identical share, so
+    // a probe that re-submits every year burns capital it should be spending
+    // on ministries and statutes — and on any run without `unlimitedCapital`
+    // that is the difference between a ceiling and a deposition.
+    for (const [programme, share] of [['research', 0.05], ['investment', 0.08]] as const) {
+      const rule = state.gov.spendingRules[programme]
+      if (rule.kind !== 'gdpShare' || Math.abs(rule.share - share) > 1e-9) {
+        actions.push({ kind: 'setSpendingRule', programme, mode: 'gdpShare', value: share })
+      }
+    }
   }
   return actions
 }
@@ -357,16 +371,31 @@ export function runArm(id: ArmId, save: SaveFile, plan: ReplayPlan): Arm {
  * ratio rests where the two growth rates are equal. Per sector, with
  * `p = attained / target`:
  *
- *   drift + rate(p) × (1 − p) / p = g_target      ⇒      p = rate(p) / (rate(p) + g − drift)
+ *   a' = a(1 + drift) + rate(p) × (T' − a),   T' = T × (1 + g)
+ *
+ * Setting a'/T' = a/T = p and dividing through by T gives
+ *
+ *   p = rate(p) × (1 + g) / (rate(p) + g − drift)
+ *
+ * Two details are load-bearing and both were wrong the first time.
+ *
+ * `g` is `(1 + frontierQ)^exposure − 1`, the engine's own MULTIPLICATIVE
+ * advance, not `exposure × frontierQ`; and the numerator carries `(1 + g)`
+ * because the engine's catch-up term chases `historicalTarget`, which is the
+ * target AFTER this quarter's frontier step. Dropping either understates the
+ * ceiling by a couple of tenths, in the direction that makes a run look like
+ * it still has headroom.
  *
  * `rate` DEPENDS on `p`, because the engine scales the research catch-up term
  * by `catchupBySector`, which fades to zero only at the frontier itself
  * (`RESEARCH_FRONTIER_START` is 0.7, and a resting position is normally above
- * it but below one). Dropping that term — as the first version of this did —
- * understates the rate and so understates the ceiling, and does it in the
- * direction that makes a run look like it still has headroom. So this iterates
- * the map above to its fixed point instead of evaluating a zero-research
- * formula once.
+ * it but below one). So this iterates the map rather than evaluating a
+ * zero-research formula once.
+ *
+ * Breakthroughs are deliberately absent: `ownInnovation` is a Poisson lump on
+ * the frontier, not a term in a resting point.
+ * `tests/tools/replay-save.test.ts` pins the result against a direct
+ * simulation of `pipeline/technology.ts`'s own update.
  */
 export function technologyCeiling(final: TrueState): { resting: number; absorption: number; frontierQ: number } {
   const absorption = absorptiveCapacity(final)
@@ -374,8 +403,10 @@ export function technologyCeiling(final: TrueState): { resting: number; absorpti
   const intensity = final.tech.researchStock * RESEARCH_STOCK_DECAY_Q
 
   const restingRatio = (exposure: number): number => {
-    const g = exposure * frontierQ - FRONTIER_OWN_DRIFT_Q
-    if (g <= 0) return 1
+    const g = Math.pow(1 + frontierQ, exposure) - 1
+    // A target that advances no faster than the drift is one attainment
+    // catches; the ratio rests at the frontier rather than below it.
+    if (g <= FRONTIER_OWN_DRIFT_Q) return 1
     let p = 1
     for (let i = 0; i < 128; i++) {
       const frontierShare = Math.min(
@@ -385,7 +416,7 @@ export function technologyCeiling(final: TrueState): { resting: number; absorpti
       const rate =
         CATCHUP_Q * absorption +
         absorption * RESEARCH_CATCHUP_GAIN_Q * intensity * (1 - frontierShare)
-      const next = rate / (rate + g)
+      const next = Math.min(1, (rate * (1 + g)) / (rate + g - FRONTIER_OWN_DRIFT_Q))
       if (Math.abs(next - p) < 1e-12) return next
       p = next
     }
@@ -458,8 +489,14 @@ function main(argv: readonly string[]): void {
   const save = loadSave(args.file)
   const plan = planReplay(save, args.ticks)
 
+  // Only the turns this replay will actually reach. A `--ticks` prefix that
+  // still advertised the whole log would credit the experiment with statutes
+  // and spending changes that had not happened yet.
   const kinds = new Map<string, number>()
+  let turnsInHorizon = 0
   for (const turn of save.actionLog) {
+    if (turn.tick >= plan.ticks) continue
+    turnsInHorizon++
     for (const action of turn.actions) kinds.set(action.kind, (kinds.get(action.kind) ?? 0) + 1)
   }
 
@@ -477,7 +514,11 @@ function main(argv: readonly string[]): void {
     `appointed ${plan.appointedAt}`,
   )
   console.log(`  rules ${JSON.stringify(save.rules ?? save.mode ?? 'standard')}`)
-  console.log(`  ${save.actionLog.length} turns, ${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`)
+  const elided = save.actionLog.length - turnsInHorizon
+  console.log(
+    `  ${turnsInHorizon} turns${elided > 0 ? ` (${elided} later ones outside this horizon)` : ''}, ` +
+    `${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`,
+  )
 
   const results = args.arms.map((id) => runArm(id, save, plan))
   // By id, never by position: an arm list is presentation order, and reading
@@ -517,13 +558,17 @@ function main(argv: readonly string[]): void {
         `   ${String(arm.illegalActionsSkipped).padStart(5)}${deposed}`,
       )
     }
-    if (log.illegalActionsSkipped > 0) {
-      console.log(
-        `\n  NOTE: ${log.illegalActionsSkipped} of this save's own orders are refused by the ` +
-        `installed engine and their turns were discarded, exactly as the game's loader would. ` +
-        `This is no longer bit-for-bit the century that was played.`,
-      )
-    }
+  }
+
+  // Outside the comparison block on purpose: `--arms log` is the run most
+  // likely to be quoted as "the played century", and it is the one where a
+  // silently discarded turn does the most damage.
+  if (log.illegalActionsSkipped > 0) {
+    console.log(
+      `\n  NOTE: ${log.illegalActionsSkipped} of this save's own orders are refused by the ` +
+      `installed engine and their turns were discarded, exactly as the game's loader would. ` +
+      `This is no longer bit-for-bit the century that was played.`,
+    )
   }
 
   console.log('\n--- where the model itself stops ---')

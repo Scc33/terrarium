@@ -107,20 +107,26 @@ Predicted against measured per sector at the end of the run, with `absorption = 
 
 | sector | exposure | predicted | measured |
 |---|---|---|---|
-| services | 0.45 | 97.9 | 97.9 |
-| transport | 0.75 | 94.6 | 94.7 |
-| agri | 0.85 | 93.6 | 93.8 |
-| energy | 0.90 | 93.1 | 93.3 |
-| manuf | 1.00 | 92.1 | 92.5 |
+| services | 0.45 | 98.1 | 97.9 |
+| transport | 0.75 | 94.8 | 94.7 |
+| agri | 0.85 | 93.8 | 93.8 |
+| energy | 0.90 | 93.3 | 93.3 |
+| manuf | 1.00 | 92.4 | 92.5 |
 
-The aggregate lands at 94.6 predicted, 94.8 measured — every sector within 0.4 points of where
-the arithmetic says it must come to rest.
+The aggregate lands at **94.8 predicted, 94.8 measured**, and no sector is more than 0.2 points
+off. The run is not near its resting point; it is on it.
 
-`rate` is state-dependent and the fixed point has to be solved rather than evaluated: the engine
-scales its research catch-up term by `catchupBySector`, which fades only at the frontier itself,
-so a resting position above `RESEARCH_FRONTIER_START` still has research working on it. The first
-version of this document dropped that term and printed 94.0 — a zero-research bound, and biased
-in the direction that makes a run look like it still has headroom. The run is *at* its ceiling, and the
+Three details of that arithmetic are load-bearing, and this document got each of them wrong once
+before review caught it. `rate` is state-dependent — the engine scales its research catch-up term
+by `catchupBySector`, which fades only at the frontier itself, so a resting position above
+`RESEARCH_FRONTIER_START` still has research working on it, and the fixed point has to be solved
+rather than evaluated. `g` is the engine's MULTIPLICATIVE advance
+`(1 + frontierQ)^exposure − 1`, not `exposure × frontierQ`. And the numerator carries `(1 + g)`,
+because the engine's catch-up term chases `historicalTarget` — the target after this quarter's
+frontier step, not before it. The three errors printed 94.0, then 94.6, each time low, and each
+time in the direction that makes a run look like it still has headroom.
+`tests/tools/replay-save.test.ts` now pins the closed form against a direct simulation of
+`pipeline/technology.ts`'s own update, per sector. The run is *at* its ceiling, and the
 ceiling has nothing in it the player controls, because **`absorptiveCapacity` clamped at 1 in
 1991** — uncapped it reaches 1.105 by 2026, so every point of human capital and every unit of
 openness bought after 1991 buys exactly zero catch-up speed. What is left is `CATCHUP_Q = 0.02`

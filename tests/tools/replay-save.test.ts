@@ -23,19 +23,31 @@ import { describe, expect, it } from 'vitest'
 import {
   END_OF_HISTORY_TICK,
   LAST_APPOINTMENT_TICK,
+  SECTOR_IDS,
   createCountryParams,
   createSave,
   hashState,
+  init,
   replay,
+  rngFor,
   type Action,
   type ActionLog,
   type SaveFile,
 } from '../../packages/engine/src/index'
-import { RESEARCH_STOCK_DECAY_Q } from '../../packages/engine/src/constants'
+import {
+  CATCHUP_Q,
+  FRONTIER_OWN_DRIFT_Q,
+  RESEARCH_CATCHUP_GAIN_Q,
+  RESEARCH_FRONTIER_START,
+  RESEARCH_STOCK_DECAY_Q,
+  TECH_EXPOSURE,
+} from '../../packages/engine/src/constants'
+
 import { runOne } from '../../packages/runner/src/run'
 import {
   ARM_IDS,
   loadSave,
+  maximalPolicy,
   parseArgs,
   planReplay,
   technologyCeiling,
@@ -178,6 +190,16 @@ describe('what a save may legally be asked for', () => {
     expect(planReplay(save(160, 0), null).ticks).toBe(160)
   })
 
+  it("clamps the horizon to the game's close, as the loader does", () => {
+    // `replayWindow` does `Math.min(save.tick, END_OF_HISTORY_TICK)`. A save
+    // can carry a tick past the close, and simulating quarters after the game
+    // has ended reports a country the game would never show — from a tool that
+    // claims loader-equivalent replay.
+    expect(planReplay(save(END_OF_HISTORY_TICK + 200, 0), null).ticks).toBe(END_OF_HISTORY_TICK)
+    expect(planReplay(save(END_OF_HISTORY_TICK + 200, 0), END_OF_HISTORY_TICK + 100).ticks)
+      .toBe(END_OF_HISTORY_TICK)
+  })
+
   it('normalizes the appointment the way init does', () => {
     // An out-of-range appointment is clamped by `init`, so a raw value used to
     // filter the caretaker log would split it at a quarter that never existed.
@@ -203,7 +225,91 @@ describe('reading the file', () => {
   })
 })
 
+describe('the maximal ceiling probe', () => {
+  it('stops revoting a spending rule once it is the rule', () => {
+    // `setSpendingRule` charges base political capital even for an identical
+    // share, so a probe that resubmits every fourth quarter burns capital it
+    // owes to ministries and statutes — and without `unlimitedCapital` that is
+    // the difference between reaching a ceiling and being deposed.
+    const seed = 'maximal-revote'
+    const state = init(createCountryParams('meridia', seed), seed)
+    const rng = rngFor(seed, 'test', 0)
+
+    const fresh = maximalPolicy(state, rng, 0)
+    expect(fresh.filter((a) => a.kind === 'setSpendingRule')).toHaveLength(2)
+
+    const voted = {
+      ...state,
+      gov: {
+        ...state.gov,
+        spendingRules: {
+          ...state.gov.spendingRules,
+          research: { kind: 'gdpShare', share: 0.05, votedAt: 0 },
+          investment: { kind: 'gdpShare', share: 0.08, votedAt: 0 },
+        },
+      },
+    } as typeof state
+    expect(maximalPolicy(voted, rng, 4).filter((a) => a.kind === 'setSpendingRule')).toHaveLength(0)
+  })
+})
+
 describe('the technology ceiling', () => {
+  it('agrees with simulating the engine\'s own update to a resting point', () => {
+    // The strongest check available for a closed-form fixed point: run
+    // `pipeline/technology.ts`'s update forward under constant conditions and
+    // see where the ratio actually settles. The first two versions of this
+    // arithmetic were each a couple of tenths low — one dropped the research
+    // term, one linearized the frontier's multiplicative advance and lost the
+    // (1+g) factor the engine's `historicalTarget` carries — and both erred in
+    // the direction that makes a run look like it still has headroom.
+    //
+    // Absorption and intensity are read back OFF the ceiling rather than
+    // assumed, so this pins the algebra and not one country's constants.
+    const seed = 'fixed-point'
+    const base = init(createCountryParams('meridia', seed), seed)
+
+    const settle = (
+      exposure: number,
+      absorption: number,
+      frontierQ: number,
+      intensity: number,
+    ): number => {
+      let frontier = 1
+      let attained = Math.pow(0.5, exposure)
+      for (let i = 0; i < 60_000; i++) {
+        const advanced = frontier * (1 + frontierQ)
+        const target = Math.pow(advanced, exposure)
+        const frontierShare = Math.min(
+          1,
+          Math.max(0, (attained / target - RESEARCH_FRONTIER_START) / (1 - RESEARCH_FRONTIER_START)),
+        )
+        const rate =
+          CATCHUP_Q * absorption +
+          absorption * RESEARCH_CATCHUP_GAIN_Q * intensity * (1 - frontierShare)
+        attained = attained * (1 + FRONTIER_OWN_DRIFT_Q) + rate * Math.max(0, target - attained)
+        frontier = advanced
+      }
+      return attained / Math.pow(frontier, exposure)
+    }
+
+    // One sector at a time: the aggregate is an output weighting of exactly
+    // these, so a state whose whole output is one sector isolates its ratio.
+    for (const sid of SECTOR_IDS) {
+      const only = base.sectors.find((sector) => sector.id === sid)
+      if (!only) throw new Error(`no ${sid} sector`)
+      const state = {
+        ...base,
+        meta: { ...base.meta, tick: 328 },
+        sectors: [{ ...only, output: 100 }],
+        tech: { ...base.tech, researchStock: 0.55 },
+      }
+      const { resting, absorption, frontierQ } = technologyCeiling(state)
+      const intensity = state.tech.researchStock * RESEARCH_STOCK_DECAY_Q
+      expect(resting, `${sid} resting point`)
+        .toBeCloseTo(settle(TECH_EXPOSURE[sid], absorption, frontierQ, intensity), 3)
+    }
+  })
+
   it('rises when the country has a research programme running', () => {
     // The engine scales its research catch-up term by `catchupBySector`, which
     // only fades at the frontier itself — so a fixed point that drops the term
