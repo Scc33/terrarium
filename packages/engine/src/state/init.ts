@@ -16,6 +16,7 @@ import {
   CONF_NEUTRAL,
   CREDIT_BASE,
   CORPORATE_TAX_1946,
+  DEBT_RISK_PREMIUM_AT,
   DEBT_TO_GDP_1946,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
@@ -28,6 +29,7 @@ import {
   PROFIT_SHARE,
   POLICY_RATE_1946,
   RESERVES_INIT_QTRS,
+  RISK_PREMIUM_SLOPE,
   TARIFF_1946,
   TRADE_ELASTICITY,
   EXPORT_BASE_SHARE,
@@ -229,6 +231,12 @@ export function init(
   // an unbalanced opening budget compounds into a scripted depression
   const adminEff = adminEffectiveness(params.capacities.administrative)
   const taxEff = taxEfficiency(params.capacities.tax)
+  // The tariff BASE — pre-tariff, because that is what customs charges duty on.
+  // It is deliberately NOT the import order: `importOrder0` below is, and the
+  // two differ by the relative-price term an importer facing the duty responds
+  // to. The quarter-one revenue estimate stays on this basis because the
+  // opening budget was calibrated against it, and moving that calibration is a
+  // separate question from anything the currency needs.
   const importsValue = SECTOR_IDS.reduce(
     (s, id) => s + IMPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
     0,
@@ -249,13 +257,15 @@ export function init(
   // morning that it then spends a decade appreciating away.
   const openness = params.openness
   const importOrderFactor = Math.pow(1 / (1 + TARIFF_1946), TRADE_ELASTICITY)
-  const tradeBalance0 = SECTOR_IDS.reduce((sum, id) => {
+  let importOrder0 = 0
+  let exportOrder0 = 0
+  for (const id of SECTOR_IDS) {
     const potential = gross[id] / UTILIZATION_AT_INIT
     // The export cap `production` applies, at the opening relative price of 1.
-    const exports = Math.min(EXPORT_BASE_SHARE[id] * potential * openness, 0.5 * potential)
-    const imports = IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
-    return sum + exports - imports
-  }, 0)
+    exportOrder0 += Math.min(EXPORT_BASE_SHARE[id] * potential * openness, 0.5 * potential)
+    importOrder0 += IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
+  }
+  const tradeBalance0 = exportOrder0 - importOrder0
   const wageBill0 = SECTOR_IDS.reduce((s, id) => s + wages[id] * employment[id], 0)
   const profits0 = (1 - LABOR_SHARE) * gdp0
   const revenue0 =
@@ -516,7 +526,14 @@ export function init(
     },
     external: {
       worldPrices: sectorRecord(() => 1),
-      reserves: importsValue * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
+      // Quarters of cover, measured on the same import figure `trade` compares
+      // the book against — `flows.tariffBase`, which is the realized import
+      // ORDER at border prices. `importsValue` above is the pre-tariff BASE and
+      // is ~15% larger, so seeding from it opened every country a sixth above
+      // its own `coverTarget`; and because the top-up is one-sided the bank
+      // would not sell that cushion down, it would just sit there until growth
+      // erased it. Harmless until `coverTarget` existed to be compared against.
+      reserves: importOrder0 * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
       exchangeRate: 1,
       // The real rate this country opens on, measured from the vectors above
       // rather than written as 1 — see the field's own note. `prices` and
@@ -526,6 +543,13 @@ export function init(
       fxParityAnchor: 1,
       balanceNorm: tradeBalance0 / gdp0,
       coverTarget: params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
+      // The recipe's own reading of the premium it inherits. `trade` re-seals
+      // this on the opening quarter against REALIZED output, which is the only
+      // basis `sovereignRiskPremium` is ever computed on and which does not
+      // exist until `production` has run — this is what the field holds for
+      // anything that reads the state before the first tick.
+      inheritedRiskPremium:
+        Math.max(0, debtToGdp0 - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE,
       foreignOwnedCapital: foreignOwnedCapital0,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),

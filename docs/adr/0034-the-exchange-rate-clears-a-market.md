@@ -128,9 +128,9 @@ undone" lesson in a new register, and it is the honest answer: nominal exchange-
 neutral in the medium run, which is why real countries stop.
 
 Against a floating control on identical capacity paths, the maximum standing order is worth
-**+7.9% of exports and +3.8% of real GDP at ten years**, still **+5.3% and +0.9% at thirty**, and
+**+7.7% of exports and +3.7% of real GDP at ten years**, still **+5.3% and +0.9% at thirty**, and
 **−3.5% and −4.2% by 2046** — with consumption per the same path, −4.2%. The export share moves
-+0.58 pp at ten years, +0.74 pp at thirty and +0.21 pp at a century, which puts its medium run
++0.57 pp at ten years, +0.73 pp at thirty and +0.20 pp at a century, which puts its medium run
 alongside the zero tariff's +0.6 pp in investigation 0010 and still far below tax capacity's
 +3.9 pp.
 
@@ -156,7 +156,7 @@ skips whatever capacity bid that leaves unaffordable, and without the rule the a
 develop different states: measured, the +10% arm skipped 34.5 orders a run against the float's
 18.0 and ended a century with 1% less total capacity. That confound was suppressing the lever's
 medium-run gain AND its long-run cost — before it was removed the same order read +6.0% of
-exports at ten years and −2.4% of GDP at a century, against +7.9% and −4.2% now.
+exports at ten years and −2.4% of GDP at a century, against +7.7% and −4.2% now.
 
 What survives is the reserve book — a stock, and stocks compound — and what it can be spent on
 later. Building reserves in the good years to spend them defending the currency in a crisis is

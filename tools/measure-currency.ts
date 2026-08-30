@@ -36,7 +36,8 @@
  *    switching off.
  * 4. THE TERRAIN. What the rate, the reserve book and the balance do under
  *    passive and capacity-building play with nobody touching the dial, per
- *    country. Every number above has to be read against this.
+ *    country, read at the last quarter the player was still governing. Every
+ *    number above has to be read against this.
  */
 
 import {
@@ -396,22 +397,35 @@ for (const country of CURATED_COUNTRY_IDS) {
     const realRates: number[] = []
     const cover: number[] = []
     const balance: number[] = []
+    let deposed = 0
     for (const seed of seedsFor(country).slice(0, Math.min(RUNS, 8))) {
+      // Same rule as sections 2 and 3: read the last quarter the PLAYER was
+      // governing. `runOne` keeps applying the policy after a deposition on
+      // purpose, and on Costona and Kestrel a quarter of runs fall — so a
+      // terrain table off `finalState` would be describing decades of a
+      // successor's country as though they were passive play.
+      let lastGoverned: TrueState | null = null
       const result = runOne({
         seed,
         ticks: TICKS,
         country: country as CountryScenarioId,
         policy,
         includeStateHash: false,
+        observer: {
+          afterStep(state) {
+            if (state.politics.inPower) lastGoverned = state
+          },
+        },
       })
-      const s = result.finalState
+      if (result.deposedAt !== null) deposed++
+      const s: TrueState = lastGoverned ?? result.finalState
       rates.push(s.external.exchangeRate)
       realRates.push(realExchangeRate(s))
       cover.push(s.external.reserves / Math.max(s.flows.tariffBase, 1e-9))
       balance.push((100 * s.flows.currentAccount) / Math.max(s.flows.nominalGdp, 1e-9))
     }
     console.log(
-      `  ${country.padEnd(12)} ${label.padEnd(14)} ${fixed(mean(rates), 3).padStart(6)}   ${fixed(mean(realRates), 3).padStart(6)}      ${fixed(mean(cover), 2).padStart(6)}        ${fixed(mean(balance), 2).padStart(6)}`,
+      `  ${country.padEnd(12)} ${label.padEnd(14)} ${fixed(mean(rates), 3).padStart(6)}   ${fixed(mean(realRates), 3).padStart(6)}      ${fixed(mean(cover), 2).padStart(6)}        ${fixed(mean(balance), 2).padStart(6)}      ${String(deposed).padStart(2)}/${rates.length}`,
     )
   }
 }

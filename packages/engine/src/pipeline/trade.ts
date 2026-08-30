@@ -80,16 +80,40 @@ import type { PipelineStep } from './pipeline'
  *   contractionary, contraction is deflationary, deflation raises the real
  *   rate, and round again. Parity already tells the price-level half of the
  *   story, in the right direction.
- * • Against `POLICY_RATE_1946`, not against zero or the natural rate. A
- *   government that never touches the rate must not be moving its currency for
- *   having failed to.
+ * • Against the risk-adjusted yield the country INHERITED, not against zero,
+ *   the natural rate, or a bare `POLICY_RATE_1946`. A government that never
+ *   touches the rate must not be moving its currency for having failed to —
+ *   and centring only the posted-rate half is not enough, because a recipe
+ *   opening above `DEBT_RISK_PREMIUM_AT` then pays a premium it was handed.
+ *   Measured before `inheritedRiskPremium` existed: Veltravia opened on a
+ *   target 4.3 % weaker than its own parity, on its first morning.
  *
  * `sovereignRiskPremium` is imported rather than restated for the reason its
  * own comment gives: the fiscal interest bill, the private funding spread and
  * this quote one sovereign-risk model between them.
  */
 export function carryYieldSpread(state: TrueState): number {
-  return state.gov.dials.policyRate - POLICY_RATE_1946 - sovereignRiskPremium(state)
+  return (
+    state.gov.dials.policyRate -
+    sovereignRiskPremium(state) -
+    (POLICY_RATE_1946 - inheritedRiskPremium(state))
+  )
+}
+
+/**
+ * The premium the country's own 1946 balance sheet carries.
+ *
+ * On the OPENING quarter it is today's premium by definition — the government
+ * has just arrived and has done nothing to the balance sheet yet — and the step
+ * seals that reading into `external.inheritedRiskPremium` for every quarter
+ * after. `init` cannot compute it: `sovereignRiskPremium` measures debt against
+ * REALIZED output, and realized output does not exist until `production` has
+ * run. Measured on Veltravia, init's own estimate is 0.66 of GDP against a
+ * realized 0.777, which is the difference between a currency that opens neutral
+ * and one that opens 1.9 % weak and stays there.
+ */
+function inheritedRiskPremium(state: TrueState): number {
+  return state.meta.tick === 0 ? sovereignRiskPremium(state) : state.external.inheritedRiskPremium
 }
 
 /**
@@ -268,7 +292,14 @@ export const trade: PipelineStep = {
 
     return {
       ...state,
-      external: { ...external, reserves, exchangeRate, balanceNorm },
+      external: {
+        ...external,
+        reserves,
+        exchangeRate,
+        balanceNorm,
+        // Sealed on the opening quarter and never written again.
+        inheritedRiskPremium: inheritedRiskPremium(state),
+      },
       stats: news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
       flows: {
         ...flows,

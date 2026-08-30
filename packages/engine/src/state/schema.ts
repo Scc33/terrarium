@@ -587,6 +587,18 @@ export interface ExternalState {
    * only ever did what it was told would let its cover decay to nothing as the
    * economy outgrew a frozen stock of money. */
   coverTarget: number
+  /** The sovereign risk premium this country's 1946 balance sheet already
+   * carried, sealed by `init` and never written again (ADR-0034).
+   *
+   * `carryYieldSpread` measures the risk-adjusted yield against the one the
+   * country INHERITED, not against a bare `POLICY_RATE_1946`. Centring only the
+   * posted-rate half leaves the premium uncentred, and a recipe that opens
+   * above `DEBT_RISK_PREMIUM_AT` then starts depreciating on its first morning
+   * for a debt it was handed: measured, Veltravia opened on a target 4.3 %
+   * weaker than its own parity with no government action. Same family as
+   * `BLOC_FAVOR_BASE` and `environment.baseline` — a country answers for what
+   * it does, not for what it was given. */
+  inheritedRiskPremium: number
   /** productive capital owned abroad, in the same real units as Sector.capital.
    * It depreciates with the rest of the capital stock; new FDI adds to it and
    * the foreign share of after-tax profits leaves through the external account. */
