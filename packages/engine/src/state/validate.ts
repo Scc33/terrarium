@@ -3,7 +3,7 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
-import { IMMIGRATION_LIMIT_MAX, STATUTE_LEVELS } from '../constants'
+import { FX_INTERVENTION_MAX, IMMIGRATION_LIMIT_MAX, STATUTE_LEVELS } from '../constants'
 import { effectiveConsumptionWeights } from '../pipeline/derive'
 import {
   BLOC_IDS,
@@ -89,6 +89,21 @@ export function validate(state: TrueState): void {
   ) {
     throw new InvariantError('immigrationLimit out of range')
   }
+  finite(state.gov.dials.fxIntervention, 'fxIntervention')
+  if (
+    state.gov.dials.fxIntervention < -FX_INTERVENTION_MAX ||
+    state.gov.dials.fxIntervention > FX_INTERVENTION_MAX
+  ) {
+    throw new InvariantError('fxIntervention out of range')
+  }
+  // The exchange rate is a price and prices here are positive and finite. It
+  // gets its own check rather than riding on the dial's because the rate is
+  // COMPUTED — the dial is only one of the three things that move it.
+  finite(state.external.exchangeRate, 'exchangeRate')
+  if (state.external.exchangeRate <= 0) throw new InvariantError('exchangeRate <= 0')
+  finite(state.external.reserves, 'reserves')
+  if (state.external.reserves < 0) throw new InvariantError('reserves < 0')
+  finite(state.external.balanceNorm, 'balanceNorm')
   for (const programme of SPENDING_PROGRAM_IDS) {
     const amount = state.gov.dials.spending[programme]
     const rule = state.gov.spendingRules[programme]

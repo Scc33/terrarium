@@ -157,6 +157,10 @@ export const EVENT_IDS = [
   'debt_alarming',
   'debt_retired',
   'exchange_rate_slides',
+  // the currency (facts, filed by `trade`; conditions, filed by the desk)
+  'currency_defence_failed',
+  'currency_dear',
+  'currency_cheap',
 
   // ---------- what the country makes (conditions, industry desk) ----------
   'order_books_full',

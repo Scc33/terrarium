@@ -444,6 +444,18 @@ export interface DialState {
   assetPurchaseRate: Ratio
   /** bank equity required per unit of credit outstanding */
   capitalRequirement: Ratio
+  /** Standing order in the foreign exchange market, as an annualized share of
+   * GDP (ADR-0033). Signed, and the sign is the whole lever: POSITIVE buys
+   * foreign currency out of the market, which holds the domestic currency down
+   * and piles up reserves; NEGATIVE sells reserves to hold it up, and can only
+   * be filled while there are reserves left to sell.
+   *
+   * Zero is a float — the rate is whatever clears the external account. It is
+   * the default, and it is what the engine did NOT do before v41: the old
+   * `trade` step handed the entire balance to reserves every quarter, which is
+   * this dial pinned at "buy everything", and the rate never had to clear
+   * anything. */
+  fxIntervention: number
   subsidies: Partial<Record<SectorId, Money>>
 }
 
@@ -531,6 +543,42 @@ export interface ExternalState {
   worldPrices: Record<SectorId, number>
   reserves: Money
   exchangeRate: number // domestic per foreign; up = depreciation
+  /** The REAL exchange rate this country inherited — the competitiveness of
+   * its 1946 settlement, sealed by `init` and never written again (ADR-0033).
+   * `exchangeRateParity` reads it to say what the nominal rate would have to be
+   * today for the country to sell abroad on the terms it opened with, and the
+   * rate reverts to that.
+   *
+   * It is 1.00 for every recipe in the catalogue, because `init` normalises
+   * both price vectors to 1. It is stored and measured anyway rather than
+   * written as a constant, because ADR-0028 shipped a global threshold standing
+   * in for exactly this kind of inheritance and the bug was invisible in a
+   * baseline measured on the one country where the two agreed. */
+  fxParityAnchor: number
+  /** The balance of payments the market has got used to financing, as a share
+   * of quarterly GDP — an EMA, seeded by `init` with the balance this country's
+   * own 1946 settlement produces.
+   *
+   * It exists because these economies run a STRUCTURAL surplus: households
+   * save, the state retires its debt, and the passive century's balance never
+   * once goes negative in any seed. Priced against zero that is a permanent
+   * appreciation the currency has no way to work off, and what it actually
+   * produces is a century of deflation. What moves a currency is the balance
+   * nobody expected — the same reference-dependence cohort approval and bloc
+   * favour are built on.
+   *
+   * The seed carries the TRADE balance and not the capital account, because
+   * computing the latter in `init` would mean restating `foreignInvestment`'s
+   * eleven factors there. Measured, that leaves the market about 1.6 points of
+   * GDP short in the opening quarter and the norm closes it within a few
+   * years; the cost is a small currency transition through the first decade. */
+  balanceNorm: number
+  /** Quarters of import cover the central bank means to hold — the reserve
+   * book the country inherited, sealed by `init` from its own recipe. The bank
+   * closes the gap to it slowly whatever the dial says, because a bank that
+   * only ever did what it was told would let its cover decay to nothing as the
+   * economy outgrew a frozen stock of money. */
+  coverTarget: number
   /** productive capital owned abroad, in the same real units as Sector.capital.
    * It depreciates with the rest of the capital stock; new FDI adds to it and
    * the foreign share of after-tax profits leaves through the external account. */
@@ -746,6 +794,10 @@ export const NEWS_KINDS = [
   'drought_begins',
   'drought_ends',
   'fuel_shock',
+  /** the central bank ran out of reserves defending its currency. A FACT, and
+   * one of the few the government cannot spin: the reserve book is the
+   * treasury's own arithmetic, and importers find out at the counter. */
+  'currency_break',
   // the constitution
   'corridor_exit',
   'corridor_return',
@@ -1031,6 +1083,9 @@ export interface StatRecord {
   balance: Money
   debt: Money
   reserves: Money
+  /** the rate the central bank posted this quarter. Exact, like the rest of
+   * the treasury's books: a market price the bank quotes is not a survey. */
+  exchangeRate: number
   /** and the same books disaggregated, so the century of composition is on
    * the record: which taxes carried the state, what the money went to */
   revenueBySource: RevenueSplit
@@ -1088,6 +1143,17 @@ export interface TickFlows {
   governmentDomesticDemandReal: number
   /** value of imports at border prices (tariff base) */
   tariffBase: Money
+  /** The balance of payments this quarter, in domestic money: exports less
+   * imports, plus inward direct investment, less profits remitted out. It was
+   * always computed in `trade` and always thrown away after it had been added
+   * to reserves; since v41 the rate clears it, so it is worth a name. */
+  currentAccount: Money
+  /** What the central bank actually bought (+) or sold (−) in the foreign
+   * exchange market this quarter, after the two rails in `trade` clipped the
+   * standing order. It is the change in reserves, and the gap between it and
+   * `4 × fxIntervention × GDP` is the part of the order the market could
+   * not fill. */
+  fxIntervention: Money
   /** subsidy money that actually reached each sector (post-leakage) */
   subsidyDelivered: Record<SectorId, number>
   /** receipts by tax, after capacity-gated collection — what each rate
@@ -1160,7 +1226,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 40 // v40: schools make professionals (#169)
+export const SCHEMA_VERSION = 41 // v41: the exchange rate clears a market (#152)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

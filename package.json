@@ -36,7 +36,8 @@
     "inheritance": "tsx tools/measure-inheritance.ts",
     "fdi": "tsx tools/measure-fdi.ts",
     "ranges": "tsx tools/indicator-ranges.ts",
-    "events": "tsx tools/measure-events.ts"
+    "events": "tsx tools/measure-events.ts",
+    "currency": "tsx tools/measure-currency.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

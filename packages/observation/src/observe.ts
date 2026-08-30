@@ -262,6 +262,7 @@ export function observe(state: TrueState): PublishedState {
       balance: r.balance,
       debt: r.debt,
       reserves: r.reserves,
+      exchangeRate: r.exchangeRate,
       revenueBySource: { ...r.revenueBySource },
       outlaysByProgramme: { ...r.outlaysByProgramme },
     })),

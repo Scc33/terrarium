@@ -28,6 +28,7 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
     policyRate: 0.04,
     assetPurchaseRate: 0,
     capitalRequirement: 0.06,
+    fxIntervention: 0,
     subsidies: { agri: 0, manuf: 0, energy: 0, services: 0, transport: 0 },
     rules: {
       transfers: { mode: 'fixed', value: 4, votedAt: 0 },
@@ -215,11 +216,12 @@ describe('reading the dials back', () => {
   })
 
   it('covers every dial the cabinet can set', () => {
-    // 4 taxes · 3 central-bank dials · 1 migration dial · 4 appropriations ·
-    // 5 sector subsidies. The scalar count is derived from `PolicyRecord`, so a lever added
-    // to the cabinet fails the build here until it has been named and faced —
-    // which is how `assetPurchaseRate` and `capitalRequirement` arrived.
-    expect(POLICY_LINES).toHaveLength(4 + 3 + 1 + 4 + 5 + 4)
+    // 4 taxes · 4 central-bank dials · 1 migration dial · 4 appropriations ·
+    // 5 sector subsidies · 4 statutes. The scalar count is derived from
+    // `PolicyRecord`, so a lever added to the cabinet fails the build here
+    // until it has been named and faced — which is how `assetPurchaseRate`,
+    // `capitalRequirement` and `fxIntervention` all arrived.
+    expect(POLICY_LINES).toHaveLength(4 + 4 + 1 + 4 + 5 + 4)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
   })
 
@@ -229,6 +231,7 @@ describe('reading the dials back', () => {
       'policyRate',
       'assetPurchaseRate',
       'capitalRequirement',
+      'fxIntervention',
     ])
     for (const line of bank) {
       expect(line.label.length, line.key).toBeGreaterThan(0)

@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 40)
+## Current contract (schema 41)
 
 ### Inputs
 
@@ -68,6 +68,7 @@ do not start until `appointedAt`.
 | `policyRate` | annualized nominal rate |
 | `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
+| `fxIntervention` | standing order in the currency market, **signed**, −10..+10% of GDP a year. Positive buys foreign exchange and holds the currency down; negative sells reserves to hold it up. The only signed dial on the desk *(added v41)* |
 | `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
 
@@ -137,6 +138,16 @@ price of overnight money. `assetPurchaseRate` is QE: it lowers the common privat
 without lowering the policy rate or counting as fiscal deficit printing, so it remains available
 at the rate floor but still feeds credit and asset-price risk. `capitalRequirement` sets the bank
 equity floor that caps credit directly. The crisis remains the one the player's leverage earned.
+
+The **currency** (`trade` step, ADR-0033) is a price with a fundamental and it reverts to it.
+The fundamental is PARITY — the nominal rate at which the country is as competitive as it was in
+1946, `fxParityAnchor × (traded basket at home ÷ abroad) ^ FX_PARITY_PASSTHROUGH` — tilted by the
+balance of payments the market was not expecting and by the yield spread over the inherited
+policy rate. Reserves change ONLY by what the central bank transacts: its standing order plus a
+one-sided top-up toward the cover the country inherited. Everything else in the balance is
+financed by a market that clears at a price. Both rails on the order are physical — it cannot buy
+foreign exchange the country did not earn, and it cannot sell reserves it does not hold; an order
+of the second kind that cannot be filled breaks the currency and files a dispatch.
 
 The **foreign-investment sector** (`foreignInvestment` step) turns small-country scale, external
 access and catch-up room into inward productive investment, then moves around that structural
@@ -249,7 +260,7 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves — current + full history |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves, **the posted exchange rate** *(v41)* — current + full history |
 | ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |
@@ -287,6 +298,33 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 41 — The exchange rate clears a market
+
+- **Inputs +**: `fxIntervention` — a signed standing order in the currency market, −10..+10% of
+  GDP a year, exact like every other dial (#152, ADR-0033). Zero is a float and is the default.
+- **State +**: `ExternalState.fxParityAnchor` (the REAL rate the country inherited, sealed at
+  `init`), `.balanceNorm` (an EMA of the balance of payments — the balance the market has got used
+  to financing, seeded from the country's own 1946 trade position), `.coverTarget` (quarters of
+  import cover the bank means to hold, from the recipe). `TickFlows.currentAccount` and
+  `.fxIntervention` name two quantities `trade` always computed and threw away.
+- **Behaviour ±**: the exchange rate stops being a random walk. It reverts to a fundamental —
+  relative prices, tilted by the unexpected part of the balance of payments and by the yield
+  spread over `POLICY_RATE_1946` — and reserves stop being the residual of every quarter's
+  balance. `DEPRECIATION_WHEN_BROKE` is repurposed from "reserves went negative" (unreachable) to
+  "a defence could not be filled", and fires on that quarter only.
+- **Constants +**: `FX_TARGET_ADJUST`, `FX_PARITY_PASSTHROUGH`, `FX_BALANCE_TILT`,
+  `FX_BALANCE_NORM_ADAPT`, `FX_CARRY_TILT`, `FX_TILT_MIN`/`_MAX`, `FX_WOBBLE`, `FX_COVER_ADJUST`,
+  `FX_INTERVENTION_MAX`, `POLICY_RATE_1946`.
+- **Wire +**: `currency_break` news kind; `currency_defence_failed` (a fact, filed by `trade`),
+  `currency_dear` and `currency_cheap` (conditions, read off the real rate).
+- **Exact books +**: `books[].exchangeRate` — the rate the bank posted each quarter. Exact for
+  the same reason the rest of that page is: a market price a bank quotes is not a survey.
+- **Faces ±**: `price_food` 40–180 → 25–180 and `price_fuel` 40–130 → 25–130, re-measured
+  (`pnpm ranges`) after the parity term made an industrialising century about a tenth cheaper.
+- **Not added**: a `real_exchange_rate` instrument. Built and measured, then removed —
+  `rackHeadroom()` reached zero, and the wall's contract calls for a layout decision rather than
+  another row. First candidate when that decision is taken.
 
 ### schema 40 — Schools make professionals
 

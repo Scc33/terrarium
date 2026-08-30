@@ -170,7 +170,7 @@ describe('foreign direct investment accounting', () => {
     expect(withFdi.flows.importsReal.manuf - noFdi.flows.importsReal.manuf).toBeCloseTo(0.7, 10)
   })
 
-  it('settles inflows and remitted profits through reserves', () => {
+  it('settles inflows and remitted profits through the external account', () => {
     const emptyTrade = {
       ...base,
       flows: {
@@ -182,7 +182,14 @@ describe('foreign direct investment accounting', () => {
       },
     }
     const settled = runStep('trade', emptyTrade)
-    expect(settled.external.reserves).toBeCloseTo(base.external.reserves + 1.5, 10)
+    // Booked in the balance of payments, which is where the accounting claim
+    // lives: an inflow arrives and a remittance leaves, and neither vanishes.
+    // It used to be asserted against RESERVES, and that stopped being the same
+    // statement at schema 41 (ADR-0033): reserves now move only by what the
+    // central bank transacts, and the rest of the balance clears at a price.
+    // Whether the bank buys this particular 1.5 is a question about the dial,
+    // not about foreign investment.
+    expect(settled.flows.currentAccount).toBeCloseTo(1.5, 10)
   })
 
   it('adds new FDI to the foreign-owned capital stock after depreciation', () => {

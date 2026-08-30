@@ -139,6 +139,11 @@ const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; grou
     note: 'The share of lending banks must fund with their own money. Higher levels slow credit booms and help banks survive losses.',
     group: 'CENTRAL BANK',
   },
+  fxIntervention: {
+    label: 'FX INTERVENTION',
+    note: 'The standing order in the currency market, as a share of output a year. Positive buys foreign exchange and holds the currency down; negative spends reserves to hold it up.',
+    group: 'CENTRAL BANK',
+  },
   immigrationLimit: {
     label: 'IMMIGRATION CEILING',
     note: 'The most people the country will admit each year, as a share of the population. It limits arrivals, never departures.',

@@ -140,8 +140,20 @@ describe('the playable economy through 2050', () => {
     // whole political cost the v35 basket charged, refunded. Raising
     // `ENGEL_ELASTICITY.services` from 0.32 to 0.45 in the same release spends
     // none of it back here.
-    expect(passiveTrend.survivors).toBe(27)
-    expect(developmentalTrend.survivors).toBe(23)
+    //
+    // v41 (the currency clears a market, ADR-0033) gains the PASSIVE cohort
+    // one survivor, twenty-seven to twenty-eight, and the DEVELOPMENTAL cohort
+    // three, twenty-three to twenty-six. A floating exchange rate is a shock absorber: a supply
+    // shock raises domestic prices, the currency follows them down, and the
+    // competitiveness the country gains carries part of the adjustment that
+    // used to fall entirely on output. The 400x400q batch moves the same way
+    // and further — passive deposition 9% to 2%, developmental 7% to 3% — and
+    // the per-country split is the reading worth keeping: Costona and Kestrel,
+    // whose governments fall for political rather than macroeconomic reasons,
+    // are unmoved at 23-24% and 28-34%. An absorber saves a country whose only
+    // problem was volatility and does nothing for one in real trouble.
+    expect(passiveTrend.survivors).toBe(28)
+    expect(developmentalTrend.survivors).toBe(26)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,
     // lifting this fixed passive sample from 2.79% to 2.81% without changing

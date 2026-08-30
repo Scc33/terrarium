@@ -1222,6 +1222,74 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
       },
     ],
   },
+  currency_defence_failed: {
+    kind: 'currency_break',
+    desk: 'finance',
+    tone: 'bad',
+    prominence: 'lead',
+    dispatches: [
+      {
+        headline: 'The central bank stops supporting the currency',
+        body: 'The reserves that were being spent to hold the rate are gone. Dealers who could not get a price this morning were getting one by the afternoon, and it was not the old one.',
+      },
+      {
+        headline: 'The defence of the currency collapses',
+        body: 'The bank has been selling foreign exchange for months to keep the rate where the cabinet wanted it. It has run out. The market has now set the rate itself.',
+      },
+    ],
+    byEra: {
+      crisis: [
+        {
+          headline: 'The currency goes',
+          body: 'The bank fought for it until there was nothing left to fight with. Importers who had letters of credit approved last week are being asked to come back and sign again.',
+        },
+      ],
+      market: [
+        {
+          headline: 'The peg breaks',
+          body: 'Traders had been betting against the bank for weeks on the arithmetic of its own reserve statement. This morning the bank conceded the point.',
+        },
+      ],
+      stream: [
+        {
+          headline: 'Currency abandons its defended level',
+          body: 'The central bank confirmed it has ceased intervention. Analysts had been publishing the reserve drawdown for some time and were not surprised.',
+        },
+      ],
+    },
+  },
+  currency_dear: {
+    kind: 'rumor',
+    desk: 'finance',
+    tone: 'bad',
+    prominence: 'column',
+    dispatches: [
+      {
+        headline: 'Exporters say they are being priced out',
+        body: 'A strong currency makes foreign goods cheap at home and home goods dear abroad. The chambers of commerce want to know whether that is policy or accident.',
+      },
+      {
+        headline: 'The mills say they cannot sell abroad',
+        body: 'Order books that were full a few years ago are thinning, and the complaint is the same everywhere: the money is too strong. Importers are not complaining.',
+      },
+    ],
+  },
+  currency_cheap: {
+    kind: 'rumor',
+    desk: 'finance',
+    tone: 'neutral',
+    prominence: 'column',
+    dispatches: [
+      {
+        headline: 'A cheap currency fills the order books',
+        body: 'Foreign buyers are finding the country good value and exporters are working overtime. Anyone who has to buy from abroad is finding out what the other side of that feels like.',
+      },
+      {
+        headline: 'The money buys less abroad than it used to',
+        body: 'Shipping agents report a good season and importers a bad one. Whether this is a competitive currency or a weak one depends on who is asked.',
+      },
+    ],
+  },
   reserves_thin: {
     kind: 'rumor',
     desk: 'finance',

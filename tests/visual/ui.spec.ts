@@ -463,12 +463,19 @@ test('cabinet draft review', async ({ page }) => {
   await expect(page).toHaveScreenshot('cabinet-draft.png')
 })
 
-test('central bank exposes conventional, QE, and macroprudential controls', async ({ page }) => {
+test('central bank exposes conventional, QE, macroprudential and currency controls', async ({ page }) => {
   await openGame(page)
-  await page.getByRole('tab', { name: 'CENTRAL BANK 3 CONTROLS' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
   await expect(page.getByRole('slider', { name: 'Policy rate' })).toHaveValue('0.04')
   await expect(page.getByRole('slider', { name: 'Asset purchases' })).toHaveValue('0')
   await expect(page.getByRole('slider', { name: 'Bank capital floor' })).toHaveValue('0.06')
+  // The only signed lever on the desk (ADR-0033). Both rails are asserted
+  // because a slider that cannot go below zero is a currency market with no
+  // sell side, and it would look entirely correct in a screenshot.
+  const fx = page.getByRole('slider', { name: 'FX intervention' })
+  await expect(fx).toHaveValue('0')
+  await expect(fx).toHaveAttribute('min', '-0.1')
+  await expect(fx).toHaveAttribute('max', '0.1')
   await expect(page).toHaveScreenshot('central-bank-controls.png')
 })
 

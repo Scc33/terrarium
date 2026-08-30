@@ -159,6 +159,13 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
     resists:
       'Finance minds this more than anything else on the desk. At the inherited floor the requirement is slack in a boom and bites only after a crisis has written capital down — raise it in the good years or it is not a macroprudential lever at all.',
   },
+  fxIntervention: {
+    label: 'FX intervention',
+    group: 'MONEY',
+    hint: 'A standing order in the currency market, as a share of output each year. Buying foreign exchange holds your currency DOWN and builds reserves; selling reserves holds it up, until they run out.',
+    resists:
+      'The one dial on the desk that goes below zero, and the sign is the whole lever. Buying is an exporters’ policy — industry and the landed interest are pleased, the money interest and labour are not — and selling reverses all four. What it can actually buy is bounded by what the country earns abroad; what it can sell is bounded by the reserves, and an order the reserves cannot fill is a defence that has just failed in public.',
+  },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [
       `subsidies.${sid}`,
@@ -252,7 +259,7 @@ const DRAWERS: Record<LeverGroupId, DrawerCopy> = {
   MONEY: {
     tab: 'CENTRAL BANK',
     brief:
-      'Set interest rates, support lending when rates hit zero, and decide how much of their own money banks must put at risk.',
+      'Set interest rates, support lending when rates hit zero, decide how much of their own money banks must put at risk, and stand in the currency market.',
     question: 'How much financial risk should the state carry?',
   },
   MIGRATION: {

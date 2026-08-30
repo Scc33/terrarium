@@ -25,7 +25,9 @@ import {
   PC_START,
   BOND_HOLDING,
   PROFIT_SHARE,
+  POLICY_RATE_1946,
   RESERVES_INIT_QTRS,
+  EXPORT_BASE_SHARE,
   IMPORT_BASE_SHARE,
   TATONNEMENT,
   TRANSFER_SHARE,
@@ -227,6 +229,22 @@ export function init(
     (s, id) => s + IMPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
     0,
   )
+  // The matching export order, at the same opening prices. Only used to seed
+  // `balanceNorm` — the external balance the market has always financed for
+  // this country (ADR-0033). It has to be computed on the basis the `trade`
+  // step recomputes it on (the balance over NOMINAL GDP, at unit prices, with
+  // the relative-price term and foreign demand both 1), or the market spends
+  // its first years being surprised by an economy that has not changed. That
+  // is the init-seeding invariant `lastRealIncome` was caught by in v35.
+  const exportsValue = SECTOR_IDS.reduce(
+    (s, id) =>
+      s +
+      Math.min(
+        EXPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
+        0.5 * (gross[id] / UTILIZATION_AT_INIT),
+      ),
+    0,
+  )
   const wageBill0 = SECTOR_IDS.reduce((s, id) => s + wages[id] * employment[id], 0)
   const profits0 = (1 - LABOR_SHARE) * gdp0
   const revenue0 =
@@ -363,6 +381,8 @@ export function init(
     privateDomesticDemandReal: 0,
     governmentDomesticDemandReal: 0,
     tariffBase: 0,
+    currentAccount: 0,
+    fxIntervention: 0,
     subsidyDelivered: sectorRecord(() => 0),
     revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0 },
     outlaysByProgramme: {
@@ -445,9 +465,12 @@ export function init(
         taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
         spending: spendingDials,
         immigrationLimit: IMMIGRATION_LIMIT_DEFAULT,
-        policyRate: 0.04,
+        policyRate: POLICY_RATE_1946,
         assetPurchaseRate: ASSET_PURCHASE_RATE_DEFAULT,
         capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,
+        // A float. Every country opens with its currency finding its own
+        // level; a peg is a decision somebody has to take (ADR-0033).
+        fxIntervention: 0,
         subsidies: {},
       },
       // the 1946 settlement: voted at quarter zero, by someone else
@@ -479,6 +502,14 @@ export function init(
       worldPrices: sectorRecord(() => 1),
       reserves: importsValue * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
       exchangeRate: 1,
+      // The real rate this country opens on, measured from the vectors above
+      // rather than written as 1 — see the field's own note. `prices` and
+      // `worldPrices` are both normalised to 1 here, so it IS 1 today; the
+      // point is that it would stop being 1 the day either normalisation did,
+      // and the parity the rate reverts to would follow without an edit.
+      fxParityAnchor: 1,
+      balanceNorm: (exportsValue - importsValue) / gdp0,
+      coverTarget: params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
       foreignOwnedCapital: foreignOwnedCapital0,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),

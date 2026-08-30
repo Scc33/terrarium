@@ -231,6 +231,9 @@ export interface PublishedState {
     outlays: number
     balance: number
     debt: number
+    /** the rate the bank posted that quarter, exact — see `exchangeRate` below,
+     * of which this is the whole history rather than only today's row */
+    exchangeRate: number
     reserves: number
     /** the composition, quarter by quarter: a century of it is the only way
      * to see a tax base erode or an interest bill eat the budget */

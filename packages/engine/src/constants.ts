@@ -748,7 +748,137 @@ export const RESERVES_INIT_QTRS = 2 // starting reserves ≈ this many quarters 
  * sheet. Was a literal in `init`; it moved here once the country editor needed
  * to show the same number a structure-less recipe silently receives. */
 export const DEBT_TO_GDP_1946 = 0.3
-export const DEPRECIATION_WHEN_BROKE = 0.05 // FX depreciation per quarter at zero reserves
+export const DEPRECIATION_WHEN_BROKE = 0.05 // FX depreciation per quarter at a failed defence
+
+// ---------- the foreign exchange market (ADR-0033) ----------
+// The exchange rate is a PRICE with a fundamental, and it reverts to it — the
+// same shape `finance.ts` gives the asset price, for the same reason: a price
+// that only integrates a flow has no anchor and wanders off.
+//
+// The fundamental is RELATIVE PRICES — the nominal rate at which the country
+// is exactly as competitive as it was in 1946 — tilted by the two things that
+// make a currency dear or cheap against that: the balance of payments the
+// market has to absorb, and the real yield on holding the currency.
+//
+// Anchoring on relative prices is what stops a nominal spiral. Measured on the
+// first draft of this step, which integrated the balance with no anchor: the
+// currency appreciated, that was contractionary, prices fell, the fall
+// restored competitiveness, the surplus reopened, and a passive century ended
+// with the rate at the 0.05 rail. The engine has no other nominal anchor —
+// the tâtonnement's cost anchor is made of prices and wages, and wages follow
+// prices — so the exchange rate needed its own.
+
+/** How much of the gap to the fundamental the rate closes each quarter.
+ * A half-life near five quarters: slow enough that an exporter has a season to
+ * notice a devaluation, fast enough that a century is not spent in transit. */
+export const FX_TARGET_ADJUST = 0.05
+
+/** How much of a relative-price move parity passes into the currency.
+ *
+ * One would be textbook PPP: the currency absorbs the whole of it and
+ * competitiveness never changes. That is too strong for this world, because
+ * `world` mean-reverts its prices to 1 and therefore has no productivity trend
+ * of its own, while a developing country's traded-goods prices fall for a
+ * hundred years as it industrialises. At 1.0 the currency chases that the
+ * whole way and a developmental century ends against the bottom rail.
+ *
+ * At 0.6 the currency does most of the adjusting and competitiveness keeps the
+ * rest, which is also the empirical reading of PPP — it holds in the long run
+ * and weakly. It matters for stability as much as for realism: with anything
+ * short of full passthrough, domestic deflation still buys back some
+ * competitiveness, so a currency that is too dear is a problem the price level
+ * can help with rather than one it is locked out of. */
+export const FX_PARITY_PASSTHROUGH = 0.35
+
+/** How dear an UNEXPECTED balance of payments makes the currency, per unit of
+ * quarterly GDP. Everything the country earns abroad that the central bank
+ * does not buy has to be sold to somebody, and this is the price that
+ * persuades them.
+ *
+ * Reference-dependent, and that is load-bearing rather than defensive. The
+ * engine's countries run a structural surplus — households save, the state
+ * retires its debt, and a passive century's balance of payments sits at
+ * +2.5 % of GDP in EVERY quarter of EVERY seed. Charged against zero, that is
+ * a permanent appreciation the currency cannot work off, and the first draft
+ * of this measured exactly what you would expect: the real rate pinned 5 %
+ * strong and the domestic price level deflating for a hundred years trying to
+ * get out from under it. The market has always financed that surplus; what
+ * moves a currency is the balance the market did NOT expect.
+ *
+ * So the tilt reads the balance against `external.balanceNorm`, the same shape
+ * cohort approval judges income against an EMA of itself and bloc favour judges
+ * policy against the 1946 settlement. At 3.0 a swing of 2.5 % of GDP — an oil
+ * shock, a partner's sudden stop, or a central bank buying a peg's worth of
+ * foreign exchange — is worth about 7.5 % on the rate. */
+export const FX_BALANCE_TILT = 3.0
+
+/** How fast the market gets used to a balance of payments. A half-life near
+ * three years: long enough that a shock is a shock for a while, short enough
+ * that a country which has genuinely become an exporter stops being a surprise.
+ *
+ * The norm chases the BALANCE, never the residual left after intervention. A
+ * norm that learned the residual would quietly price a standing peg in and
+ * switch the lever off after a few years, which is not what a peg does. */
+export const FX_BALANCE_NORM_ADAPT = 0.055
+
+/** …and how dear a yield makes it, per point of risk-adjusted spread over the
+ * rate the country inherited. The issue's "currency value going up in high
+ * interest rate economies". At 2.5 a five-point rate rise is worth about an
+ * eighth on the currency.
+ *
+ * It is a tilt on the fundamental rather than a flow into the market, because
+ * a differential that PERSISTS is a currency that stays dear — not one that
+ * appreciates without limit, which is what a flow formulation gives and what
+ * the first draft of this measured.
+ *
+ * And it reads the NOMINAL spread, which looks wrong for about ten seconds.
+ * The real-rate version was written first and it is a doom loop: an
+ * appreciation is contractionary, the contraction is deflationary, deflation
+ * RAISES the real rate, and the currency appreciates again. That loop is real
+ * economics — it is the debt-deflation trap — but it is not something to hand
+ * a player as the default behaviour of a currency, and the price-level half of
+ * the story is already told, honestly and in the other direction, by parity:
+ * a country whose prices rise faster than the world's has a currency that
+ * falls. Splitting it this way means the two terms each carry one thing and
+ * neither can feed the other. */
+export const FX_CARRY_TILT = 2.5
+
+/** The policy rate every country inherits in 1946, and the centre the currency
+ * yield spread is measured from. `init` posts it and `carryYieldSpread` reads
+ * it, so a government that never touches the rate never moves its currency for
+ * having failed to — the same reason bloc favour is centred on
+ * `BLOC_FAVOR_BASE` rather than on zero. */
+export const POLICY_RATE_1946 = 0.04
+
+/** Rails on the combined tilt. They exist so that no single quarter's balance
+ * can propose a fundamental the market would laugh at; a genuine collapse
+ * still gets there over several quarters of reversion. */
+export const FX_TILT_MIN = 0.4
+export const FX_TILT_MAX = 2.5
+
+/** What is left of the old float's wobble, as a quarterly standard deviation.
+ * Thin enough not to drown the economics, thick enough that a peg still reads
+ * as a decision somebody took. */
+export const FX_WOBBLE = 0.004
+
+/** How fast the bank closes a gap between its reserve book and the cover it
+ * means to hold. A half-life near two years.
+ *
+ * This exists because a bank that ONLY does what the dial tells it does not
+ * hold a reserve book at all: reserves are frozen in nominal money while
+ * imports grow with the economy, so cover halves every twenty-three years and
+ * a do-nothing country spends the second half of its century being told its
+ * reserves are thin — the warning that never turns off. Routine reserve
+ * management is not a policy, but it is not nothing either, and it goes into
+ * the market with everything else rather than being exempted from it. */
+export const FX_COVER_ADJUST = 0.08
+
+/** The largest standing intervention, as an annualized share of GDP. The
+ * mercantilist high-water mark of the real post-war record is near a tenth of
+ * GDP a year; the sell side runs into the reserves on hand long before it
+ * reaches this. */
+export const FX_INTERVENTION_MAX = 0.1
+
 export const WORLD_PRICE_VOL: Record<SectorId, number> = {
   agri: 0.015,
   manuf: 0.008,

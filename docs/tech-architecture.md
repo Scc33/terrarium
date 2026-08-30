@@ -176,7 +176,7 @@ interface TrueState {
   io: IOTable                  // Leontief coefficients
   market: MarketState
   gov: GovernmentState         // dials, migration ceiling, spending rules, capacities, books
-  external: ExternalState      // partners, prices, reserves, FX, foreign-owned capital
+  external: ExternalState      // partners, prices, reserves, the FX market, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
   stats: StatsOffice           // prints, revisions, industry + household surveys — the fog's own state
@@ -278,7 +278,7 @@ introduced it:
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
 | 6 | `foreignInvestment` | attracts inward productive capital; prices foreign ownership |
 | 7 | `production` | output given prices, capital, labor, I/O table |
-| 8 | `trade` | books trade, FDI, remittances, reserves, and exchange rate |
+| 8 | `trade` | books the balance of payments; the FX market clears it at a price |
 | 9 | `fiscal` | capacity-gated collection; spending with leakage |
 | 10 | `monetary` | expectations adapt; printing feeds them |
 | 11 | `prices` | tâtonnement with cost anchor |
@@ -340,6 +340,18 @@ plant is gross capital formation but lands on the import bill instead of domesti
 foreign-owned share of after-tax profits is remitted later, leaving reserves and never entering
 domestic household income. Only the fogged `fdi_inflows` flow reaches the wall; ownership and
 remittances remain engine truth.
+
+The exchange rate is a price with a fundamental and it reverts to it (ADR-0033), the same shape
+`finance` gives the asset price. The fundamental is PARITY — the nominal rate at which the country
+would be exactly as competitive as it was in 1946 — tilted by the balance of payments the market
+was not expecting and by the yield spread over the inherited policy rate. Reserves change only by
+what the central bank transacts: its standing order (`fxIntervention`, the desk's only signed
+dial) plus a one-sided top-up toward the cover the country inherited. Everything else in the
+balance is financed by a market that clears at a price, which is why reserves stopped being the
+residual of a permanent structural surplus and became a stock with a range. Both rails on the
+order are physical: the bank cannot buy foreign exchange the country did not earn, and it cannot
+sell reserves it does not hold — an order of the second kind that cannot be filled breaks the
+currency and files a dispatch.
 
 Finance has three player inputs that meet in its existing balance sheets (ADR-0017). The policy
 rate prices overnight money; the QE purchase pace lowers the common private funding rate without
