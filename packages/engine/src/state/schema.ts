@@ -572,9 +572,14 @@ export interface ExternalState {
    *
    * The seed carries the TRADE balance and not the capital account, because
    * computing the latter in `init` would mean restating `foreignInvestment`'s
-   * eleven factors there. Measured, that leaves the market about 1.6 points of
-   * GDP short in the opening quarter and the norm closes it within a few
-   * years; the cost is a small currency transition through the first decade. */
+   * eleven factors there. Measured on Meridia, the seed reads 3.94 % against a
+   * realized 4.12 % — 0.18 of a point, closed by the norm inside a year.
+   *
+   * It was 1.6 points until the seed started applying the inherited tariff to
+   * the import ORDER. `init`'s `importsValue` is the tariff BASE and is
+   * deliberately pre-tariff; the order an importer actually places is smaller
+   * by `(1 + tariff) ^ −TRADE_ELASTICITY`. Seeding off the base understated the
+   * surplus by 15 %, and the opening decade spent that appreciating away. */
   balanceNorm: number
   /** Quarters of import cover the central bank means to hold — the reserve
    * book the country inherited, sealed by `init` from its own recipe. The bank
@@ -1163,10 +1168,16 @@ export interface TickFlows {
    * to reserves; since v42 the rate clears it, so it is worth a name. */
   currentAccount: Money
   /** What the central bank actually bought (+) or sold (−) in the foreign
-   * exchange market this quarter, after the two rails in `trade` clipped the
-   * standing order. It is the change in reserves, and the gap between it and
-   * `4 × fxIntervention × GDP` is the part of the order the market could
-   * not fill. */
+   * exchange market this quarter, after the two rails in `trade` clipped what
+   * it asked for. It is the change in reserves.
+   *
+   * Mind the scale and the composition, because neither is what the dial alone
+   * says. `flows.nominalGdp` is a QUARTER's output, so the policy half of the
+   * order is `gov.dials.fxIntervention × nominalGdp` — the annualization fours
+   * cancel, and there is no further division by four. And the order is that
+   * PLUS the reserve-book top-up, which is not a policy at all. Recovering the
+   * unfilled part therefore needs `settleForeignExchange(state).ordered`, not
+   * arithmetic on the dial. */
   fxIntervention: Money
   /** subsidy money that actually reached each sector (post-leakage) */
   subsidyDelivered: Record<SectorId, number>

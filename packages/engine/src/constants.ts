@@ -760,6 +760,15 @@ export const RESERVES_INIT_QTRS = 2 // starting reserves ≈ this many quarters 
  * sheet. Was a literal in `init`; it moved here once the country editor needed
  * to show the same number a structure-less recipe silently receives. */
 export const DEBT_TO_GDP_1946 = 0.3
+
+/** The 1946 tax settlement every country inherits. These were three literals
+ * repeated between `init`'s opening dials and its own quarter-one revenue
+ * estimate; they are named here because the currency's `balanceNorm` seed
+ * became a third reader of the tariff (ADR-0034), and a settlement that three
+ * places have to agree on is a constant, not a literal. */
+export const INCOME_TAX_1946 = 0.15
+export const CORPORATE_TAX_1946 = 0.2
+export const TARIFF_1946 = 0.1
 export const DEPRECIATION_WHEN_BROKE = 0.05 // FX depreciation per quarter at a failed defence
 
 // ---------- the foreign exchange market (ADR-0034) ----------
@@ -884,6 +893,16 @@ export const FX_WOBBLE = 0.004
  * management is not a policy, but it is not nothing either, and it goes into
  * the market with everything else rather than being exempted from it. */
 export const FX_COVER_ADJUST = 0.08
+
+/** The rails on the posted rate itself. A price in this engine is positive and
+ * finite, and these are the outer bounds of "the currency collapsed" and "the
+ * currency became the world's reserve asset" — wide enough that a century of
+ * ordinary play never approaches either (measured: 0.44 to 1.3 across the
+ * catalogue under both baselines), narrow enough that a runaway is caught
+ * rather than propagated into trade, prices and the balance. They live here
+ * rather than as literals in `trade.ts` because what they bound is behaviour. */
+export const FX_RATE_MIN = 0.05
+export const FX_RATE_MAX = 20
 
 /** The largest standing intervention, as an annualized share of GDP. The
  * mercantilist high-water mark of the real post-war record is near a tenth of

@@ -51,6 +51,8 @@ import {
   FX_CARRY_TILT,
   FX_COVER_ADJUST,
   FX_INTERVENTION_MAX,
+  FX_RATE_MAX,
+  FX_RATE_MIN,
   FX_TARGET_ADJUST,
   FX_TILT_MAX,
   FX_TILT_MIN,
@@ -230,7 +232,7 @@ export const trade: PipelineStep = {
     if (defenceFailed) exchangeRate *= 1 + DEPRECIATION_WHEN_BROKE
     // The rate is a price and prices in this engine are positive. The rails are
     // wide enough that nothing but a genuine collapse reaches them.
-    exchangeRate = clamp(exchangeRate, 0.05, 20)
+    exchangeRate = clamp(exchangeRate, FX_RATE_MIN, FX_RATE_MAX)
 
     // What importers pay at the border is the tariff base, and it is booked at
     // the rate the orders were placed at rather than the one that just cleared.

@@ -127,12 +127,17 @@ domestic prices catch up within two to four years. That is the "a lever that mov
 undone" lesson in a new register, and it is the honest answer: nominal exchange-rate policy is
 neutral in the medium run, which is why real countries stop.
 
-Against a floating control, the maximum standing order is worth **+5.7% of exports and +3.7% of
-real GDP at ten years**, fading to −1.8% and −2.3% by 2046 as the price level catches up and the
+Against a floating control, the maximum standing order is worth **+6.0% of exports and +3.7% of
+real GDP at ten years**, fading to −1.8% and −2.4% by 2046 as the price level catches up and the
 goods that left keep leaving. The export share is the one column that stays positive throughout,
-and it is small: +0.28 pp at ten years, +0.38 pp at thirty, +0.14 pp at a century — against the
+and it is small: +0.33 pp at ten years, +0.44 pp at thirty, +0.16 pp at a century — against the
 zero tariff's +0.6 pp and tax capacity's +3.9 pp in investigation 0010. A defence is the mirror:
-−3.0% of exports at thirty years, and an empty reserve book.
+−2.9% of exports at thirty years, and an empty reserve book.
+
+Both arms are compared only on the seeds that reached each horizon **still governing**, and the
+readings come from the last quarter the player was in power. `runOne` keeps simulating a deposed
+run on purpose, but those decades are not reachable in play — and because the dial itself moves
+deposition, an unpaired mean would be reporting selection as policy.
 
 What survives is the reserve book — a stock, and stocks compound — and what it can be spent on
 later. Building reserves in the good years to spend them defending the currency in a crisis is

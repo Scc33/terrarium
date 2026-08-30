@@ -739,8 +739,8 @@ perfectly with no opinion about anything in the game. The first politics impleme
   it is a balance change.
 - **A nominal exchange-rate lever is a medium-run instrument, because prices catch up.** Measured
   passthrough of a 30% devaluation into domestic prices: 23% within eight quarters, effectively
-  complete by four years. So the standing order is worth +5.7% of exports and +3.7% of real GDP at
-  ten years and −1.8% / −2.3% at a century, against a floating control — and only +0.28 pp of
+  complete by four years. So the standing order is worth +6.0% of exports and +3.7% of real GDP at
+  ten years and −1.8% / −2.4% at a century, against a floating control — and only +0.33 pp of
   export SHARE at ten years, which puts it below the zero tariff (+0.6 pp) and far below tax
   capacity (+3.9 pp) in investigation 0010's table. What survives is the reserve stock, which is
   the "a lever that moves a PRICE gets undone; a lever that moves a STOCK compounds" lesson in its

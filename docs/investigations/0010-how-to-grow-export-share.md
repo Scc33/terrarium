@@ -11,9 +11,9 @@ the rate a fundamental and the cabinet a standing order in the currency market
 
 It does not change this study's conclusion, and measuring it is the reason to say so. On the same
 kind of paired reading — a floating control, same seed, capacity-building Meridia, `pnpm currency`
-— the largest standing order is worth **+0.28 pp of export share at ten years, +0.38 pp at thirty,
-and +0.14 pp at a century**, against the zero-tariff channel's +0.6 pp and tax capacity's +3.9 pp
-over forty years. It buys real exports (+5.7% at ten years) and then gives most of them back
+— the largest standing order is worth **+0.33 pp of export share at ten years, +0.44 pp at thirty,
+and +0.16 pp at a century**, against the zero-tariff channel's +0.6 pp and tax capacity's +3.9 pp
+over forty years. It buys real exports (+6.0% at ten years) and then gives most of them back
 (−1.8% at a century) as domestic prices absorb the depreciation. So the currency joins the tariff
 at the bottom of this table rather than displacing the tax office at the top: **the fastest lever
 here is still the smallest one, and the slow institutional channel is still where the export

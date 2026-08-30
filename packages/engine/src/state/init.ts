@@ -15,6 +15,7 @@ import {
   CAPITAL_REQUIREMENT_DEFAULT,
   CONF_NEUTRAL,
   CREDIT_BASE,
+  CORPORATE_TAX_1946,
   DEBT_TO_GDP_1946,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
@@ -27,8 +28,11 @@ import {
   PROFIT_SHARE,
   POLICY_RATE_1946,
   RESERVES_INIT_QTRS,
+  TARIFF_1946,
+  TRADE_ELASTICITY,
   EXPORT_BASE_SHARE,
   IMPORT_BASE_SHARE,
+  INCOME_TAX_1946,
   TATONNEMENT,
   TRANSFER_SHARE,
   UTILIZATION_AT_INIT,
@@ -229,28 +233,35 @@ export function init(
     (s, id) => s + IMPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
     0,
   )
-  // The matching export order, at the same opening prices. Only used to seed
-  // `balanceNorm` — the external balance the market has always financed for
-  // this country (ADR-0034). It has to be computed on the basis the `trade`
-  // step recomputes it on (the balance over NOMINAL GDP, at unit prices, with
-  // the relative-price term and foreign demand both 1), or the market spends
-  // its first years being surprised by an economy that has not changed. That
-  // is the init-seeding invariant `lastRealIncome` was caught by in v35.
-  const exportsValue = SECTOR_IDS.reduce(
-    (s, id) =>
-      s +
-      Math.min(
-        EXPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
-        0.5 * (gross[id] / UTILIZATION_AT_INIT),
-      ),
-    0,
-  )
+  // The opening trade balance, on the basis `production` will actually order it
+  // on. Used only to seed `balanceNorm` — the external balance the market has
+  // always financed for this country (ADR-0034) — and it has to be computed the
+  // way the first tick computes it, or the market spends its opening years
+  // being surprised by an economy that has not changed. That is the
+  // init-seeding invariant `lastRealIncome` was caught by in v35.
+  //
+  // Which is why this cannot reuse `importsValue` above: that one is the
+  // tariff BASE, deliberately pre-tariff, because it is what customs charges a
+  // duty on. The import ORDER is smaller, by the same relative-price term
+  // `production` applies — an importer facing a 10% duty buys less. Seeding off
+  // the base overstates imports by about 15%, understates the surplus by the
+  // same, and hands the market a permanent 1.6-point surprise on the opening
+  // morning that it then spends a decade appreciating away.
+  const openness = params.openness
+  const importOrderFactor = Math.pow(1 / (1 + TARIFF_1946), TRADE_ELASTICITY)
+  const tradeBalance0 = SECTOR_IDS.reduce((sum, id) => {
+    const potential = gross[id] / UTILIZATION_AT_INIT
+    // The export cap `production` applies, at the opening relative price of 1.
+    const exports = Math.min(EXPORT_BASE_SHARE[id] * potential * openness, 0.5 * potential)
+    const imports = IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
+    return sum + exports - imports
+  }, 0)
   const wageBill0 = SECTOR_IDS.reduce((s, id) => s + wages[id] * employment[id], 0)
   const profits0 = (1 - LABOR_SHARE) * gdp0
   const revenue0 =
-    wageBill0 * 0.15 * taxEff +
-    profits0 * 0.2 * taxEff +
-    importsValue * 0.1 * (0.5 + 0.5 * params.capacities.tax)
+    wageBill0 * INCOME_TAX_1946 * taxEff +
+    profits0 * CORPORATE_TAX_1946 * taxEff +
+    importsValue * TARIFF_1946 * (0.5 + 0.5 * params.capacities.tax)
   const debtToGdp0 = params.structure?.debtToGdp ?? DEBT_TO_GDP_1946
   const debt0 = debtToGdp0 * gdp0 * 4
   const interest0 = (debt0 * 0.04) / 4
@@ -462,7 +473,12 @@ export function init(
     },
     gov: {
       dials: {
-        taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
+        taxRates: {
+          income: INCOME_TAX_1946,
+          corporate: CORPORATE_TAX_1946,
+          tariff: TARIFF_1946,
+          fuel: 0,
+        },
         spending: spendingDials,
         immigrationLimit: IMMIGRATION_LIMIT_DEFAULT,
         policyRate: POLICY_RATE_1946,
@@ -508,7 +524,7 @@ export function init(
       // point is that it would stop being 1 the day either normalisation did,
       // and the parity the rate reverts to would follow without an edit.
       fxParityAnchor: 1,
-      balanceNorm: (exportsValue - importsValue) / gdp0,
+      balanceNorm: tradeBalance0 / gdp0,
       coverTarget: params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
       foreignOwnedCapital: foreignOwnedCapital0,
       world: {

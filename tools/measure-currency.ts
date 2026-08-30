@@ -31,10 +31,10 @@ import {
   applyActions,
   createCountryParams,
   CURATED_COUNTRY_IDS,
+  exchangeRateParity,
   init,
   realExchangeRate,
   rngFor,
-  SECTOR_IDS,
   settleForeignExchange,
   step,
   TICK_ORDER,
@@ -106,23 +106,33 @@ function targetRate(state: TrueState): number {
   return settleForeignExchange(state).target
 }
 
-/** The three terms, each neutralized in turn, as a % of the rate the market
- * would otherwise be heading for. Parity is neutralized by flattening both
- * price vectors to the anchor, the balance tilt by telling the market it
- * expected exactly this balance, and the carry tilt by putting the policy rate
- * and the debt back where the country inherited them. */
+/**
+ * The three terms, each neutralized in turn, as a % of the rate the market
+ * would otherwise be heading for.
+ *
+ * `settleForeignExchange` computes `target = parity × tilt`, so each term is
+ * isolated by substituting ONE of those two factors and leaving the other
+ * exactly as the live state produced it.
+ *
+ * Parity is deliberately NOT neutralized by flattening the price vectors and
+ * re-settling. That was the first version and it decomposes nothing: the same
+ * vectors set `exportsValue` and `importsValue`, so flattening them moves the
+ * current account, the surprise and the balance tilt at the same time, and the
+ * "relative prices" figure comes out carrying two of the three mechanisms it
+ * claims to separate. Comparing the PARITY VALUES directly is exact, because
+ * the tilt is common to both sides and cancels.
+ */
 function decomposeRate(input: TrueState): Record<string, number> {
-  const live = targetRate(input)
-  const flat = SECTOR_IDS.reduce(
-    (acc, sid) => ({ ...acc, [sid]: 1 }),
-    {} as Record<(typeof SECTOR_IDS)[number], number>,
-  )
   const settled = settleForeignExchange(input)
-  const noParity = targetRate({
-    ...input,
-    market: { ...input.market, prices: flat },
-    external: { ...input.external, worldPrices: flat },
-  })
+  const live = settled.target
+  // target = parity × tilt, and tilt is unchanged, so the ratio of targets is
+  // the ratio of parities. `fxParityAnchor` is what parity reads at flat
+  // relative prices, by construction.
+  const parityTerm = exchangeRateParity(input) / input.external.fxParityAnchor
+
+  // The other two substitute the tilt's inputs and leave parity alone, which
+  // they already do: neither `balanceNorm` nor the policy rate is read by
+  // `exchangeRateParity`.
   const noBalance = targetRate({
     ...input,
     external: {
@@ -135,7 +145,7 @@ function decomposeRate(input: TrueState): Record<string, number> {
     gov: { ...input.gov, dials: { ...input.gov.dials, policyRate: POLICY_RATE_1946 }, debt: 0 },
   })
   return {
-    'relative prices': 100 * (live / noParity - 1),
+    'relative prices': 100 * (parityTerm - 1),
     'balance of payments': 100 * (live / noBalance - 1),
     'yield spread': 100 * (live / noCarry - 1),
   }
@@ -188,8 +198,17 @@ function readingAt(trajectory: ReturnType<typeof runOne>['trajectory'], at: numb
 }
 
 interface ArmResult {
-  readings: Map<number, Reading[]>
-  finals: TrueState[]
+  /** horizon → seed → reading. Keyed by SEED, not pushed into a flat list,
+   * because the comparison downstream calls itself paired and has to be: the
+   * dial changes deposition, so an arm that loses seed 7 before q120 and a
+   * control that keeps it are two different survivor populations, and their
+   * difference would be selection rather than policy. */
+  readings: Map<number, Map<string, Reading>>
+  /** seed → the last state the PLAYER was still governing in. `runOne` keeps
+   * simulating after a deposition on purpose — those quarters expose raw engine
+   * failures — but they are not reachable in play, so a column read off
+   * `finalState` would quote decades nobody can get to. */
+  finals: Map<string, TrueState>
   deposed: number
   inflationTail: number[]
   growthTail: number[]
@@ -199,19 +218,27 @@ interface ArmResult {
 }
 
 function runArm(country: CountryScenarioId, order: number, seeds: string[]): ArmResult {
-  const readings = new Map<number, Reading[]>(HORIZONS.map((h) => [h, []]))
-  const finals: TrueState[] = []
+  const readings = new Map<number, Map<string, Reading>>(
+    HORIZONS.map((h) => [h, new Map<string, Reading>()]),
+  )
+  const finals = new Map<string, TrueState>()
   let deposed = 0
   const inflationTail: number[] = []
   const growthTail: number[] = []
   let reached = 0
   for (const seed of seeds) {
+    let lastGoverned: TrueState | null = null
     const result = runOne({
       seed,
       ticks: TICKS,
       country,
       policy: withStandingOrder(order),
       includeStateHash: false,
+      observer: {
+        afterStep(state) {
+          if (state.politics.inPower) lastGoverned = state
+        },
+      },
     })
     if (result.deposedAt !== null) deposed++
     if (Math.abs(result.finalState.gov.dials.fxIntervention - order) < 1e-6) reached++
@@ -219,9 +246,9 @@ function runArm(country: CountryScenarioId, order: number, seeds: string[]): Arm
     for (const horizon of HORIZONS) {
       if (horizon > end) continue
       const reading = readingAt(result.trajectory, horizon)
-      if (reading) readings.get(horizon)?.push(reading)
+      if (reading) readings.get(horizon)?.set(seed, reading)
     }
-    finals.push(result.finalState)
+    finals.set(seed, lastGoverned ?? result.finalState)
     for (const point of result.trajectory) {
       if (point.tick > end || point.tick < 40) continue
       inflationTail.push(4 * point.inflationQ)
@@ -281,7 +308,7 @@ console.log(
   '  depreciation has been eaten by domestic prices, which is most of the story.',
 )
 console.log(
-  '  order    horizon   real rate   exports    X share    real GDP   consumption   reserves(q)',
+  '  order    horizon   pairs    real rate   exports    X share    real GDP   consumption   reserves(q)',
 )
 {
   const arms = new Map<number, ArmResult>()
@@ -290,9 +317,19 @@ console.log(
   for (const order of ORDERS) {
     const arm = arms.get(order)!
     for (const horizon of HORIZONS) {
-      const here = arm.readings.get(horizon) ?? []
-      const there = float.readings.get(horizon) ?? []
-      if (here.length === 0 || there.length === 0) continue
+      const mine = arm.readings.get(horizon)
+      const control = float.readings.get(horizon)
+      if (!mine || !control) continue
+      // The pairs BOTH arms reached while still governing. Taking each arm's
+      // own survivors and comparing the two means would compare different
+      // populations — and since the dial moves deposition, the difference
+      // would partly be selection. `pairs` is printed for the same reason the
+      // FDI study prints its own: a cell standing on four seeds is not the
+      // same claim as one standing on twenty-four.
+      const seeds = [...mine.keys()].filter((seed) => control.has(seed))
+      if (seeds.length === 0) continue
+      const here = seeds.map((seed) => mine.get(seed)!)
+      const there = seeds.map((seed) => control.get(seed)!)
       const rel = (pick: (r: Reading) => number): string => {
         const value = 100 * (mean(here.map(pick)) / mean(there.map(pick)) - 1)
         return `${value >= 0 ? '+' : ''}${fixed(value, 1)}%`
@@ -305,12 +342,16 @@ console.log(
         const value = 100 * (mean(here.map((r) => r.exportShare)) - mean(there.map((r) => r.exportShare)))
         return `${value >= 0 ? '+' : ''}${fixed(value, 2)}pp`
       }
-      const realRate = mean(arm.finals.map(realExchangeRate))
+      // Read off the last quarter the player was still governing, over the
+      // same paired seeds — not `finalState`, which for a deposed run is a
+      // country somebody else has been running for decades.
+      const governed = seeds.map((seed) => arm.finals.get(seed)!).filter(Boolean)
+      const realRate = mean(governed.map(realExchangeRate))
       const reserves = mean(
-        arm.finals.map((s) => s.external.reserves / Math.max(s.flows.tariffBase, 1e-9)),
+        governed.map((s) => s.external.reserves / Math.max(s.flows.tariffBase, 1e-9)),
       )
       console.log(
-        `  ${(order >= 0 ? '+' : '') + fixed(100 * order, 0).padStart(3)}%   q${String(horizon).padStart(3)}      ${fixed(realRate, 3).padStart(6)}   ${rel((r) => r.exports).padStart(7)}   ${sharePoints().padStart(7)}   ${rel((r) => r.realGdp).padStart(7)}   ${rel((r) => r.consumption).padStart(9)}   ${fixed(reserves, 2).padStart(8)}`,
+        `  ${(order >= 0 ? '+' : '') + fixed(100 * order, 0).padStart(3)}%   q${String(horizon).padStart(3)}   ${String(seeds.length).padStart(3)}/${RUNS}    ${fixed(realRate, 3).padStart(6)}   ${rel((r) => r.exports).padStart(7)}   ${sharePoints().padStart(7)}   ${rel((r) => r.realGdp).padStart(7)}   ${rel((r) => r.consumption).padStart(9)}   ${fixed(reserves, 2).padStart(8)}`,
       )
     }
   }
