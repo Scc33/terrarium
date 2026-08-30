@@ -43,3 +43,4 @@ drift. Re-measure before acting on one.
 | [0017](0017-what-policy-moves-foreign-direct-investment.md) | Which policies change foreign direct investment? | Resolved (reachability and legibility) |
 | [0018](0018-composition-cannot-hear-the-class-structure.md) | Composition cannot hear the class structure, because cohort income does not know how many people are in the cohort | Open — the live constraint on #97 |
 | [0019](0019-what-a-played-century-hits-its-head-on.md) | What does a well-played century hit its head on? Five ceilings, and 15 of 33 dials that do not fit it | Open — the dials are spun off as #190 |
+| [0020](0020-the-headline-hides-three-labour-markets.md) | The headline hides three labour markets, and the reachable one is skill mismatch | Open — the spike for #27 |
