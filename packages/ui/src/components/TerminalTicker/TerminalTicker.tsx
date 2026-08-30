@@ -41,7 +41,13 @@
 import { useState } from 'react'
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
 import { FACE_MARK } from '../../domains'
-import { complementReading, NAMES, readingDigits } from '../labels'
+import {
+  complementReading,
+  formatUncertainty,
+  humanDevelopmentBreakdown,
+  NAMES,
+  readingDigits,
+} from '../labels'
 import {
   qtrLabel,
   quarterDelta,
@@ -123,7 +129,7 @@ export function TerminalTicker({
   // thousand reads 992.7 against the gauge's 993 instead of claiming 992.70 on
   // a confessed ±12.5 band. Graduating an instrument must not restate its
   // precision — that is a number the player has to relearn.
-  const digits = readingDigits(latest.value) + 1
+  const digits = indicator === 'human_development' ? 3 : readingDigits(latest.value, indicator) + 1
   const complement = complementReading(indicator, latest.value, digits)
 
   const plotted: TickerPoint[] = points.map((p) => ({ ...p, tick: p.forQtr }))
@@ -173,6 +179,8 @@ export function TerminalTicker({
 
   const footerHelp = latest.levels
     ? 'R is output after price rises are removed; N is output at current prices. The right side is the latest growth reading, its uncertainty and its change.'
+    : latest.components
+      ? `Current normalized components: ${humanDevelopmentBreakdown(latest.components)}. Each runs from zero to one; the index is their geometric mean.`
     : 'The left side is the matching share. The right side is the latest reading, its uncertainty and its change.'
   const footer = (
     <Tooltip content={footerHelp}>
@@ -181,12 +189,16 @@ export function TerminalTicker({
           <span className="truncate opacity-70">
             R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
           </span>
+        ) : latest.components ? (
+          <span className="truncate opacity-70">
+            H/S/I {latest.components.health.toFixed(2)}/{latest.components.skills.toFixed(2)}/{latest.components.income.toFixed(2)}
+          </span>
         ) : (
           <span className="truncate opacity-60">{complement}</span>
         )}
         <span className="whitespace-nowrap">
           {latest.value.toFixed(digits)}
-          {latest.errorBand > 0 && <span className="opacity-60">±{latest.errorBand.toFixed(1)}</span>}
+          {latest.errorBand > 0 && <span className="opacity-60">±{formatUncertainty(indicator, latest.errorBand)}</span>}
           {(() => {
             const d = quarterDelta(allPoints)
             if (d === null || Math.abs(d) < Math.pow(10, -digits) / 2) return null
@@ -228,7 +240,7 @@ export function TerminalTicker({
           return (
             <>
               {view.rollingMonths && <div className="opacity-60">{view.rollingMonths}M ROLLING AVG</div>}
-              {p.errorBand > 0 && <div className="opacity-60">±{p.errorBand.toFixed(1)}</div>}
+              {p.errorBand > 0 && <div className="opacity-60">±{formatUncertainty(indicator, p.errorBand)}</div>}
               {p.visiblyRevised ? (
                 <div className="text-terminal-alert">
                   <s>{p.firstPrint.toFixed(digits)}</s> REVISED

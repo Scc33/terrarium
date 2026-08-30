@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 35. The short player-facing design is in
+*How the code is actually arranged, as of schema 41. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -227,6 +227,9 @@ interface PublishedState {
 
 A point in an `IndicatorSeries` is a `StatPrint` — the figure *exactly as released*, carrying
 `forQtr`, `publishedAt`, `value`, `revision`, and the error band the office confessed.
+The `human_development` print additionally carries its normalized `health`, `skills`, and
+`income` components. It is constructed from aligned official releases in the statistics step,
+not from hidden state and not by a second observation draw (ADR-0033).
 
 ### 3.2 Not every fogged output is an indicator
 
@@ -330,6 +333,12 @@ Human capital is a slow stock carried by the workforce, not another name for sch
 research staffing, fertility and societal power all read the stock, so a two-year school project
 does not educate a country on the construction schedule. The player sees only the lagged, fogged
 `human_capital` / **Workforce skills** instrument; the exact stock remains engine truth.
+
+The Terrarium Human Development Index is the geometric mean of three normalized published
+returns: period life expectancy, workforce skills, and annual real GDP per head. The first keeps
+UNDP's 20–85-year goalposts; skills use their existing 0–1 stock; income uses fixed 2.5–200 engine
+units on a logarithmic scale. It joins only prints with the same quarter and revision, carries no
+independent noise, and is explicitly a proxy rather than literal UNDP HDI (ADR-0033).
 
 Foreign direct investment is an owned capital stock, not another name for openness (ADR-0018).
 Small-country scale and external access set the structural FDI/GDP draw; the mean of sector
@@ -527,6 +536,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm diff-state` | what moved between two states — read before blessing |
 | `pnpm bless` | re-bless golden snapshots after an intentional change |
 | `pnpm ranges` | measure a surveyed century; the input to dial faces |
+| `pnpm hdi-analysis` | measure the composite's range, component correlations and variance contributions |
 | `pnpm country-fuzz -- --cases 100 --ticks 400 --profile draft --policy random` | checked, replayable country-space exploration |
 | `pnpm stability -- --runs 120 --policy all --country all` | player-reachable macro tails through 2050 |
 | `pnpm export-feedback -- --runs 40 --openness all` | paired foreign-demand and household-feedback counterfactuals |

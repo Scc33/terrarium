@@ -45,3 +45,4 @@ the old one and update the Status line of both.
 | [0030](0030-the-basket-is-calibrated-to-the-country-it-opens-in.md) | The consumption basket is calibrated to the country it opens in, and answers to income from there | Accepted |
 | [0031](0031-an-event-is-a-name-the-catalogue-words.md) | An event is a name; the catalogue words it | Accepted |
 | [0032](0032-schools-decide-who-can-be-a-professional.md) | Schools set the ceiling on the professional class; the shortage decides who crosses | Accepted |
+| [0033](0033-human-development-is-a-published-proxy-composite.md) | Human development is a proxy composite of aligned published returns | Accepted |

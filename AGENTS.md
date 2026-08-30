@@ -407,7 +407,7 @@ instrument simply never publishes.
 
 Not every fogged output is an indicator. The **industrial census** (schema 31,
 `PublishedState.industry`) is value added and employment by sector, published on the office's
-ordinary clock but as a VECTOR: five sectors × two tables is ten dials against six rack strips
+ordinary clock but as a VECTOR: five sectors × two tables is ten dials against seven rack strips
 of headroom, and a sector share has no honest fixed dial face (ADR-0006) when the catalogue
 opens countries anywhere between 5% and 60% agricultural. It reuses `lagFor` / `noiseScale` /
 `REVISION_DELAYS` in `statistics.ts` rather than owning a second measurement model — same
@@ -533,6 +533,13 @@ perfectly with no opinion about anything in the game. The first politics impleme
 - Player-facing constants get calibrated, not guessed, and pinned as a rate against a measured
   century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). The tests re-measure
   rather than snapshot, so a retune that pushes an instrument off its dial fails by name.
+- **Human-development income goalposts are global, fixed engine units.** Schema 38 measured
+  funded authored countries at p01–p99 6.3–113.8 real GDP/head and 400 validator-legal drafts at
+  2.60–183.23, which is why `HUMAN_DEVELOPMENT_INCOME_MIN/MAX` are 2.5–200. Do not rebase them to
+  the country's 1946 value or a trailing window: either makes two countries with the same living
+  standard print different income dimensions and redraws development under its own needle. The
+  composite joins published component prints by quarter and revision; reading truth and adding a
+  second noise draw would make it a back door around the fog (ADR-0033).
 - **Shock smoothing is not automatically stabilization.** A four-quarter geometric drought
   recovery (`815a0aa`) lowered some inflation peaks but deepened passive deflation and rebound
   growth, widened quiet tails, and reduced developmental 2050 survival. Any shock retune must

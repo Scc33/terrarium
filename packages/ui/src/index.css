@@ -155,7 +155,7 @@ input[type='range']::-moz-range-thumb {
   background-size: 16px 16px;
 }
 
-/* The watch board remains four large bays. The complete roster can carry six
+/* The watch board remains four large bays. The complete roster can carry seven
    compact strips across at the reference desktop width; below that it steps
    down independently instead of squeezing the full gauges. */
 .instrument-board {
@@ -168,13 +168,14 @@ input[type='range']::-moz-range-thumb {
 
 @media (min-width: 1280px) {
   .instrument-rack {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 
-  /* In the six-bay roster the arrow carries direction at a glance. The exact
-     quarterly magnitude remains in its tooltip and reappears in the roomier
-     four-bay layout. */
-  .instrument-rack .rack-delta-magnitude {
+  /* The seven-bay roster keeps the instrument name and reading — the two
+     things a scan needs. Exact delta and release age remain in the tooltip and
+     reappear in the roomier four-bay layout. */
+  .instrument-rack .rack-delta,
+  .instrument-rack .rack-release-age {
     display: none;
   }
 }

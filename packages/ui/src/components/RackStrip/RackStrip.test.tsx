@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import type { IndicatorSeries } from '@terrarium/observation'
 import { accessForInstrument } from '../../maturity'
 import { RackStrip } from './RackStrip'
 
@@ -20,5 +21,29 @@ describe('RackStrip', () => {
     const html = renderToStaticMarkup(<RackStrip indicator="inflation" access={accessForInstrument('inflation', 0.18, false)} now={0} pinned={false} onPin={() => {}} />)
     expect(html).toContain('PENDING')
     expect(html).not.toContain('SURVEY REQUIRED')
+  })
+
+  it('keeps the hidden desktop delta in the tooltip and accessible name', () => {
+    const series: IndicatorSeries = {
+      id: 'inflation',
+      label: 'Inflation',
+      unit: '%',
+      points: [
+        { forQtr: 0, publishedAt: 1, value: 2, revision: 0, errorBand: 0 },
+        { forQtr: 1, publishedAt: 2, value: 2.5, revision: 0, errorBand: 0 },
+      ],
+    }
+    const html = renderToStaticMarkup(
+      <RackStrip
+        indicator="inflation"
+        access={accessForInstrument('inflation', 0.6, false)}
+        series={series}
+        now={2}
+        pinned={false}
+        onPin={() => {}}
+      />,
+    )
+
+    expect(html).toContain('Change since the previous quarter: up 0.5')
   })
 })

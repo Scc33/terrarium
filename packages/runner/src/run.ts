@@ -46,6 +46,7 @@ export interface TrajectoryPoint {
    * Null means the office did not publish that indicator this quarter. */
   publishedInflation: number | null
   publishedRealGrowth: number | null
+  publishedHumanDevelopment: number | null
   /** Runner-only event tags. They make shock-conditioned balance analysis
    * independent of player-facing prose and never enter engine state. */
   events: MacroEvent[]
@@ -205,7 +206,9 @@ export function eventsBetween(before: TrueState, after: TrueState): MacroEvent[]
 export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryPoint {
   const prices = {} as Record<SectorId, number>
   for (const sid of SECTOR_IDS) prices[sid] = s.market.prices[sid]
-  const firstPrint = (id: 'inflation' | 'gdp_growth'): number | null => {
+  const firstPrint = (
+    id: 'inflation' | 'gdp_growth' | 'human_development',
+  ): number | null => {
     const series = s.stats.series[id]
     if (!series || series.length === 0) return null
     // Prints are appended in release-date order. Search the newest handful,
@@ -259,6 +262,7 @@ export function trajectoryPoint(s: TrueState, events: MacroEvent[]): TrajectoryP
     inPower: s.politics.inPower,
     publishedInflation: firstPrint('inflation'),
     publishedRealGrowth: firstPrint('gdp_growth'),
+    publishedHumanDevelopment: firstPrint('human_development'),
     events,
     drivers: {
       population,

@@ -224,6 +224,15 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
  * return. Poverty, inequality and the quintile books unlock together because
  * they are three readings of the same enumerators' schedules. */
 export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
+/** Terrarium Human Development Index goalposts (ADR-0033). Health retains
+ * UNDP's canonical 20–85-year range. Income uses engine units, not PPP dollars:
+ * a schema-38 funded all-country century measured p01–p99 6.3–113.8, while
+ * 400 validator-legal draft countries measured 2.60–183.23. Round outward to
+ * stable cross-country goalposts and let exceptional legal documents clamp. */
+export const HUMAN_DEVELOPMENT_LIFE_MIN = 20
+export const HUMAN_DEVELOPMENT_LIFE_MAX = 85
+export const HUMAN_DEVELOPMENT_INCOME_MIN = 2.5
+export const HUMAN_DEVELOPMENT_INCOME_MAX = 200
 /** Minimum statistical-office strength required to produce each series.
  * This is exported because the wall must explain the exact institution the
  * simulation is waiting for; one table keeps that promise from drifting. */
@@ -275,6 +284,9 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   // border and civil-registration returns are reconciled with the same
   // population register that produces births and deaths
   life_expectancy: 0.3,
+  // A constructed statistic, not a fourth survey. It waits for its most
+  // demanding component: the workforce-skills return at 0.35.
+  human_development: 0.35,
   net_migration: 0.3,
   birth_rate: 0.3,
   death_rate: 0.3,

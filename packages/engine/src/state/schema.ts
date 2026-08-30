@@ -236,6 +236,9 @@ export const INDICATOR_IDS = [
   /** expected years lived by a synthetic newborn under today's age-specific
    * mortality schedule — period life expectancy, not current age at death */
   'life_expectancy',
+  /** Terrarium's three-dimension development composite: aligned published
+   * life expectancy, workforce skills and real output per head (ADR-0033) */
+  'human_development',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
   'net_migration',
@@ -719,6 +722,17 @@ export interface StatPrint {
   errorBand: number // half-width; 0 = the office can't even estimate it
   /** GDP only: the office's level estimates behind the growth print */
   levels?: { real: number; nominal: number }
+  /** Human-development only: the three normalized published dimensions from
+   * which this release was constructed. These are carried on the print so the
+   * wall can explain the composite without recomputing measurement in the UI. */
+  components?: HumanDevelopmentDimensions
+}
+
+export interface HumanDevelopmentDimensions {
+  health: Ratio
+  /** workforce skills, serving as Terrarium's education proxy */
+  skills: Ratio
+  income: Ratio
 }
 
 /** What a wire item IS, independent of how it is worded.
@@ -1160,7 +1174,7 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 40 // v40: schools make professionals (#169)
+export const SCHEMA_VERSION = 41 // v41: publish the Terrarium Human Development Index
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

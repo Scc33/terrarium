@@ -134,6 +134,18 @@ describe('the methodology chapter answers what the records office promises', () 
   it('says that the politics reads the published figure', () => {
     expect(prose).toContain('published')
   })
+
+  it('states the human-development methodology and its limits', () => {
+    for (const phrase of [
+      'same quarter and revision',
+      'geometric mean',
+      'not a literal undp hdi',
+      'workforce skills',
+      'poverty rate',
+    ]) {
+      expect(prose).toContain(phrase)
+    }
+  })
 })
 
 describe('search', () => {
