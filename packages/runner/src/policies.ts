@@ -2,6 +2,7 @@
 
 import {
   CAPACITY_IDS,
+  FX_INTERVENTION_MAX,
   IMMIGRATION_LIMIT_MAX,
   PC_COST_CAPACITY,
   SECTOR_IDS,
@@ -54,10 +55,17 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
     return [{ kind: 'setDial', path, value: rng.range(0, 0.12) * gdp }]
   }
   if (roll < 0.6) {
+    // The currency is in here for the reason the statute book is: a mechanic
+    // the adversarial sweep never reaches is a mechanic nothing stress-tests.
+    // It is also the ONLY arm that ever orders a currency defence, and a
+    // defence that runs out of reserves is the one dispatch on the wire that
+    // no other policy can file (`pnpm events` reported it unreached until
+    // this line existed).
     const monetary = pick([
       { path: 'policyRate', min: 0, max: 0.2 },
       { path: 'assetPurchaseRate', min: 0, max: 0.2 },
       { path: 'capitalRequirement', min: 0.03, max: 0.25 },
+      { path: 'fxIntervention', min: -FX_INTERVENTION_MAX, max: FX_INTERVENTION_MAX },
     ] as const)
     return [{ kind: 'setDial', path: monetary.path, value: rng.range(monetary.min, monetary.max) }]
   }

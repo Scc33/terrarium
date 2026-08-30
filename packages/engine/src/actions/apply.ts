@@ -27,6 +27,7 @@ import {
   CAPACITY_COST_PER_POINT,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  FX_INTERVENTION_MAX,
   COALITION_FAVOR_GAIN,
   COALITION_FAVOR_SNUB,
   COALITION_SWING_GAIN,
@@ -108,6 +109,14 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
   assetPurchaseRate: { financiers: 0.4, industrialists: -0.5, unions: -0.2 },
   capitalRequirement: { financiers: 0.9, industrialists: 0.3, unions: -0.2 },
+  // A rise here BUYS foreign currency, which holds the domestic one down. The
+  // room reads that as an exporters' policy, because it is one: industry and
+  // the landed interest sell abroad and want the cheaper currency, while the
+  // money interest holds domestic paper it would rather not see debased and
+  // labour buys the imports that get dearer. Cutting below zero — spending
+  // reserves to hold the currency UP — reverses all four, which is the same
+  // coalition an overvalued currency has always had.
+  fxIntervention: { industrialists: -0.6, landowners: -0.4, financiers: 0.7, unions: 0.4 },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
   ) as Record<`subsidies.${SectorId}`, Stance>),
@@ -270,6 +279,20 @@ const DIALS: Record<DialPath, DialSpec> = {
     min: 0,
     max: () => ASSET_PURCHASE_RATE_MAX,
     scale: () => 0.1,
+  },
+  fxIntervention: {
+    get: (s) => s.gov.dials.fxIntervention,
+    set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, fxIntervention: v } } }),
+    // The only signed dial on the desk, and the sign is the lever: buy the
+    // currency down, or sell reserves to hold it up.
+    min: -FX_INTERVENTION_MAX,
+    max: () => FX_INTERVENTION_MAX,
+    // A tenth of the rail, so that crossing the whole range costs about what
+    // crossing the whole range of the bank-capital floor does. At 0.02 — the
+    // first draft — a moderate order priced at 64 PC against the 20 a new
+    // cabinet holds, and the runner skipped it silently: every arm of the
+    // paired study came out identical to the last decimal.
+    scale: () => 0.05,
   },
   capitalRequirement: {
     get: (s) => s.gov.dials.capitalRequirement,

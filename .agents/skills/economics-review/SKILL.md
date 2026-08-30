@@ -180,6 +180,57 @@ value-added share at **33.7 → 33.2** across 400 quarters, against 34.2 → 26.
 `HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
 (`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.
 
+### The currency (schema 42, ADR-0034)
+
+The third mechanic that **moves the baseline on purpose**, and unlike pollution and the basket
+the thing it moves is not growth — it is survival. Re-measured 1000 × 400q on `country=baseline`:
+
+| 1000 runs | passive before | passive after | developmental before | developmental after |
+|---|---|---|---|---|
+| real growth %/yr | 2.83 | **2.83** | 3.04 | **3.06** |
+| mean inflation %/yr | 0.21 | **0.14** | −0.10 | **−0.36** |
+| unemployment % | 12.45 | **12.52** | 11.92 | **12.32** |
+| deposed | 9% (q368) | **2% (q368)** | 7% (q368) | **2% (q369)** |
+
+Random 120q: 3.97 → 4.05 %/yr, 12.08 → 11.94% unemployment, 30% → 27% deposed. Note that
+`randomPolicy` now also samples `fxIntervention`, so part of that is a SAMPLER change — it is
+there because the adversarial sweep is the only arm that ever orders a currency defence, and
+`pnpm events` reported `currency_defence_failed` unreached until it existed.
+
+**Growth is untouched and deposition is not — that is the whole calibration story.** A floating
+exchange rate is a shock absorber: a supply shock raises domestic prices, the currency follows
+them down, and the competitiveness gained carries part of the adjustment that used to fall
+entirely on output. Before v42 the model had no exchange-rate adjustment at all, so this is a
+missing channel arriving rather than a balance change — but it is worth seven points of passive
+deposition, so know it is there.
+
+**The per-country split is the check, and it is the reassuring part** (200 × 400q,
+`--policy developmental`, before → after):
+
+| country | deposed before | after |
+|---|---|---|
+| meridia | 7% | 3% |
+| costona | 23% | **24%** |
+| veltravia | 10% | 3% |
+| oranga | 9% | 3% |
+| kestrel | 34% | **28%** |
+
+Costona and Kestrel are the two whose governments fall for political rather than macroeconomic
+reasons, and they barely move. An absorber rescues a country whose only problem was volatility
+and does nothing for one in real trouble. **If a future stabilizer moves the HARD countries, it
+is not an absorber — it is a balance change.**
+
+The developmental deflation (−0.10 → −0.36 %/yr) is the parity term: an industrialising country's
+traded-goods prices fall, the currency follows them, and the competitiveness that domestic
+deflation used to buy one-for-one is now split with the exchange rate. It is why `price_food` and
+`price_fuel` were re-faced (40 → 25 on both floors) — read `pnpm ranges` before assuming a
+price-dial retune is unrelated to something you did to the currency.
+
+Use **`pnpm currency`** as the evidence for anything you change here, not the goldens. Its section
+3 exists to stop one specific wrong conclusion being re-derived: the dial is a standing RATE, so
+it moves the level the currency floats around and does NOT switch the absorber off. The growth and
+inflation tails are identical at every setting from a hard defence to the buy rail.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a

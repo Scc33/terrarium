@@ -190,10 +190,16 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-dossier-ink/20 pt-3 sm:grid-cols-3">
+        {/* The external account sits beside the domestic one because the two
+            are the same book read from opposite ends: reserves are what the
+            bank has bought, and the posted rate is the price it paid. Both are
+            exact for the same reason everything else on this page is — the
+            bank quotes the rate, it does not survey it. */}
+        <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-dossier-ink/20 pt-3 sm:grid-cols-2 lg:grid-cols-4">
           <LineChart label="BALANCE / QTR" data={series((x) => x.balance)} height={78} />
           <LineChart label="DEBT OUTSTANDING" data={series((x) => x.debt)} height={78} />
           <LineChart label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
+          <LineChart label="EXCHANGE RATE" data={series((x) => x.exchangeRate)} height={78} />
         </div>
         </div>
       </OverlayLayout>

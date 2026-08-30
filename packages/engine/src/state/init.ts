@@ -15,6 +15,8 @@ import {
   CAPITAL_REQUIREMENT_DEFAULT,
   CONF_NEUTRAL,
   CREDIT_BASE,
+  CORPORATE_TAX_1946,
+  DEBT_RISK_PREMIUM_AT,
   DEBT_TO_GDP_1946,
   CAPITAL_ELASTICITY,
   CONSUMPTION_WEIGHTS,
@@ -25,8 +27,14 @@ import {
   PC_START,
   BOND_HOLDING,
   PROFIT_SHARE,
+  POLICY_RATE_1946,
   RESERVES_INIT_QTRS,
+  RISK_PREMIUM_SLOPE,
+  TARIFF_1946,
+  TRADE_ELASTICITY,
+  EXPORT_BASE_SHARE,
   IMPORT_BASE_SHARE,
+  INCOME_TAX_1946,
   TATONNEMENT,
   TRANSFER_SHARE,
   UTILIZATION_AT_INIT,
@@ -223,16 +231,47 @@ export function init(
   // an unbalanced opening budget compounds into a scripted depression
   const adminEff = adminEffectiveness(params.capacities.administrative)
   const taxEff = taxEfficiency(params.capacities.tax)
+  // The tariff BASE — pre-tariff, because that is what customs charges duty on.
+  // It is deliberately NOT the import order: `importOrder0` below is, and the
+  // two differ by the relative-price term an importer facing the duty responds
+  // to. The quarter-one revenue estimate stays on this basis because the
+  // opening budget was calibrated against it, and moving that calibration is a
+  // separate question from anything the currency needs.
   const importsValue = SECTOR_IDS.reduce(
     (s, id) => s + IMPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
     0,
   )
+  // The opening trade balance, on the basis `production` will actually order it
+  // on. Used only to seed `balanceNorm` — the external balance the market has
+  // always financed for this country (ADR-0034) — and it has to be computed the
+  // way the first tick computes it, or the market spends its opening years
+  // being surprised by an economy that has not changed. That is the
+  // init-seeding invariant `lastRealIncome` was caught by in v35.
+  //
+  // Which is why this cannot reuse `importsValue` above: that one is the
+  // tariff BASE, deliberately pre-tariff, because it is what customs charges a
+  // duty on. The import ORDER is smaller, by the same relative-price term
+  // `production` applies — an importer facing a 10% duty buys less. Seeding off
+  // the base overstates imports by about 15%, understates the surplus by the
+  // same, and hands the market a permanent 1.6-point surprise on the opening
+  // morning that it then spends a decade appreciating away.
+  const openness = params.openness
+  const importOrderFactor = Math.pow(1 / (1 + TARIFF_1946), TRADE_ELASTICITY)
+  let importOrder0 = 0
+  let exportOrder0 = 0
+  for (const id of SECTOR_IDS) {
+    const potential = gross[id] / UTILIZATION_AT_INIT
+    // The export cap `production` applies, at the opening relative price of 1.
+    exportOrder0 += Math.min(EXPORT_BASE_SHARE[id] * potential * openness, 0.5 * potential)
+    importOrder0 += IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
+  }
+  const tradeBalance0 = exportOrder0 - importOrder0
   const wageBill0 = SECTOR_IDS.reduce((s, id) => s + wages[id] * employment[id], 0)
   const profits0 = (1 - LABOR_SHARE) * gdp0
   const revenue0 =
-    wageBill0 * 0.15 * taxEff +
-    profits0 * 0.2 * taxEff +
-    importsValue * 0.1 * (0.5 + 0.5 * params.capacities.tax)
+    wageBill0 * INCOME_TAX_1946 * taxEff +
+    profits0 * CORPORATE_TAX_1946 * taxEff +
+    importsValue * TARIFF_1946 * (0.5 + 0.5 * params.capacities.tax)
   const debtToGdp0 = params.structure?.debtToGdp ?? DEBT_TO_GDP_1946
   const debt0 = debtToGdp0 * gdp0 * 4
   const interest0 = (debt0 * 0.04) / 4
@@ -363,6 +402,8 @@ export function init(
     privateDomesticDemandReal: 0,
     governmentDomesticDemandReal: 0,
     tariffBase: 0,
+    currentAccount: 0,
+    fxIntervention: 0,
     subsidyDelivered: sectorRecord(() => 0),
     revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0 },
     outlaysByProgramme: {
@@ -442,12 +483,20 @@ export function init(
     },
     gov: {
       dials: {
-        taxRates: { income: 0.15, corporate: 0.2, tariff: 0.1, fuel: 0 },
+        taxRates: {
+          income: INCOME_TAX_1946,
+          corporate: CORPORATE_TAX_1946,
+          tariff: TARIFF_1946,
+          fuel: 0,
+        },
         spending: spendingDials,
         immigrationLimit: IMMIGRATION_LIMIT_DEFAULT,
-        policyRate: 0.04,
+        policyRate: POLICY_RATE_1946,
         assetPurchaseRate: ASSET_PURCHASE_RATE_DEFAULT,
         capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,
+        // A float. Every country opens with its currency finding its own
+        // level; a peg is a decision somebody has to take (ADR-0034).
+        fxIntervention: 0,
         subsidies: {},
       },
       // the 1946 settlement: voted at quarter zero, by someone else
@@ -477,8 +526,30 @@ export function init(
     },
     external: {
       worldPrices: sectorRecord(() => 1),
-      reserves: importsValue * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
+      // Quarters of cover, measured on the same import figure `trade` compares
+      // the book against — `flows.tariffBase`, which is the realized import
+      // ORDER at border prices. `importsValue` above is the pre-tariff BASE and
+      // is ~15% larger, so seeding from it opened every country a sixth above
+      // its own `coverTarget`; and because the top-up is one-sided the bank
+      // would not sell that cushion down, it would just sit there until growth
+      // erased it. Harmless until `coverTarget` existed to be compared against.
+      reserves: importOrder0 * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
       exchangeRate: 1,
+      // The real rate this country opens on, measured from the vectors above
+      // rather than written as 1 — see the field's own note. `prices` and
+      // `worldPrices` are both normalised to 1 here, so it IS 1 today; the
+      // point is that it would stop being 1 the day either normalisation did,
+      // and the parity the rate reverts to would follow without an edit.
+      fxParityAnchor: 1,
+      balanceNorm: tradeBalance0 / gdp0,
+      coverTarget: params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
+      // The recipe's own reading of the premium it inherits. `trade` re-seals
+      // this on the opening quarter against REALIZED output, which is the only
+      // basis `sovereignRiskPremium` is ever computed on and which does not
+      // exist until `production` has run — this is what the field holds for
+      // anything that reads the state before the first tick.
+      inheritedRiskPremium:
+        Math.max(0, debtToGdp0 - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE,
       foreignOwnedCapital: foreignOwnedCapital0,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),

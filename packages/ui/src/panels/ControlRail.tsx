@@ -10,6 +10,7 @@ import {
   CAPACITY_IDS,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  FX_INTERVENTION_MAX,
   IMMIGRATION_LIMIT_MAX,
   SECTOR_IDS,
   type CapacityId,
@@ -50,6 +51,9 @@ import {
 
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`
 const pct1 = (v: number) => `${(v * 100).toFixed(1)}%`
+/** The only signed reading on the rail. The sign IS the order — buy or sell —
+ * so a bare "2.0%" would be exactly half of what the row says. */
+const pctSigned = (v: number) => `${v > 1e-9 ? '+' : ''}${(v * 100).toFixed(1)}%`
 const money = (v: number) => v.toFixed(1)
 
 interface DialDef {
@@ -109,6 +113,13 @@ const DIAL_MECHANICS: Record<DialPath, DialMechanics> = {
     max: () => CAPITAL_REQUIREMENT_MAX,
     step: 0.005,
     fmt: pct1,
+  },
+  fxIntervention: {
+    get: (p) => p.dials.fxIntervention,
+    min: -FX_INTERVENTION_MAX,
+    max: () => FX_INTERVENTION_MAX,
+    step: 0.005,
+    fmt: pctSigned,
   },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [
@@ -195,6 +206,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
     def.path === 'policyRate' ||
     def.path === 'assetPurchaseRate' ||
     def.path === 'capitalRequirement' ||
+    def.path === 'fxIntervention' ||
     def.path === 'immigrationLimit'
   const deltaDigits = def.step < 0.01 ? 1 : 0
   const deltaLabel = percentagePoints

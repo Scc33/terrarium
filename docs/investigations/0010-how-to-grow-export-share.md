@@ -4,6 +4,24 @@
 tracked by [issue #53](https://github.com/Scc33/terrarium/issues/53) and the broader
 [steerability issue #97](https://github.com/Scc33/terrarium/issues/97)
 
+**Superseded in part (2026-08-29, schema 42):** the paragraph under "What the engine actually
+prices" that treats the exchange rate as reachable only indirectly no longer holds. ADR-0034 gives
+the rate a fundamental and the cabinet a standing order in the currency market
+(`gov.dials.fxIntervention`), so there is now a direct trade lever.
+
+It does not change this study's conclusion, and measuring it is the reason to say so. On the same
+kind of paired reading — a floating control, same seed, capacity-building Meridia, `pnpm currency`
+— the largest standing order is worth **+0.57 pp of export share at ten years, +0.73 pp at thirty,
+and +0.20 pp at a century**, against the zero-tariff channel's +0.6 pp and tax capacity's +3.9 pp
+over forty years. It buys real exports (+7.7% at ten years, still +5.3% at thirty) and then gives
+them all back and more (−3.5% at a century) as domestic prices absorb the depreciation and the
+goods that left keep leaving.
+
+So the currency lands beside the tariff in the medium run and nowhere near the tax office at any
+horizon: **the fastest lever here is still a small one, and the slow institutional channel is
+still where the export economy is actually built.** What the currency adds that nothing else in
+this table has is a decision a player can take in one quarter and see inside a decade.
+
 **Raised by:** [issue #131](https://github.com/Scc33/terrarium/issues/131), after demand and
 investment stimulus visibly moved their own accounts but appeared unable to move exports.
 

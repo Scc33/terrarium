@@ -38,6 +38,7 @@
     "fdi": "tsx tools/measure-fdi.ts",
     "ranges": "tsx tools/indicator-ranges.ts",
     "events": "tsx tools/measure-events.ts",
+    "currency": "tsx tools/measure-currency.ts",
     "hdi-analysis": "tsx tools/hdi-analysis.ts"
   },
   "devDependencies": {

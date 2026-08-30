@@ -93,8 +93,13 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // gets cheaper against the 1946 base than the old 50 rail allowed — and a
   // hungry century still reaches past the old ceiling. Measured p01–p99
   // 43.7–141.9, extrema 38.8–174.7.
-  price_food: { lo: 40, hi: 180 },
-  price_fuel: { lo: 40, hi: 130 },
+  // Re-measured at schema 42 (`pnpm ranges`), when the exchange rate started
+  // following relative prices and a developing century got about a tenth
+  // cheaper: food p01 32.1 against the old 42.6, fuel p01 29.9 against 38.2.
+  // `price_fuel` was already spending part of its life against the old 40 rail
+  // and this pushed it to a fifth of every print.
+  price_food: { lo: 25, hi: 180 },
+  price_fuel: { lo: 25, hi: 130 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema

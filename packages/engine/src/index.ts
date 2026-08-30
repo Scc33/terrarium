@@ -285,6 +285,8 @@ export {
   eliteCapture,
   eliteHostility,
   enfranchisementIndex,
+  exchangeRateParity,
+  realExchangeRate,
   inCorridor,
   residence,
   schoolingWithdrawal,
@@ -309,6 +311,7 @@ export {
   CAPITAL_REQUIREMENT_DEFAULT,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  FX_INTERVENTION_MAX,
   CORRIDOR_HALF_WIDTH,
   // the two rails of the banking-crisis hazard. The wall marks them and the
   // finance overlay shades the quadrant they bound, so they are read by the
@@ -406,3 +409,5 @@ export {
 } from './pipeline/technology'
 export type { ResearchAllocation } from './pipeline/technology'
 export { termsOfTrade } from './pipeline/derive'
+export { carryYieldSpread, fillableIntervention, settleForeignExchange } from './pipeline/trade'
+export type { FxSettlement } from './pipeline/trade'

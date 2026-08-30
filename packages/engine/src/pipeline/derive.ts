@@ -16,6 +16,7 @@ import {
   ENGEL_INCOME_RATIO_MIN,
   EXPORT_BASE_SHARE,
   FIN_FAVOR_PREMIUM,
+  FX_PARITY_PASSTHROUGH,
   HOUSEHOLD_SUBSTITUTION,
   IMPORT_BASE_SHARE,
   LABOR_ELASTICITY,
@@ -550,6 +551,59 @@ export function realIncomePerHead(state: TrueState): { mean: number; median: num
   const { mean, median } = householdIncomeDistribution(state)
   return { mean, median }
 }
+
+/**
+ * The price of the traded basket at home, and the same basket abroad.
+ *
+ * One weighting for both, and it is the basket the country actually trades:
+ * export shares plus import shares, sector by sector. Weighting the two sides
+ * differently would make the ratio a terms-of-trade reading rather than a
+ * competitiveness one, and `termsOfTrade` below already is that.
+ */
+function tradedBasket(state: TrueState): { home: number; world: number } {
+  let home = 0
+  let world = 0
+  for (const sid of SECTOR_IDS) {
+    const w = EXPORT_BASE_SHARE[sid] + IMPORT_BASE_SHARE[sid]
+    home += w * state.market.prices[sid]
+    world += w * state.external.worldPrices[sid]
+  }
+  return { home, world }
+}
+
+/**
+ * The nominal exchange rate at which this country would be exactly as
+ * competitive as the day it opened — its parity (ADR-0034).
+ *
+ * This is the fundamental the rate reverts to, and it is why domestic
+ * inflation depreciates the currency and domestic deflation raises it without
+ * anybody writing that arrow down: it is the same arithmetic, read forward.
+ *
+ * `external.fxParityAnchor` is the REAL rate the country inherited, sealed by
+ * `init`. It is 1.00 for every recipe in the catalogue because `init`
+ * normalises both price vectors to 1 — but it is measured rather than assumed,
+ * for the reason ADR-0028 learned the expensive way: a global constant standing
+ * in for a country's own inheritance is invisible in a baseline measured on the
+ * one country where the two agree.
+ */
+export function exchangeRateParity(state: TrueState): number {
+  const { home, world } = tradedBasket(state)
+  const ratio = Math.max(home, 1e-9) / Math.max(world, 1e-9)
+  return state.external.fxParityAnchor * Math.pow(ratio, FX_PARITY_PASSTHROUGH)
+}
+
+/**
+ * How competitive the country actually is right now, against what it inherited.
+ * Above 1 the currency is cheap and its goods sell; below 1 it is dear. This is
+ * the reading the wire and the ledger show, because the NOMINAL rate on its own
+ * says nothing — a country whose prices doubled and whose currency halved is
+ * exactly where it started.
+ */
+export function realExchangeRate(state: TrueState): number {
+  const { home, world } = tradedBasket(state)
+  return (state.external.exchangeRate * world) / Math.max(home * state.external.fxParityAnchor, 1e-9)
+}
+
 
 /** Terms of trade: the world price of your export basket relative to your
  * import basket, indexed to 1946 (=100). Falls when the things you buy

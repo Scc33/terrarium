@@ -45,7 +45,7 @@ describe('the cabinet assembles itself from the levers', () => {
     expect(LEVER_GROUPS.map((group) => [group.group, group.tab, ...group.paths])).toEqual([
       ['TAXATION', 'REVENUE', 'taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel'],
       ['SPENDING', 'SPENDING', 'spending.transfers', 'spending.procurement', 'spending.investment', 'spending.research'],
-      ['MONEY', 'CENTRAL BANK', 'policyRate', 'assetPurchaseRate', 'capitalRequirement'],
+      ['MONEY', 'CENTRAL BANK', 'policyRate', 'assetPurchaseRate', 'capitalRequirement', 'fxIntervention'],
       ['MIGRATION', 'BORDERS', 'immigrationLimit'],
       ['SUBSIDIES', 'INDUSTRY', ...SECTOR_IDS.map((sid) => `subsidies.${sid}`)],
     ])

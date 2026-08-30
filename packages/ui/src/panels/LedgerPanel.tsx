@@ -38,6 +38,9 @@ export function LedgerPanel({ pub, onOpen }: { pub: PublishedState; onOpen: () =
           </span>
           <span aria-label="Government debt">DEBT {pub.treasury.debt.toFixed(0)}</span>
           <span aria-label="Foreign money held in reserve">FX {pub.reserves.toFixed(1)}</span>
+          <span aria-label="Exchange rate: units of domestic money per unit of foreign. Higher is a weaker currency.">
+            RATE {pub.exchangeRate.toFixed(2)}
+          </span>
         </div>
       }
     >

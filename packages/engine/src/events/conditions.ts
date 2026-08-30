@@ -50,6 +50,7 @@ import {
   NEWS_REPORTS_PER_QTR,
   NEWS_THIN_PAGE_AT,
 } from '../constants'
+import { realExchangeRate } from '../pipeline/derive'
 import { rngFor } from '../rng/rng'
 import type {
   InstitutionId,
@@ -81,6 +82,12 @@ export interface EventContext {
   /** live flows the worksheet does not keep */
   satisfiedEnergy: number
   exchangeRate: number
+  /** Competitiveness against the country's own 1946 settlement, not the
+   * nominal rate. The nominal rate on its own says nothing about whether
+   * exporters are in trouble — a country whose prices doubled and whose
+   * currency halved is exactly where it started — which is why the two
+   * currency conditions read this and `exchange_rate_slides` reads the other. */
+  realExchangeRate: number
 }
 
 /**
@@ -403,6 +410,12 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     salience: 5,
     when: (c) => c.exchangeRate > 1.3,
   },
+  // Competitiveness, not the posted rate. The thresholds are the measured
+  // tails: a floating century spends most of its time between 0.95 and 1.45
+  // on this reading, so these are the quarters an exporter would actually be
+  // writing to the paper about.
+  { event: 'currency_dear', cls: 'report', salience: 5, when: (c) => c.realExchangeRate < 0.92 },
+  { event: 'currency_cheap', cls: 'report', salience: 3, when: (c) => c.realExchangeRate > 1.6 },
 
   // ---------- what the country makes ----------
   { event: 'order_books_full', cls: 'report', salience: 2, when: (c) => c.now.utilization > 0.97 },
@@ -669,6 +682,7 @@ export function buildContext(state: TrueState, record: readonly StatRecord[]): E
     stocks: state.institutions.stocks,
     satisfiedEnergy: state.flows.satisfied.energy,
     exchangeRate: state.external.exchangeRate,
+    realExchangeRate: realExchangeRate(state),
   }
 }
 

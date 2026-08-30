@@ -190,8 +190,8 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   pipeline-order changes).
 - The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-25 at schema 39:
-  **96.6% stmts / 85.9% branch**; the ~99/~90 that stood here was stale by several versions).
+- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-29 at schema 42:
+  **96.7% stmts / 86.0% branch**).
   It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
 - **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the
@@ -331,6 +331,46 @@ country already exceeds on its opening morning.
 `ui/src/newspaper.ts` is the paper's pure half — page order, the bands, which edition is shown,
 the archive filter — and `panels/WireOverlay.tsx` paints what it returns. A page that leads on the
 wrong story is invisible in review AND in jsdom.
+
+### The currency (ADR-0034)
+
+`trade` is a foreign exchange market. The rate is a PRICE WITH A FUNDAMENTAL and it reverts to it
+— the same shape `finance.ts` gives the asset price, for the same reason: a price that only
+integrates a flow has no anchor and wanders off. The fundamental is PARITY (relative prices,
+`exchangeRateParity`), tilted by the balance of payments the market did not expect and by the
+yield spread over the rate the country inherited. `gov.dials.fxIntervention` is a signed standing
+order: buy foreign exchange to hold the currency down and build reserves, or sell reserves to hold
+it up. Zero is a float and is the default.
+
+- **Reserves change ONLY by what the bank transacts.** Before v42 they were the residual of every
+  quarter's balance, and since these countries run a STRUCTURAL surplus — the current account is
+  positive in every quarter of every seed under both baselines — they only ever grew: 25 to 47
+  quarters of import cover passive, up to 235 developmental. `DEPRECIATION_WHEN_BROKE` was
+  unreachable and `reserves_thin` could not fire.
+- **The balance tilt is reference-dependent and that is load-bearing.** It reads the balance
+  against `external.balanceNorm`, never against zero. Against zero the structural surplus is a
+  permanent appreciation the currency cannot work off, and the first draft measured exactly that:
+  the real rate pinned 5% strong and a hundred years of deflation trying to escape it, ending on
+  the 0.05 rail. Same family as `BLOC_FAVOR_BASE`, `engelReference` and `environment.baseline`.
+- **The yield spread is NOMINAL, and centred on `POLICY_RATE_1946`.** The real-rate version is a
+  doom loop — appreciation is contractionary, contraction is deflationary, deflation raises the
+  real rate — and parity already tells the price-level half of the story in the right direction.
+  Centring on the settlement is what keeps a do-nothing government from moving its own currency.
+- **Both rails on the order are physical.** It cannot buy foreign exchange the country did not
+  earn (the BID still moves the price; only the reserve stock is bound), and it cannot sell
+  reserves it does not hold. The second is the currency crisis, and it fires on the quarter the
+  book empties, NOT every quarter after — without that test a standing sell order re-breaks the
+  currency 5% a quarter forever, and the paired study reported a *defence* that raised exports 25%.
+- **The bank's reserve-book top-up is ONE-SIDED.** Symmetric, it cancels the dial exactly: the
+  +10% arm came out at a real rate of 1.631 against the float's 1.634 while holding ten times the
+  reserves. It exists because reserves are frozen money while imports grow, so without it cover
+  halves every twenty-three years and a do-nothing country is told its reserves are thin for half
+  a century — the warning that never turns off.
+
+It is **not a peg**: the dial is a standing RATE, so it moves the level the currency floats around
+and does not stop it floating. `pnpm currency` is the evidence, and section 3 exists to stop the
+obvious "a peg trades the shock absorber for a level" story being re-derived — measured, the tails
+are identical at every setting.
 
 ### The statute book (ADR-0027)
 
@@ -689,6 +729,43 @@ perfectly with no opinion about anything in the game. The first politics impleme
   doubles per filing, so a STANDING condition fades to five or six mentions in a century while a
   genuinely recurrent event is untouched (its gaps were never near the cooldown). Any "don't repeat
   yourself" rule over a persistent state needs this shape.
+- **A floating currency is a shock absorber, and it is worth several points of difficulty.**
+  Giving the exchange rate a fundamental it reverts to (ADR-0034) took passive deposition from 9%
+  to 2% and developmental from 7% to 2% over 1000 × 400q, while leaving century growth at 2.83 and
+  3.06 %/yr. The per-country split is the reading to keep: Costona and Kestrel, whose
+  governments fall for political rather than macroeconomic reasons, barely moved (23→24% and
+  34→28%). An absorber rescues a country whose only problem was volatility and does nothing for
+  one in real trouble — so if a future stabilizer moves the HARD countries, it is not an absorber,
+  it is a balance change.
+- **A nominal exchange-rate lever is a medium-run instrument, because prices catch up.** Measured
+  passthrough of a 30% devaluation into domestic prices: 23% within eight quarters, effectively
+  complete by four years. So the standing order is worth +7.7% of exports and +3.7% of real GDP at
+  ten years, +5.3% and +0.9% at thirty, and −3.5% and −4.2% at a century against a floating
+  control — the mercantilist bargain is fifteen good years bought with a century of shipping a
+  tenth of GDP abroad. Export SHARE moves +0.57 pp at ten years and +0.73 pp at thirty, alongside
+  the zero tariff (+0.6 pp) and far below tax capacity (+3.9 pp) in investigation 0010's table.
+  What survives is the reserve stock, which is the "a lever that moves a PRICE gets undone; a
+  lever that moves a STOCK compounds" lesson in its third register. Quote both horizons or
+  neither, and mind the units: the paired study reports levels as relative % and the share in
+  POINTS, because 0010 is in points.
+- **A paired study has to be paired in EVERY treatment, including the ones it did not intend.**
+  `pnpm currency`'s arms differed in the currency order and, silently, in state capacity: posting
+  the order costs political capital, `runOne` leniently skips whatever capacity bid that leaves
+  unaffordable, and the +10% arm skipped 34.5 orders a run against the float's 18.0 and ended a
+  century with 1% less total capacity. It was suppressing the lever's medium-run gain AND its
+  long-run cost — +6.0% of exports at ten years and −2.4% of GDP at a century, against +7.7% and
+  −4.2% once the arms were funded to the same path. The sections that measure a CHANNEL now run
+  under `unlimitedCapital` and say so; what an ordinary budget buys is the batch baselines'
+  business. Same family as the statute book's lenient-experiment lesson, one level up: it is not
+  enough for the experiment to be strict about the thing under test, it has to be strict about
+  everything else too.
+- **Full PPP passthrough removes the price level's only way out.** `FX_PARITY_PASSTHROUGH` is 0.35
+  rather than 1 because `world` mean-reverts its prices to 1 and so has no productivity trend,
+  while a developing country's traded-goods prices fall for a century. At 1.0 the currency chases
+  that the whole way, a developmental century ends against the bottom rail, and — worse — domestic
+  deflation stops buying any competitiveness back, so a currency that is too dear becomes a
+  problem the price level is locked out of helping with. Even at 0.35 it costs 0.25 pp/yr of extra
+  developmental deflation, which is what pushed `price_food` and `price_fuel` off their faces.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a
