@@ -181,6 +181,32 @@ describe('a defence that runs out', () => {
     expect(settleForeignExchange(empty).transacted).toBeCloseTo(0, 12)
   })
 
+  it('never turns a defence into a purchase, however thin the book', () => {
+    // The reserve-book top-up is what the bank does when nobody has told it
+    // otherwise. Left running under a sell order it INVERTS it: a thin book
+    // makes the top-up large, a modest defence does not cover it, and the bank
+    // buys — weakening the currency on a quarter the cabinet ordered it
+    // defended. Measured at the dial's own −0.5 % against an empty book, the
+    // bank bought 0.66. It also left `wanted` unclipped, so the wire went
+    // silent about a reserve book that had just run out.
+    const base = played()
+    for (const reserves of [0, base.flows.nominalGdp * 0.001, base.flows.nominalGdp * 0.02]) {
+      for (const dial of [-0.005, -0.02, -FX_INTERVENTION_MAX]) {
+        const state = withDial({ ...base, external: { ...base.external, reserves } }, dial)
+        const settled = settleForeignExchange(state)
+        expect(settled.ordered, `reserves ${reserves} dial ${dial}`).toBeLessThanOrEqual(0)
+        expect(settled.transacted, `reserves ${reserves} dial ${dial}`).toBeLessThanOrEqual(0)
+      }
+    }
+  })
+
+  it('still keeps the book up while the cabinet is not defending', () => {
+    const base = played()
+    const thin = { ...base, external: { ...base.external, reserves: 0 } }
+    expect(settleForeignExchange(thin).ordered).toBeGreaterThan(0)
+    expect(settleForeignExchange(withDial(thin, 0.03)).ordered).toBeGreaterThan(0)
+  })
+
   it('leaves the reserve book alone when nobody ordered anything', () => {
     const base = played()
     expect(settleForeignExchange(base).defenceFailed).toBe(false)

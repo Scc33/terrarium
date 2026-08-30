@@ -11,9 +11,21 @@
  *    restates the formula: a term that moves in `trade.ts` moves here too.
  * 2. WHAT A STANDING ORDER IS WORTH. Paired seeds against a floating control
  *    — the same country, the same seed, the same shocks — at settings from a
- *    hard defence to a full peg. Reported at three horizons, because a lever
+ *    hard defence to the buy rail. Reported at three horizons, because a lever
  *    that moves a PRICE gets undone and one that moves a STOCK compounds, and
  *    this one does both.
+ *
+ *    Sections 2 and 3 run under `unlimitedCapital`, which makes them CHANNEL
+ *    measurements rather than readings of ordinary play — the distinction
+ *    AGENTS.md draws between a mechanism test and a baseline sweep. Without it
+ *    the study measures two things at once: posting the order costs political
+ *    capital, `runOne` leniently skips whatever capacity bid that leaves
+ *    unaffordable, and the arms quietly develop different states. Measured
+ *    before the rule was applied, the +10 % arm skipped 34.5 orders a run
+ *    against the float's 18.0 and ended a century with 1 % less total capacity,
+ *    so part of every reported difference was a less-built ministry rather than
+ *    the currency. What a cabinet with an ordinary budget actually gets is the
+ *    batch baselines' business, not this table's.
  * 3. WHETHER THE ORDER CHANGES THE RIDE. Asked because the obvious story —
  *    a peg switches off the shock absorber a floating currency is — turns out
  *    NOT to hold here, and the table is kept so that nobody re-derives it. The
@@ -170,8 +182,10 @@ const withStandingOrder =
     // refused, and all five came out identical to the last decimal. That reads
     // as "the dial does nothing" rather than "the dial was never set".
     //
-    // The step goes FIRST so that when capital is short it is the capacity bid
-    // that gets skipped, never the thing under test.
+    // The step still goes first, but the arms are funded (see the header), so
+    // nothing downstream of it is being crowded out any more. Ordering used to
+    // be the whole defence against a silent skip and it was the wrong one: it
+    // protected the treatment by starving the control's ministries.
     const step = Math.sign(order - posted) * Math.min(0.01, Math.abs(order - posted))
     actions.unshift({ kind: 'setDial', path: 'fxIntervention', value: posted + step })
     return actions
@@ -233,6 +247,11 @@ function runArm(country: CountryScenarioId, order: number, seeds: string[]): Arm
       ticks: TICKS,
       country,
       policy: withStandingOrder(order),
+      // The capacity path has to be identical across arms or it is a second
+      // treatment. This lifts only the budget constraint on orders: the room
+      // still quotes every order and the blocs still spend favour, and
+      // deposition — which section 3 reports — is a different rule entirely.
+      rules: { unlimitedCapital: true },
       includeStateHash: false,
       observer: {
         afterStep(state) {

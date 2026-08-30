@@ -167,13 +167,26 @@ export function settleForeignExchange(state: TrueState): FxSettlement {
   //
   // One-sided, and that is load-bearing. A bank tops up a book that has got
   // thin; it does not dump one that has got large. Symmetric, the term fights
-  // the dial: a government ordering a peg accumulates reserves, the book goes
+  // the dial: a government ordering accumulation builds reserves, the book goes
   // over target, and the bank sells exactly enough to cancel the order. That
   // shipped, and it read as a lever that did nothing — the +10 % arm of the
   // paired study came out at 1.631 against the float's 1.634 while quietly
   // holding ten times the reserves.
-  const maintenance =
-    FX_COVER_ADJUST * Math.max(0, external.coverTarget * importsValue - external.reserves)
+  //
+  // And it stops entirely once the cabinet has ordered a DEFENCE, because a
+  // routine top-up is what the bank does when nobody has told it otherwise.
+  // Left running it inverts the order: reserves near empty make the top-up
+  // large, a modest sell order does not cover it, and `wanted` comes out
+  // POSITIVE — so the bank bought, and weakened the currency, on a quarter the
+  // player ordered it defended. Measured at the dial's own −0.5 % against an
+  // empty book, the bank bought 0.66 in domestic money. Worse, `wanted` was
+  // then never clipped, so `defenceFailed` read false and the wire went silent
+  // about a reserve book that had just run out — the one moment it exists to
+  // report.
+  const defending = gov.dials.fxIntervention < 0
+  const maintenance = defending
+    ? 0
+    : FX_COVER_ADJUST * Math.max(0, external.coverTarget * importsValue - external.reserves)
   // `flows.nominalGdp` is a QUARTER's output, so an annualized share of annual
   // GDP is `share × 4 × nominalGdp / 4` — the fours cancel, and the quarterly
   // purchase is the share times quarterly GDP. Dividing by four again, which

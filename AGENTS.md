@@ -739,13 +739,26 @@ perfectly with no opinion about anything in the game. The first politics impleme
   it is a balance change.
 - **A nominal exchange-rate lever is a medium-run instrument, because prices catch up.** Measured
   passthrough of a 30% devaluation into domestic prices: 23% within eight quarters, effectively
-  complete by four years. So the standing order is worth +6.0% of exports and +3.7% of real GDP at
-  ten years and −1.8% / −2.4% at a century, against a floating control — and only +0.33 pp of
-  export SHARE at ten years, which puts it below the zero tariff (+0.6 pp) and far below tax
-  capacity (+3.9 pp) in investigation 0010's table. What survives is the reserve stock, which is
-  the "a lever that moves a PRICE gets undone; a lever that moves a STOCK compounds" lesson in its
-  third register. Quote both horizons or neither, and mind the units: the paired study reports
-  levels as relative % and the share in POINTS, because 0010 is in points.
+  complete by four years. So the standing order is worth +7.9% of exports and +3.8% of real GDP at
+  ten years, +5.3% and +0.9% at thirty, and −3.5% and −4.2% at a century against a floating
+  control — the mercantilist bargain is fifteen good years bought with a century of shipping a
+  tenth of GDP abroad. Export SHARE moves +0.58 pp at ten years and +0.74 pp at thirty, alongside
+  the zero tariff (+0.6 pp) and far below tax capacity (+3.9 pp) in investigation 0010's table.
+  What survives is the reserve stock, which is the "a lever that moves a PRICE gets undone; a
+  lever that moves a STOCK compounds" lesson in its third register. Quote both horizons or
+  neither, and mind the units: the paired study reports levels as relative % and the share in
+  POINTS, because 0010 is in points.
+- **A paired study has to be paired in EVERY treatment, including the ones it did not intend.**
+  `pnpm currency`'s arms differed in the currency order and, silently, in state capacity: posting
+  the order costs political capital, `runOne` leniently skips whatever capacity bid that leaves
+  unaffordable, and the +10% arm skipped 34.5 orders a run against the float's 18.0 and ended a
+  century with 1% less total capacity. It was suppressing the lever's medium-run gain AND its
+  long-run cost — +6.0% of exports at ten years and −2.4% of GDP at a century, against +7.9% and
+  −4.2% once the arms were funded to the same path. The sections that measure a CHANNEL now run
+  under `unlimitedCapital` and say so; what an ordinary budget buys is the batch baselines'
+  business. Same family as the statute book's lenient-experiment lesson, one level up: it is not
+  enough for the experiment to be strict about the thing under test, it has to be strict about
+  everything else too.
 - **Full PPP passthrough removes the price level's only way out.** `FX_PARITY_PASSTHROUGH` is 0.35
   rather than 1 because `world` mean-reverts its prices to 1 and so has no productivity trend,
   while a developing country's traded-goods prices fall for a century. At 1.0 the currency chases

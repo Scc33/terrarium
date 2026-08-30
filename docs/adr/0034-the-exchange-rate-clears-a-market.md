@@ -127,17 +127,36 @@ domestic prices catch up within two to four years. That is the "a lever that mov
 undone" lesson in a new register, and it is the honest answer: nominal exchange-rate policy is
 neutral in the medium run, which is why real countries stop.
 
-Against a floating control, the maximum standing order is worth **+6.0% of exports and +3.7% of
-real GDP at ten years**, fading to −1.8% and −2.4% by 2046 as the price level catches up and the
-goods that left keep leaving. The export share is the one column that stays positive throughout,
-and it is small: +0.33 pp at ten years, +0.44 pp at thirty, +0.16 pp at a century — against the
-zero tariff's +0.6 pp and tax capacity's +3.9 pp in investigation 0010. A defence is the mirror:
-−2.9% of exports at thirty years, and an empty reserve book.
+Against a floating control on identical capacity paths, the maximum standing order is worth
+**+7.9% of exports and +3.8% of real GDP at ten years**, still **+5.3% and +0.9% at thirty**, and
+**−3.5% and −4.2% by 2046** — with consumption per the same path, −4.2%. The export share moves
++0.58 pp at ten years, +0.74 pp at thirty and +0.21 pp at a century, which puts its medium run
+alongside the zero tariff's +0.6 pp in investigation 0010 and still far below tax capacity's
++3.9 pp.
+
+So the mercantilist bargain is a decade and a half of genuinely more exports and output, paid for
+by a century in which the country has shipped a tenth of its GDP a year abroad and is measurably
+poorer for it. That is the shape the mechanic should have.
+
+A **defence** barely registers over a century, and the reason is the more useful finding: the
+inherited reserve book is about two quarters of import cover, and a −4% order spends it in a few
+quarters. After that the order cannot be filled, the bank is out of the market, and the arm is a
+float with an empty book. A country cannot defend a currency it has not first saved for — which
+is what makes accumulation and defence two halves of one strategy rather than opposite settings
+of one dial.
 
 Both arms are compared only on the seeds that reached each horizon **still governing**, and the
 readings come from the last quarter the player was in power. `runOne` keeps simulating a deposed
 run on purpose, but those decades are not reachable in play — and because the dial itself moves
 deposition, an unpaired mean would be reporting selection as policy.
+
+The paired arms also run under `unlimitedCapital`, which makes this a CHANNEL measurement rather
+than a reading of ordinary play. Posting the order costs political capital, `runOne` leniently
+skips whatever capacity bid that leaves unaffordable, and without the rule the arms quietly
+develop different states: measured, the +10% arm skipped 34.5 orders a run against the float's
+18.0 and ended a century with 1% less total capacity. That confound was suppressing the lever's
+medium-run gain AND its long-run cost — before it was removed the same order read +6.0% of
+exports at ten years and −2.4% of GDP at a century, against +7.9% and −4.2% now.
 
 What survives is the reserve book — a stock, and stocks compound — and what it can be spent on
 later. Building reserves in the good years to spend them defending the currency in a crisis is
