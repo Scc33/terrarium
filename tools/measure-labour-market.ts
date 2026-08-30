@@ -47,12 +47,13 @@
  * `flows.unemployment` — the number the player is actually shown — is reported
  * beside it so the gap is visible rather than quietly absorbed.
  *
- * `S` is the headline reading. Note what it IS, because the whole question of
- * what may be published turns on it: today `S` is the size of the gap between a
- * fixed wage-split recipe and the class structure the country actually has. It
- * becomes an economic quantity — genuine skill mismatch — only once the
- * allocation is rationed against who exists. Until then it measures the model,
- * not the economy.
+ * `S` is the headline reading, and since schema 43 (ADR-0035) it is an economic
+ * quantity rather than a property of the model. The allocation is now rationed
+ * against who exists, so `skillTightness` is what it always claimed to be — the
+ * DEMAND for a class against the SUPPLY of it — and the excess above 1 is a
+ * genuine shortage rather than the size of an accounting error. Before that
+ * change it was the latter, which is why investigation 0020 declined to publish
+ * it and 0001 declined before that.
  *
  * ## The arms
  *
@@ -262,12 +263,12 @@ if (worstResidual > 1e-9) {
 // ---------------------------------------------------------------------------
 console.log('\n1. THE ALLOCATION — jobs ÷ own labour force, by class')
 console.log(
-  '   Above 1.00 the staffing table is asking for workers who do not exist, and the cohort',
+  '   Above 1.00 employers want more of a class than the country has. Since schema 43 that is',
 )
 console.log(
-  '   reads as fully employed however bad the quarter is. This is investigation 0001’s second',
+  '   a shortage the allocation resolves by recruiting the next rung down, not an overdraft on',
 )
-console.log('   finding, still standing, and the reason nothing here is publishable yet.')
+console.log('   the cohort: `staffing` bounds everyone by their own labour force (ADR-0035).')
 for (const country of COUNTRIES) {
   for (const arm of ['passive', 'developmental'] as const) {
     console.log(`\n   ${country} / ${arm}`)

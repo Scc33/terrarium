@@ -168,7 +168,24 @@ describe('the playable economy through 2050', () => {
     // whose governments fall for political rather than macroeconomic reasons,
     // are unmoved at 23-24% and 28-34%. An absorber saves a country whose only
     // problem was volatility and does nothing for one in real trouble.
-    expect(passiveTrend.survivors).toBe(28)
+    //
+    // v43 (staffing is rationed against who exists, ADR-0035) costs the PASSIVE
+    // cohort one survivor, twenty-eight to twenty-seven, and leaves
+    // developmental at twenty-six. The lost run is Veltravia seed 3, which
+    // loses a POLL at q399 of 416 — a knife-edge election five years from the
+    // end, and the kind of thing a thirty-run cohort resolves badly. Read the
+    // batch instead and it moves the other way: 200x400q passive deposition
+    // falls 3% to 1%, developmental 3% to 2%, random 82% to 77%. That is the
+    // expected direction, because the change stops urban workers reading as
+    // 29-42% jobless against a headline near 12% — approval was being scored
+    // against an accounting artifact, and it was scored too harshly.
+    //
+    // The macro barely moves at all, which is the point: `LABOR_SOURCE` has
+    // never reached production, so rationing it changes who holds a job and
+    // what they earn and nothing about how much is made. Passive growth 2.82
+    // to 2.84 %/yr, developmental unchanged at 3.05, unemployment within
+    // 0.03 points on every policy.
+    expect(passiveTrend.survivors).toBe(27)
     expect(developmentalTrend.survivors).toBe(26)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay,

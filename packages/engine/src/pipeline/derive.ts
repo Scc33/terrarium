@@ -29,6 +29,7 @@ import {
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
   SCHOOLING_LABOR_WITHDRAWAL,
+  SKILL_RANK,
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
@@ -268,19 +269,174 @@ export function totalLaborForce(state: TrueState): number {
 }
 
 /**
- * How short the economy is of each cohort's KIND of work: the jobs the
- * staffing table hands a cohort, against the people in it.
+ * Who actually ends up in each sector's jobs, once the posts `LABOR_SOURCE`
+ * advertises are rationed against the people who exist (ADR-0035).
  *
- * `LABOR_SOURCE` splits every sector's payroll by a fixed recipe, so this
- * ratio is an accounting fact rather than a constraint — nothing stops it
- * exceeding 1, and measured it does, badly: a developmental Meridia asks for
- * 1.7 professionals for every professional it has by 2046 while leaving a
- * fifth of its urban workers unaccounted for. That imbalance is the shortage
- * the second leg of the class transition answers, and it is the honest signal
- * to read, because the wage table cannot express a skill premium INSIDE a
- * sector: professionals and urban workers both earn `wages.services`, and
- * services is the low-wage sector for the first sixty years of every century
- * the catalogue runs.
+ * Two constraints, and BOTH are exact by construction rather than
+ * approximately satisfied:
+ *
+ *   Σ_c heads[s][c] === sector.employment    every post is filled
+ *   Σ_s heads[s][c] ≤  laborForce[c]         nobody works two jobs
+ *
+ * The first is not a nicety. `production` charges each sector a wage bill of
+ * `wages[sid] × employment[sid]`, so a post the allocation leaves empty is
+ * money that left the firm and reached no household — the same hole as a bond
+ * coupon that vanishes, and the reason this function cannot simply cap each
+ * cohort and stop. Feasibility comes from `labor`, which already holds total
+ * employment under `0.97 × lf`, so there are always enough hands somewhere.
+ *
+ * The method is a ladder walk, one distance at a time. At each distance every
+ * unfilled block of posts claims from the eligible cohorts in proportion to
+ * who is spare, and every oversubscribed cohort rations pro rata among its
+ * claimants — so the result does not depend on the order sectors are listed
+ * in, which a greedy first-come fill would. Distance 0 is own-skill hiring and
+ * clears in one pass; the outer loop is bounded because each iteration either
+ * exhausts a cohort or clears a block.
+ *
+ * What this does NOT do is decide how many people a sector employs. That is
+ * `labor`, from demanded output, and it is untouched: `LABOR_SOURCE` has never
+ * reached production, so rationing changes who holds a job and what they earn
+ * and nothing about how much is made.
+ */
+export function staffing(state: TrueState): Record<SectorId, Record<CohortId, number>> {
+  return allocateStaffing(state.sectors, laborForce(state))
+}
+
+/** `LADDER_BY_DISTANCE[d][wanted]` — who may fill a post that wanted `wanted`,
+ * when the walk has reached distance `d`. Precomputed from `SKILL_RANK`
+ * because the allocation runs every quarter of every run and rebuilding it
+ * inside the loop was measurably the difference. */
+const LADDER_BY_DISTANCE: Record<CohortId, CohortId[]>[] = (() => {
+  const ranks = COHORT_IDS.map((id) => SKILL_RANK[id])
+  const span = Math.max(...ranks) - Math.min(...ranks)
+  return Array.from({ length: span + 1 }, (_, distance) => {
+    const byWanted = {} as Record<CohortId, CohortId[]>
+    for (const wanted of COHORT_IDS) {
+      byWanted[wanted] = COHORT_IDS.filter(
+        (id) => Math.abs(SKILL_RANK[id] - SKILL_RANK[wanted]) === distance,
+      )
+    }
+    return byWanted
+  })
+})()
+
+/**
+ * The allocation itself, over the two things it actually needs.
+ *
+ * Split out from `staffing` so `init` can seed the opening `employedIn` and
+ * wage income through the SAME arithmetic `cohorts.run` recomputes them with.
+ * Two of the five curated countries open oversubscribed (Veltravia and Oranga
+ * at 1.16–1.21 rural), so seeding this from the raw table would start their
+ * habitual-income EMA on one basis and recompute it on another — the bug the
+ * comment block in `init` already exists to warn about, one field over.
+ */
+export function allocateStaffing(
+  sectors: readonly Pick<Sector, 'id' | 'employment'>[],
+  supply: Readonly<Record<CohortId, number>>,
+): Record<SectorId, Record<CohortId, number>> {
+  const spare = { ...supply } as Record<CohortId, number>
+  const remaining = {} as Record<SectorId, Record<CohortId, number>>
+  const heads = {} as Record<SectorId, Record<CohortId, number>>
+  for (const sector of sectors) {
+    remaining[sector.id] = {} as Record<CohortId, number>
+    heads[sector.id] = {} as Record<CohortId, number>
+    for (const id of COHORT_IDS) {
+      remaining[sector.id][id] = sector.employment * (LABOR_SOURCE[sector.id][id] ?? 0)
+      heads[sector.id][id] = 0
+    }
+  }
+
+  // The rungs each cohort can be recruited from, at each distance, in
+  // COHORT_IDS order — so the sums below accumulate in a fixed order and the
+  // result does not depend on how the table happens to be keyed. Built once:
+  // this runs every quarter of every run, and `pnpm batch` notices.
+  const ladder = LADDER_BY_DISTANCE
+  for (let distance = 0; distance < ladder.length; distance++) {
+    // Each pass settles at least one cohort or one block of posts, so the
+    // bound is the size of the problem rather than a tolerance.
+    for (let pass = 0; pass <= COHORT_IDS.length; pass++) {
+      // what every cohort at this distance is being asked for, in total
+      const claims = {} as Record<CohortId, number>
+      for (const id of COHORT_IDS) claims[id] = 0
+      // `eligible` cannot change between the two sweeps below — `spare` is only
+      // written after both — so it is computed once per block and reused.
+      const eligibleFor = new Map<string, number>()
+      let outstanding = 0
+      for (const sector of sectors) {
+        for (const wanted of COHORT_IDS) {
+          const posts = remaining[sector.id][wanted]
+          if (posts <= 1e-12) continue
+          const rungs = ladder[distance][wanted]
+          let eligible = 0
+          for (const id of rungs) eligible += spare[id]
+          if (eligible <= 1e-12) continue
+          eligibleFor.set(`${sector.id}:${wanted}`, eligible)
+          outstanding += posts
+          for (const id of rungs) claims[id] += posts * (spare[id] / eligible)
+        }
+      }
+      if (outstanding <= 1e-12) break
+
+      // an oversubscribed cohort serves its claimants pro rata
+      const served = {} as Record<CohortId, number>
+      for (const id of COHORT_IDS) {
+        served[id] = claims[id] > 1e-12 ? Math.min(1, spare[id] / claims[id]) : 1
+      }
+      for (const sector of sectors) {
+        for (const wanted of COHORT_IDS) {
+          const posts = remaining[sector.id][wanted]
+          if (posts <= 1e-12) continue
+          const eligible = eligibleFor.get(`${sector.id}:${wanted}`)
+          if (eligible === undefined) continue
+          for (const id of ladder[distance][wanted]) {
+            const take = posts * (spare[id] / eligible) * served[id]
+            heads[sector.id][id] += take
+            remaining[sector.id][wanted] -= take
+          }
+        }
+      }
+      for (const id of COHORT_IDS) {
+        spare[id] = Math.max(0, spare[id] - Math.min(claims[id], spare[id]))
+      }
+    }
+  }
+
+  // Rounding, and only rounding: the walk above clears every post whenever the
+  // hands exist, so anything left here is float dust. It is handed to the
+  // cohort already largest in that sector so the wage bill closes exactly.
+  for (const sector of sectors) {
+    let filled = 0
+    for (const id of COHORT_IDS) filled += heads[sector.id][id]
+    const short = sector.employment - filled
+    if (Math.abs(short) <= 1e-12) continue
+    let biggest: CohortId = COHORT_IDS[0]
+    for (const id of COHORT_IDS) {
+      if (heads[sector.id][id] > heads[sector.id][biggest]) biggest = id
+    }
+    heads[sector.id][biggest] = Math.max(0, heads[sector.id][biggest] + short)
+  }
+  return heads
+}
+
+/**
+ * How short the economy is of each cohort's KIND of work: the jobs the
+ * staffing table ASKS OF a cohort, against the people in it.
+ *
+ * Deliberately the unrationed ratio, and it must stay that way now that
+ * `staffing` exists: this is a demand signal, not an outcome. Post-allocation
+ * every cohort is fully employed or has slack, so a version of this read off
+ * `staffing` could never exceed 1 — and ADR-0032's class transition gates the
+ * crossing into the professions on exactly the excess above 1. Re-expressing
+ * it on the allocation would silently kill that leg.
+ *
+ * Measured, it exceeds 1 badly: a developmental Meridia asks for 1.7
+ * professionals for every professional it has by 2046 while leaving a fifth of
+ * its urban workers unaccounted for. That imbalance is the shortage the second
+ * leg of the class transition answers, and it is the honest signal to read,
+ * because the wage table cannot express a skill premium INSIDE a sector:
+ * professionals and urban workers both earn `wages.services`, and services is
+ * the low-wage sector for the first sixty years of every century the catalogue
+ * runs.
  *
  * Cohorts nobody employs (owners, retirees) report 0.
  */
