@@ -58,8 +58,8 @@ describe('the wall fits the reference viewport', () => {
     )
   })
 
-  it('uses a six-bay dense roster without changing the four-slot watch board', () => {
-    expect(rackColumns(1280)).toBe(6)
+  it('uses a seven-bay dense roster without changing the four-slot watch board', () => {
+    expect(rackColumns(1280)).toBe(7)
     expect(rackColumns(1279)).toBe(4)
     expect(rackColumns(1023)).toBe(3)
     expect(rackColumns(639)).toBe(2)

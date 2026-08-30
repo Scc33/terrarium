@@ -573,7 +573,7 @@ function tradedBasket(state: TrueState): { home: number; world: number } {
 
 /**
  * The nominal exchange rate at which this country would be exactly as
- * competitive as the day it opened — its parity (ADR-0033).
+ * competitive as the day it opened — its parity (ADR-0034).
  *
  * This is the fundamental the rate reverts to, and it is why domestic
  * inflation depreciates the currency and domestic deflation raises it without

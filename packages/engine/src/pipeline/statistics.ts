@@ -21,6 +21,7 @@ import {
 } from '../constants'
 import { conditionDispatches } from '../events/conditions'
 import { clamp } from '../math'
+import { humanDevelopmentDimensions, humanDevelopmentIndex } from '../humanDevelopment'
 import {
   INCOME_QUINTILE_IDS,
   INDUSTRY_TABLE_IDS,
@@ -53,8 +54,8 @@ import {
   totalLaborForce,
 } from './derive'
 
-interface IndicatorSpec {
-  id: IndicatorId
+interface DirectIndicatorSpec {
+  id: Exclude<IndicatorId, 'human_development'>
   /** true value for measured quarter q (may need q−1 for growth) */
   trueValue(record: StatRecord[], q: number): number
   baseSd: number // first-print noise, in indicator units, at zero capacity
@@ -66,6 +67,25 @@ interface IndicatorSpec {
    * even when the office is too poor to compile anything else quickly */
   fastLag?: boolean
 }
+
+const HUMAN_DEVELOPMENT_COMPONENT_IDS = [
+  'life_expectancy',
+  'human_capital',
+  'gdp_per_capita',
+] as const satisfies readonly IndicatorId[]
+
+type HumanDevelopmentComponentId = (typeof HUMAN_DEVELOPMENT_COMPONENT_IDS)[number]
+
+interface ConstructedIndicatorSpec {
+  id: 'human_development'
+  /** Constructed releases read official component prints, never TrueState. */
+  derivedFrom: typeof HUMAN_DEVELOPMENT_COMPONENT_IDS
+}
+
+type IndicatorSpec = DirectIndicatorSpec | ConstructedIndicatorSpec
+
+export const isDirectIndicatorSpec = (spec: IndicatorSpec): spec is DirectIndicatorSpec =>
+  'trueValue' in spec
 
 export const INDICATOR_SPECS: IndicatorSpec[] = [
   {
@@ -281,6 +301,10 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 1.5,
   },
   {
+    id: 'human_development',
+    derivedFrom: HUMAN_DEVELOPMENT_COMPONENT_IDS,
+  },
+  {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
@@ -355,6 +379,20 @@ const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
 const LAGS = [1, 2]
 const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
 const noiseScale = (cap: number) => 1 - 0.85 * cap
+
+/** The three source specs determine the date on which an aligned component
+ * can exist. Build this tiny index once rather than searching all 37 specs for
+ * every candidate composite. It also turns a missing direct spec into a loud
+ * startup error instead of a permanently blank HDI plate. */
+const HUMAN_DEVELOPMENT_COMPONENT_SPECS = new Map(
+  HUMAN_DEVELOPMENT_COMPONENT_IDS.map((id) => {
+    const spec = INDICATOR_SPECS.find((candidate) => candidate.id === id)
+    if (!spec || !isDirectIndicatorSpec(spec)) {
+      throw new Error(`human development component ${id} needs a direct indicator spec`)
+    }
+    return [id, spec] as const
+  }),
+)
 
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
@@ -495,7 +533,7 @@ function policyRecordOf(gov: TrueState['gov']): PolicyRecord {
  * sandbox that also handed over exact figures would be the truth inspector
  * with extra steps, and the fog is what politics reads. */
 function printsDue(
-  spec: IndicatorSpec,
+  spec: DirectIndicatorSpec,
   record: StatRecord[],
   publishedAt: number,
   seed: Seed,
@@ -530,6 +568,126 @@ function printsDue(
       }
       out.push(print)
     }
+  }
+  return out
+}
+
+interface AlignedDevelopmentPrints {
+  life: StatPrint
+  skills: StatPrint
+  income: StatPrint
+}
+
+/** Series are append-only in publication-date order. Binary-search the first
+ * release in one date's bucket, then walk only that bucket; a century archive
+ * therefore costs O(log n + releases today), not O(n), each quarter. */
+function printsPublishedAt(
+  points: readonly StatPrint[],
+  publishedAt: number,
+): readonly StatPrint[] {
+  let lo = 0
+  let hi = points.length
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    if (points[mid].publishedAt < publishedAt) lo = mid + 1
+    else hi = mid
+  }
+  let end = lo
+  while (end < points.length && points[end].publishedAt === publishedAt) end++
+  return points.slice(lo, end)
+}
+
+function alignedDevelopmentPrints(
+  series: Partial<Record<IndicatorId, StatPrint[]>>,
+  record: readonly Pick<StatRecord, 'statCapacity'>[],
+  forQtr: number,
+  revision: number,
+): AlignedDevelopmentPrints | null {
+  const cap = record[forQtr]?.statCapacity
+  const revisionDelay = REVISION_DELAYS[revision]
+  if (cap === undefined || revisionDelay === undefined) return null
+  const find = (id: HumanDevelopmentComponentId) => {
+    const spec = HUMAN_DEVELOPMENT_COMPONENT_SPECS.get(id)!
+    const componentPublishedAt =
+      forQtr + (spec.fastLag ? 1 : lagFor(cap)) + revisionDelay
+    return printsPublishedAt(series[id] ?? [], componentPublishedAt).find(
+      (print) => print.forQtr === forQtr && print.revision === revision,
+    )
+  }
+  const life = find('life_expectancy')
+  const skills = find('human_capital')
+  const income = find('gdp_per_capita')
+  return life && skills && income ? { life, skills, income } : null
+}
+
+function dimensionsForPrints(
+  prints: AlignedDevelopmentPrints,
+  direction: -1 | 0 | 1,
+) {
+  return humanDevelopmentDimensions({
+    lifeExpectancy: prints.life.value + direction * prints.life.errorBand,
+    workforceSkills: prints.skills.value + direction * prints.skills.errorBand,
+    realGdpPerCapita: prints.income.value + direction * prints.income.errorBand,
+  })
+}
+
+/**
+ * Releases of Terrarium's Human Development Index dated `publishedAt`.
+ *
+ * This is intentionally a join over the office's RELEASES, not a fourth
+ * `trueValue` specification. A candidate exists only when all three inputs
+ * have the same reference quarter and revision, and when the office met the
+ * composite's own funding gate in that reference quarter. Its value and band
+ * are fully determined by those prints, with no `obs:human_development` RNG
+ * stream. `fullInstrumentation` lifts this funding gate just as it does for a
+ * direct indicator; it does not invent a component print that has not arrived.
+ */
+export function humanDevelopmentPrintsDue(
+  series: Partial<Record<IndicatorId, StatPrint[]>>,
+  record: readonly Pick<StatRecord, 'statCapacity'>[],
+  publishedAt: number,
+  fullInstrumentation: boolean,
+): StatPrint[] {
+  const candidates = new Map<string, { forQtr: number; revision: number }>()
+  for (const id of HUMAN_DEVELOPMENT_COMPONENT_IDS) {
+    for (const print of printsPublishedAt(series[id] ?? [], publishedAt)) {
+      candidates.set(`${print.forQtr}:${print.revision}`, {
+        forQtr: print.forQtr,
+        revision: print.revision,
+      })
+    }
+  }
+
+  const existing = new Set(
+    printsPublishedAt(series.human_development ?? [], publishedAt).map(
+      (print) => `${print.forQtr}:${print.revision}`,
+    ),
+  )
+  const out: StatPrint[] = []
+  for (const [key, candidate] of candidates) {
+    if (existing.has(key)) continue
+    const cap = record[candidate.forQtr]?.statCapacity
+    if (cap === undefined) continue
+    if (!fullInstrumentation && cap < INDICATOR_FUNDED_AT.human_development) continue
+    const aligned = alignedDevelopmentPrints(
+      series,
+      record,
+      candidate.forQtr,
+      candidate.revision,
+    )
+    if (!aligned) continue
+    const components = dimensionsForPrints(aligned, 0)
+    const value = humanDevelopmentIndex(components)
+    const low = humanDevelopmentIndex(dimensionsForPrints(aligned, -1))
+    const high = humanDevelopmentIndex(dimensionsForPrints(aligned, 1))
+    out.push({
+      forQtr: candidate.forQtr,
+      publishedAt,
+      revision: candidate.revision,
+      value,
+      errorBand: Math.max(value - low, high - value),
+      components,
+    })
   }
   return out
 }
@@ -696,8 +854,21 @@ export const statistics: PipelineStep = {
     const releaseDate = state.meta.tick + 1
     const series = { ...state.stats.series }
     for (const spec of INDICATOR_SPECS) {
+      if (!isDirectIndicatorSpec(spec)) continue
       const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]
+    }
+    const developmentDue = humanDevelopmentPrintsDue(
+      series,
+      record,
+      releaseDate,
+      state.meta.rules.fullInstrumentation,
+    )
+    if (developmentDue.length > 0) {
+      series.human_development = [
+        ...(series.human_development ?? []),
+        ...developmentDue,
+      ]
     }
     const censusDue = industryPrintsDue(
       record,

@@ -10,7 +10,7 @@
  */
 
 import type { CohortId, SectorId } from '@terrarium/engine'
-import type { BlocId, IndicatorId, InstitutionId, PlatformId } from '@terrarium/observation'
+import type { BlocId, HumanDevelopmentDimensions, IndicatorId, InstitutionId, PlatformId } from '@terrarium/observation'
 
 export interface IndicatorNames {
   /** dossier-era gauge header: the ministry's own wording, with units */
@@ -61,6 +61,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   income_real: { dossier: 'HOUSEHOLD INCOME · IDX', terminal: 'INC.REAL IDX', plate: 'HOUSEHOLD INCOME', short: 'INCOME', needs: 'NATIONAL ACCOUNTS', note: 'Household income compared with 1946 after price rises are removed.' },
   poverty_rate: { dossier: 'POVERTY · % POPULATION', terminal: 'POVERTY %POP', plate: 'POVERTY RATE', short: 'POVERTY', needs: 'HOUSEHOLD SURVEY', note: 'The share of people whose income cannot buy one standard 1946 basket each quarter.' },
   life_expectancy: { dossier: 'LIFE EXPECTANCY · YEARS', terminal: 'LIFE.EXP YEARS', plate: 'LIFE EXPECTANCY', short: 'LIFE EXP.', needs: 'CIVIL REGISTRATION', note: 'How many years a newborn would be expected to live if today’s death rates at every age continued. Unlike the crude death rate, it is not pushed up simply because the country is getting older.' },
+  human_development: { dossier: 'HUMAN DEVELOPMENT · 0–1', terminal: 'HUM.DEV IDX', plate: 'HUMAN DEVELOPMENT', short: 'HDI', needs: 'ALIGNED OFFICIAL RETURNS', note: 'One combined reading of health, workforce skills and real output per person. A weak result in any one of the three holds the index down.' },
   net_migration: { dossier: 'NET MIGRATION · /1000', terminal: 'NET.MIG /1K', plate: 'NET MIGRATION', short: 'NET MIG.', needs: 'CIVIL REGISTRATION', note: 'Arrivals minus departures per 1,000 people each year. Positive means more people arrived; negative means more left. The immigration ceiling limits arrivals but cannot stop departures.' },
   birth_rate: { dossier: 'BIRTH RATE · /1000', terminal: 'BIRTH.RATE /1K', plate: 'BIRTH RATE', short: 'BIRTH RATE', needs: 'CIVIL REGISTRATION', note: 'Births per 1,000 people each year.' },
   death_rate: { dossier: 'DEATH RATE · /1000', terminal: 'DEATH.RATE /1K', plate: 'DEATH RATE', short: 'DEATH RATE', needs: 'CIVIL REGISTRATION', note: 'Deaths per 1,000 people each year.' },
@@ -88,7 +89,29 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
  * hundreds print whole, everything below keeps its decimal. Nothing currently
  * under 100 changes, which is every rate and every percentage on the wall.
  */
-export const readingDigits = (value: number): number => (Math.abs(value) >= 100 ? 0 : 1)
+export const readingDigits = (value: number, indicator?: IndicatorId): number =>
+  indicator === 'human_development' ? 3 : Math.abs(value) >= 100 ? 0 : 1
+
+/** The HDI's propagated band lives in hundredths, so one decimal would turn
+ * real uncertainty into ±0.0. Every surface that quotes a terminal-era band
+ * uses this formatter rather than choosing its own precision. */
+export const formatUncertainty = (indicator: IndicatorId, errorBand: number): string =>
+  errorBand.toFixed(indicator === 'human_development' ? 3 : 1)
+
+export const HUMAN_DEVELOPMENT_COMPONENTS = [
+  { key: 'health', label: 'HEALTH' },
+  { key: 'skills', label: 'SKILLS' },
+  { key: 'income', label: 'INCOME' },
+] as const
+
+export function humanDevelopmentBreakdown(
+  components: HumanDevelopmentDimensions,
+  digits = 2,
+): string {
+  return HUMAN_DEVELOPMENT_COMPONENTS
+    .map(({ key, label }) => `${label.toLowerCase()} ${components[key].toFixed(digits)}`)
+    .join(', ')
+}
 
 /** Saving/consumption and government/private are two sides of one accounting
  * identity, not separate noisy instruments. Keep the complement derived from

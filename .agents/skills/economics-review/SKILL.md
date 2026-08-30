@@ -180,7 +180,7 @@ value-added share at **33.7 → 33.2** across 400 quarters, against 34.2 → 26.
 `HOUSEHOLD_SUBSTITUTION` is wired and ships at **1**. Raising it is a measured dead end
 (`docs/investigations/0016`), not an untried idea — re-read that before spending a day on it.
 
-### The currency (schema 41, ADR-0033)
+### The currency (schema 42, ADR-0034)
 
 The third mechanic that **moves the baseline on purpose**, and unlike pollution and the basket
 the thing it moves is not growth — it is survival. Re-measured 1000 × 400q on `country=baseline`:
@@ -200,7 +200,7 @@ there because the adversarial sweep is the only arm that ever orders a currency 
 **Growth is untouched and deposition is not — that is the whole calibration story.** A floating
 exchange rate is a shock absorber: a supply shock raises domestic prices, the currency follows
 them down, and the competitiveness gained carries part of the adjustment that used to fall
-entirely on output. Before v41 the model had no exchange-rate adjustment at all, so this is a
+entirely on output. Before v42 the model had no exchange-rate adjustment at all, so this is a
 missing channel arriving rather than a balance change — but it is worth seven points of passive
 deposition, so know it is there.
 

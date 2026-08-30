@@ -4,8 +4,8 @@
 tracked by [issue #53](https://github.com/Scc33/terrarium/issues/53) and the broader
 [steerability issue #97](https://github.com/Scc33/terrarium/issues/97)
 
-**Superseded in part (2026-08-29, schema 41):** the paragraph under "What the engine actually
-prices" that treats the exchange rate as reachable only indirectly no longer holds. ADR-0033 gives
+**Superseded in part (2026-08-29, schema 42):** the paragraph under "What the engine actually
+prices" that treats the exchange rate as reachable only indirectly no longer holds. ADR-0034 gives
 the rate a fundamental and the cabinet a standing order in the currency market
 (`gov.dials.fxIntervention`), so there is now a direct trade lever.
 

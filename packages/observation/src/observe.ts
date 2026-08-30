@@ -70,6 +70,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   income_real: { label: 'Household income', unit: '1946=100' },
   poverty_rate: { label: 'Poverty rate', unit: '% of population' },
   life_expectancy: { label: 'Life expectancy', unit: 'years at birth' },
+  human_development: { label: 'Human development', unit: 'index 0–1' },
   net_migration: { label: 'Net migration', unit: 'per 1000/yr' },
   birth_rate: { label: 'Birth rate', unit: 'per 1000/yr' },
   death_rate: { label: 'Death rate', unit: 'per 1000/yr' },

@@ -66,6 +66,7 @@ describe('instrument access', () => {
         'unemployment',
         'labor_force_participation',
         'human_capital',
+        'human_development',
       ],
     })
     expect(nextInstrumentUnlock(0.55)).toBeNull()

@@ -17,6 +17,7 @@ function point(
     events?: MacroEvent[]
     publishedInflation?: number | null
     publishedRealGrowth?: number | null
+    publishedHumanDevelopment?: number | null
     drivers?: Partial<TrajectoryPoint['drivers']>
   } = {},
 ): TrajectoryPoint {
@@ -35,6 +36,7 @@ function point(
     inPower: true,
     publishedInflation: options.publishedInflation ?? null,
     publishedRealGrowth: options.publishedRealGrowth ?? null,
+    publishedHumanDevelopment: options.publishedHumanDevelopment ?? null,
     events: options.events ?? [],
     drivers: {
       population: 130 + tick,
@@ -81,6 +83,7 @@ describe('long-horizon stability analysis', () => {
           unemployment: 9,
           publishedInflation: 5,
           publishedRealGrowth: 7,
+          publishedHumanDevelopment: 0.6,
         }),
         point(41, { realGdp: 102, inflation: 4, unemployment: 8 }),
         point(215, { realGdp: 200 }),
@@ -95,6 +98,7 @@ describe('long-horizon stability analysis', () => {
     expect(postwar.realGrowth.p50).toBeCloseTo(4.04, 2)
     expect(postwar.publishedInflation).toMatchObject({ count: 1, p50: 5 })
     expect(postwar.publishedRealGrowth).toMatchObject({ count: 1, p50: 7 })
+    expect(postwar.publishedHumanDevelopment).toMatchObject({ count: 1, p50: 0.6 })
     expect(postwar.quietDrivers.observations).toBe(2)
     expect(postwar.quietDrivers.laborProductivityGrowth.count).toBe(2)
 

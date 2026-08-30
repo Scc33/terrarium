@@ -178,12 +178,19 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   goldens with whatever the engine now produces and cannot tell an improvement from a broken
   economy, so the diff review IS the economics review (ADR-0008). The skill carries the passive
   and random-policy baselines; keep them there rather than copying them back here.
+- A balance question about a REAL game → **`pnpm replay <save-or-export.json>`**. The runner's
+  policies are sampling strategies; a played century is the only sample of what a person
+  actually does, and neither artifact the game writes hands you the true state on its own — a
+  save is replay inputs, the data export is the fog. The tool replays the log through the engine
+  and prints the truth beside counterfactual arms on the SAME country and seed, so "the player
+  stopped there" and "the model stops there" stop looking identical. Investigation 0019 is what
+  it was built for. Its `maximal` arm is a ceiling probe, never a baseline.
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
   pipeline-order changes).
 - The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-29 at schema 41:
+- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-29 at schema 42:
   **96.7% stmts / 86.0% branch**).
   It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
@@ -325,7 +332,7 @@ country already exceeds on its opening morning.
 the archive filter — and `panels/WireOverlay.tsx` paints what it returns. A page that leads on the
 wrong story is invisible in review AND in jsdom.
 
-### The currency (ADR-0033)
+### The currency (ADR-0034)
 
 `trade` is a foreign exchange market. The rate is a PRICE WITH A FUNDAMENTAL and it reverts to it
 — the same shape `finance.ts` gives the asset price, for the same reason: a price that only
@@ -335,7 +342,7 @@ yield spread over the rate the country inherited. `gov.dials.fxIntervention` is 
 order: buy foreign exchange to hold the currency down and build reserves, or sell reserves to hold
 it up. Zero is a float and is the default.
 
-- **Reserves change ONLY by what the bank transacts.** Before v41 they were the residual of every
+- **Reserves change ONLY by what the bank transacts.** Before v42 they were the residual of every
   quarter's balance, and since these countries run a STRUCTURAL surplus — the current account is
   positive in every quarter of every seed under both baselines — they only ever grew: 25 to 47
   quarters of import cover passive, up to 235 developmental. `DEPRECIATION_WHEN_BROKE` was
@@ -440,7 +447,7 @@ instrument simply never publishes.
 
 Not every fogged output is an indicator. The **industrial census** (schema 31,
 `PublishedState.industry`) is value added and employment by sector, published on the office's
-ordinary clock but as a VECTOR: five sectors × two tables is ten dials against six rack strips
+ordinary clock but as a VECTOR: five sectors × two tables is ten dials against seven rack strips
 of headroom, and a sector share has no honest fixed dial face (ADR-0006) when the catalogue
 opens countries anywhere between 5% and 60% agricultural. It reuses `lagFor` / `noiseScale` /
 `REVISION_DELAYS` in `statistics.ts` rather than owning a second measurement model — same
@@ -566,6 +573,13 @@ perfectly with no opinion about anything in the game. The first politics impleme
 - Player-facing constants get calibrated, not guessed, and pinned as a rate against a measured
   century (`pnpm ranges`, the sweep in `tests/ui/revision-stamp.test.ts`). The tests re-measure
   rather than snapshot, so a retune that pushes an instrument off its dial fails by name.
+- **Human-development income goalposts are global, fixed engine units.** Schema 38 measured
+  funded authored countries at p01–p99 6.3–113.8 real GDP/head and 400 validator-legal drafts at
+  2.60–183.23, which is why `HUMAN_DEVELOPMENT_INCOME_MIN/MAX` are 2.5–200. Do not rebase them to
+  the country's 1946 value or a trailing window: either makes two countries with the same living
+  standard print different income dimensions and redraws development under its own needle. The
+  composite joins published component prints by quarter and revision; reading truth and adding a
+  second noise draw would make it a back door around the fog (ADR-0033).
 - **Shock smoothing is not automatically stabilization.** A four-quarter geometric drought
   recovery (`815a0aa`) lowered some inflation peaks but deepened passive deflation and rebound
   growth, widened quiet tails, and reduced developmental 2050 survival. Any shock retune must
@@ -716,7 +730,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
   genuinely recurrent event is untouched (its gaps were never near the cooldown). Any "don't repeat
   yourself" rule over a persistent state needs this shape.
 - **A floating currency is a shock absorber, and it is worth several points of difficulty.**
-  Giving the exchange rate a fundamental it reverts to (ADR-0033) took passive deposition from 9%
+  Giving the exchange rate a fundamental it reverts to (ADR-0034) took passive deposition from 9%
   to 2% and developmental from 7% to 2% over 1000 × 400q, while leaving century growth at 2.83 and
   3.06 %/yr. The per-country split is the reading to keep: Costona and Kestrel, whose
   governments fall for political rather than macroeconomic reasons, barely moved (23→24% and

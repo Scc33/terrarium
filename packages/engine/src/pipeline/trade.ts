@@ -1,5 +1,5 @@
 /**
- * Step 4 — trade, and the foreign exchange market that settles it (ADR-0033).
+ * Step 4 — trade, and the foreign exchange market that settles it (ADR-0034).
  *
  * The step books the external flows production decided on, and then finds the
  * price that clears them. World prices and export demand are set upstream by
@@ -14,7 +14,7 @@
  * The bank buys what it ordered (`gov.dials.fxIntervention`) and not a penny
  * more; everything else is foreign currency somebody has to be persuaded to
  * take, and the exchange rate is the persuasion. Reserves therefore stop being
- * the residual of every quarter's balance — which is what they were until v41,
+ * the residual of every quarter's balance — which is what they were until v42,
  * and why a passive century ended holding twenty-five to forty-seven QUARTERS
  * of import cover with the rate still sitting at 1.00, having responded to
  * nothing that happened in it.

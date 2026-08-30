@@ -95,10 +95,10 @@ export function printStabilityReport(
 
   if (report.eras.some((era) => era.publishedInflation.count > 0)) {
     console.log('  first-release wall tails (p01 / p50 / p99):')
-    console.log('    era             inflation %        real growth %       prints CPI/GDP')
+    console.log('    era             inflation %        real growth %           HDI        prints CPI/GDP/HDI')
     for (const row of report.eras) {
       console.log(
-        `    ${row.era.label.padEnd(11)}  ${tails(row.publishedInflation)}  ${tails(row.publishedRealGrowth)}  ${String(row.publishedInflation.count).padStart(7)}/${row.publishedRealGrowth.count}`,
+        `    ${row.era.label.padEnd(11)}  ${tails(row.publishedInflation)}  ${tails(row.publishedRealGrowth)}  ${tails(row.publishedHumanDevelopment)}  ${String(row.publishedInflation.count).padStart(7)}/${row.publishedRealGrowth.count}/${row.publishedHumanDevelopment.count}`,
       )
     }
     console.log('  quiet-quarter wall tails (p01 / p50 / p99):')

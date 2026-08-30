@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 41)
+## Current contract (schema 42)
 
 ### Inputs
 
@@ -68,7 +68,7 @@ do not start until `appointedAt`.
 | `policyRate` | annualized nominal rate |
 | `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
-| `fxIntervention` | standing order in the currency market, **signed**, −10..+10% of GDP a year. Positive buys foreign exchange and holds the currency down; negative sells reserves to hold it up. The only signed dial on the desk *(added v41)* |
+| `fxIntervention` | standing order in the currency market, **signed**, −10..+10% of GDP a year. Positive buys foreign exchange and holds the currency down; negative sells reserves to hold it up. The only signed dial on the desk *(added v42)* |
 | `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
 
@@ -139,7 +139,7 @@ without lowering the policy rate or counting as fiscal deficit printing, so it r
 at the rate floor but still feeds credit and asset-price risk. `capitalRequirement` sets the bank
 equity floor that caps credit directly. The crisis remains the one the player's leverage earned.
 
-The **currency** (`trade` step, ADR-0033) is a price with a fundamental and it reverts to it.
+The **currency** (`trade` step, ADR-0034) is a price with a fundamental and it reverts to it.
 The fundamental is PARITY — the nominal rate at which the country is as competitive as it was in
 1946, `fxParityAnchor × (traded basket at home ÷ abroad) ^ FX_PARITY_PASSTHROUGH` — tilted by the
 balance of payments the market was not expecting and by the yield spread over the inherited
@@ -179,6 +179,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unemployment` | % | 0.35 | v1 | unemployment rate |
 | `labor_force_participation` | % of population | 0.35 | v22 | labour force ÷ census population |
 | `human_capital` | idx | 0.35 | v30 | slow workforce knowledge-and-skills stock ×100 |
+| `human_development` | index 0–1 | 0.35 | v41 | geometric mean of aligned published health, workforce-skills and real-output-per-head dimensions |
 | `consumption_share` | % final expenditure | 0.35 | v16 | household demand ÷ total final expenditure |
 | `investment_share` | % final expenditure | 0.35 | v16 | private + public capital formation ÷ total final expenditure |
 | `export_share` | % final expenditure | 0.35 | v16 | gross exports ÷ total final expenditure |
@@ -199,8 +200,10 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `unrest` | idx | 0.40 | v12 | revolutionary pressure ×100 — what collated provincial reports would show |
 
 Each published point carries `{ forQtr, publishedAt, value, revision, errorBand }`; `gdp_growth`
-additionally carries level estimates. Lag, noise, and error bands shrink as statistical capacity
-rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal ticker.
+additionally carries level estimates, while `human_development` carries its normalized
+`{ health, skills, income }` components. Lag, noise, and error bands shrink as statistical
+capacity rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal
+ticker.
 
 ### Outputs — the industrial census (fogged, and not an indicator)
 
@@ -260,7 +263,7 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves, **the posted exchange rate** *(v41)* — current + full history |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves, **the posted exchange rate** *(v42)* — current + full history |
 | ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |
@@ -299,10 +302,10 @@ reconciled to the separately noised `income_real` headline.
 
 ## Version history — what each release added to the contract
 
-### schema 41 — The exchange rate clears a market
+### schema 42 — The exchange rate clears a market
 
 - **Inputs +**: `fxIntervention` — a signed standing order in the currency market, −10..+10% of
-  GDP a year, exact like every other dial (#152, ADR-0033). Zero is a float and is the default.
+  GDP a year, exact like every other dial (#152, ADR-0034). Zero is a float and is the default.
 - **State +**: `ExternalState.fxParityAnchor` (the REAL rate the country inherited, sealed at
   `init`), `.balanceNorm` (an EMA of the balance of payments — the balance the market has got used
   to financing, seeded from the country's own 1946 trade position), `.coverTarget` (quarters of
@@ -322,9 +325,37 @@ reconciled to the separately noised `income_real` headline.
   the same reason the rest of that page is: a market price a bank quotes is not a survey.
 - **Faces ±**: `price_food` 40–180 → 25–180 and `price_fuel` 40–130 → 25–130, re-measured
   (`pnpm ranges`) after the parity term made an industrialising century about a tenth cheaper.
-- **Not added**: a `real_exchange_rate` instrument. Built and measured, then removed —
-  `rackHeadroom()` reached zero, and the wall's contract calls for a layout decision rather than
-  another row. First candidate when that decision is taken.
+- **Not added**: a `real_exchange_rate` instrument. Built and measured (`pnpm ranges`: p01 96.6,
+  p50 136.4, p99 192.0, face 80–200), then removed, because `rackHeadroom()` read zero at the
+  time. **v41's seven-column register has since reopened it** — the wall now carries 37
+  instruments with room for seven more — so the constraint that removed it is gone and only the
+  measurement stands. It is the obvious next candidate rather than a closed question.
+
+### schema 41 — Human development is constructed from the published record
+
+- **Outputs +**: fogged `human_development`, a 0–1 Terrarium Human Development Index. Health
+  normalizes the `life_expectancy` print from 20–85 years; education uses the 0–1
+  `human_capital` workforce-skills stock; income logarithmically normalizes the
+  `gdp_per_capita` print between fixed 2.5–200 engine units. Their geometric mean is the
+  headline. It unlocks at statistical capacity 0.35, the most demanding component gate.
+- **Publication contract**: the index joins component releases for the same reference quarter
+  and revision. It publishes nothing until all three exist, reissues when their aligned
+  revision arrives, and draws no independent observation noise. Its error band is propagated
+  from the three component bands, and each point carries the normalized
+  `{ health, skills, income }` values displayed beside the headline.
+- **Boundary**: this is explicitly Terrarium's proxy, not literal UNDP HDI: workforce skills
+  are not mean/expected years of schooling, and real domestic output in engine units is not PPP
+  gross national income. The index is informational only and does not enter approval, political
+  capital or the report card; Gini and poverty remain separate distributional readings.
+- **Long-run evidence**: `pnpm hdi-analysis` over 12 seeds × 6 authored countries × 400
+  quarters measured p01–p99 0.304–0.783 (extrema 0.254–0.804), with no component clamped at
+  either rail. Log-variance contributions were health 10.3%, skills 51.5%, income 38.2%, so the
+  composite is not a renamed income series.
+- **Layout**: the 37th wall instrument moves the full-desktop rack to an explicit seven-column
+  dense register. Names and readings remain visible; delta magnitude and release age remain in
+  the accessible strip tooltip and return in the roomier four-column register.
+- **Pipeline — / inputs —**: no step added or reordered, no lever or country input added, and no
+  economic behavior changed.
 
 ### schema 40 — Schools make professionals
 

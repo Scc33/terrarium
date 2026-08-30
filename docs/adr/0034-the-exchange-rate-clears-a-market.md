@@ -1,4 +1,4 @@
-# ADR-0033 — The exchange rate is a price that clears a market, and the cabinet can stand in it
+# ADR-0034 — The exchange rate is a price that clears a market, and the cabinet can stand in it
 
 **Status:** Accepted · **Date:** 2026-08-29 · **Issue:** [#152](https://github.com/Scc33/terrarium/issues/152)
 
@@ -162,8 +162,15 @@ the strategy the mechanic actually supports.
   p50 136.4, p99 192.0, face 80–200), and then removed — `rackHeadroom()` went to zero, and the
   wall's own contract says the next indicator needs a layout decision rather than another row.
   The reading is delivered instead by the two new wire conditions, which read the true value and
-  say it in words, and by the posted rate charted on the treasury page. It is the first candidate
-  when the wall gets its layout decision.
+  say it in words, and by the posted rate charted on the treasury page.
+
+  **That constraint has since been lifted by someone else.** ADR-0033 took the layout decision
+  this branch declined to take: the full-desktop rack is now a seven-column dense register, and
+  after merging master the wall carries 37 instruments with room for seven more. So the reason
+  this alternative was rejected no longer holds and only the measurement survives. Adding it is
+  now an ordinary `add-indicator` job rather than a layout argument, and it is deliberately left
+  to its own change — it needs a dial-face review and a `verify-the-wall` pass at the new column
+  count, neither of which belongs in a merge.
 - **An imported-input cost channel in the price step**, so that depreciation raises domestic costs
   directly. Deferred: `effectivePrice` is read by household demand, profits and the GDP deflator,
   so widening it is an engine-wide recalibration. The passthrough this model has runs through

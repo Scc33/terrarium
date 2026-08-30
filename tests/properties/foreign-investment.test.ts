@@ -185,7 +185,7 @@ describe('foreign direct investment accounting', () => {
     // Booked in the balance of payments, which is where the accounting claim
     // lives: an inflow arrives and a remittance leaves, and neither vanishes.
     // It used to be asserted against RESERVES, and that stopped being the same
-    // statement at schema 41 (ADR-0033): reserves now move only by what the
+    // statement at schema 42 (ADR-0034): reserves now move only by what the
     // central bank transacts, and the rest of the balance clears at a price.
     // Whether the bank buys this particular 1.5 is a question about the dial,
     // not about foreign investment.

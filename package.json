@@ -32,12 +32,14 @@
     "class-structure": "tsx tools/measure-class-structure.ts",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
+    "replay": "tsx tools/replay-save.ts",
     "debt-baselines": "tsx tools/measure-debt-baselines.ts",
     "inheritance": "tsx tools/measure-inheritance.ts",
     "fdi": "tsx tools/measure-fdi.ts",
     "ranges": "tsx tools/indicator-ranges.ts",
     "events": "tsx tools/measure-events.ts",
-    "currency": "tsx tools/measure-currency.ts"
+    "currency": "tsx tools/measure-currency.ts",
+    "hdi-analysis": "tsx tools/hdi-analysis.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -47,11 +49,11 @@
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "^10.9.1",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
-    "globals": "^17.8.0",
+    "eslint-plugin-react-refresh": "^0.5.5",
+    "globals": "^17.11.0",
     "tsx": "^4.23.12",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.67.0",
+    "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.10"
   }
 }

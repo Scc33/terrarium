@@ -48,6 +48,10 @@ import {
   FIRST_YEAR,
   GAME_RULE_IDS,
   INDICATOR_FUNDED_AT,
+  HUMAN_DEVELOPMENT_INCOME_MAX,
+  HUMAN_DEVELOPMENT_INCOME_MIN,
+  HUMAN_DEVELOPMENT_LIFE_MAX,
+  HUMAN_DEVELOPMENT_LIFE_MIN,
   INSTITUTION_IDS,
   NEWS_REPORT_P,
   NEWS_REPORTS_PER_QTR,
@@ -489,6 +493,15 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
         body: [
           'Funding the statistical office buys three different things in sequence, and it is worth knowing which one you are buying. Below an instrument’s gate, it buys the instrument: the survey does not exist and the plate is blank. Above the gate, it buys speed — the lag falls from two quarters to one at half strength. Throughout, it buys accuracy: the error band narrows steadily with capacity.',
           'It never buys the truth. There is no level of funding at which the wall stops being an estimate.',
+        ],
+      },
+      {
+        heading: 'THE HUMAN DEVELOPMENT INDEX',
+        body: [
+          `The HUMAN DEVELOPMENT instrument combines three official returns for the SAME quarter and revision: life expectancy, workforce skills and real output per person. Health runs from zero at ${HUMAN_DEVELOPMENT_LIFE_MIN} years to one at ${HUMAN_DEVELOPMENT_LIFE_MAX}; skills already run from zero to one; income is placed on a fixed logarithmic scale from ${HUMAN_DEVELOPMENT_INCOME_MIN} to ${HUMAN_DEVELOPMENT_INCOME_MAX} real units per person. Their geometric mean multiplies the three normalized readings and takes the cube root, so strength in one cannot simply erase weakness in another.`,
+          'This is Terrarium’s Human Development Index, not a literal UNDP HDI. The game has workforce skills rather than mean and expected years of schooling, and domestic output in engine units rather than PPP national income. The familiar shape is useful; claiming false precision about the inputs would not be.',
+          'The index gets no extra survey error of its own. It is constructed from the three published figures already on the desk, and it publishes nothing until all three exist for the same quarter. Their revisions revise it. It is informational only: the index does not feed approval, political capital or the report card.',
+          'Like every national average, it can hide who was left behind. Read INCOME INEQUALITY and POVERTY RATE beside it; they remain separate rather than being folded into a second opaque composite.',
         ],
       },
       {

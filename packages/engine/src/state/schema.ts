@@ -236,6 +236,9 @@ export const INDICATOR_IDS = [
   /** expected years lived by a synthetic newborn under today's age-specific
    * mortality schedule — period life expectancy, not current age at death */
   'life_expectancy',
+  /** Terrarium's three-dimension development composite: aligned published
+   * life expectancy, workforce skills and real output per head (ADR-0033) */
+  'human_development',
   /** registered net migration, annualized per 1,000 residents. Positive is
    * immigration; negative is emigration. */
   'net_migration',
@@ -445,13 +448,13 @@ export interface DialState {
   /** bank equity required per unit of credit outstanding */
   capitalRequirement: Ratio
   /** Standing order in the foreign exchange market, as an annualized share of
-   * GDP (ADR-0033). Signed, and the sign is the whole lever: POSITIVE buys
+   * GDP (ADR-0034). Signed, and the sign is the whole lever: POSITIVE buys
    * foreign currency out of the market, which holds the domestic currency down
    * and piles up reserves; NEGATIVE sells reserves to hold it up, and can only
    * be filled while there are reserves left to sell.
    *
    * Zero is a float — the rate is whatever clears the external account. It is
-   * the default, and it is what the engine did NOT do before v41: the old
+   * the default, and it is what the engine did NOT do before v42: the old
    * `trade` step handed the entire balance to reserves every quarter, which is
    * this dial pinned at "buy everything", and the rate never had to clear
    * anything. */
@@ -544,7 +547,7 @@ export interface ExternalState {
   reserves: Money
   exchangeRate: number // domestic per foreign; up = depreciation
   /** The REAL exchange rate this country inherited — the competitiveness of
-   * its 1946 settlement, sealed by `init` and never written again (ADR-0033).
+   * its 1946 settlement, sealed by `init` and never written again (ADR-0034).
    * `exchangeRateParity` reads it to say what the nominal rate would have to be
    * today for the country to sell abroad on the terms it opened with, and the
    * rate reverts to that.
@@ -767,6 +770,17 @@ export interface StatPrint {
   errorBand: number // half-width; 0 = the office can't even estimate it
   /** GDP only: the office's level estimates behind the growth print */
   levels?: { real: number; nominal: number }
+  /** Human-development only: the three normalized published dimensions from
+   * which this release was constructed. These are carried on the print so the
+   * wall can explain the composite without recomputing measurement in the UI. */
+  components?: HumanDevelopmentDimensions
+}
+
+export interface HumanDevelopmentDimensions {
+  health: Ratio
+  /** workforce skills, serving as Terrarium's education proxy */
+  skills: Ratio
+  income: Ratio
 }
 
 /** What a wire item IS, independent of how it is worded.
@@ -1146,7 +1160,7 @@ export interface TickFlows {
   /** The balance of payments this quarter, in domestic money: exports less
    * imports, plus inward direct investment, less profits remitted out. It was
    * always computed in `trade` and always thrown away after it had been added
-   * to reserves; since v41 the rate clears it, so it is worth a name. */
+   * to reserves; since v42 the rate clears it, so it is worth a name. */
   currentAccount: Money
   /** What the central bank actually bought (+) or sold (−) in the foreign
    * exchange market this quarter, after the two rails in `trade` clipped the
@@ -1226,7 +1240,9 @@ export interface TrueState {
 
 // v11 was the disaggregated budget, which landed on master while this was in
 // flight; politics-as-a-game therefore becomes v12.
-export const SCHEMA_VERSION = 41 // v41: the exchange rate clears a market (#152)
+// …and v41 was the human development index, which landed on master while the
+// currency was in flight, so the exchange rate becomes v42.
+export const SCHEMA_VERSION = 42 // v42: the exchange rate clears a market (#152)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

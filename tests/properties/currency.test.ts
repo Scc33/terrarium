@@ -1,5 +1,5 @@
 /**
- * The currency (issue #152, ADR-0033). These are the design's load-bearing
+ * The currency (issue #152, ADR-0034). These are the design's load-bearing
  * claims about the foreign exchange market, and each of them was written
  * against a bug the first draft of `trade.ts` actually shipped.
  *

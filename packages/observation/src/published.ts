@@ -24,7 +24,6 @@ import type {
   Qtr,
   Ratio,
   RevenueSplit,
-  SectorId,
   StatPrint,
   StatuteId,
   SpendingRules,
@@ -49,7 +48,7 @@ export {
 export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
-export type { IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId }
+export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
 export type { IncomeQuintileId, IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
 
 /** One quarter of the government's own record of itself. */

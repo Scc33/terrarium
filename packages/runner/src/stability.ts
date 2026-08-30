@@ -63,6 +63,7 @@ export interface EraStability {
   quietRealGrowth: TailSummary
   publishedInflation: TailSummary
   publishedRealGrowth: TailSummary
+  publishedHumanDevelopment: TailSummary
   quietPublishedInflation: TailSummary
   quietPublishedRealGrowth: TailSummary
   unemployment: TailSummary
@@ -177,6 +178,7 @@ interface MacroReading {
   unemployment: number
   publishedInflation: number
   publishedRealGrowth: number
+  publishedHumanDevelopment: number
   events: readonly MacroEvent[]
   point: TrajectoryPoint
   previous: TrajectoryPoint | undefined
@@ -215,6 +217,7 @@ function hasNonFinite(point: TrajectoryPoint): boolean {
   ]
   if (point.publishedInflation !== null) values.push(point.publishedInflation)
   if (point.publishedRealGrowth !== null) values.push(point.publishedRealGrowth)
+  if (point.publishedHumanDevelopment !== null) values.push(point.publishedHumanDevelopment)
   return values.some((value) => !Number.isFinite(value))
 }
 
@@ -254,6 +257,7 @@ function macroReadings(run: StabilityRun): MacroReading[] {
     unemployment: point.unemployment * 100,
     publishedInflation: point.publishedInflation ?? NaN,
     publishedRealGrowth: point.publishedRealGrowth ?? NaN,
+    publishedHumanDevelopment: point.publishedHumanDevelopment ?? NaN,
     events: point.events ?? [],
     point,
     previous: playable[index - 1],
@@ -465,6 +469,9 @@ function eraReport(
     quietRealGrowth: summarizeTails(quiet.map((point) => point.realGrowth)),
     publishedInflation: summarizeTails(points.map((point) => point.publishedInflation)),
     publishedRealGrowth: summarizeTails(points.map((point) => point.publishedRealGrowth)),
+    publishedHumanDevelopment: summarizeTails(
+      points.map((point) => point.publishedHumanDevelopment),
+    ),
     quietPublishedInflation: summarizeTails(quiet.map((point) => point.publishedInflation)),
     quietPublishedRealGrowth: summarizeTails(quiet.map((point) => point.publishedRealGrowth)),
     unemployment: summarizeTails(points.map((point) => point.unemployment)),

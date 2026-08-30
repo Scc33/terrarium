@@ -231,7 +231,7 @@ export function init(
   )
   // The matching export order, at the same opening prices. Only used to seed
   // `balanceNorm` — the external balance the market has always financed for
-  // this country (ADR-0033). It has to be computed on the basis the `trade`
+  // this country (ADR-0034). It has to be computed on the basis the `trade`
   // step recomputes it on (the balance over NOMINAL GDP, at unit prices, with
   // the relative-price term and foreign demand both 1), or the market spends
   // its first years being surprised by an economy that has not changed. That
@@ -469,7 +469,7 @@ export function init(
         assetPurchaseRate: ASSET_PURCHASE_RATE_DEFAULT,
         capitalRequirement: CAPITAL_REQUIREMENT_DEFAULT,
         // A float. Every country opens with its currency finding its own
-        // level; a peg is a decision somebody has to take (ADR-0033).
+        // level; a peg is a decision somebody has to take (ADR-0034).
         fxIntervention: 0,
         subsidies: {},
       },
