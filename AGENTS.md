@@ -178,6 +178,13 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   goldens with whatever the engine now produces and cannot tell an improvement from a broken
   economy, so the diff review IS the economics review (ADR-0008). The skill carries the passive
   and random-policy baselines; keep them there rather than copying them back here.
+- A balance question about a REAL game → **`pnpm replay <save-or-export.json>`**. The runner's
+  policies are sampling strategies; a played century is the only sample of what a person
+  actually does, and neither artifact the game writes hands you the true state on its own — a
+  save is replay inputs, the data export is the fog. The tool replays the log through the engine
+  and prints the truth beside counterfactual arms on the SAME country and seed, so "the player
+  stopped there" and "the model stops there" stop looking identical. Investigation 0019 is what
+  it was built for. Its `maximal` arm is a ceiling probe, never a baseline.
 - On a `SCHEMA_VERSION` bump, add an entry to `docs/metrics-changelog.md` (the engine's
   inputs/outputs contract — new indicators + their `fundedAt`, new levers/params,
   pipeline-order changes).
