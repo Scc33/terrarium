@@ -22,6 +22,7 @@ import {
   type CountryScenarioId,
   type GameMode,
   type GameRules,
+  type Qtr,
   type Rng,
   type SectorId,
   type TurnActions,
@@ -87,6 +88,8 @@ export interface RunResult {
   stateHash: string
   nanCount: number
   priceExplosions: number // ticks with any price > 50× or < 1/50× base
+  /** Orders that did not take effect. Under `lenient: 'turn'` a refused order
+   * costs its whole turn, so every action in that turn is counted. */
   illegalActionsSkipped: number
   deposedAt: number | null
 }
@@ -140,12 +143,26 @@ export interface RunOptions {
   /** Immutable rules for the run. Ordinary balance baselines omit this and
    * retain the standard rules. */
   rules?: GameMode | Partial<GameRules>
+  /** The quarter the player takes office (ADR-0021). Balance baselines omit
+   * it and open in 1946. It exists here so a tool can replay a real save on
+   * the runner: `init` has always taken it, and a run that dropped it would
+   * quietly score a different country from the one the save holds. */
+  appointedAt?: Qtr
   /** Read-only probes for research and fuzz tooling. Successful generated or
    * scripted actions are reported before the tick; state is reported after it. */
   observer?: RunObserver
-  /** tolerate illegal scripted/policy actions by skipping them (default true;
-   * golden replays set false) */
-  lenient?: boolean
+  /** How to survive an order this build refuses. `true` (default) skips the
+   * individual action; `false` throws, which is what golden replays want.
+   *
+   * `'turn'` discards the WHOLE scripted turn instead, because that is what
+   * the game's own loader does (`ui/src/worker/sim.worker.ts` catches around
+   * one `applyActions` call per turn). A tool that replays somebody's save and
+   * calls the result "the century they played" has to agree with the country
+   * the game would actually open from that file — and the two only diverge on
+   * a save from an older engine, which is precisely the save worth analysing.
+   * Generated policy actions stay per-action lenient under `'turn'`: a runner
+   * policy deliberately over-offers and relies on the skip. */
+  lenient?: boolean | 'turn'
   /** Exact state hashing serializes the full statistical archive. Keep it on
    * by default for callers that compare runs; bulk diagnostics can opt out. */
   includeStateHash?: boolean
@@ -285,8 +302,9 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
   const byTick = new Map<number, Action[]>()
   for (const t of opts.script ?? []) byTick.set(t.tick, t.actions)
   const lenient = opts.lenient !== false
+  const turnAtomic = opts.lenient === 'turn'
 
-  let s = init(params, opts.seed, opts.rules)
+  let s = init(params, opts.seed, opts.rules, opts.appointedAt ?? 0)
   let nanCount = 0
   let priceExplosions = 0
   let illegalActionsSkipped = 0
@@ -299,7 +317,20 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
       ? opts.policy(s, rngFor(opts.policySeed ?? opts.seed, 'runner:policy', t), t)
       : []
     const accepted: Action[] = []
-    for (const a of [...scripted, ...generated]) {
+    // The scripted turn goes in atomically under `'turn'`, so a refused order
+    // takes its whole turn with it exactly as the loader's catch does.
+    if (turnAtomic && scripted.length > 0) {
+      opts.observer?.onActionAttempt?.({ tick: t, actions: scripted })
+      try {
+        s = applyActions(s, scripted)
+        accepted.push(...scripted)
+        opts.observer?.onActionAccepted?.({ tick: t, actions: scripted })
+      } catch (e) {
+        if (e instanceof IllegalActionError) illegalActionsSkipped += scripted.length
+        else throw e
+      }
+    }
+    for (const a of turnAtomic ? generated : [...scripted, ...generated]) {
       opts.observer?.onActionAttempt?.({ tick: t, actions: [a] })
       try {
         s = applyActions(s, [a])
