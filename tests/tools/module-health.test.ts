@@ -21,7 +21,7 @@ const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
   'packages/engine/src/actions/apply.ts': 782,
   // Cohesive ledger: the total, lint-enforced home for every behavioral constant.
-  'packages/engine/src/constants.ts': 1542,
+  'packages/engine/src/constants.ts': 1593,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -29,15 +29,15 @@ const MODULE_LINE_BASELINE = {
   // Executable hotspot: condition eligibility, page budgets, and escalating cooldowns.
   'packages/engine/src/events/conditions.ts': 828,
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
-  'packages/engine/src/index.ts': 414,
+  'packages/engine/src/index.ts': 416,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
-  'packages/engine/src/pipeline/derive.ts': 1010,
+  'packages/engine/src/pipeline/derive.ts': 1066,
   // Executable hotspot: institution power, compliance, and appointment updates.
   'packages/engine/src/pipeline/institutions.ts': 435,
   // Executable hotspot: funding, lag, noise, revision, and vector-publication machinery.
   'packages/engine/src/pipeline/statistics.ts': 899,
   // Executable hotspot: deterministic construction of the complete opening state.
-  'packages/engine/src/state/init.ts': 619,
+  'packages/engine/src/state/init.ts': 638,
   // Cohesive schema: total state contracts and canonical id lists.
   'packages/engine/src/state/schema.ts': 1314,
   // Analysis tool: whole-validator country sampling and stability reporting.

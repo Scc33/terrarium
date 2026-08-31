@@ -109,7 +109,10 @@ export const production: PipelineStep = {
         INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
         0.5 * (avgUtil - 0.85) +
         CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
-        // surplus labor is an investment opportunity, not just a tragedy
+        // Open unemployment is the investable quantity here: bumping changes
+        // who holds existing posts, but it creates no unfilled post or extra
+        // output capacity. Counting underemployment again would turn a hiring
+        // preference into invented investment demand (ADR-0036).
         INVESTMENT_SLACK_GAIN * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) +
         // Tobin's q: dear assets pull investment; a credit crunch freezes it
         FIN_INVEST_Q_GAIN * (fin.assetPrice - 1) -

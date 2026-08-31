@@ -793,3 +793,10 @@ perfectly with no opinion about anything in the game. The first politics impleme
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a
   wedge at all (`donutSlices` drops it). See `docs/investigations/0002`.
+- **Bumping down conserves jobs; it redistributes who is idle (ADR-0036).**
+  `OVERQUALIFIED_HIRING_PREFERENCE = 0.5` halves a reachable professional surplus without
+  erasing it; zero skips the phase and moves no golden value. Walk high to low, one rung at a
+  time, and allocate pro rata or source order becomes a hiring institution. Do not “account for”
+  underemployment by adding it to `flows.unemployment`: the lower sector wage already reaches
+  income, approval and migration, while the headline's readers need people with no job. Adding
+  the same hardship again invents investment demand or charges a household twice.

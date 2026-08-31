@@ -127,6 +127,9 @@ export const cohorts: PipelineStep = {
 
     // --- animal spirits adapt to conditions everyone can feel ---
     // consumers: income trend vs habit + how many neighbors are out of work;
+    // this stays OPEN unemployment. Underemployment already lands through the
+    // sector wage in `trend`; adding it here would count the same loss twice
+    // (ADR-0036).
     // firms: how full the order books are + whether margins are holding
     let incomeNow = 0
     let incomeHabit = 0
