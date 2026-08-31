@@ -46,7 +46,10 @@ function century(
     protectedTenure: true,
     unlimitedCapital: true,
   })
-  const out: TrueState[] = []
+  // The OPENING state is in this list on purpose. The first version of these
+  // tests started at q1, and the two curated countries that open with more jobs
+  // than people (Costona, Kestrel) sailed through every assertion below.
+  const out: TrueState[] = [s]
   for (let t = 0; t < ticks; t++) {
     let staged: TrueState = { ...s, politics: { ...s.politics, politicalCapital: 500 } }
     if (fund.length > 0 && t % 4 === 0) {
@@ -83,12 +86,21 @@ describe('the staffing allocation', () => {
     }
   })
 
-  it('never asks a cohort for more people than it has', () => {
+  it('never asks a cohort for more people than it has, once the country HAS them', () => {
+    // The bound is conditional, and the condition is the one `labor` enforces
+    // every quarter: total posts under `EMPLOYMENT_CEILING x` the labour force.
+    // It does not hold at tick zero, because `init` applies no such ceiling —
+    // that is investigation 0021 and it is asserted separately below.
+    let feasibleStates = 0
     for (const country of CURATED_COUNTRY_IDS) {
       for (const states of [century(country, []), century(country, CAPACITY_IDS)]) {
         for (const s of states) {
-          const heads = staffing(s)
           const supply = laborForce(s)
+          const posts = s.sectors.reduce((a, sec) => a + sec.employment, 0)
+          const hands = COHORT_IDS.reduce((a, id) => a + supply[id], 0)
+          if (posts > hands) continue
+          feasibleStates++
+          const heads = staffing(s)
           for (const id of COHORT_IDS) {
             let working = 0
             for (const sector of s.sectors) working += heads[sector.id][id]
@@ -100,6 +112,40 @@ describe('the staffing allocation', () => {
           }
         }
       }
+    }
+    // and the skip above must not have quietly eaten the whole suite
+    expect(feasibleStates).toBeGreaterThan(2000)
+  })
+
+  it('spreads an overdrawn opening evenly instead of blaming one class', () => {
+    // Costona opens at 1.021 jobs per person and Kestrel at 1.034 — `init`
+    // applies no employment ceiling, so the wage bill and the head count are
+    // genuinely incompatible for one tick. The wage bill wins; what this pins
+    // is that everybody carries the same share of the impossible part.
+    //
+    // The first implementation handed the whole shortfall to whichever cohort
+    // was already largest in a sector, which read as ONE class at 1.113x with
+    // its neighbours at 1.000 — a plausible-looking number that survived review.
+    for (const country of ['costona', 'kestrel'] as const) {
+      const seed = `staffing-${country}`
+      const s = init(createCountryParams(country, seed), seed)
+      const supply = laborForce(s)
+      const heads = staffing(s)
+      const posts = s.sectors.reduce((a, sec) => a + sec.employment, 0)
+      const hands = COHORT_IDS.reduce((a, id) => a + supply[id], 0)
+      expect(posts / hands, `${country} is no longer overdrawn — re-pick the fixture`).toBeGreaterThan(1)
+
+      const multiples: number[] = []
+      for (const id of COHORT_IDS) {
+        if (supply[id] <= 1e-9) continue
+        let working = 0
+        for (const sector of s.sectors) working += heads[sector.id][id]
+        multiples.push(working / supply[id])
+      }
+      // every class at the same multiple of itself, and that multiple IS the
+      // country's jobs-per-person — so the overdraft reads as one fact
+      expect(Math.max(...multiples) - Math.min(...multiples)).toBeLessThan(1e-9)
+      expect(Math.max(...multiples)).toBeCloseTo(posts / hands, 9)
     }
   })
 

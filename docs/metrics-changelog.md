@@ -312,8 +312,14 @@ reconciled to the separately noised `income_real` headline.
   laborForce[c]`). Posts a sector cannot fill from its preferred class go to the nearest rung of
   `SKILL_RANK`. `init` seeds the opening `employedIn` and wage income through the same
   allocation, so the habitual-income EMA is seeded on the basis `cohorts.run` recomputes it on.
-- **Constants +**: `SKILL_RANK`. No substitution weight — the circular flow leaves no room for
-  one, which is the argument in ADR-0035.
+- **Constants +**: `SKILL_RANK`, and `EMPLOYMENT_CEILING` (the `0.97` `labor` already applied,
+  named because the allocation's guarantee IS that ceiling's guarantee and the two must not
+  drift). No substitution weight — the circular flow leaves no room for one, which is the argument
+  in ADR-0035.
+- **Precondition**: the "nobody works two jobs" bound holds whenever total posts ≤ total labour
+  force, which `labor` guarantees every quarter. `init` does not, and 2 of 5 curated countries
+  plus 39% of procedural seeds open overdrawn (investigation 0021); there the wage bill wins and
+  the excess is spread pro rata on the labour force. Clears on the first tick.
 - **Unchanged**: `skillTightness`, deliberately. It stays the UNRATIONED ratio, because it is the
   demand signal ADR-0032's class transition gates on and a rationed version could never exceed 1.
 - **Not a fix to the fog**: nothing new is published. Rural workers stop reading 0% jobless and

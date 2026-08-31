@@ -8,6 +8,7 @@
 import {
   DEPRECIATION_Q,
   EMPLOYMENT_ADJUST,
+  EMPLOYMENT_CEILING,
   NATURAL_UNEMPLOYMENT,
   NORMAL_UTILIZATION,
   SUBSISTENCE_ABSORPTION_Q,
@@ -58,7 +59,7 @@ export const labor: PipelineStep = {
     )
     // the economy can't employ more people than exist
     const totalEmp = newEmployment.reduce((a, b) => a + b, 0)
-    const ceiling = 0.97 * lf
+    const ceiling = EMPLOYMENT_CEILING * lf
     if (totalEmp > ceiling) newEmployment = newEmployment.map((e) => (e * ceiling) / totalEmp)
 
     // last tick's unemployment: bargaining power for this round of raises

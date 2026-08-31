@@ -74,6 +74,7 @@ import {
   laborForce,
   rngFor,
   skillTightness,
+  staffing,
   step,
   type CapacityId,
   type CountryScenarioId,
@@ -130,10 +131,33 @@ interface Reading {
   tightness: Record<CohortId, number>
   /** share of the labour force whose skill nobody is asking for */
   surplus: number
+  /**
+   * The part of `surplus` that is ACTUALLY IDLE, read off `derive.staffing`.
+   *
+   * These stopped being the same number at schema 43 (ADR-0035). `surplus` is
+   * built from the deliberately-unrationed `skillTightness`, so it counts a
+   * class nobody is asking for — but substitution now puts some of those people
+   * in somebody else's posts, and urban workers walking to the farms is the one
+   * direction it fires in. Measured on Meridia at q120, `surplus` reads 3.798M
+   * urban workers against 3.234M genuinely idle: a 17% overstatement, in
+   * exactly the class the mechanism moves.
+   *
+   * Both are reported, because both are true about different things and #197
+   * needs the second one. The identity below still closes on `surplus`, since
+   * both its sides come from the same unrationed table — which is precisely why
+   * it cannot catch this and the two columns have to be printed side by side.
+   */
+  idle: number
+  /** …and per class, as a share of that class's OWN labour force. This is the
+   * column #197 wants: the aggregate above is an identity (see table 2), but
+   * the per-class split is not, and it is where substitution shows. */
+  idleByClass: Record<CohortId, number>
   /** share of the labour force worth of posts asking for absent workers */
   shortage: number
   /** professionals with no professional post, as a share of the labour force */
   professionalSurplus: number
+  /** …of whom, actually idle: the same correction, for the #27 column */
+  professionalIdle: number
   /** how hard agriculture is pressed against `SUBSISTENCE_CAP × ruralLF` */
   valveSaturation: number
 }
@@ -141,14 +165,27 @@ interface Reading {
 function read(s: TrueState): Reading {
   const lf = laborForce(s)
   const tightness = skillTightness(s)
+  // who is in a job, as opposed to who is asked for: the allocation, not the
+  // recipe. This is the only place the two can be compared (ADR-0035).
+  const heads = staffing(s)
+  const working = (id: CohortId) =>
+    s.sectors.reduce((sum, sector) => sum + (heads[sector.id][id] ?? 0), 0)
   let total = 0
   let surplus = 0
+  let idle = 0
   let shortage = 0
+  const idleByClass = {} as Record<CohortId, number>
   for (const id of LABOUR_CLASS_IDS) {
     const supply = lf[id] ?? 0
-    if (supply <= 1e-9) continue
+    if (supply <= 1e-9) {
+      idleByClass[id] = 0
+      continue
+    }
     total += supply
     surplus += supply * Math.max(0, 1 - tightness[id])
+    const spare = Math.max(0, supply - working(id))
+    idle += spare
+    idleByClass[id] = spare / supply
     shortage += supply * Math.max(0, tightness[id] - 1)
   }
   const agri = s.sectors.find((sector) => sector.id === 'agri')
@@ -159,9 +196,13 @@ function read(s: TrueState): Reading {
     unemploymentAtRead: 1 - employed / Math.max(total, 1e-9),
     tightness,
     surplus: surplus / Math.max(total, 1e-9),
+    idle: idle / Math.max(total, 1e-9),
+    idleByClass,
     shortage: shortage / Math.max(total, 1e-9),
     professionalSurplus:
       ((lf.professionals ?? 0) * Math.max(0, 1 - tightness.professionals)) / Math.max(total, 1e-9),
+    professionalIdle:
+      Math.max(0, (lf.professionals ?? 0) - working('professionals')) / Math.max(total, 1e-9),
     valveSaturation: (agri?.employment ?? 0) / ruralCeiling,
   }
 }
@@ -269,19 +310,26 @@ console.log(
   '   a shortage the allocation resolves by recruiting the next rung down, not an overdraft on',
 )
 console.log('   the cohort: `staffing` bounds everyone by their own labour force (ADR-0035).')
+console.log('   Each cell is  demand  /  idle: what the table ASKS of the class, over the share of')
+console.log('   that class left with no job at all. They are NOT complements — a class can be')
+console.log('   under-asked and still fully employed, in somebody else’s posts. That gap is the')
+console.log('   substitution, and it is the honest per-class read #197 needs.')
 for (const country of COUNTRIES) {
   for (const arm of ['passive', 'developmental'] as const) {
     console.log(`\n   ${country} / ${arm}`)
     console.log(
-      ['   quarter'.padEnd(12), ...LABOUR_CLASS_IDS.map((id) => id.padStart(16))].join(' '),
+      ['   quarter'.padEnd(12), ...LABOUR_CLASS_IDS.map((id) => id.padStart(20))].join(' '),
     )
     for (const mark of MARKS) {
       console.log(
         [
           `   q${mark}`.padEnd(12),
-          ...LABOUR_CLASS_IDS.map((id) =>
-            ratio(median(get(country, arm).map((rs) => at(rs, mark).tightness[id]))).padStart(16),
-          ),
+          ...LABOUR_CLASS_IDS.map((id) => {
+            const rs = get(country, arm)
+            const demand = ratio(median(rs.map((r) => at(r, mark).tightness[id])))
+            const spare = pct(median(rs.map((r) => at(r, mark).idleByClass[id] ?? 0)))
+            return `${demand} / ${spare}`.padStart(20)
+          }),
         ].join(' '),
       )
     }
@@ -292,13 +340,23 @@ for (const country of COUNTRIES) {
 console.log('\n\n2. THE DECOMPOSITION — U = M − S, as shares of the labour force')
 console.log('   U  open unemployment, the headline')
 console.log('   M  surplus: people in a class with more members than posts')
+console.log('   I  …of whom actually IDLE, read off the allocation rather than inferred from M.')
+console.log('      At THIS level I === U identically, and that is the point of printing it: it is')
+console.log('      the proof `staffing` conserves heads, since every post is filled and nobody')
+console.log('      exceeds their own class. The informative split is per class, in table 1 —')
+console.log('      M counts a farm-hand from the towns as unemployed and I does not (ADR-0035).')
 console.log('   S  shortage: posts asking for a class too small to fill them')
 for (const country of COUNTRIES) {
   console.log(`\n   ${country}`)
   console.log(
     [
       '   quarter'.padEnd(12),
-      ...ARM_IDS.flatMap((arm) => [`${arm} U`.padStart(18), 'M'.padStart(8), 'S'.padStart(8)]),
+      ...ARM_IDS.flatMap((arm) => [
+        `${arm} U`.padStart(18),
+        'M'.padStart(8),
+        'I'.padStart(8),
+        'S'.padStart(8),
+      ]),
     ].join(''),
   )
   for (const mark of MARKS) {
@@ -310,6 +368,7 @@ for (const country of COUNTRIES) {
           return [
             pct(median(rs.map((r) => at(r, mark).unemploymentAtRead))).padStart(18),
             pct(median(rs.map((r) => at(r, mark).surplus))).padStart(8),
+            pct(median(rs.map((r) => at(r, mark).idle))).padStart(8),
             pct(median(rs.map((r) => at(r, mark).shortage))).padStart(8),
           ]
         }),
@@ -346,12 +405,19 @@ console.log('   The issue’s own scenario: a schooled workforce the economy is 
 console.log('   professionals. ADR-0032’s crossing gate reads RELATIVE tightness, so it keeps')
 console.log('   professionalising a country already in absolute professional surplus — but it')
 console.log('   also throttles the leg, which is why this column is small and not zero.')
+console.log('   `surplus` and `idle` are EQUAL here, and that equality is the finding: a spare')
+console.log('   professional has no lesser post to take, because when the top rung is in surplus')
+console.log('   every rung below it is too. Substitution fills posts; it cannot create them.')
 for (const country of COUNTRIES) {
   console.log(`\n   ${country}`)
   console.log(
     [
       '   quarter'.padEnd(12),
-      ...ARM_IDS.flatMap((arm) => [`${arm} surplus`.padStart(22), 'tightness'.padStart(12)]),
+      ...ARM_IDS.flatMap((arm) => [
+        `${arm} surplus`.padStart(22),
+        'idle'.padStart(10),
+        'tightness'.padStart(12),
+      ]),
     ].join(''),
   )
   for (const mark of MARKS) {
@@ -362,6 +428,7 @@ for (const country of COUNTRIES) {
           const rs = get(country, arm)
           return [
             pct(median(rs.map((r) => at(r, mark).professionalSurplus))).padStart(22),
+            pct(median(rs.map((r) => at(r, mark).professionalIdle))).padStart(10),
             ratio(median(rs.map((r) => at(r, mark).tightness.professionals))).padStart(12),
           ]
         }),

@@ -24,12 +24,27 @@ be bounded by its labour force, or is `LABOR_SOURCE` a wage-split recipe under w
 ## Decision
 
 **`LABOR_SOURCE` is a demand-for-skills schedule.** What a sector gets is `derive.staffing`, an
-allocation with two constraints that are exact by construction rather than approximately satisfied:
+allocation with two constraints — and they are **not peers**, which is the part to read:
 
 ```
-Σ_c heads[s][c] === sector.employment    every post is filled
-Σ_s heads[s][c] ≤  laborForce[c]         nobody works two jobs
+Σ_c heads[s][c] === sector.employment    every post is filled — ALWAYS
+Σ_s heads[s][c] ≤  laborForce[c]         nobody works two jobs — whenever
+                                         Σ_s employment ≤ Σ_c laborForce
 ```
+
+The first is unconditional. The second is exact whenever the country has as many hands as posts,
+and **that precondition is a fact about the caller, not about this function.** In the pipeline it
+always holds, because `labor` ends every quarter by holding total employment under
+`EMPLOYMENT_CEILING × lf`. At `init` it does not: measured at schema 43, Costona opens at 1.021
+jobs per person and Kestrel at 1.034, and 39 % of procedural seeds are overdrawn. It clears on the
+first tick.
+
+When the two conflict, **the wage bill wins** — for the same circular-flow reason the whole change
+exists — and the excess is spread **pro rata on the labour force**, so every class lands at the
+same multiple of itself and the overdraft reads as one fact about the country rather than as an
+artefact of whichever cohort was largest in a sector. That opening defect is
+[investigation 0021](../investigations/0021-the-opening-vector-asks-for-more-jobs-than-hands.md);
+it is older than this ADR and its fix recalibrates the catalogue, so it is not fixed here.
 
 Posts a sector cannot fill from its preferred class are offered to the **nearest rung of the class
 ladder** (`SKILL_RANK`, the same ladder ADR-0032's class transition climbs), one step before two.
@@ -47,8 +62,10 @@ So every displaced post must go to *somebody*: the free parameter is who, never 
 **There is therefore no exactly-inert setting for this change**, unlike ADR-0027, -0028 and -0032.
 It moves the economy, and the measurement below is the whole review.
 
-Feasibility is inherited: `labor` already holds total employment under `0.97 × lf`, so the hands
-always exist somewhere.
+Feasibility is inherited **from `labor`, and only there**: it holds total employment under
+`EMPLOYMENT_CEILING × lf` every quarter, so from tick one the hands always exist somewhere. That
+constant is now named rather than written `0.97` in two places, because the allocation's guarantee
+is exactly the ceiling's guarantee and the two must not drift apart.
 
 **`skillTightness` stays the unrationed ratio.** It is a demand signal, not an outcome. Read off the
 allocation it could never exceed 1, and ADR-0032 gates the crossing into the professions on exactly
@@ -99,9 +116,41 @@ every policy for that reason.
 loses a poll at q399 of 416. A thirty-run cohort resolves a knife-edge election badly; the 200-run
 batch moves the other way on every arm.
 
+**What the pro-rata opening is worth, measured `pnpm batch --country all`, 200 x 400q**, against
+the same change with the shortfall dumped on the largest cohort. Exactly the two countries that
+open overdrawn move; Meridia, Veltravia, Oranga and the procedural pool are unchanged.
+
+| developmental | deposed | growth %/yr | unemployment |
+|---|---|---|---|
+| costona | 15% → **12%** | 3.66 → 3.65 | 15.26 → 15.23 |
+| kestrel | 21% → **18%** | 3.61 → 3.62 | 13.26 → 13.28 |
+| meridia / veltravia / oranga | unchanged | unchanged | unchanged |
+| *all countries* | 8% → **7%** | 3.13 → 3.13 | 12.46 → 12.46 |
+
+Passive moves by less than the countries' own noise (costona 3.00 → 2.99, kestrel 3.26 → 3.27).
+Deposition falling three points on both overdrawn countries is the same argument this ADR already
+makes for urban workers, one register down: a class scored against an accounting artefact is
+scored too harshly, and here it was one class carrying the whole artefact for a quarter.
+
+The four-policy baseline on the reference country is untouched — passive 2.84 %/yr and 12.49 %,
+developmental 3.05 and 12.23, regulated 3.04 and 11.98, random 3.40 and 12.37, deposition 1/2/2/77 %.
+
+**The goldens cannot see this change, and neither can the default batch.** All three cases in
+`tools/golden-cases.ts` and `pnpm batch`'s default `--country baseline` run Meridia, which opens at
+0.929 jobs per person — the one curated country where the opening overdraft provably cannot appear,
+and the reason the first version of the residual block shipped with Costona reading 1.113 ×. Same
+shape as ADR-0028's pollution baseline, and for the same reason: the reference country is the one
+where the bug cannot show. Anything touching this area wants `--country all` and a per-country read.
+
 **It costs about 5 % of a tick.** Developmental 68.4 → 72.1 ms/run, passive 37.6 → 41.7. The first
 implementation cost 53 %; precomputing the ladder and reusing the eligibility sum between the two
-sweeps recovered it, bit-identically (the goldens are the proof).
+sweeps recovered it, bit-identically (the goldens are the proof). Review moved the allocation onto positional
+arrays throughout — the ladder, the per-pass eligibility scratch, the working grids — which is the
+same bit-identical trick again (proved over 6 countries × 3 seeds × 400 ticks of state hashes) and
+also what keeps the caller-supplied `sector.id` out of every write, which is what CodeQL flagged.
+The obvious remediation for that, prototype-less objects, measured **18 % slower** on the survey
+test: `Object.create(null)` puts V8 into dictionary mode, and this is a hot loop. Build the record
+with `Object.fromEntries` at the end instead.
 
 **It does not deliver the underemployment #27 asked for, and this is the finding to carry forward.**
 Substitution fills posts a sector *cannot staff*; it cannot create posts. When professionals are in

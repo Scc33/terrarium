@@ -272,18 +272,26 @@ export function totalLaborForce(state: TrueState): number {
  * Who actually ends up in each sector's jobs, once the posts `LABOR_SOURCE`
  * advertises are rationed against the people who exist (ADR-0035).
  *
- * Two constraints, and BOTH are exact by construction rather than
- * approximately satisfied:
+ * Two constraints, and they are NOT peers — the order matters when a country
+ * has fewer hands than jobs:
  *
- *   Σ_c heads[s][c] === sector.employment    every post is filled
- *   Σ_s heads[s][c] ≤  laborForce[c]         nobody works two jobs
+ *   Σ_c heads[s][c] === sector.employment    every post is filled — ALWAYS
+ *   Σ_s heads[s][c] ≤  laborForce[c]         nobody works two jobs — whenever
+ *                                            Σ_s employment ≤ Σ_c laborForce
  *
  * The first is not a nicety. `production` charges each sector a wage bill of
  * `wages[sid] × employment[sid]`, so a post the allocation leaves empty is
  * money that left the firm and reached no household — the same hole as a bond
  * coupon that vanishes, and the reason this function cannot simply cap each
- * cohort and stop. Feasibility comes from `labor`, which already holds total
- * employment under `0.97 × lf`, so there are always enough hands somewhere.
+ * cohort and stop.
+ *
+ * The second holds exactly whenever its precondition does, and in the pipeline
+ * the precondition always does: `labor` holds total employment under
+ * `EMPLOYMENT_CEILING × lf` every quarter, so the hands are always somewhere.
+ * `init` applies no such ceiling and 39% of opening vectors breach it, so at
+ * tick zero the wage bill wins and people are counted twice — pro rata, so the
+ * overdraft is one legible fact about the country. See the block at the foot of
+ * `allocateStaffing` and investigation 0021; it clears on the first tick.
  *
  * The method is a ladder walk, one distance at a time. At each distance every
  * unfilled block of posts claims from the eligible cohorts in proportion to
@@ -306,19 +314,31 @@ export function staffing(state: TrueState): Record<SectorId, Record<CohortId, nu
  * when the walk has reached distance `d`. Precomputed from `SKILL_RANK`
  * because the allocation runs every quarter of every run and rebuilding it
  * inside the loop was measurably the difference. */
-const LADDER_BY_DISTANCE: Record<CohortId, CohortId[]>[] = (() => {
+const LADDER_BY_DISTANCE: number[][][] = (() => {
   const ranks = COHORT_IDS.map((id) => SKILL_RANK[id])
   const span = Math.max(...ranks) - Math.min(...ranks)
-  return Array.from({ length: span + 1 }, (_, distance) => {
-    const byWanted = {} as Record<CohortId, CohortId[]>
-    for (const wanted of COHORT_IDS) {
-      byWanted[wanted] = COHORT_IDS.filter(
-        (id) => Math.abs(SKILL_RANK[id] - SKILL_RANK[wanted]) === distance,
-      )
-    }
-    return byWanted
-  })
+  return Array.from({ length: span + 1 }, (_, distance) =>
+    // one entry per WANTED cohort, holding the POSITIONS in COHORT_IDS of the
+    // cohorts that may fill it — positions, because the allocation below runs
+    // entirely on arrays. Built by filtering COHORT_IDS, so each list is in
+    // COHORT_IDS order and every sum over it accumulates in a fixed order.
+    COHORT_IDS.map((wanted) =>
+      COHORT_IDS.map((_, ci) => ci).filter(
+        (ci) => Math.abs(ranks[ci] - SKILL_RANK[wanted]) === distance,
+      ),
+    ),
+  )
 })()
+
+/** A fresh `[sector][cohort]` grid, filled with `value`. The allocation runs on
+ * these rather than on `Record`s keyed by id: it is the hot loop of the tick,
+ * and it also keeps `sector.id` — a caller-supplied string, on an exported
+ * function — out of every write, which is what CodeQL was right to flag. */
+function grid(sectorCount: number, value: number): number[][] {
+  const out: number[][] = new Array<number[]>(sectorCount)
+  for (let i = 0; i < sectorCount; i++) out[i] = new Array<number>(COHORT_IDS.length).fill(value)
+  return out
+}
 
 /**
  * The allocation itself, over the two things it actually needs.
@@ -329,93 +349,142 @@ const LADDER_BY_DISTANCE: Record<CohortId, CohortId[]>[] = (() => {
  * at 1.16–1.21 rural), so seeding this from the raw table would start their
  * habitual-income EMA on one basis and recompute it on another — the bug the
  * comment block in `init` already exists to warn about, one field over.
+ *
+ * `supply` is passed rather than read off the state because `init` has no state
+ * yet — and it is also what the overflow block at the foot rations against, so
+ * a caller handing in a supply the sectors cannot staff gets a documented
+ * answer rather than a silent one.
  */
 export function allocateStaffing(
   sectors: readonly Pick<Sector, 'id' | 'employment'>[],
   supply: Readonly<Record<CohortId, number>>,
 ): Record<SectorId, Record<CohortId, number>> {
-  const spare = { ...supply } as Record<CohortId, number>
-  const remaining = {} as Record<SectorId, Record<CohortId, number>>
-  const heads = {} as Record<SectorId, Record<CohortId, number>>
-  for (const sector of sectors) {
-    remaining[sector.id] = {} as Record<CohortId, number>
-    heads[sector.id] = {} as Record<CohortId, number>
-    for (const id of COHORT_IDS) {
-      remaining[sector.id][id] = sector.employment * (LABOR_SOURCE[sector.id][id] ?? 0)
-      heads[sector.id][id] = 0
+  const nS = sectors.length
+  const nC = COHORT_IDS.length
+  const spare = COHORT_IDS.map((id) => supply[id])
+  const remaining = grid(nS, 0)
+  const heads = grid(nS, 0)
+  for (let si = 0; si < nS; si++) {
+    const row = LABOR_SOURCE[sectors[si].id]
+    for (let ci = 0; ci < nC; ci++) {
+      remaining[si][ci] = sectors[si].employment * (row[COHORT_IDS[ci]] ?? 0)
     }
   }
 
-  // The rungs each cohort can be recruited from, at each distance, in
-  // COHORT_IDS order — so the sums below accumulate in a fixed order and the
-  // result does not depend on how the table happens to be keyed. Built once:
-  // this runs every quarter of every run, and `pnpm batch` notices.
   const ladder = LADDER_BY_DISTANCE
   for (let distance = 0; distance < ladder.length; distance++) {
     // Each pass settles at least one cohort or one block of posts, so the
     // bound is the size of the problem rather than a tolerance.
-    for (let pass = 0; pass <= COHORT_IDS.length; pass++) {
+    for (let pass = 0; pass <= nC; pass++) {
       // what every cohort at this distance is being asked for, in total
-      const claims = {} as Record<CohortId, number>
-      for (const id of COHORT_IDS) claims[id] = 0
+      const claims = new Array<number>(nC).fill(0)
       // `eligible` cannot change between the two sweeps below — `spare` is only
       // written after both — so it is computed once per block and reused.
-      const eligibleFor = new Map<string, number>()
+      const eligibleFor = grid(nS, -1)
       let outstanding = 0
-      for (const sector of sectors) {
-        for (const wanted of COHORT_IDS) {
-          const posts = remaining[sector.id][wanted]
+      for (let si = 0; si < nS; si++) {
+        for (let wi = 0; wi < nC; wi++) {
+          const posts = remaining[si][wi]
           if (posts <= 1e-12) continue
-          const rungs = ladder[distance][wanted]
+          const rungs = ladder[distance][wi]
           let eligible = 0
-          for (const id of rungs) eligible += spare[id]
+          for (const ci of rungs) eligible += spare[ci]
           if (eligible <= 1e-12) continue
-          eligibleFor.set(`${sector.id}:${wanted}`, eligible)
+          eligibleFor[si][wi] = eligible
           outstanding += posts
-          for (const id of rungs) claims[id] += posts * (spare[id] / eligible)
+          for (const ci of rungs) claims[ci] += posts * (spare[ci] / eligible)
         }
       }
       if (outstanding <= 1e-12) break
 
       // an oversubscribed cohort serves its claimants pro rata
-      const served = {} as Record<CohortId, number>
-      for (const id of COHORT_IDS) {
-        served[id] = claims[id] > 1e-12 ? Math.min(1, spare[id] / claims[id]) : 1
+      const served = new Array<number>(nC).fill(1)
+      for (let ci = 0; ci < nC; ci++) {
+        served[ci] = claims[ci] > 1e-12 ? Math.min(1, spare[ci] / claims[ci]) : 1
       }
-      for (const sector of sectors) {
-        for (const wanted of COHORT_IDS) {
-          const posts = remaining[sector.id][wanted]
+      for (let si = 0; si < nS; si++) {
+        for (let wi = 0; wi < nC; wi++) {
+          const posts = remaining[si][wi]
           if (posts <= 1e-12) continue
-          const eligible = eligibleFor.get(`${sector.id}:${wanted}`)
-          if (eligible === undefined) continue
-          for (const id of ladder[distance][wanted]) {
-            const take = posts * (spare[id] / eligible) * served[id]
-            heads[sector.id][id] += take
-            remaining[sector.id][wanted] -= take
+          const eligible = eligibleFor[si][wi]
+          if (eligible < 0) continue
+          for (const ci of ladder[distance][wi]) {
+            const take = posts * (spare[ci] / eligible) * served[ci]
+            heads[si][ci] += take
+            remaining[si][wi] -= take
           }
         }
       }
-      for (const id of COHORT_IDS) {
-        spare[id] = Math.max(0, spare[id] - Math.min(claims[id], spare[id]))
+      for (let ci = 0; ci < nC; ci++) {
+        spare[ci] = Math.max(0, spare[ci] - Math.min(claims[ci], spare[ci]))
       }
     }
   }
 
-  // Rounding, and only rounding: the walk above clears every post whenever the
-  // hands exist, so anything left here is float dust. It is handed to the
-  // cohort already largest in that sector so the wage bill closes exactly.
-  for (const sector of sectors) {
-    let filled = 0
-    for (const id of COHORT_IDS) filled += heads[sector.id][id]
-    const short = sector.employment - filled
-    if (Math.abs(short) <= 1e-12) continue
-    let biggest: CohortId = COHORT_IDS[0]
-    for (const id of COHORT_IDS) {
-      if (heads[sector.id][id] > heads[sector.id][biggest]) biggest = id
+  // ---- when the country has fewer hands than jobs -------------------------
+  // Here the two constraints are genuinely incompatible, and the WAGE BILL
+  // WINS: `production` has already charged each sector `wages[sid] ×
+  // employment[sid]`, so a post left empty deletes household income that firms
+  // paid. People therefore get counted twice, deliberately. The only question
+  // is who, and rationing cannot conjure anybody — this is not a defect the
+  // allocation can fix.
+  //
+  // Pro rata on the labour force, because that is the unique split leaving
+  // every cohort at the SAME multiple of itself: the overdraft then reads as
+  // one fact about the country ("1.11 jobs per person") rather than as an
+  // artefact of whichever cohort happened to be largest in a sector. Handing
+  // the whole shortfall to that cohort — the first version of this — put one
+  // class at 162× its own labour force on a validator-legal draft while its
+  // neighbours read 1.0, which is the shape of thing that survives review.
+  //
+  // In the pipeline this block is unreachable: `labor` holds total employment
+  // under `EMPLOYMENT_CEILING × lf` every quarter, which is where the feasible
+  // case's guarantee comes from. It is reachable at `init`, which applies no
+  // such ceiling — measured, Costona opens at 1.021 jobs per person and Kestrel
+  // at 1.034, and 39% of procedural seeds are overdrawn (median 0.968, max
+  // 1.076). It clears on the first tick. That is a pre-existing defect in the
+  // opening vector, measured in investigation 0021, not one of ours.
+  let supplyTotal = 0
+  for (let ci = 0; ci < nC; ci++) supplyTotal += supply[COHORT_IDS[ci]]
+  if (supplyTotal > 1e-12) {
+    for (let si = 0; si < nS; si++) {
+      let outstanding = 0
+      for (let wi = 0; wi < nC; wi++) {
+        const posts = remaining[si][wi]
+        if (posts > 1e-12) outstanding += posts
+      }
+      if (outstanding <= 1e-12) continue
+      for (let ci = 0; ci < nC; ci++) {
+        heads[si][ci] += outstanding * (supply[COHORT_IDS[ci]] / supplyTotal)
+      }
     }
-    heads[sector.id][biggest] = Math.max(0, heads[sector.id][biggest] + short)
   }
-  return heads
+
+  // Float dust, and now only float dust: the walk clears every post whenever
+  // the hands exist and the block above has absorbed any real shortfall, so
+  // what is left is the last bits of ~25 accumulated products. Handed to the
+  // cohort already largest in the sector so the wage bill closes exactly.
+  for (let si = 0; si < nS; si++) {
+    let filled = 0
+    for (let ci = 0; ci < nC; ci++) filled += heads[si][ci]
+    const short = sectors[si].employment - filled
+    if (Math.abs(short) <= 1e-12) continue
+    let biggest = 0
+    for (let ci = 0; ci < nC; ci++) if (heads[si][ci] > heads[si][biggest]) biggest = ci
+    heads[si][biggest] = Math.max(0, heads[si][biggest] + short)
+  }
+
+  // Materialized only now, and via `fromEntries` rather than `out[sec.id] = …`:
+  // the key is caller-supplied, and a computed write of `__proto__` onto a
+  // plain object literal writes through to `Object.prototype`. Building the
+  // record instead of assigning into one keeps that unreachable without paying
+  // for prototype-less objects, which measured 18% slower (dictionary mode).
+  return Object.fromEntries(
+    sectors.map((sector, si) => [
+      sector.id,
+      Object.fromEntries(COHORT_IDS.map((id, ci) => [id, heads[si][ci]])),
+    ]),
+  ) as Record<SectorId, Record<CohortId, number>>
 }
 
 /**

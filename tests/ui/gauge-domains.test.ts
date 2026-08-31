@@ -157,6 +157,12 @@ describe('the faces fit the economy the engine actually produces', () => {
    * failing the moment a runner had a bad day. An explicit budget is the
    * honest fix; shortening the survey would make the test pass by measuring
    * less, which is the failure mode its own comment warns about.
+   *
+   * Still ~20s at schema 43 (master 19.75s, this branch 19.81s), so the budget
+   * is 12x the cost and there is nothing to do here. Recorded because a review
+   * once "measured" this at 230s and concluded the budget was 4% from the edge:
+   * that reading was taken while a batch run was saturating the machine. Time
+   * this test on a quiet box or not at all — under load it will say anything.
    */
   const SURVEY_TIMEOUT_MS = 240_000
 

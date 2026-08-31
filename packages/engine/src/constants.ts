@@ -47,6 +47,18 @@ export const SLACK_GAIN_RATIO = 0.4
 
 // ---------- labor ----------
 export const EMPLOYMENT_ADJUST = 0.12 // fraction of gap closed per quarter
+/**
+ * The economy cannot employ more people than exist. `labor` holds total
+ * employment under this share of the labour force every quarter, and that
+ * ceiling is the whole reason `derive.allocateStaffing` can promise nobody
+ * works two jobs — so the two must never drift apart, which is why this is a
+ * constant and not a `0.97` written twice.
+ *
+ * `init` does NOT apply it: 39% of the opening vectors the generator produces
+ * ask for more jobs than the country has hands, and the first tick corrects it
+ * (investigation 0021).
+ */
+export const EMPLOYMENT_CEILING = 0.97
 export const WAGE_DEMAND_GAIN = 0.15
 export const WAGE_INFLATION_PASSTHROUGH = 0.35
 /** Phillips anchor: wage growth responds to economy-wide slack around this
