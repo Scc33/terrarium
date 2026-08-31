@@ -675,13 +675,36 @@ perfectly with no opinion about anything in the game. The first politics impleme
   industrial census. This is the third measured wall in front of #97 and it rules out the labour
   force the way 0016 ruled out elasticities; what is left is capital allocation, which
   `pipeline/labor.ts` currently does by utilization pressure with no policy input at all.
-  `docs/investigations/0018`.
-- **The staffing table asks for people who do not exist, and nothing stops it.** `skillTightness`
-  runs to 1.7 for professionals on a developmental Meridia and 2.5 on Costona, while urban
-  workers sit at 0.6–0.8. Sector employment is set by demanded output and the only labour-supply
-  limits in the model are the aggregate `0.97 × lf` ceiling and agriculture's subsistence cap.
-  That also means `cohorts.run` scores professionals as fully employed and urban workers as
-  29–37% jobless against a headline near 12%. ADR-0032 improves it and does not remove it.
+  `docs/investigations/0018`. **Amended at schema 43 (ADR-0035):** the "transfers no money"
+  half is now true only where the table is unconstrained. Rationing means a cohort's SIZE sets
+  how many posts it can hold, so moving a head does move wage income once a class is short or
+  spare. The conclusion is unchanged and the reason is unchanged — sector employment is still
+  set by demanded output, so none of it reaches the industrial census.
+- **A rationing fix has to say where the displaced thing GOES, and the circular flow usually
+  decides for you.** `LABOR_SOURCE` handed out 120-126% of the rural labour force, and the obvious
+  fix — cap each cohort at its own labour force — deletes money: `production` charges each sector
+  `wages[sid] x employment[sid]`, so a post left unfilled is a wage the firm paid and no household
+  received. Every displaced post must go to somebody, which is why the ration and the substitution
+  could not ship as two changes and why there is no inert setting for either (ADR-0035). Before
+  scoping a capacity constraint as "just clamp it", find the identity on the other side of the
+  clamp. **And when the two sides are irreconcilable, say which one wins and spread the loss
+  evenly** — at `init` a country really can have more posts than people (Costona opens at 1.021
+  jobs per person, 39% of procedural seeds are overdrawn, investigation 0021), and the first
+  version handed the whole impossible part to whichever cohort was largest in each sector. That
+  read as ONE class at 1.113x with its neighbours at exactly 1.000: a plausible number, not a
+  visible defect. Pro rata on the labour force instead, and the overdraft becomes one legible fact
+  about the country. **The corollary is that it was nearly free:** `LABOR_SOURCE` never reached production, so
+  the whole change moved passive growth 2.82 to 2.84 %/yr and left `realGdp` out of the top 400
+  moved values entirely. What moved was distribution — urban workers' approval up 7%, because they
+  had been scored against an accounting artifact, and deposition fell on all four policies for it.
+- **The goldens and the default batch both run Meridia, so neither can see a bug that needs a
+  different country.** `tools/golden-cases.ts` is `standardCountry` three times and `pnpm batch`
+  defaults to `--country baseline`. Meridia opens at 0.929 jobs per person, which is the one
+  curated country where the ADR-0035 opening overdraft cannot appear — so a blessed diff and a
+  clean four-policy baseline were both entirely consistent with Costona reading 1.113x at q0.
+  This is ADR-0028's pollution baseline again (the reference country is the one where the bug
+  cannot show), and it is now twice. Reach for `--country all` whenever a change touches something
+  the catalogue varies: the opening vector, the class structure, the industrial mix.
 - **A price elasticity in the basket does not reach the industrial census — measured, not assumed.**
   CES was implemented and swept over σ ∈ {1, 1.5, 2, 3}: the basket's response to a 25% price fall
   rises monotonically (+6.1% → +10.3%) and the value-added share does not follow (+3.02 → +2.82

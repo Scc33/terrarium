@@ -47,6 +47,18 @@ export const SLACK_GAIN_RATIO = 0.4
 
 // ---------- labor ----------
 export const EMPLOYMENT_ADJUST = 0.12 // fraction of gap closed per quarter
+/**
+ * The economy cannot employ more people than exist. `labor` holds total
+ * employment under this share of the labour force every quarter, and that
+ * ceiling is the whole reason `derive.allocateStaffing` can promise nobody
+ * works two jobs — so the two must never drift apart, which is why this is a
+ * constant and not a `0.97` written twice.
+ *
+ * `init` does NOT apply it: 39% of the opening vectors the generator produces
+ * ask for more jobs than the country has hands, and the first tick corrects it
+ * (investigation 0021).
+ */
+export const EMPLOYMENT_CEILING = 0.97
 export const WAGE_DEMAND_GAIN = 0.15
 export const WAGE_INFLATION_PASSTHROUGH = 0.35
 /** Phillips anchor: wage growth responds to economy-wide slack around this
@@ -68,13 +80,52 @@ export const PARTICIPATION: Record<CohortId, number> = {
   retirees: 0,
 }
 
-// which cohorts staff which sector (columns sum to 1)
+/**
+ * Which cohorts a sector WANTS (columns sum to 1) — a demand-for-skills
+ * schedule, not an allocation. What each sector actually gets is
+ * `derive.staffing`, which rations this against the people who exist.
+ *
+ * Read as an allocation this table asks for workers who are not there: it
+ * handed out 120–126 % of the rural labour force by 2046 and left a third of
+ * the urban workers unaccounted for (investigations 0001, 0018, 0020). It is
+ * still the right thing to author, because it is what firms would hire given
+ * the choice, and the shortage it implies is the signal ADR-0032's class
+ * transition reads off `skillTightness`.
+ */
 export const LABOR_SOURCE: Record<SectorId, Partial<Record<CohortId, number>>> = {
   agri: { rural_workers: 1 },
   manuf: { urban_workers: 0.8, rural_workers: 0.2 },
   energy: { urban_workers: 1 },
   services: { professionals: 0.6, urban_workers: 0.4 },
   transport: { urban_workers: 0.7, rural_workers: 0.3 },
+}
+
+/**
+ * The ladder a sector walks down when it cannot get the skill it asked for.
+ *
+ * A post that its preferred cohort cannot fill goes to the NEAREST rung with
+ * anyone spare — one step first, two steps only if one step is also empty.
+ * That ordering is the whole substitution model, and it is deliberately the
+ * same ladder the class transition climbs (ADR-0032): the model already has
+ * rungs, so a farm hand reaching a profession skips the one urbanization
+ * exists to represent.
+ *
+ * There is no "how much substitution" constant beside this, and that is a
+ * finding rather than an omission. Firms pay `wages[sid] × employment[sid]`
+ * in `production`, so every post a sector holds is money already leaving the
+ * firm; leaving one unfilled would delete household income that was paid.
+ * The displaced post therefore goes to SOMEBODY by construction, and the only
+ * open question is who — never whether. See ADR-0035.
+ *
+ * Cohorts with no participation never appear in an allocation (they have no
+ * labour force to draw on), so their rank is unreachable and arbitrary.
+ */
+export const SKILL_RANK: Record<CohortId, number> = {
+  rural_workers: 0,
+  urban_workers: 1,
+  professionals: 2,
+  business_owners: 2,
+  retirees: 0,
 }
 
 // ---------- households ----------

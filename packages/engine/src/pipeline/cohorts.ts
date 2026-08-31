@@ -12,7 +12,6 @@ import {
   BOND_HOLDING,
   CONF_ADAPT,
   CONF_NEUTRAL,
-  LABOR_SOURCE,
   LOSS_AVERSION,
   PROFIT_SHARE,
   taxEfficiency,
@@ -27,6 +26,7 @@ import {
   effectiveConsumptionWeights,
   laborForce,
   meanLogConsumption,
+  staffing,
 } from './derive'
 
 const logistic = (x: number) => 1 / (1 + Math.exp(-x))
@@ -46,15 +46,22 @@ export const cohorts: PipelineStep = {
     const transfersDelivered = gov.dials.spending.transfers * adminEff
     const lf = laborForce(state)
 
+    // Who is actually in each sector's jobs. `LABOR_SOURCE` is what firms
+    // WANT; this is what the country could supply (ADR-0035), so a cohort can
+    // no longer be paid for more jobs than it has people, and the workers a
+    // sector could not find in its preferred class are drawn from the next
+    // rung instead — at that sector's wage, which is the whole cost of being
+    // underemployed.
+    const posts = staffing(state)
+
     const newCohorts: Cohort[] = state.cohorts.map((c) => {
       // wages from current staffing of each sector
       const employedIn: Cohort['employedIn'] = {}
       let grossWage = 0
       let employed = 0
       for (const s of state.sectors) {
-        const share = LABOR_SOURCE[s.id][c.id] ?? 0
-        if (share > 0) {
-          const workers = s.employment * share
+        const workers = posts[s.id][c.id] ?? 0
+        if (workers > 0) {
           employedIn[s.id] = workers
           employed += workers
           grossWage += workers * market.wages[s.id]

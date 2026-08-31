@@ -23,7 +23,7 @@ import {
   IO_COEFF,
   LABOR_ELASTICITY,
   LABOR_SHARE,
-  LABOR_SOURCE,
+  PARTICIPATION,
   PC_START,
   BOND_HOLDING,
   PROFIT_SHARE,
@@ -55,6 +55,7 @@ import {
   appointmentTick,
   gameRules,
   type Cohort,
+  type CohortId,
   type CountryParams,
   type DemographyState,
   type GameMode,
@@ -76,6 +77,7 @@ import {
   TECH_ATTAINED_DEV_GAIN,
   fdiStructuralAttraction,
 } from '../constants'
+import { allocateStaffing } from '../pipeline/derive'
 import { vitalRates } from '../pipeline/demography'
 import { initialInstitutions } from '../pipeline/institutions'
 import { validateCountryParams } from '../countries'
@@ -308,14 +310,31 @@ export function init(
     profitTotal *
     (1 - 0.2 * taxEff)
 
-  // cohort employment from the staffing matrix
+  // Cohort employment, through the SAME allocation `cohorts.run` recomputes
+  // it with (ADR-0035). Not the raw `LABOR_SOURCE` table: two of the five
+  // curated countries open oversubscribed, so seeding from the recipe would
+  // start their habitual-income EMA on one basis and recompute it on another —
+  // exactly the failure the seeding comment below is about.
+  //
+  // No statute is enacted at init, so `schoolingWithdrawal` is zero and the
+  // opening labour force is participation against the 1946 pyramid.
+  const openingLaborForce = COHORT_IDS.reduce(
+    (acc, cid) => {
+      acc[cid] = params.cohortSizes[cid] * PARTICIPATION[cid] * demography.workerShareMult
+      return acc
+    },
+    {} as Record<CohortId, number>,
+  )
+  const openingStaffing = allocateStaffing(
+    SECTOR_IDS.map((sid) => ({ id: sid, employment: employment[sid] })),
+    openingLaborForce,
+  )
   const cohorts: Cohort[] = COHORT_IDS.map((cid) => {
     const employedIn: Cohort['employedIn'] = {}
     let wageIncome = 0
     for (const sid of SECTOR_IDS) {
-      const share = LABOR_SOURCE[sid][cid] ?? 0
-      if (share > 0) {
-        const workers = employment[sid] * share
+      const workers = openingStaffing[sid][cid] ?? 0
+      if (workers > 0) {
         employedIn[sid] = workers
         wageIncome += workers * wages[sid]
       }

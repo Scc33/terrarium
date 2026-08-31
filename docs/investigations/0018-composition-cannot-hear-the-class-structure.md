@@ -1,6 +1,13 @@
 # 0018 — Composition cannot hear the class structure, because cohort income does not know how many people are in the cohort
 
-**Status:** Open — and it is the live constraint on issue #97 (steerability)
+**Status:** Open — and it is the live constraint on issue #97 (steerability).
+**Amended 2026-08-30 (schema 43, ADR-0035):** the second finding at the foot of this document
+("a live defect in what cohorts experience") has been fixed — staffing is now rationed against
+each cohort's labour force. That also qualifies the *mechanism* below: cohort size now reaches
+wage income wherever a class is short or spare, so "moving a head transfers no money" holds only
+in the unconstrained region. **Result 2 and the conclusion are unaffected** — sector employment
+is still set by demanded output, so composition still cannot hear the class structure, and
+capital allocation is still the only direction left standing.
 
 **Raised by:** wiring the second leg of the class transition (ADR-0032, #169). The mechanism
 works and it moves the Gini six points; it moves the industrial census by **−0.22 points**. That

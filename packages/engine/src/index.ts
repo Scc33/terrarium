@@ -291,6 +291,8 @@ export {
   residence,
   schoolingWithdrawal,
   skillTightness,
+  staffing,
+  allocateStaffing,
   statePower,
   statuteCompliance,
   statuteForce,

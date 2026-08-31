@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 42)
+## Current contract (schema 43)
 
 ### Inputs
 
@@ -301,6 +301,31 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 43 — Staffing is rationed against who exists
+
+- **Inputs +**: none. No new dial, no new replay input, no new state field.
+- **Behaviour ±**: `LABOR_SOURCE` becomes a demand-for-skills schedule rather than an allocation
+  (#195/#196, ADR-0035). Who actually holds each sector's jobs is `derive.staffing`, which fills
+  every post (`Σ_c heads[s][c] === employment[s]`, so the wage bill firms pay still reaches
+  households exactly) while bounding each cohort by its own labour force (`Σ_s heads[s][c] ≤
+  laborForce[c]`). Posts a sector cannot fill from its preferred class go to the nearest rung of
+  `SKILL_RANK`. `init` seeds the opening `employedIn` and wage income through the same
+  allocation, so the habitual-income EMA is seeded on the basis `cohorts.run` recomputes it on.
+- **Constants +**: `SKILL_RANK`, and `EMPLOYMENT_CEILING` (the `0.97` `labor` already applied,
+  named because the allocation's guarantee IS that ceiling's guarantee and the two must not
+  drift). No substitution weight — the circular flow leaves no room for one, which is the argument
+  in ADR-0035.
+- **Precondition**: the "nobody works two jobs" bound holds whenever total posts ≤ total labour
+  force, which `labor` guarantees every quarter. `init` does not, and 2 of 5 curated countries
+  plus 39% of procedural seeds open overdrawn (investigation 0021); there the wage bill wins and
+  the excess is spread pro rata on the labour force. Clears on the first tick.
+- **Unchanged**: `skillTightness`, deliberately. It stays the UNRATIONED ratio, because it is the
+  demand signal ADR-0032's class transition gates on and a rationed version could never exceed 1.
+- **Not a fix to the fog**: nothing new is published. Rural workers stop reading 0% jobless and
+  urban workers stop reading 29–42% against a 12% headline, but only `cohorts` sees that today.
+  The published by-occupation survey is #197.
+
 
 ### schema 42 — The exchange rate clears a market
 
