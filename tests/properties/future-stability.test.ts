@@ -185,13 +185,20 @@ describe('the playable economy through 2050', () => {
     // what they earn and nothing about how much is made. Passive growth 2.82
     // to 2.84 %/yr, developmental unchanged at 3.05, unemployment within
     // 0.03 points on every policy.
+    //
+    // ADR-0036 (surplus skill bumps joblessness down) leaves passive at
+    // twenty-seven and costs the fixed DEVELOPMENTAL cohort one survivor,
+    // twenty-six to twenty-five. The mechanism moves work from professionals
+    // onto the lower rungs; this seed loses through that intended political
+    // redistribution, while the 200x400q developmental batch improves from
+    // 2% deposed to 1% and the other three policies hold within one point.
     expect(passiveTrend.survivors).toBe(27)
-    expect(developmentalTrend.survivors).toBe(26)
+    expect(developmentalTrend.survivors).toBe(25)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
-    // An already-taught workforce now outlives institutional school decay,
-    // lifting this fixed passive sample from 2.79% to 2.81% without changing
-    // its per-head, survival, or tail-safety bands.
-    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.85)
+    // An already-taught workforce now outlives institutional school decay;
+    // staffing allocation and bumping lift this fixed passive sample to 2.85%
+    // without changing its per-head, survival, or tail-safety bands.
+    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.86)
     expect(developmentalTrend.aggregateCagr.p50).toBeGreaterThan(2.5)
     expect(developmentalTrend.aggregateCagr.p50).toBeLessThan(3.1)
     expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(1.4)

@@ -20,6 +20,7 @@
 
 import { describe, expect, it } from 'vitest'
 import {
+  allocateStaffing,
   applyActions,
   CAPACITY_IDS,
   createCountryParams,
@@ -188,26 +189,22 @@ describe('the staffing allocation', () => {
     ).toBeGreaterThan(0)
   })
 
-  it('leaves a class in SURPLUS idle rather than underemployed — the gap #27 still has', () => {
-    // Measured and deliberately pinned as a NEGATIVE. Substitution fills posts
-    // a sector cannot staff; it cannot create posts. When professionals are in
-    // surplus every lower rung is in surplus too, so there is no unfilled post
-    // for a spare professional to take and they stay in the unemployment count
-    // instead of taking a lesser job.
-    //
-    // Turning that into genuine underemployment needs employers to prefer the
-    // better-qualified applicant for a post that is ALREADY being filled —
-    // bumping down — which is a claim about hiring, not an accounting fix, and
-    // belongs in its own change with its own measurement. If this test starts
-    // failing, that change has landed and this expectation should become its
-    // opposite.
+  it('lets a surplus professional take a lesser job, and is exactly inert at zero', () => {
+    // The negative #200 deliberately left behind, flipped for #201. Ordinary
+    // substitution can only fill an empty post; bumping lets a better-qualified
+    // applicant displace the matched applicant from a post already being filled.
     const late = century('costona', ['education'], 240).at(-1)!
     expect(skillTightness(late).professionals, 'professionals are not in surplus here').toBeLessThan(1)
     const heads = staffing(late)
+    const neutral = allocateStaffing(late.sectors, laborForce(late), 0)
     let outsideServices = 0
+    let neutralOutsideServices = 0
     for (const sector of late.sectors) {
-      if (sector.id !== 'services') outsideServices += heads[sector.id].professionals
+      if (sector.id === 'services') continue
+      outsideServices += heads[sector.id].professionals
+      neutralOutsideServices += neutral[sector.id].professionals
     }
-    expect(outsideServices, 'a surplus professional took a lesser job — see the note above').toBe(0)
+    expect(neutralOutsideServices, 'zero preference no longer reproduces ADR-0035').toBe(0)
+    expect(outsideServices, 'no surplus professional took a lesser job').toBeGreaterThan(0)
   })
 })
