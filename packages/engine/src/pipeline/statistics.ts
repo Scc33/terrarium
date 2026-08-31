@@ -478,6 +478,7 @@ function recordOf(state: TrueState): StatRecord {
     outlays: gov.budget.outlays,
     balance: gov.budget.balance,
     debt: gov.debt,
+    fund: gov.fund,
     reserves: external.reserves,
     exchangeRate: external.exchangeRate,
     revenueBySource: { ...flows.revenueBySource },

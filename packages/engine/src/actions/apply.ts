@@ -117,6 +117,14 @@ const DIAL_STANCE: Record<DialPath, Stance> = {
   // reserves to hold the currency UP — reverses all four, which is the same
   // coalition an overvalued currency has always had.
   fxIntervention: { industrialists: -0.6, landowners: -0.4, financiers: 0.7, unions: 0.4 },
+  // A rise here hands the surplus back instead of banking it, and the room
+  // splits on it the way it splits on any giveaway. Labour is the bloc whose
+  // members receive it — the rebate follows the wage bill — and the money
+  // interest minds it most, because a sovereign fund is a creditor's balance
+  // sheet and a rebate is a creditor's balance sheet spent. Industry and the
+  // landed interest mind it mildly: the money goes to wage earners, not to
+  // them, and it arrives as consumer demand rather than as investment.
+  surplusPayout: { financiers: 0.6, industrialists: 0.2, landowners: 0.2, unions: -0.7 },
   ...(Object.fromEntries(
     SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
   ) as Record<`subsidies.${SectorId}`, Stance>),
@@ -293,6 +301,16 @@ const DIALS: Record<DialPath, DialSpec> = {
     // cabinet holds, and the runner skipped it silently: every arm of the
     // paired study came out identical to the last decimal.
     scale: () => 0.05,
+  },
+  surplusPayout: {
+    get: (s) => s.gov.dials.surplusPayout,
+    set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, surplusPayout: v } } }),
+    min: 0,
+    max: () => 1,
+    // A quarter of the rail, so that moving from banking everything to handing
+    // everything back costs about what crossing the policy rate does. The dial
+    // is a doctrine rather than a setting: nobody nudges it by a point.
+    scale: () => 0.25,
   },
   capitalRequirement: {
     get: (s) => s.gov.dials.capitalRequirement,

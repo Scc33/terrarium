@@ -40,6 +40,7 @@
     "ranges": "tsx tools/indicator-ranges.ts",
     "events": "tsx tools/measure-events.ts",
     "currency": "tsx tools/measure-currency.ts",
+    "surplus": "tsx tools/measure-surplus.ts",
     "hdi-analysis": "tsx tools/hdi-analysis.ts"
   },
   "devDependencies": {

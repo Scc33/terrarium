@@ -190,8 +190,8 @@ silently. Spell variants out as literals. **`terrarium-ui` skill** has the full 
   pipeline-order changes).
 - The load-bearing mechanism tests (`tests/properties/fuel-tax.test.ts`, `subsidy.test.ts`) are the
   design's load-bearing claims. If a change breaks them, the change is wrong, not the test.
-- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-29 at schema 42:
-  **96.7% stmts / 86.0% branch**).
+- `pnpm coverage` enforces an 80% floor over the pure core (re-measured 2026-08-31 at schema 44:
+  **96.6% stmts / 85.9% branch**).
   It's a floor to prevent regression — raise it, never lower it to green a build.
 - CI gates every push/PR on typecheck → lint → coverage → a 200×120 random-policy batch.
 - **Two TypeScripts on purpose** (ADR-0009): `tsc` is TS 7 (native, ~7× faster) via the
@@ -371,6 +371,40 @@ It is **not a peg**: the dial is a standing RATE, so it moves the level the curr
 and does not stop it floating. `pnpm currency` is the evidence, and section 3 exists to stop the
 obvious "a peg trades the shock absorber for a level" story being re-derived — measured, the tails
 are identical at every setting.
+
+### Where a surplus goes (ADR-0036)
+
+Every quarter's balance leaves `fiscal` with a destination, and there are exactly four:
+`balance = repaid − borrowed − printed + Δfund + rebate`. Before v44 there were three and a hole:
+once `gov.debt` hit zero, `repaid` clipped to zero while `balance` stayed positive and nothing
+caught the difference. Measured, that hole was **74.6 % of a passive century's entire tax take and
+89.9 % of a developmental one** — reachable in ordinary play, because debt reaches zero in every
+sampled run of both baselines (investigation 0008).
+
+`gov.fund` is the sovereign fund and `gov.dials.surplusPayout` is the standing order over the
+residual: the share handed back to households as a rebate against income tax paid, remainder
+banked. Four things are load-bearing:
+
+- **The dial only ever touches the residual**, so bond financing is identical at every setting: a
+  country still carrying debt redeems first whatever the cabinet voted.
+- **Fund and debt are never both positive** — surplus redeems before it funds, deficit draws
+  before it borrows — and `validate` asserts it. That identity IS the fund's credit story, which
+  is why `sovereignRiskPremium` still reads `gov.debt` alone. Do not add a term for the fund.
+- **`FUND_YIELD` sits BELOW `POLICY_RATE_1946` and the ordering is the mechanism**: safe foreign
+  assets yield less than the coupon you already pay, which is why retiring debt dominates banking.
+  Reversed, the treasury holds both and earns the spread, which is a money machine.
+- **There is no automatic spending option, deliberately.** Spending here is VOTED — `SpendingRules`
+  carries the appropriation and `policyRecord.ts` files it with a `votedAt` stamp — so a surplus
+  that silently enlarged a programme would be an unvoted second appropriation channel that no
+  record could file. And that stance already exists: write a bigger appropriation. Banking one had
+  no lever at all, which is why the two that shipped are the two that shipped.
+
+**At the default the change is inert, and `pnpm surplus` is the evidence, not the goldens.** The
+40-quarter replays cannot see it (ADR-0028's problem again): the regime is not reachable in forty
+quarters. Over 400 quarters on all five countries the pre-v44 trajectory fields hash
+bit-identically under passive, developmental and regulated. A fund held abroad reaches the economy
+through exactly one channel — a deficit spends it before the auction, worth 19–22 quarters of
+cover and a fifth less borrowing on a shock — and a rebate reaches it through household income.
 
 ### The statute book (ADR-0027)
 
@@ -789,6 +823,21 @@ perfectly with no opinion about anything in the game. The first politics impleme
   deflation stops buying any competitiveness back, so a currency that is too dear becomes a
   problem the price level is locked out of helping with. Even at 0.35 it costs 0.25 pp/yr of extra
   developmental deflation, which is what pushed `price_food` and `price_fuel` off their faces.
+- **A stock-flow test has to say where the money GOES, and "nowhere" is a state the compiler
+  likes.** For twenty-odd schema versions `fiscal` computed `repaid = min(max(0, balance), debt)`,
+  which is correct arithmetic, type-safe, covered by a passing composition test, and deleted three
+  quarters of every tax the treasury collected once debt reached zero (ADR-0036). What made it
+  invisible is that `budget-composition.test.ts` asserts `revenue − outlays === balance` and stops
+  there: the identity it checks is the one BEFORE the money is disposed of. When you add a
+  financing branch, write the destination identity down as a comment and then as a test — and
+  count the branches, because the bug was a missing `else`.
+- **A destination is not the same as a stimulus, and the baseline will tell you which you built.**
+  The issue that raised this predicted every baseline would move, since money that used to vanish
+  now re-enters the economy. Measured, passive, developmental and regulated are BIT-IDENTICAL over
+  400 quarters on all five countries, because the destination chosen by default is a fund held
+  abroad. That is the right outcome and it is worth knowing before you go looking for the movement
+  you were promised: the fix closes the books, and turning the money into demand is an order the
+  player gives.
 - **Give components of one identity RELATIVE noise, not one absolute band.** The expenditure
   shares span two orders of magnitude (consumption ~78 %, government <1 %), so a band honest
   about the big one prints the small ones negative — and a share below zero cannot be drawn as a

@@ -378,6 +378,13 @@ export function init(
       wageIncome,
       transferIncome: transfersDelivered * TRANSFER_SHARE[cid],
       profitIncome,
+      // No country opens with a surplus behind it, so the opening rebate is
+      // zero on the same basis `cohorts.run` recomputes it: `gov.fund` is zero
+      // and `surplusPayout` is zero, so `fiscal` books nothing for the first
+      // quarter either. Seeding it non-zero would put the habitual-income EMA
+      // on a basis the step does not reproduce — the trap the block above
+      // exists to warn about.
+      rebateIncome: 0,
       savings, // retirees hold war bonds
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },
@@ -424,7 +431,7 @@ export function init(
     currentAccount: 0,
     fxIntervention: 0,
     subsidyDelivered: sectorRecord(() => 0),
-    revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0 },
+    revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0, fund: 0 },
     outlaysByProgramme: {
       transfers: 0,
       procurement: 0,
@@ -436,6 +443,8 @@ export function init(
     },
     debtInterest: interest0,
     debtPrincipal: 0,
+    fiscalRebate: 0,
+    fundFlow: 0,
     nominalGdp: gdp0,
     realGdp: gdp0,
     inflationQ: 0,
@@ -516,6 +525,10 @@ export function init(
         // A float. Every country opens with its currency finding its own
         // level; a peg is a decision somebody has to take (ADR-0034).
         fxIntervention: 0,
+        // A treasury with a surplus and no instruction banks it (ADR-0036).
+        // Every country opens having decided nothing about its surpluses,
+        // which is itself the sovereign-fund stance.
+        surplusPayout: 0,
         subsidies: {},
       },
       // the 1946 settlement: voted at quarter zero, by someone else
@@ -541,6 +554,10 @@ export function init(
       pipeline: [],
       budget: { revenue: 0, outlays: 0, balance: 0 },
       debt: debt0,
+      // Nobody inherits a fund. A country opens with whatever debt its recipe
+      // gave it, and the fund is what its own surpluses build — the two are
+      // never both positive (ADR-0036).
+      fund: 0,
       printed: 0,
     },
     external: {

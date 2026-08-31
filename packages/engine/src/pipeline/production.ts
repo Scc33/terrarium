@@ -58,7 +58,7 @@ export const production: PipelineStep = {
     const householdDemand = sectorRecord(() => 0)
     for (const c of state.cohorts) {
       const disposable =
-        c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome
+        c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome + c.rebateIncome
       // permanent-income smoothing: households spend to their habitual
       // standard of living (the same EMA approval judges against), dipping
       // into savings through bad quarters — this is the great damper of the

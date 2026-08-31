@@ -25,6 +25,7 @@ export type DialPath =
   | 'assetPurchaseRate'
   | 'capitalRequirement'
   | 'fxIntervention'
+  | 'surplusPayout'
   | `subsidies.${SectorId}`
 
 export type Action =

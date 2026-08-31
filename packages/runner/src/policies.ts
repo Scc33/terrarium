@@ -69,8 +69,15 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
     ] as const)
     return [{ kind: 'setDial', path: monetary.path, value: rng.range(monetary.min, monetary.max) }]
   }
-  if (roll < 0.75) {
+  if (roll < 0.72) {
     return [{ kind: 'setDial', path: `subsidies.${pick(SECTOR_IDS)}`, value: rng.range(0, 0.05) * gdp }]
+  }
+  if (roll < 0.75) {
+    // The surplus rule, for the same reason the currency and the statute book
+    // are here: nothing else in the sweep ever hands a surplus back, so
+    // nothing else stress-tests a rebate arriving as household income in a
+    // country whose books happen to be in surplus.
+    return [{ kind: 'setDial', path: 'surplusPayout', value: rng.range(0, 1) }]
   }
   if (roll < 0.85) {
     // The statute book has to be in the adversarial sweep or nothing ever

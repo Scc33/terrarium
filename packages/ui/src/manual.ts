@@ -600,6 +600,15 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
           'Nothing here is a scripted penalty. Each of those is a mechanism you can watch happen on the wall, if you funded the instrument that watches it.',
         ],
       },
+      {
+        heading: 'AND WHAT IF YOU WIN',
+        body: [
+          'A quarter that collects more than it spends pays the bondholders first. That is not a choice you make — it is what a surplus does, and it is why a debt-heavy country cannot bank anything however well it is run. The coupons stop with the principal, which makes the next surplus larger, which is how the last of a national debt tends to go quickly.',
+          'Then the question that has no obvious answer arrives: what is a surplus FOR, once there is nothing left to redeem? The desk offers one order, on the revenue drawer. At the bottom of its range the money is banked in a sovereign fund, which earns a modest return abroad — less than the state pays on its own paper, which is the whole reason debt comes first — and that return arrives in the books as its own revenue line. At the top of its range it is handed straight back to the people who paid the income tax, in proportion to what each of them paid, and reaches the shops the same quarter.',
+          'Neither is free. A fund is a claim the country holds and a rebate is demand the country spends, and the two do quite different things to prices, to the classes and to the room: organised labour wants the money back and the money interest wants the fund. What the fund is unarguably good for is the next bad decade — a deficit spends it before it goes to the auction, so a country with savings does not pay a premium to borrow and does not reach the printing press.',
+          'The pensioners are the ones to watch. A rebate follows the income tax, and the retired pay none of it, so a government that hands every surplus back is redistributing away from the people transfers exist to reach. If that is not what you meant, the transfer line is the lever, not this one.',
+        ],
+      },
     ],
   },
   room: {

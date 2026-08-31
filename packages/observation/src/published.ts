@@ -37,6 +37,7 @@ export {
   SECTOR_IDS,
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
+  TAX_RATE_IDS,
   BLOC_IDS,
   INSTITUTION_IDS,
   PLATFORM_IDS,
@@ -46,7 +47,7 @@ export {
   STATUTE_LEVELS,
 } from '@terrarium/engine'
 export type { GameRuleId, GameRules } from '@terrarium/engine'
-export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit } from '@terrarium/engine'
+export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit, TaxRateId } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
 export type { IncomeQuintileId, IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
@@ -217,6 +218,10 @@ export interface PublishedState {
     outlays: number
     balance: number
     debt: number
+    /** The sovereign fund (ADR-0036) — what a surplus becomes once there is no
+     * debt left to redeem. Never positive at the same time as `debt`: the two
+     * are one net position, so the pair reads as a single line. */
+    fund: number
     printed: number
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit
@@ -230,6 +235,8 @@ export interface PublishedState {
     outlays: number
     balance: number
     debt: number
+    /** the fund, quarter by quarter — the other half of the net position */
+    fund: number
     /** the rate the bank posted that quarter, exact — see `exchangeRate` below,
      * of which this is the whole history rather than only today's row */
     exchangeRate: number

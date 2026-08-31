@@ -1,6 +1,7 @@
 # 0008 — The developmental baseline retires all public debt
 
-**Status:** Resolved as a baseline-methodology problem, not an engine-accounting bug
+**Status:** Resolved as a baseline-methodology problem, not an engine-accounting bug ·
+**Followed up at schema 44** — see "What happened to the money" at the foot
 
 **Raised by:** [issue #88](https://github.com/Scc33/terrarium/issues/88), after a 1,000-run
 developmental century reported final debt/GDP of zero in every percentile.
@@ -130,3 +131,54 @@ together rather than blindly index one side.
 No engine behavior or calibrated constant changed. A later proposal may add a genuinely
 sustained developmental fiscal policy, but choosing its tax/spending stance is game design—not a
 repair to debt accounting—and must be calibrated as a separate policy.
+
+
+---
+
+## Follow-up (schema 44, 2026-08-30) — what happened to the money
+
+This investigation asked *why* debt reaches zero and answered it: a real consequence of a
+fixed-cash programme rule meeting a growing tax base, not an accounting bug. It said nothing
+about what happened afterwards, and the answer turned out to be **nothing at all**.
+
+[Issue #211](https://github.com/Scc33/terrarium/issues/211) found that once `gov.debt` was zero,
+`repaid = min(balance, 0)` was zero while `balance` stayed positive, and `GovernmentState` had no
+field to catch the difference. The money was collected by `revenue` and assigned to no
+destination anywhere in the model. The paragraph above — "once the stock reaches zero the engine
+does not create a negative-debt sovereign asset, so further surpluses leave the ratio at zero" —
+is that defect, described accurately and read as a note about a *ratio*.
+
+Measured on the shipped v44 engine with the fund's own return subtracted from both sides, which
+reproduces the old arithmetic exactly (`pnpm surplus`, 30 seeds × 400 quarters, Meridia):
+
+| policy | debt-free | median quarter | stranded / taxes collected p05 | p50 | p95 |
+|---|---:|---:|---:|---:|---:|
+| passive | 30/30 | 83 | 69.3 % | **74.6 %** | 79.0 % |
+| developmental | 30/30 | 67 | 87.5 % | **89.9 %** | 92.2 % |
+
+Three quarters of a passive century's entire tax take, and nine tenths of a developmental one,
+was money the model created and then deleted. ADR-0036 gives it two destinations — a sovereign
+fund and a rebate to income-tax payers, on a standing order the cabinet sets.
+
+**The reading that belongs to THIS investigation** is what the fixed-cash artifact looks like now
+that its proceeds are visible. At the default setting (bank everything), by 2046:
+
+| policy | fund / annual GDP p05 | p50 | p95 | fund return as a share of revenue |
+|---|---:|---:|---:|---:|
+| passive | 1.93 | **2.26** | 2.48 | 58.7 % |
+| developmental | 9.42 | **10.64** | 12.09 | 56.5 % |
+
+A developmental century ends holding ten and a half years of national output in a foreign fund
+and drawing more than half its budget from the return on it. Norway's fund, for scale, is about
+three times its GDP after twenty-five years of surpluses near a tenth of output; this policy
+banks something closer to 60 % of annual output every year for eighty-five. **The number is a
+fact about the policy, not about the fund** — and it is the same fact this investigation
+already recorded as a 15.5 %-of-GDP quarterly surplus, now expressed as a stock. If anything it
+sharpens the original conclusion: the terminal debt ratio was never the interesting reading, and
+neither is the terminal fund. Both are the fixed-cash rule compounding.
+
+The note this investigation closed on — "a later proposal may add a genuinely sustained
+developmental fiscal policy, but choosing its tax/spending stance is game design" — is still
+open. ADR-0036 did not add one. What it added is the register that stance would be *written* in:
+a runner policy that banked or rebated its surpluses deliberately would now be measuring
+something, where before it would have been measuring the same deletion.

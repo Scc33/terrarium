@@ -231,6 +231,49 @@ Use **`pnpm currency`** as the evidence for anything you change here, not the go
 it moves the level the currency floats around and does NOT switch the absorber off. The growth and
 inflation tails are identical at every setting from a hard defence to the buy rail.
 
+### Where a surplus goes (schema 44, ADR-0036)
+
+The first mechanic here that is expected to move the baseline and **does not**, which is the whole
+reading. Re-measured 1000 × 400q on `country=baseline`, before → after:
+
+| 1000 runs | passive | developmental |
+|---|---|---|
+| real growth %/yr | 2.85 → **2.85** | 3.05 → **3.05** |
+| mean inflation %/yr | 0.15 → **0.15** | −0.36 → **−0.36** |
+| unemployment % | 12.57 → **12.57** | 12.32 → **12.32** |
+| deposed | 2 → **2** | 13 → **13** |
+
+Every printed digit, on both, and on both `--country all` sweeps as well. The stronger form: hash
+the pre-v44 trajectory fields — real and nominal GDP, quarterly inflation, unemployment, debt/GDP,
+printing, political capital, every cohort's approval, the deposition quarter — over 400 quarters
+on all five curated countries × 3 seeds under passive, developmental AND regulated, and the digests
+match. **Bit-identical.**
+
+Random 120q moves (4.05 → 4.04 %/yr, 11.91 → 11.98 % unemployment, 25 % → 25 % deposed, ever
+debt-free 34 % → 36 %) and that is a SAMPLER change: `randomPolicy` now spends about 3% of its
+orders on `surplusPayout`, taken from the subsidy arm's share, for the reason the currency and the
+statute book are in there.
+
+The 40-quarter goldens moved `meta.schemaVersion` and nothing else, and they are **not evidence**
+— the regime this changes (a surplus arriving at a debt-free treasury) is not reachable in forty
+quarters, exactly as ADR-0028's stock was not. Use **`pnpm surplus`**.
+
+What that tool is for, and the two numbers to keep:
+
+- **The hole it closed**, measured as the old arithmetic exactly: **74.6 %** of a passive
+  century's whole tax take and **89.9 %** of a developmental one was collected and assigned to
+  nothing. If a future change to `fiscal` makes that column non-zero again, a financing branch has
+  lost its destination.
+- **What the dial is worth** (30 × 400q developmental under `unlimitedCapital`, against a banking
+  control): handing every surplus back is +5.35 % of real GDP at thirty years and **−7.47 % at a
+  century**, with consumption per head +12.31 % and +8.52 %. The sign flip is the trade, and it
+  runs through the price level and a currency that passes only 35 % of it through — so a retune of
+  `FX_PARITY_PASSTHROUGH` will move this table.
+
+If a change here moves the PASSIVE column, the surplus rule has stopped being a destination and
+become a stimulus, which is a different mechanic. Same shape as the pollution and basket tests
+above.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
