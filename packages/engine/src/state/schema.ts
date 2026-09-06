@@ -80,10 +80,30 @@ export type CapacityId = (typeof CAPACITY_IDS)[number]
 /** The two sides of the budget, disaggregated. Headline revenue and outlays
  * hide the only fiscal question that matters — *which* tax, *which* programme —
  * so both are kept as a split the treasury books exactly (a government
- * never needs a survey to know what it collected and what it voted). */
-export const REVENUE_SOURCE_IDS = ['income', 'corporate', 'tariff', 'fuel'] as const
+ * never needs a survey to know what it collected and what it voted).
+ *
+ * `fund` is the one revenue line that is not a tax: the return on the
+ * sovereign fund (ADR-0037). A government that has banked its surpluses is
+ * partly financed by them, and the books have to be able to say so — which is
+ * also why nothing here may assume a revenue id names a rate in
+ * `dials.taxRates`. */
+export const REVENUE_SOURCE_IDS = ['income', 'corporate', 'tariff', 'fuel', 'fund'] as const
 export type RevenueSourceId = (typeof REVENUE_SOURCE_IDS)[number]
 export type RevenueSplit = Record<RevenueSourceId, Money>
+
+/** The taxes the cabinet posts a RATE for. Every one of these is also a
+ * revenue line; the reverse stopped being true at v44, when the sovereign
+ * fund's return joined the books and nobody sets a rate for it.
+ *
+ * Anything walking the rates walks THIS list. Walking `REVENUE_SOURCE_IDS` and
+ * indexing `dials.taxRates` with the result is the exact mistake the two lists
+ * exist to keep apart, and it compiled perfectly for four ids.
+ *
+ * The `satisfies` is a compile-time proof that every rate is also a revenue
+ * line, so a tax added to one list and forgotten in the other cannot ship. */
+export const TAX_RATE_IDS = ['income', 'corporate', 'tariff', 'fuel'] as const satisfies
+  readonly RevenueSourceId[]
+export type TaxRateId = (typeof TAX_RATE_IDS)[number]
 
 /** `capacity` is the Layer-2 build pipeline; `interest` is the coupon bill.
  * Neither is a dial you move this quarter. Interest does not silently cut a
@@ -376,6 +396,15 @@ export interface Cohort {
   wageIncome: Money
   transferIncome: Money
   profitIncome: Money
+  /** the surplus rebate this cohort received this quarter (ADR-0037). Stored
+   * rather than folded into `transferIncome` because a rebate is not an
+   * appropriation: it is voted by nobody, delivered by the tax office rather
+   * than the civil service, and split by income tax paid rather than by
+   * `TRANSFER_SHARE`. Kept on the cohort because `production` rebuilds
+   * disposable income from these fields, and a receipt that reached the
+   * savings identity but not the spending budget would put the habitual-income
+   * EMA on a different basis from the step that recomputes it. */
+  rebateIncome: Money
   savings: Money
   /** the basket this cohort was AUTHORED with — the recipe, not what it buys.
    * `effectiveConsumptionWeights` is what the economy is subject to; read that
@@ -437,7 +466,7 @@ export interface MarketState {
 
 // ---------- government ----------
 export interface DialState {
-  taxRates: { income: Ratio; corporate: Ratio; tariff: Ratio; fuel: Ratio }
+  taxRates: Record<TaxRateId, Ratio>
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   /** maximum annual immigration as a share of the resident population. This
    * clips arrivals only: a government cannot keep people in by closing it. */
@@ -459,6 +488,18 @@ export interface DialState {
    * this dial pinned at "buy everything", and the rate never had to clear
    * anything. */
   fxIntervention: number
+  /** What the treasury does with a surplus it has nowhere else to put
+   * (ADR-0037): the share of the residual — what is left of a positive balance
+   * once outstanding debt has been redeemed — handed straight back to
+   * households as a rebate against the income tax they paid. The rest accrues
+   * to `gov.fund`.
+   *
+   * Zero is the default and it is a stance, not an absence: a treasury with a
+   * surplus and no instruction banks it. It is a standing order rather than a
+   * one-off because a government's answer to "what do we do with the surplus"
+   * changes over a century, and the two ends of the dial are two real fiscal
+   * doctrines — the sovereign fund and the rebate. */
+  surplusPayout: Ratio
   subsidies: Partial<Record<SectorId, Money>>
 }
 
@@ -523,6 +564,23 @@ export interface GovernmentState {
   pipeline: CapacityBuild[]
   budget: { revenue: Money; outlays: Money; balance: Money }
   debt: Money
+  /** The sovereign fund: what a surplus becomes once there is no debt left to
+   * redeem (ADR-0037). It is the destination that makes the treasury's books
+   * close — before it existed a surplus with no debt in front of it was
+   * revenue collected and assigned to nothing.
+   *
+   * It and `debt` are never both positive. A surplus redeems debt before it
+   * funds anything, and a deficit spends the fund before it goes to the
+   * auction, so one of the two is always zero and the pair reads as a single
+   * net position. That is also the whole of the fund's credit story: a country
+   * holding one carries no debt, so it is charged no debt-risk premium, and its
+   * deficits never reach `BOND_MARKET_DEPTH` until the fund is gone.
+   *
+   * Held abroad, which is why it earns `FUND_YIELD` and reaches the domestic
+   * economy only through the budget. It is deliberately NOT part of
+   * `external.reserves`: reserves are the central bank's book and move only by
+   * what it transacts in the currency market (ADR-0034). */
+  fund: Money
   /** cumulative money-financed deficit (the printing press) */
   printed: Money
 }
@@ -1113,6 +1171,9 @@ export interface StatRecord {
   outlays: Money
   balance: Money
   debt: Money
+  /** the sovereign fund as it stood at the close of the quarter (ADR-0037).
+   * Filed beside `debt` because the two are one net position. */
+  fund: Money
   reserves: Money
   /** the rate the central bank posted this quarter. Exact, like the rest of
    * the treasury's books: a market price the bank quotes is not a survey. */
@@ -1203,6 +1264,17 @@ export interface TickFlows {
   debtInterest: Money
   /** principal redeemed this tick — a portfolio swap into savings, not income */
   debtPrincipal: Money
+  /** the surplus handed back to households this tick (ADR-0037), booked whole
+   * by `fiscal` and split across cohorts by `cohorts` in proportion to the
+   * income tax each paid. Unlike a transfer it does not leak: the tax office
+   * refunds against wages it has already assessed, and no programme is
+   * delivered. */
+  fiscalRebate: Money
+  /** what the treasury put INTO the sovereign fund (+) or took OUT of it (−)
+   * this tick. Signed, and it is the whole change in the stock, so
+   * `Δfund === fundFlow` — the fund's own return is credited to revenue rather
+   * than compounded silently inside it. */
+  fundFlow: Money
   nominalGdp: Money
   realGdp: Money
   /** quarterly CPI inflation (not annualized) */
@@ -1265,7 +1337,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 43 // v43: staffing is rationed against who exists (#195/#196)
+export const SCHEMA_VERSION = 44 // v44: a surplus has a destination — the sovereign fund and the rebate dial (#211)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

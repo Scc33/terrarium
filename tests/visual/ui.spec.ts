@@ -813,14 +813,14 @@ test('desktop cabinet collapses into a persistent reading rail', async ({ page }
   await expect(expand).toBeVisible()
   await expect(expand).toBeFocused()
   await expect(page.getByRole('status', { name: /1 order drafted, .* PC, will enact when the quarter advances/ })).toBeVisible()
-  await expect(page.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })).toBeHidden()
+  await expect(page.getByRole('tab', { name: 'REVENUE 5 CONTROLS' })).toBeHidden()
   expect((await wall.boundingBox())?.width ?? 0).toBeGreaterThan(openWidth + 300)
   await expect(page).toHaveScreenshot('cabinet-collapsed-1280.png')
 
   await page.reload()
   await expect(expand).toBeVisible()
   await expand.click()
-  await expect(page.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })).toBeFocused()
+  await expect(page.getByRole('tab', { name: 'REVENUE 5 CONTROLS' })).toBeFocused()
 })
 
 test('cabinet drawer tabs support keyboard navigation and focus return', async ({ page }) => {
@@ -829,7 +829,7 @@ test('cabinet drawer tabs support keyboard navigation and focus return', async (
   const trigger = page.getByRole('button', { name: /OPEN CABINET/ })
   await trigger.click()
   const dialog = page.getByRole('dialog', { name: 'Cabinet drawer' })
-  const revenue = dialog.getByRole('tab', { name: 'REVENUE 4 CONTROLS' })
+  const revenue = dialog.getByRole('tab', { name: 'REVENUE 5 CONTROLS' })
   await expect(revenue).toBeFocused()
   await revenue.press('End')
   const room = dialog.getByRole('tab', { name: 'THE ROOM 0 HOSTILE' })

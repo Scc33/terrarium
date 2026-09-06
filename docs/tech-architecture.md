@@ -282,7 +282,7 @@ introduced it:
 | 6 | `foreignInvestment` | attracts inward productive capital; prices foreign ownership |
 | 7 | `production` | output given prices, capital, labor, I/O table |
 | 8 | `trade` | books the balance of payments; the FX market clears it at a price |
-| 9 | `fiscal` | capacity-gated collection; spending with leakage |
+| 9 | `fiscal` | capacity-gated collection; spending with leakage; every balance leaves with a destination |
 | 10 | `monetary` | expectations adapt; printing feeds them |
 | 11 | `prices` | tâtonnement with cost anchor |
 | 12 | `labor` | employment, wages, capital and foreign-owned stock accumulation |
@@ -470,6 +470,13 @@ no-tax-capacity and GDP-share counterfactuals, reports when debt first reaches z
 revenue, standing programmes, capacity construction, interest, and the balance as shares of GDP.
 It reduces each run to those fiscal readings immediately, so century sweeps do not retain a
 thousand copies of the treasury's full statistical archive.
+
+What happens once that debt is gone is `pnpm surplus` (ADR-0037). A surplus redeems debt, then
+splits on `gov.dials.surplusPayout` between a rebate to income-tax payers and `gov.fund`, the
+sovereign fund — which earns `FUND_YIELD` as its own revenue line and is spent before the
+treasury borrows again. `gov.fund` and `gov.debt` are never both positive; the pair is one net
+position, and `validate` asserts it. Before schema 44 a surplus arriving at a debt-free treasury
+was assigned to nothing at all, which is 75.4 % of a passive century's tax take.
 
 ### 7.3 Contract (`tests/contract/`)
 

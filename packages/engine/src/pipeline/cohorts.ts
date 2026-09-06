@@ -46,6 +46,15 @@ export const cohorts: PipelineStep = {
     const transfersDelivered = gov.dials.spending.transfers * adminEff
     const lf = laborForce(state)
 
+    // The surplus rebate is split by the income tax each cohort paid (ADR-0037),
+    // and since the rate is uniform that is each cohort's share of the wage
+    // bill. Taken off the SECTORS rather than summed from the cohorts below,
+    // because it is the same quantity `fiscal` taxed — and `allocateStaffing`
+    // closes each sector's wage bill exactly, so the two agree to float dust.
+    // Retirees pay no income tax and so receive no rebate: this is a refund,
+    // not a dividend, and a transfer is the lever that reaches them.
+    const wageBill = state.sectors.reduce((s, sec) => s + market.wages[sec.id] * sec.employment, 0)
+
     // Who is actually in each sector's jobs. `LABOR_SOURCE` is what firms
     // WANT; this is what the country could supply (ADR-0035), so a cohort can
     // no longer be paid for more jobs than it has people, and the workers a
@@ -73,7 +82,24 @@ export const cohorts: PipelineStep = {
       const profitIncome =
         totalProfitsNet * PROFIT_SHARE[c.id] + flows.debtInterest * BOND_HOLDING[c.id]
       const transferIncome = transfersDelivered * TRANSFER_SHARE[c.id]
-      const income = grossWage * (1 - incomeTaxEff) + profitIncome + transferIncome
+      // Not scaled by `adminEff`: the tax office refunds against wages it has
+      // already assessed, so unlike a programme there is nothing here to
+      // deliver and nothing to leak. The guard cannot silently eat a rebate —
+      // `fiscal` books zero unless it collected income tax, which it cannot do
+      // without a wage bill — and the split summing to what was booked is
+      // asserted in `tests/properties/treasury-conservation.test.ts`.
+      //
+      // The weights are this quarter's payroll, which is not the one `fiscal`
+      // taxed: `labor` moves employment and wages between the two steps. That
+      // is deliberate. `wageIncome` below is the same post-`labor` payroll, and
+      // `production` nets the income tax off THAT when it builds the spending
+      // budget — so splitting the refund this way makes it proportional to the
+      // tax each household is booked as paying. Weighting by fiscal's own
+      // pre-`labor` base would match the treasury's receipt and mismatch every
+      // household account that has to live with it.
+      const rebateIncome = wageBill > 1e-9 ? (flows.fiscalRebate * grossWage) / wageBill : 0
+      const income =
+        grossWage * (1 - incomeTaxEff) + profitIncome + transferIncome + rebateIncome
 
       const savings = Math.max(
         0,
@@ -112,6 +138,7 @@ export const cohorts: PipelineStep = {
         wageIncome,
         profitIncome,
         transferIncome,
+        rebateIncome,
         savings,
         approval,
         // EMA: the standard of living people measure themselves against

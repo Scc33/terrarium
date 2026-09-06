@@ -12,7 +12,8 @@
  */
 
 import { useState } from 'react'
-import { REVENUE_SOURCE_IDS, type OutlayId, type RevenueSourceId } from '@terrarium/observation'
+import { FUND_YIELD } from '@terrarium/engine'
+import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type OutlayId, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
@@ -31,6 +32,7 @@ const REVENUE_FACE: Record<RevenueSourceId, { label: string; ink: string; note: 
   corporate: { label: 'Corporate', ink: SHARE_INKS[1], note: 'Levied on positive sector profits. The base vanishes in a slump, which is when you need it.' },
   tariff: { label: 'Tariff', ink: SHARE_INKS[2], note: 'Levied at the border. Customs posts are the easiest revenue a weak state can raise — and the first thing that shrinks as you industrialise.' },
   fuel: { label: 'Fuel excise', ink: SHARE_INKS[3], note: 'Levied on every energy purchase, household and industrial. Cheap to collect, and it reaches the price of bread by way of the lorries.' },
+  fund: { label: 'Fund return', ink: SHARE_INKS[4], note: `The return on the sovereign fund — the one revenue line no tax office collects, and the one no rate is posted for. It pays ${(FUND_YIELD * 100).toFixed(0)}% a year on the stock, which is less than the state pays on its own paper: that is why a surplus redeems debt before it banks anything.` },
 }
 
 const OUTLAY_FACE: Record<OutlayId, { label: string; note: string }> = {
@@ -97,7 +99,12 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
    * base itself moves when the rate does, which is the whole lesson of the
    * fuel excise. Only revenue has rates behind it. */
   const perPoint = (key: string): string => {
-    const rate = pub.dials.taxRates[key as RevenueSourceId]
+    // Only the lines with a rate behind them have a per-point reading. The
+    // fund's return is a revenue line and not a tax, so it has none — asking
+    // `taxRates` for it would be asking a rate table for a rate that does not
+    // exist, which is what `TAX_RATE_IDS` is here to prevent.
+    if (!(TAX_RATE_IDS as readonly string[]).includes(key)) return '—'
+    const rate = pub.dials.taxRates[key as TaxRateId]
     const take = t.revenueBySource[key as RevenueSourceId]
     if (!rate || rate <= 0) return '—'
     return (take / (rate * 100)).toFixed(2)
@@ -119,6 +126,13 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             title="Revenue minus spending. Below zero is a deficit that must be covered by borrowing or new money."
           />
           <Metric label="DEBT" value={t.debt.toFixed(0)} title="Money the government still owes." />
+          {t.fund > 0 && (
+            <Metric
+              label="SOVEREIGN FUND"
+              value={t.fund.toFixed(0)}
+              title="Surpluses banked once the national debt was gone. It earns a return that shows up as its own revenue line, and it is spent before the government borrows again."
+            />
+          )}
           <Metric label="R&D / QTR" value={money(t.outlaysByProgramme.research)} title="Research grants paid this quarter." />
           <Metric
             label="PRINTED"
@@ -197,7 +211,12 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             bank quotes the rate, it does not survey it. */}
         <div className="grid grid-cols-1 gap-x-8 gap-y-2 border-t border-dossier-ink/20 pt-3 sm:grid-cols-2 lg:grid-cols-4">
           <LineChart label="BALANCE / QTR" data={series((x) => x.balance)} height={78} />
-          <LineChart label="DEBT OUTSTANDING" data={series((x) => x.debt)} height={78} />
+          {/* One line, because it is one position: the treasury never holds a
+              fund and a debt at once. A surplus redeems debt before it banks
+              anything and a deficit spends the fund before it borrows, so the
+              century reads as a single crossing of zero rather than as two
+              charts that are each blank for half of it. */}
+          <LineChart label="FUND (+) / DEBT (−)" data={series((x) => x.fund - x.debt)} height={78} />
           <LineChart label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
           <LineChart label="EXCHANGE RATE" data={series((x) => x.exchangeRate)} height={78} />
         </div>

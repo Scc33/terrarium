@@ -262,6 +262,22 @@ export const DEBT_RISK_PREMIUM_AT = 0.5
 export const RISK_PREMIUM_SLOPE = 0.06
 /** Share of the sovereign premium that reaches domestic private funding costs. */
 export const SOVEREIGN_PRIVATE_PREMIUM_SHARE = 0.5
+/**
+ * What the sovereign fund earns, annualized (ADR-0037).
+ *
+ * Deliberately BELOW `POLICY_RATE_1946`, the rate the state pays on its own
+ * paper, and that ordering is the reason a surplus redeems debt before it funds
+ * anything: safe foreign assets yield less than the coupon you are already
+ * paying, so retiring the coupon dominates. Were it the other way round the
+ * treasury would hold debt and a fund at the same time and earn the spread,
+ * which is a money machine rather than a fiscal policy.
+ *
+ * The return is credited to the budget as revenue rather than compounded inside
+ * the stock. The two are arithmetically identical while the payout dial is at
+ * zero, and they are not identical anywhere else: at the top of the dial the
+ * fund's return is what gets handed back, which is the Norwegian rule.
+ */
+export const FUND_YIELD = 0.02
 /** Bond issuance as a share of quarterly GDP bids up the private annual rate.
  * Openness determines how much of the auction domestic balance sheets carry. */
 export const BOND_CROWDING_RATE_GAIN = 1.0

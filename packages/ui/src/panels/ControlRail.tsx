@@ -99,6 +99,13 @@ const DIAL_MECHANICS: Record<DialPath, DialMechanics> = {
     step: 0.001,
     fmt: pct1,
   },
+  surplusPayout: {
+    get: (p) => p.dials.surplusPayout,
+    min: 0,
+    max: () => 1,
+    step: 0.05,
+    fmt: pct,
+  },
   policyRate: { get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
   assetPurchaseRate: {
     get: (p) => p.dials.assetPurchaseRate,
@@ -207,6 +214,7 @@ function DialRow({ def, pub }: { def: DialDef; pub: PublishedState }) {
     def.path === 'assetPurchaseRate' ||
     def.path === 'capitalRequirement' ||
     def.path === 'fxIntervention' ||
+    def.path === 'surplusPayout' ||
     def.path === 'immigrationLimit'
   const deltaDigits = def.step < 0.01 ? 1 : 0
   const deltaLabel = percentagePoints

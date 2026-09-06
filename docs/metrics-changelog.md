@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 43)
+## Current contract (schema 44)
 
 ### Inputs
 
@@ -69,6 +69,7 @@ do not start until `appointedAt`.
 | `assetPurchaseRate` | annualized central-bank asset purchases, 0..25% of GDP |
 | `capitalRequirement` | bank equity required per unit of credit, 3..25% |
 | `fxIntervention` | standing order in the currency market, **signed**, −10..+10% of GDP a year. Positive buys foreign exchange and holds the currency down; negative sells reserves to hold it up. The only signed dial on the desk *(added v42)* |
+| `surplusPayout` | the share of a surplus REMAINING after outstanding debt has been redeemed that is handed back to income-tax payers as a rebate, 0..1. The rest accrues to `gov.fund`. Zero — bank it — is the default, and is a stance rather than an absence *(added v44)* |
 | `immigrationLimit` | maximum annual immigration as a share of resident population, 0..2%; does not restrict emigration |
 | `subsidies.<sector>` | money/quarter per sector |
 
@@ -263,8 +264,8 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, printed, reserves, **the posted exchange rate** *(v42)* — current + full history |
-| ↳ `revenueBySource` | v11 | receipts per tax: `income`, `corporate`, `tariff`, `fuel` — after capacity-gated collection |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position |
+| ↳ `revenueBySource` | v11 | receipts per source: `income`, `corporate`, `tariff`, `fuel` after capacity-gated collection, plus `fund` *(v44)* — the return on the sovereign fund, the one line that is not a tax and posts no rate |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |
 | `institutions` | v12 | the five Layer-3 stocks, as set |
@@ -301,6 +302,34 @@ reconciled to the separately noised `income_real` headline.
 ---
 
 ## Version history — what each release added to the contract
+
+### schema 44 — A surplus has a destination
+
+- **Inputs +**: `surplusPayout` — a 0..1 standing order over what is left of a surplus once
+  outstanding debt has been redeemed (#211, ADR-0037). Zero banks it; one hands it back.
+- **State +**: `GovernmentState.fund` (the sovereign fund, a stock opening at zero for every
+  country), `Cohort.rebateIncome`, `StatRecord.fund`, `TickFlows.fiscalRebate` and `.fundFlow`.
+- **Outputs +**: `treasury.fund` and `books[].fund` — exact, like the rest of the treasury's books
+  on itself. A fifth `RevenueSplit` line, `fund`, carrying the return on the stock: the first
+  revenue line that is not a tax, which is why `TAX_RATE_IDS` now exists beside
+  `REVENUE_SOURCE_IDS`. Anything walking the rates walks the shorter list.
+- **Behaviour ±**: every quarter's balance now leaves `fiscal` with a destination —
+  `balance = repaid − borrowed − printed + Δfund + rebate`. A deficit spends the fund before it
+  borrows and borrows before it prints; a surplus redeems debt, then splits on the dial. Before
+  v44 a surplus arriving at a debt-free treasury was collected and assigned to nothing:
+  measured at **75.4 %** of a passive century's entire tax take and **89.8 %** of a developmental
+  one (investigation 0008's follow-up).
+- **Constants +**: `FUND_YIELD` (2 %/yr, deliberately below `POLICY_RATE_1946` — that ordering is
+  why redeeming debt dominates banking).
+- **Invariant**: `gov.fund` and `gov.debt` are never both positive; `validate` asserts it. That is
+  what lets `sovereignRiskPremium` go on reading `debt` alone with no new term.
+- **Inert at the default, and measured**: pre-v44 trajectory fields hash bit-identically over
+  400 quarters on all five curated countries under passive, developmental and regulated play. The
+  40-quarter goldens moved `meta.schemaVersion` and nothing else, so they are not evidence here —
+  `pnpm surplus` is.
+- **Sampler ±**: `randomPolicy` spends about 3% of its orders on `surplusPayout`, taken from the
+  subsidy arm's share. The 1000 × 120q random figures move for that reason and no other.
+
 
 ### schema 43 — Staffing is rationed against who exists
 

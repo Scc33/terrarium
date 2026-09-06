@@ -14,6 +14,7 @@ export {
   PLATFORM_IDS,
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
+  TAX_RATE_IDS,
   SECTOR_IDS,
   INDUSTRY_TABLE_IDS,
   INCOME_QUINTILE_IDS,
@@ -41,6 +42,7 @@ export {
   type ReportCard,
   type RevenueSourceId,
   type RevenueSplit,
+  type TaxRateId,
   // The political half of the desk
   type BlocId,
   type InstitutionId,
