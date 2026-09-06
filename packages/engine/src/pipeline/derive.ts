@@ -24,12 +24,12 @@ import {
   LIVING_STANDARD_1946,
   MINIMUM_WAGE_ANCHOR,
   MORT_BASE_ANNUAL,
+  OVERQUALIFIED_HIRING_PREFERENCE,
   PARTICIPATION,
   POVERTY_LINE_REAL,
   RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
   SCHOOLING_LABOR_WITHDRAWAL,
-  SKILL_RANK,
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
@@ -66,6 +66,7 @@ import {
   type StatuteId,
   type TrueState,
 } from '../state/schema'
+import { allocateStaffing } from './staffing'
 
 /**
  * Period life expectancy at birth implied by an annual mortality schedule.
@@ -301,191 +302,21 @@ export function totalLaborForce(state: TrueState): number {
  * clears in one pass; the outer loop is bounded because each iteration either
  * exhausts a cohort or clears a block.
  *
+ * Once own-skill hiring settles, surplus applicants may also bump matched
+ * workers from the immediately lower rung. That phase is high-to-low so the
+ * displaced worker can carry the joblessness down one rung in turn, and it is
+ * skipped entirely when `OVERQUALIFIED_HIRING_PREFERENCE` is zero (ADR-0036).
+ *
  * What this does NOT do is decide how many people a sector employs. That is
  * `labor`, from demanded output, and it is untouched: `LABOR_SOURCE` has never
  * reached production, so rationing changes who holds a job and what they earn
  * and nothing about how much is made.
  */
 export function staffing(state: TrueState): Record<SectorId, Record<CohortId, number>> {
-  return allocateStaffing(state.sectors, laborForce(state))
+  return allocateStaffing(state.sectors, laborForce(state), OVERQUALIFIED_HIRING_PREFERENCE)
 }
 
-/** `LADDER_BY_DISTANCE[d][wanted]` — who may fill a post that wanted `wanted`,
- * when the walk has reached distance `d`. Precomputed from `SKILL_RANK`
- * because the allocation runs every quarter of every run and rebuilding it
- * inside the loop was measurably the difference. */
-const LADDER_BY_DISTANCE: number[][][] = (() => {
-  const ranks = COHORT_IDS.map((id) => SKILL_RANK[id])
-  const span = Math.max(...ranks) - Math.min(...ranks)
-  return Array.from({ length: span + 1 }, (_, distance) =>
-    // one entry per WANTED cohort, holding the POSITIONS in COHORT_IDS of the
-    // cohorts that may fill it — positions, because the allocation below runs
-    // entirely on arrays. Built by filtering COHORT_IDS, so each list is in
-    // COHORT_IDS order and every sum over it accumulates in a fixed order.
-    COHORT_IDS.map((wanted) =>
-      COHORT_IDS.map((_, ci) => ci).filter(
-        (ci) => Math.abs(ranks[ci] - SKILL_RANK[wanted]) === distance,
-      ),
-    ),
-  )
-})()
-
-/** A fresh `[sector][cohort]` grid, filled with `value`. The allocation runs on
- * these rather than on `Record`s keyed by id: it is the hot loop of the tick,
- * and it also keeps `sector.id` — a caller-supplied string, on an exported
- * function — out of every write, which is what CodeQL was right to flag. */
-function grid(sectorCount: number, value: number): number[][] {
-  const out: number[][] = new Array<number[]>(sectorCount)
-  for (let i = 0; i < sectorCount; i++) out[i] = new Array<number>(COHORT_IDS.length).fill(value)
-  return out
-}
-
-/**
- * The allocation itself, over the two things it actually needs.
- *
- * Split out from `staffing` so `init` can seed the opening `employedIn` and
- * wage income through the SAME arithmetic `cohorts.run` recomputes them with.
- * Two of the five curated countries open oversubscribed (Veltravia and Oranga
- * at 1.16–1.21 rural), so seeding this from the raw table would start their
- * habitual-income EMA on one basis and recompute it on another — the bug the
- * comment block in `init` already exists to warn about, one field over.
- *
- * `supply` is passed rather than read off the state because `init` has no state
- * yet — and it is also what the overflow block at the foot rations against, so
- * a caller handing in a supply the sectors cannot staff gets a documented
- * answer rather than a silent one.
- */
-export function allocateStaffing(
-  sectors: readonly Pick<Sector, 'id' | 'employment'>[],
-  supply: Readonly<Record<CohortId, number>>,
-): Record<SectorId, Record<CohortId, number>> {
-  const nS = sectors.length
-  const nC = COHORT_IDS.length
-  const spare = COHORT_IDS.map((id) => supply[id])
-  const remaining = grid(nS, 0)
-  const heads = grid(nS, 0)
-  for (let si = 0; si < nS; si++) {
-    const row = LABOR_SOURCE[sectors[si].id]
-    for (let ci = 0; ci < nC; ci++) {
-      remaining[si][ci] = sectors[si].employment * (row[COHORT_IDS[ci]] ?? 0)
-    }
-  }
-
-  const ladder = LADDER_BY_DISTANCE
-  for (let distance = 0; distance < ladder.length; distance++) {
-    // Each pass settles at least one cohort or one block of posts, so the
-    // bound is the size of the problem rather than a tolerance.
-    for (let pass = 0; pass <= nC; pass++) {
-      // what every cohort at this distance is being asked for, in total
-      const claims = new Array<number>(nC).fill(0)
-      // `eligible` cannot change between the two sweeps below — `spare` is only
-      // written after both — so it is computed once per block and reused.
-      const eligibleFor = grid(nS, -1)
-      let outstanding = 0
-      for (let si = 0; si < nS; si++) {
-        for (let wi = 0; wi < nC; wi++) {
-          const posts = remaining[si][wi]
-          if (posts <= 1e-12) continue
-          const rungs = ladder[distance][wi]
-          let eligible = 0
-          for (const ci of rungs) eligible += spare[ci]
-          if (eligible <= 1e-12) continue
-          eligibleFor[si][wi] = eligible
-          outstanding += posts
-          for (const ci of rungs) claims[ci] += posts * (spare[ci] / eligible)
-        }
-      }
-      if (outstanding <= 1e-12) break
-
-      // an oversubscribed cohort serves its claimants pro rata
-      const served = new Array<number>(nC).fill(1)
-      for (let ci = 0; ci < nC; ci++) {
-        served[ci] = claims[ci] > 1e-12 ? Math.min(1, spare[ci] / claims[ci]) : 1
-      }
-      for (let si = 0; si < nS; si++) {
-        for (let wi = 0; wi < nC; wi++) {
-          const posts = remaining[si][wi]
-          if (posts <= 1e-12) continue
-          const eligible = eligibleFor[si][wi]
-          if (eligible < 0) continue
-          for (const ci of ladder[distance][wi]) {
-            const take = posts * (spare[ci] / eligible) * served[ci]
-            heads[si][ci] += take
-            remaining[si][wi] -= take
-          }
-        }
-      }
-      for (let ci = 0; ci < nC; ci++) {
-        spare[ci] = Math.max(0, spare[ci] - Math.min(claims[ci], spare[ci]))
-      }
-    }
-  }
-
-  // ---- when the country has fewer hands than jobs -------------------------
-  // Here the two constraints are genuinely incompatible, and the WAGE BILL
-  // WINS: `production` has already charged each sector `wages[sid] ×
-  // employment[sid]`, so a post left empty deletes household income that firms
-  // paid. People therefore get counted twice, deliberately. The only question
-  // is who, and rationing cannot conjure anybody — this is not a defect the
-  // allocation can fix.
-  //
-  // Pro rata on the labour force, because that is the unique split leaving
-  // every cohort at the SAME multiple of itself: the overdraft then reads as
-  // one fact about the country ("1.11 jobs per person") rather than as an
-  // artefact of whichever cohort happened to be largest in a sector. Handing
-  // the whole shortfall to that cohort — the first version of this — put one
-  // class at 162× its own labour force on a validator-legal draft while its
-  // neighbours read 1.0, which is the shape of thing that survives review.
-  //
-  // In the pipeline this block is unreachable: `labor` holds total employment
-  // under `EMPLOYMENT_CEILING × lf` every quarter, which is where the feasible
-  // case's guarantee comes from. It is reachable at `init`, which applies no
-  // such ceiling — measured, Costona opens at 1.021 jobs per person and Kestrel
-  // at 1.034, and 39% of procedural seeds are overdrawn (median 0.968, max
-  // 1.076). It clears on the first tick. That is a pre-existing defect in the
-  // opening vector, measured in investigation 0021, not one of ours.
-  let supplyTotal = 0
-  for (let ci = 0; ci < nC; ci++) supplyTotal += supply[COHORT_IDS[ci]]
-  if (supplyTotal > 1e-12) {
-    for (let si = 0; si < nS; si++) {
-      let outstanding = 0
-      for (let wi = 0; wi < nC; wi++) {
-        const posts = remaining[si][wi]
-        if (posts > 1e-12) outstanding += posts
-      }
-      if (outstanding <= 1e-12) continue
-      for (let ci = 0; ci < nC; ci++) {
-        heads[si][ci] += outstanding * (supply[COHORT_IDS[ci]] / supplyTotal)
-      }
-    }
-  }
-
-  // Float dust, and now only float dust: the walk clears every post whenever
-  // the hands exist and the block above has absorbed any real shortfall, so
-  // what is left is the last bits of ~25 accumulated products. Handed to the
-  // cohort already largest in the sector so the wage bill closes exactly.
-  for (let si = 0; si < nS; si++) {
-    let filled = 0
-    for (let ci = 0; ci < nC; ci++) filled += heads[si][ci]
-    const short = sectors[si].employment - filled
-    if (Math.abs(short) <= 1e-12) continue
-    let biggest = 0
-    for (let ci = 0; ci < nC; ci++) if (heads[si][ci] > heads[si][biggest]) biggest = ci
-    heads[si][biggest] = Math.max(0, heads[si][biggest] + short)
-  }
-
-  // Materialized only now, and via `fromEntries` rather than `out[sec.id] = …`:
-  // the key is caller-supplied, and a computed write of `__proto__` onto a
-  // plain object literal writes through to `Object.prototype`. Building the
-  // record instead of assigning into one keeps that unreachable without paying
-  // for prototype-less objects, which measured 18% slower (dictionary mode).
-  return Object.fromEntries(
-    sectors.map((sector, si) => [
-      sector.id,
-      Object.fromEntries(COHORT_IDS.map((id, ci) => [id, heads[si][ci]])),
-    ]),
-  ) as Record<SectorId, Record<CohortId, number>>
-}
+export { allocateStaffing } from './staffing'
 
 /**
  * How short the economy is of each cohort's KIND of work: the jobs the

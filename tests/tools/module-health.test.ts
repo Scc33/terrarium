@@ -23,14 +23,9 @@ const NEW_MODULE_LINE_CAP = 600
  * total record the compiler checks. Raising those four rows for v44's surplus
  * destination (#211) is that case, and it is the only reason to raise a row.
  *
- * `manual.ts` is the same case in the UI: the handbook is generated from the game, so a lever
- * that ships without a chapter is a lever nobody can look up (ADR-0024).
- *
- * `derive.ts` and `constants.ts` were ALREADY over their rows at the merge base
- * (1234 against 1010, and 1592 against 1542): the ratchet landed in #207 and
- * #200's staffing work grew both files in a parallel branch, so master has been
- * red here since the two merged. Refreshed to measured rather than left stale —
- * a row nobody can satisfy stops being a ratchet.
+ * `manual.ts` is the same case in the UI: the handbook is generated from the
+ * game, so a lever that ships without a chapter is a lever nobody can look up
+ * (ADR-0024).
  */
 const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
@@ -46,7 +41,7 @@ const MODULE_LINE_BASELINE = {
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   'packages/engine/src/index.ts': 421,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
-  'packages/engine/src/pipeline/derive.ts': 1235,
+  'packages/engine/src/pipeline/derive.ts': 1066,
   // Executable hotspot: institution power, compliance, and appointment updates.
   'packages/engine/src/pipeline/institutions.ts': 435,
   // Executable hotspot: funding, lag, noise, revision, and vector-publication machinery.

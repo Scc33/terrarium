@@ -238,10 +238,10 @@ reading. Re-measured 1000 × 400q on `country=baseline`, before → after:
 
 | 1000 runs | passive | developmental |
 |---|---|---|
-| real growth %/yr | 2.85 → **2.85** | 3.05 → **3.05** |
+| real growth %/yr | 2.86 → **2.86** | 3.06 → **3.06** |
 | mean inflation %/yr | 0.15 → **0.15** | −0.36 → **−0.36** |
-| unemployment % | 12.57 → **12.57** | 12.32 → **12.32** |
-| deposed | 2 → **2** | 13 → **13** |
+| unemployment % | 12.60 → **12.60** | 12.35 → **12.35** |
+| deposed | 2 → **2** | 9 → **9** |
 
 Every printed digit, on both, and on both `--country all` sweeps as well. The stronger form: hash
 the pre-v44 trajectory fields — real and nominal GDP, quarterly inflation, unemployment, debt/GDP,
@@ -249,10 +249,13 @@ printing, political capital, every cohort's approval, the deposition quarter —
 on all five curated countries × 3 seeds under passive, developmental AND regulated, and the digests
 match. **Bit-identical.**
 
-Random 120q moves (4.05 → 4.04 %/yr, 11.91 → 11.98 % unemployment, 25 % → 25 % deposed, ever
+Random 120q moves (4.05 → 4.03 %/yr, 11.91 → 11.98 % unemployment, 24 % → 24 % deposed, ever
 debt-free 34 % → 36 %) and that is a SAMPLER change: `randomPolicy` now spends about 3% of its
 orders on `surplusPayout`, taken from the subsidy arm's share, for the reason the currency and the
 statute book are in there.
+
+*Levels re-measured on the merged tree at `26d65c5`, so they include #213's over-qualification
+bumping. Both columns of the table above moved with it; the point is that they moved TOGETHER.*
 
 The 40-quarter goldens moved `meta.schemaVersion` and nothing else, and they are **not evidence**
 — the regime this changes (a surplus arriving at a debt-free treasury) is not reachable in forty

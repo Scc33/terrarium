@@ -175,6 +175,9 @@ export function migrationFlow(state: TrueState): MigrationFlow {
     MIG_PERFORMANCE_GAP_CAP,
   )
   const desiredQ =
+    // This is open unemployment. The welfare comparison above already hears
+    // the lower wage from a lesser job; adding underemployment here would
+    // charge the same disappointment twice (ADR-0036).
     MIG_LABOR_GAIN * (NATURAL_UNEMPLOYMENT - state.flows.unemployment) * workingAge +
     MIG_PERFORMANCE_GAIN_Q * performanceGap * totalPop
   const immigrationCapQ = (state.gov.dials.immigrationLimit * totalPop) / 4
@@ -283,6 +286,8 @@ export const demography: PipelineStep = {
     // when the cities have work — a slump stops the buses ---
     const w = state.market.wages
     const wageGap = (w.manuf + w.services) / 2 / Math.max(w.agri, 1e-9) - 1
+    // Open unemployment answers whether the cities have jobs to pull people
+    // into. Bumping only reallocates existing posts and is not a vacancy.
     const jobsPull = clamp(1 - 5 * (state.flows.unemployment - NATURAL_UNEMPLOYMENT), 0, 1)
     const move =
       URBANIZATION_GAIN * d.classShares.rural_workers * clamp(wageGap, 0, 1) * jobsPull

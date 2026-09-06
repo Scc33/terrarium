@@ -126,6 +126,11 @@ digit on passive, developmental, and both `--country all` sweeps.
 
 That is *not* what the issue expected, and the difference is worth stating plainly: it predicted
 that any real destination would pump the money back into the economy. A fund held abroad does not.
+
+The identity was re-established after merging #213 (over-qualification bumping, ADR-0036), which
+moves the economy: the digests still match, at that change's levels rather than the ones this
+branch was measured against. Passive 400q reads 2.86 %/yr, 0.15 %, 12.60 %, 2 deposed and
+developmental 3.06 %/yr, −0.36 %, 12.35 %, 9 deposed — on both sides.
 What the default buys is that the books close, the money is a stock somebody owns, and it is
 spent before the next auction. Turning it into demand is an order the player gives.
 
