@@ -476,7 +476,7 @@ splits on `gov.dials.surplusPayout` between a rebate to income-tax payers and `g
 sovereign fund — which earns `FUND_YIELD` as its own revenue line and is spent before the
 treasury borrows again. `gov.fund` and `gov.debt` are never both positive; the pair is one net
 position, and `validate` asserts it. Before schema 44 a surplus arriving at a debt-free treasury
-was assigned to nothing at all, which is 74.6 % of a passive century's tax take.
+was assigned to nothing at all, which is 75.4 % of a passive century's tax take.
 
 ### 7.3 Contract (`tests/contract/`)
 

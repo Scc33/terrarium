@@ -115,11 +115,14 @@ export const fiscal: PipelineStep = {
     // financing changes at any setting: a country still carrying debt pays it
     // down first whatever the cabinet has decided about surpluses.
     const residual = Math.max(0, balance) - repaid
-    // A rebate is split by the income tax each cohort paid, which `cohorts`
-    // does off the wage bill. With no wage bill there is nobody to refund, so
-    // the residual banks instead — the alternative is money with no
-    // destination, which is the defect this whole block exists to close.
-    const rebate = wageBase > 1e-9 ? residual * gov.dials.surplusPayout : 0
+    // A rebate is a REFUND, so it is gated on there being something to refund:
+    // income-tax receipts, not merely a wage bill. A country with the rate at
+    // zero (or a tax office that collects none of it) can still run a debt-free
+    // surplus out of tariffs, fuel duty and the fund's own return — and paying
+    // that out in proportion to wages would be a wage-weighted dividend wearing
+    // a refund's name, reaching nobody who paid for it. The residual banks
+    // instead, which is the whole point: the money always has a destination.
+    const rebate = revenueBySource.income > 1e-9 ? residual * gov.dials.surplusPayout : 0
     const fundFlow = residual - rebate - drawn
     const fund = Math.max(0, gov.fund + fundFlow)
 

@@ -320,3 +320,32 @@ describe('the fund is a stock with a return, and the return is a revenue line', 
     expect(a.gov.budget.revenue - b.gov.budget.revenue).toBeCloseTo(0.5, 12)
   })
 })
+
+describe('a rebate is a refund, so it needs somebody who paid', () => {
+  it('banks the residual when no income tax was collected', () => {
+    // A country can run a debt-free surplus out of tariffs, fuel duty and the
+    // fund's own return with the income tax at zero. Paying that out in
+    // proportion to wages would be a wage-weighted dividend wearing a refund's
+    // name — reaching nobody who paid for it — so it banks instead. Raised in
+    // review of #211.
+    let state = init(createCountryParams('meridia', 'no-income-tax'), 'no-income-tax', {
+      unlimitedCapital: true,
+    })
+    state = applyActions(state, [
+      { kind: 'setDial', path: 'surplusPayout', value: 1 },
+      { kind: 'setDial', path: 'taxRates.income', value: 0 },
+      { kind: 'setDial', path: 'taxRates.tariff', value: 0.6 },
+    ])
+    let banked = 0
+    for (let tick = 0; tick < 160; tick++) {
+      state = applyActions(state, developmentalPolicy(state, rngFor('no-income-tax', 'policy', tick), tick))
+      const before = state.gov
+      state = step(state)
+      expect(state.flows.revenueBySource.income, `q${tick}`).toBeCloseTo(0, 12)
+      expect(state.flows.fiscalRebate, `paid a refund at q${tick} with no income tax`).toBe(0)
+      banked += Math.max(0, state.gov.fund - before.fund)
+    }
+    // and the money still went somewhere: the whole point of the exercise
+    expect(banked, 'the residual was neither paid nor banked').toBeGreaterThan(0)
+  })
+})

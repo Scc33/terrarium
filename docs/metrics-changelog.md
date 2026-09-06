@@ -317,7 +317,7 @@ reconciled to the separately noised `income_real` headline.
   `balance = repaid − borrowed − printed + Δfund + rebate`. A deficit spends the fund before it
   borrows and borrows before it prints; a surplus redeems debt, then splits on the dial. Before
   v44 a surplus arriving at a debt-free treasury was collected and assigned to nothing:
-  measured at **74.6 %** of a passive century's entire tax take and **89.9 %** of a developmental
+  measured at **75.4 %** of a passive century's entire tax take and **89.8 %** of a developmental
   one (investigation 0008's follow-up).
 - **Constants +**: `FUND_YIELD` (2 %/yr, deliberately below `POLICY_RATE_1946` — that ordering is
   why redeeming debt dominates banking).

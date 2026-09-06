@@ -25,8 +25,8 @@ where the arithmetic dropped money.
 
 Measured on the shipped engine, with the fund's own return subtracted from both sides so the
 figure is the *old* arithmetic exactly (`pnpm surplus`, 30 × 400q, Meridia): the stranded flow
-was **74.6 % of every tax the treasury collected in the century** under passive play and
-**89.9 %** under developmental. The country was, in the model's own books, throwing away
+was **75.4 % of every tax the treasury collected in the century** under passive play and
+**89.8 %** under developmental. The country was, in the model's own books, throwing away
 something close to its entire tax take for eighty years.
 
 Nothing detected it. `tests/properties/budget-composition.test.ts` asserts that the splits equal
@@ -143,9 +143,12 @@ control:
 
 | arm | real GDP 30y | 100y | consumption/head 30y | 100y | inflation | gini |
 |---|---:|---:|---:|---:|---:|---:|
-| bank it (control) | — | — | — | — | −0.34 %/yr | 0.456 |
-| split it 50/50 | +2.36 % | −2.79 % | +6.05 % | +7.25 % | +0.46 pp | +0.011 |
-| hand it all back | +5.35 % | **−7.47 %** | +12.31 % | +8.52 % | +0.69 pp | +0.015 |
+| bank it (control) | — | — | — | — | −0.36 %/yr | 0.457 |
+| split it 50/50 | +2.73 % | −3.22 % | +6.23 % | +6.83 % | +0.48 pp | −0.012 |
+| hand it all back | +5.55 % | **−7.71 %** | +12.39 % | +8.14 % | +0.71 pp | −0.013 |
+
+Every column is the median of a per-seed arm-versus-control effect, not the ratio of two
+marginal medians: the median arm and the median control need not be the same run.
 
 The sign flip between the two horizons is the trade the lever exists to offer, and it is the
 "a lever that moves a FLOW gets competed away while a lever that moves a STOCK compounds" lesson
@@ -153,16 +156,30 @@ in a new register. A rebate is consumption: it absorbs slack and lifts output fo
 then raises the price level against a currency that only passes 35 % of it through
 (`FX_PARITY_PASSTHROUGH`, ADR-0034), and the real appreciation costs the century more output than
 the demand ever bought. Consumption per head stays ahead at both horizons, which is the honest
-reading — the rebate buys living standards and sells growth. The Gini moves against the rebate
-because it follows the wage bill and the retired are not in it.
+reading — the rebate buys living standards and sells growth.
+
+The Gini **falls**, by about 1.3 points at the top of the dial, and the first draft of this ADR
+said the opposite. The claim there — that a payment following the wage bill must worsen
+inequality because the retired are outside it — was a plausible argument standing in for a
+measurement, and it survived only because `householdIncomeGroups` was summing wages, profits and
+transfers without the rebate: the survey was reporting the distribution of a country that had
+never been paid. With the refund in the one household-income basis where it belongs, wage income
+is more evenly spread than the profit income the fund's return would otherwise accrue to, and the
+rebate compresses the distribution. Caught in review of this PR.
 
 And what the fund is for, forty years of banking followed by a transfer programme at 30 % of
 published output: it pays for **19–22 quarters** of the deficit before the first bond is issued,
 and over the twenty years the banking arm borrows 19–24 % less and prints 23–29 % less than the
 arm that handed every surplus back.
 
+Sections 1 and 2 run under ordinary rules; only the paired arms of section 3 and 4 take
+`unlimitedCapital`, and both sides of each pair take it. A baseline measured with the capital
+constraint lifted is not the baseline it is labelled as — the tool did that in its first draft,
+and it flattered every figure in this section by letting through capacity orders a real cabinet
+could not have afforded.
+
 The one reading that is a finding rather than a design claim is the size of the thing under the
-runner's `developmental` policy: **10.6 × annual GDP** by 2046, with its return at 57 % of
+runner's `developmental` policy: **10.7 × annual GDP** by 2046, with its return at 56 % of
 revenue. That is a fact about a policy investigation 0008 already calls austere rather than about
 the fund — a government banking 60 % of annual output every year for eighty-five years should
 end up a rentier — and it is recorded as a follow-up there.

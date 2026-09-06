@@ -85,9 +85,18 @@ export const cohorts: PipelineStep = {
       // Not scaled by `adminEff`: the tax office refunds against wages it has
       // already assessed, so unlike a programme there is nothing here to
       // deliver and nothing to leak. The guard cannot silently eat a rebate —
-      // `fiscal` books zero whenever the wage bill is zero, on the same
-      // quantity — and the split summing to what was booked is asserted in
-      // `tests/properties/treasury-conservation.test.ts`.
+      // `fiscal` books zero unless it collected income tax, which it cannot do
+      // without a wage bill — and the split summing to what was booked is
+      // asserted in `tests/properties/treasury-conservation.test.ts`.
+      //
+      // The weights are this quarter's payroll, which is not the one `fiscal`
+      // taxed: `labor` moves employment and wages between the two steps. That
+      // is deliberate. `wageIncome` below is the same post-`labor` payroll, and
+      // `production` nets the income tax off THAT when it builds the spending
+      // budget — so splitting the refund this way makes it proportional to the
+      // tax each household is booked as paying. Weighting by fiscal's own
+      // pre-`labor` base would match the treasury's receipt and mismatch every
+      // household account that has to live with it.
       const rebateIncome = wageBill > 1e-9 ? (flows.fiscalRebate * grossWage) / wageBill : 0
       const income =
         grossWage * (1 - incomeTaxEff) + profitIncome + transferIncome + rebateIncome

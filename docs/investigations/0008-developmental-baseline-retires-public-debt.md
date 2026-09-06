@@ -153,8 +153,8 @@ reproduces the old arithmetic exactly (`pnpm surplus`, 30 seeds × 400 quarters,
 
 | policy | debt-free | median quarter | stranded / taxes collected p05 | p50 | p95 |
 |---|---:|---:|---:|---:|---:|
-| passive | 30/30 | 83 | 69.3 % | **74.6 %** | 79.0 % |
-| developmental | 30/30 | 67 | 87.5 % | **89.9 %** | 92.2 % |
+| passive | 30/30 | 80 | 74.2 % | **75.4 %** | 76.1 % |
+| developmental | 30/30 | 67 | 89.3 % | **89.8 %** | 90.1 % |
 
 Three quarters of a passive century's entire tax take, and nine tenths of a developmental one,
 was money the model created and then deleted. ADR-0037 gives it two destinations — a sovereign
@@ -165,10 +165,10 @@ that its proceeds are visible. At the default setting (bank everything), by 2046
 
 | policy | fund / annual GDP p05 | p50 | p95 | fund return as a share of revenue |
 |---|---:|---:|---:|---:|
-| passive | 1.93 | **2.26** | 2.48 | 58.7 % |
-| developmental | 9.42 | **10.64** | 12.09 | 56.5 % |
+| passive | 2.16 | **2.31** | 2.47 | 58.8 % |
+| developmental | 9.88 | **10.66** | 11.43 | 56.4 % |
 
-A developmental century ends holding ten and a half years of national output in a foreign fund
+A developmental century ends holding nearly eleven years of national output in a foreign fund
 and drawing more than half its budget from the return on it. Norway's fund, for scale, is about
 three times its GDP after twenty-five years of surpluses near a tenth of output; this policy
 banks something closer to 60 % of annual output every year for eighty-five. **The number is a

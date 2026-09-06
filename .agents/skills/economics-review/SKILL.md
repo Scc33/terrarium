@@ -257,21 +257,32 @@ statute book are in there.
 *Levels re-measured on the merged tree at `26d65c5`, so they include #213's over-qualification
 bumping. Both columns of the table above moved with it; the point is that they moved TOGETHER.*
 
+`pnpm surplus` names its country explicitly. `runOne` falls back to `generateParams(seed)` — a
+randomised country per seed — when `country` is undefined, so a study that omits it measures a
+different country in every run while reporting one recipe's name. That shipped in this tool's
+first draft and is worth checking in the next one.
+
 The 40-quarter goldens moved `meta.schemaVersion` and nothing else, and they are **not evidence**
 — the regime this changes (a surplus arriving at a debt-free treasury) is not reachable in forty
 quarters, exactly as ADR-0028's stock was not. Use **`pnpm surplus`**.
 
 What that tool is for, and the two numbers to keep:
 
-- **The hole it closed**, measured as the old arithmetic exactly: **74.6 %** of a passive
-  century's whole tax take and **89.9 %** of a developmental one was collected and assigned to
+- **The hole it closed**, measured as the old arithmetic exactly: **75.4 %** of a passive
+  century's whole tax take and **89.8 %** of a developmental one was collected and assigned to
   nothing. If a future change to `fiscal` makes that column non-zero again, a financing branch has
   lost its destination.
-- **What the dial is worth** (30 × 400q developmental under `unlimitedCapital`, against a banking
-  control): handing every surplus back is +5.35 % of real GDP at thirty years and **−7.47 % at a
-  century**, with consumption per head +12.31 % and +8.52 %. The sign flip is the trade, and it
-  runs through the price level and a currency that passes only 35 % of it through — so a retune of
-  `FX_PARITY_PASSTHROUGH` will move this table.
+- **What the dial is worth** (30 × 400q developmental, both arms under `unlimitedCapital`, paired
+  per seed against a banking control): handing every surplus back is +5.55 % of real GDP at thirty
+  years and **−7.71 % at a century**, with consumption per head +12.39 % and +8.14 %. The sign
+  flip is the trade, and it runs through the price level and a currency that passes only 35 % of
+  it through — so a retune of `FX_PARITY_PASSTHROUGH` will move this table.
+- **The Gini FALLS**, about 1.3 points at the top of the dial. The first write-up of this claimed
+  the opposite from an argument rather than a measurement — a payment following the wage bill
+  must surely miss the retired — and the measurement agreed with the argument only because
+  `householdIncomeGroups` was not counting the rebate. Any new cohort income must be added to
+  BOTH shared bases in `derive.ts`, or the survey reports a country that was never paid while
+  approval and consumption see the money.
 
 If a change here moves the PASSIVE column, the surplus rule has stopped being a destination and
 become a stimulus, which is a different mechanic. Same shape as the pollution and basket tests

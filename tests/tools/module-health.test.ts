@@ -25,7 +25,9 @@ const NEW_MODULE_LINE_CAP = 600
  *
  * `manual.ts` is the same case in the UI: the handbook is generated from the
  * game, so a lever that ships without a chapter is a lever nobody can look up
- * (ADR-0024).
+ * (ADR-0024). `derive.ts` is the same case once more: the two shared
+ * household-income bases live there, and a new income field has to appear in
+ * both or the survey reports a country that never received it.
  */
 const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
@@ -41,7 +43,7 @@ const MODULE_LINE_BASELINE = {
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   'packages/engine/src/index.ts': 421,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
-  'packages/engine/src/pipeline/derive.ts': 1066,
+  'packages/engine/src/pipeline/derive.ts': 1080,
   // Executable hotspot: institution power, compliance, and appointment updates.
   'packages/engine/src/pipeline/institutions.ts': 435,
   // Executable hotspot: funding, lag, noise, revision, and vector-publication machinery.

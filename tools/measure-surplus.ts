@@ -66,7 +66,6 @@ const SHOCK_SHARE = Number(arg('shock', '0.30'))
 
 const pct = (v: number) => `${(v * 100).toFixed(2)}%`
 const num = (v: number, digits = 2) => v.toFixed(digits)
-const rel = (a: number, b: number) => (b === 0 ? '—' : `${(((a - b) / Math.abs(b)) * 100).toFixed(2)}%`)
 
 function table(headers: string[], rows: string[][]): void {
   const widths = headers.map((h, i) => Math.max(h.length, ...rows.map((r) => r[i].length)))
@@ -142,12 +141,22 @@ function century(opts: {
   let before: TrueState | null = null
   const result = runOne({
     seed: opts.seed,
-    country: opts.country,
+    // Named, always. `runOne` falls back to `generateParams(seed)` — a
+    // RANDOMISED country per seed — when this is undefined, so a study that
+    // omitted it would quietly measure a different country in every run while
+    // reporting a single recipe's name. The first draft of this file did
+    // exactly that.
+    country: opts.country ?? 'meridia',
     ticks,
-    // The channel sections post an order the room prices near 94 PC. A lenient
-    // runner would skip it and report two identical arms, which in a results
-    // table reads as "the dial does nothing" rather than "the dial never moved".
-    rules: { unlimitedCapital: true },
+    // `unlimitedCapital` ONLY where an order is posted. The channel sections
+    // post one the room prices near 94 PC, and a lenient runner would skip it
+    // and report two identical arms — "the dial does nothing" rather than "the
+    // dial never moved". But sections 1 and 2 post nothing and describe
+    // themselves as ordinary passive and developmental play, and handing them
+    // the rule would let every capacity order through that political capital
+    // would have refused: a stronger tax office, a larger surplus, and a
+    // "baseline" that is not the baseline it is labelled as.
+    rules: script.length > 0 ? { unlimitedCapital: true } : 'standard',
     script: script.length > 0 ? [{ tick: 0, actions: script }] : undefined,
     policy: opts.developmental ? developmentalPolicy : undefined,
     includeStateHash: false,
@@ -258,25 +267,37 @@ console.log('   held abroad, so at payout zero nothing reaches the domestic econ
 
 // ---------- 3. what the dial is worth ----------
 console.log('\n3. BANK IT, SPLIT IT, OR HAND IT BACK')
-console.log('   Paired seeds, developmental play, `unlimitedCapital` so the order is never')
-console.log('   priced out of the experiment. Read the two horizons together: a rebate is a')
+console.log('   Paired PER SEED — the median of each seed\u2019s own arm-versus-control effect,')
+console.log('   never the ratio of two marginal medians. Developmental play, `unlimitedCapital`')
+console.log('   in both arms so the order is never priced out. Read the two horizons together: a rebate is a')
 console.log('   demand impulse and a fund is a stock, and a lever that moves a FLOW gets')
 console.log('   competed away while a lever that moves a STOCK compounds.\n')
 {
   const control = seeds.map((seed) => century({ seed, developmental: true, payout: 0 }))
   const rows: string[][] = []
+  // PAIRED, per seed, and then summarized — never the ratio of two marginal
+  // medians. The median arm and the median control need not be the same seed,
+  // and with different shock draws and deposition quarters behind them the
+  // ratio of their medians is not any comparison that was actually run. Every
+  // column below is the median of a per-seed effect.
+  const pairedRel = (f: (c: Century) => number) =>
+    `${(100 * summarize(seeds.map((_, i) => {
+      const base = f(control[i])
+      return Math.abs(base) > 1e-12 ? f(arm[i]) / base - 1 : 0
+    })).p50).toFixed(2)}%`
+  const pairedDiff = (f: (c: Century) => number, digits = 2) =>
+    num(summarize(seeds.map((_, i) => f(arm[i]) - f(control[i]))).p50, digits)
+  let arm: Century[] = []
   for (const payout of [0.5, 1]) {
-    const arm = seeds.map((seed) => century({ seed, developmental: true, payout }))
-    const at = (f: (c: Century) => number) =>
-      rel(summarize(arm.map(f)).p50, summarize(control.map(f)).p50)
+    arm = seeds.map((seed) => century({ seed, developmental: true, payout }))
     rows.push([
       `payout ${pct(payout)}`,
-      at((c) => c.realGdpAt.get(120) ?? 0),
-      at((c) => c.realGdpAt.get(TICKS) ?? 0),
-      at((c) => c.consumptionAt.get(120) ?? 0),
-      at((c) => c.consumptionAt.get(TICKS) ?? 0),
-      num(summarize(arm.map((r) => r.inflationMean)).p50 - summarize(control.map((r) => r.inflationMean)).p50),
-      num(summarize(arm.map((r) => r.giniEnd)).p50 - summarize(control.map((r) => r.giniEnd)).p50, 4),
+      pairedRel((c) => c.realGdpAt.get(120) ?? 0),
+      pairedRel((c) => c.realGdpAt.get(TICKS) ?? 0),
+      pairedRel((c) => c.consumptionAt.get(120) ?? 0),
+      pairedRel((c) => c.consumptionAt.get(TICKS) ?? 0),
+      pairedDiff((c) => c.inflationMean),
+      pairedDiff((c) => c.giniEnd, 4),
       `${arm.filter((r) => r.deposedAt !== null).length}/${arm.length}`,
     ])
   }

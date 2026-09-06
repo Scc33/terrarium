@@ -377,8 +377,8 @@ are identical at every setting.
 Every quarter's balance leaves `fiscal` with a destination, and there are exactly four:
 `balance = repaid − borrowed − printed + Δfund + rebate`. Before v44 there were three and a hole:
 once `gov.debt` hit zero, `repaid` clipped to zero while `balance` stayed positive and nothing
-caught the difference. Measured, that hole was **74.6 % of a passive century's entire tax take and
-89.9 % of a developmental one** — reachable in ordinary play, because debt reaches zero in every
+caught the difference. Measured, that hole was **75.4 % of a passive century's entire tax take and
+89.8 % of a developmental one** — reachable in ordinary play, because debt reaches zero in every
 sampled run of both baselines (investigation 0008).
 
 `gov.fund` is the sovereign fund and `gov.dials.surplusPayout` is the standing order over the
