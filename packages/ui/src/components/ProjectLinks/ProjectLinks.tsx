@@ -2,8 +2,8 @@
  * posting room and the records office both expose them: the first is the front
  * door, while the second remains reachable once a run has started. */
 
-export const REPOSITORY_URL = 'https://github.com/Scc33/terrarium'
-export const NEW_ISSUE_URL = `${REPOSITORY_URL}/issues/new`
+export { NEW_ISSUE_URL, REPOSITORY_URL } from './links'
+import { NEW_ISSUE_URL, REPOSITORY_URL } from './links'
 
 const surfaces = {
   felt: 'border-dossier-paper/30 text-dossier-paper/75 hover:border-dossier-brass hover:bg-dossier-paper/5 hover:text-dossier-brass',

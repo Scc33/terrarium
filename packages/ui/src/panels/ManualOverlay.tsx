@@ -87,11 +87,17 @@ function SectionBlock({
 export function ManualOverlay({
   initialChapter = 'briefing',
   onWalkthrough,
+  onAtlas,
 }: {
   initialChapter?: ManualChapterId
   /** replay the opening walkthrough; the handbook is where a player who
    * skipped it goes looking for it */
   onWalkthrough: () => void
+  /** the floor below this one (#128). The handbook explains the GAME; the
+   * atlas explains the machine running it, and a reader who has read the
+   * methodology and still wants to know how a print is made is one link from
+   * the file that makes it. */
+  onAtlas: () => void
 }) {
   const [openId, setOpenId] = useState<ManualChapterId>(initialChapter)
   const [query, setQuery] = useState('')
@@ -159,6 +165,9 @@ export function ManualOverlay({
         </div>
         <Button variant="quiet" size="compact" fullWidth onClick={onWalkthrough} className="mt-1">
           REPLAY THE TOUR
+        </Button>
+        <Button variant="quiet" size="compact" fullWidth onClick={onAtlas}>
+          OPEN THE ATLAS
         </Button>
       </nav>
 

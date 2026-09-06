@@ -1,26 +1,32 @@
-# Terrarium Engine Atlas
+# The engine atlas — scanner
 
-A development-only map of the simulation architecture. It is generated from the repository rather than maintained as a second architecture document.
+This package **scans the repository**. It does not draw it: the atlas is in the game, at
+`packages/ui/src/panels/AtlasOverlay.tsx`, over the derivations in `packages/ui/src/atlas.ts`
+(ADR-0037). What lives here is the TypeScript-AST walk and the snapshot it writes.
 
-The scanner uses the TypeScript AST to:
+The scan reads:
 
-- read `TICK_ORDER` and its source comments from `pipeline/pipeline.ts`;
-- inventory production modules, named exports, and resolved internal imports;
-- infer the top-level `TrueState` regions referenced by each pipeline step;
-- anchor the load-bearing worker, observation, action-pricing, RNG, and pipeline seams to source lines.
+- `TICK_ORDER` and the source comments beside it, from `pipeline/pipeline.ts`;
+- every production module, its named exports, and its resolved internal imports;
+- the top-level `TrueState` regions each pipeline step references;
+- the load-bearing worker, observation, action-pricing, RNG and pipeline seams, anchored to
+  source lines.
 
-Run it from the repository root:
+It excludes its own package, so the map is of the simulation and not of the thing describing it.
 
 ```sh
-pnpm architecture
+pnpm architecture:scan    # redraw the map and write the snapshot
+pnpm architecture:check   # fail if the checked-in map no longer describes the repository
 ```
 
-The scan runs before the Vite server starts. Use `pnpm architecture:scan` to refresh the checked-in snapshot or `pnpm architecture:build` to verify the static production build.
+The snapshot is **checked in** (`src/generated/architecture.ts`) so the game builds without
+running a scan, and `--check` is what stops it drifting: CI runs it on every push and pull
+request. The comparison normalizes `revision` away, because that field records the commit the
+scan was taken at and is one commit behind by construction — the commit that lands a rescan
+cannot contain its own hash.
 
-The three views answer different questions:
+`tests/ui/atlas.test.ts` makes the same guarantee specific where it matters most: it compares
+the scanned pipeline against the engine's live `TICK_ORDER`, so a step added, renamed or
+reordered without a rescan fails by name in the ordinary test run.
 
-1. **Tick pipeline** — what happens within a quarter, in what order, and which state regions a step references.
-2. **System map** — which workspace package depends on which, and where the architectural invariants live.
-3. **Module explorer** — named exports and the import/imported-by neighborhood for every production source file.
-
-Source links use Vite's local editor endpoint during development. In a static preview they fall back to copying `path:line`.
+Add a pipeline step, a workspace package or a seam, and rescan.

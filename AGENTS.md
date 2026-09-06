@@ -478,6 +478,36 @@ latter derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` ships the 
 serializer, and `--mode production` does not save you. `tests/ui/dev-build-strip.test.ts`
 builds the bundle and greps it; if that test goes, the guarantee goes with it.
 
+### The engine atlas (ADR-0037)
+
+The game explains itself down to the source. `packages/architecture-visualizer` is a SCANNER —
+it walks the TypeScript AST and writes a snapshot of the repository (`TICK_ORDER` and its
+comments, every module's exports and resolved imports, the state regions each step touches, the
+five seams) — and the atlas that draws it is an ordinary overlay in the game, reached from the
+offices menu and from the handbook. There is no second renderer; the standalone Vite app was
+deleted, because the unloved copy is the one that went 137 commits stale and reported a smaller
+codebase without anything failing.
+
+- **The map cannot go quietly stale.** `pnpm architecture:check` re-scans and fails if the
+  checked-in snapshot has drifted; CI runs it. It normalizes `revision` away and has to — that
+  field is one commit behind by construction, so a literal comparison would fail on every commit
+  and mean nothing. `tests/ui/atlas.test.ts` makes it specific: the scanned pipeline must equal
+  the engine's live `TICK_ORDER`, so a step added or reordered without a rescan fails BY NAME.
+- **The snapshot is fetched, not bundled.** 400KB of scanned repository has no business in the
+  bundle a player downloads to run a country, so `AtlasOverlay` imports it dynamically and
+  `ui/src/atlas.ts` takes it as an ARGUMENT — which is also what keeps the derivations pure.
+- **A source link is a permalink at the scanned revision, never at `master`.** The line numbers
+  came from that commit. A branch link keeps working, keeps looking right, and lands the reader
+  a few lines off — further off every month.
+- **The map prints exported symbol NAMES as data, and it ships beside the bundle grep.** So a
+  needle in `tests/ui/shipped-strings.ts` that is also an export name stops being evidence: it is
+  in the bundle either way. `atlas.test.ts` fails the day one collides. This already caught
+  `applyScenario` — which was a weak needle regardless, because the build MINIFIES and an
+  internal identifier is renamed. Grep for string literals and property names, not identifiers.
+- **The layering is derived from the measured imports.** The retired renderer hard-coded
+  `ui → observation → engine` and placed the rest by hand, so a sixth package would have been
+  silently missing from the system map.
+
 ### Verifying the wall
 
 → **`verify-the-wall` skill.** `tests/ui/` tests pure modules, not rendered components: jsdom

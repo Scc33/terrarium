@@ -54,7 +54,7 @@ Superseded planning documents are retained for provenance in
 | `packages/ui` | React instrument wall and cabinet. A Web Worker is the only host that runs the engine. |
 | `packages/runner` | Headless batch and long-horizon stability tools for model calibration. |
 | `packages/fixtures` | Shared country inputs and named policy scripts used by tests and runners. |
-| `packages/architecture-visualizer` | Code-derived atlas of pipeline order, package seams, and module relationships. |
+| `packages/architecture-visualizer` | The TypeScript-AST scan behind the in-game engine atlas: pipeline order, package seams, and module relationships. |
 
 The dependency direction is lint-enforced:
 
@@ -73,14 +73,15 @@ pnpm test:visual   # Playwright screenshots, layout, overflow, and accessibility
 
 pnpm batch -- --runs 1000 --ticks 120 --policy random
 pnpm stability -- --runs 120 --policy all --country all
-pnpm architecture  # scan the source and open the engine atlas
+pnpm architecture:scan   # redraw the map of the source that the in-game atlas reads
+pnpm architecture:check  # fail if that map no longer describes the repository
 ```
 
 The validation strategy matches the kind of claim being made: exact golden replays catch any
 state movement, statistical properties and runners test behavior across seeds and countries,
 contract tests protect the fog boundary, and Playwright checks the rendered war room in a real
-browser. CI gates changes on typechecking, lint, coverage, and a 200-run random-policy balance
-smoke test.
+browser. CI gates changes on typechecking, lint, a current architecture map, coverage, and a 200-run
+random-policy balance smoke test.
 
 Before accepting an intentional engine change, inspect `pnpm diff-state -- --moved-only`; only
 then does `pnpm bless` update the golden replays.

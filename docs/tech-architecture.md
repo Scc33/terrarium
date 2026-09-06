@@ -73,6 +73,7 @@ terrarium/
 │   │   │   ├── domains.ts        # FIXED per-indicator dial faces (ADR-0006)
 │   │   │   ├── shares.ts         # pie / stacked-band geometry (pure, tested)
 │   │   │   ├── maturity.ts       # diegetic per-instrument visual maturity
+│   │   │   ├── atlas.ts          # the engine atlas over the scan (pure, tested) — ADR-0037
 │   │   │   └── devScenario.ts    # dev-console scenarios (pure, tested) — ADR-0010
 │   │   └── package.json
 │   │
@@ -83,9 +84,10 @@ terrarium/
 │   │   ├── countries/standard.ts # parameter vectors
 │   │   └── scripts/scripts.ts    # named action scripts ("passive", "fuelTaxAtQ8", …)
 │   │
-│   └── architecture-visualizer/  # dev-only, code-derived engine atlas
+│   └── architecture-visualizer/  # the SCANNER behind the in-game atlas (ADR-0037)
 │       ├── scripts/analyze.ts    # TS AST scan: modules, imports, exports, TICK_ORDER
-│       └── src/                  # pipeline, package-seam, and module explorer views
+│       ├── scripts/generate.ts   # writes the snapshot; `--check` fails if it has drifted
+│       └── src/                  # model.ts (shapes) + the checked-in generated snapshot
 │
 ├── tests/
 │   ├── unit/                     # pure-function tests (rng, leontief, hash, actions)
@@ -115,6 +117,9 @@ The dependency direction is enforced at two independent levels, because either a
   state-running functions (`init` / `step` / `replay` / `applyActions` / `runTick`) outside
   `ui/src/worker/**`. Components may import constants and action/save *types*.
 - Even the worker uses the engine's public API, not its state internals.
+- `@terrarium/architecture-visualizer` is the one workspace package `ui` may import that is not
+  on the `ui → observation → engine` spine. It is a data package — a scan of the repository —
+  so it carries no engine types and no state; see ADR-0037.
 
 **At the data boundary** (`tests/contract/published-state.test.ts`): a lint rule stops you
 importing a true-state *type*, but not from posting a true-state *value* through a
@@ -486,7 +491,9 @@ Tests **pure modules, not rendered components**. jsdom has no layout engine, so 
 passes happily while the wall clips every figure it publishes. What is covered:
 `wall-plan` (the height budget against 1280×720), `gauge-domains` (re-measures a surveyed
 century and rejects a face an instrument spends >2% of its life pegged against),
-`revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry).
+`revision-stamp` (the fog still bites, and doesn't bite everywhere), `shares` (chart geometry),
+`atlas` (the scanned map is still of this repository — its pipeline against the engine's live
+`TICK_ORDER`, its seams against files the scan found).
 
 Layout itself is verified by `tests/visual/ui.spec.ts`, a Playwright suite whose default viewport
 is **1280×720**. It asserts that the dense wall has no page or horizontal scroll, no clipped rack
@@ -535,8 +542,13 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   must never reach a player — currently the dev console. Do **not** use `import.meta.env.DEV`
   for this: it derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` produces a
   bundle with the dev code still in it. See ADR-0010.
-- **CI order:** typecheck → lint → coverage → a 200×120 random-policy batch (no NaN, no price
-  explosions). Node 24.
+- **The engine atlas is a checked-in scan** (ADR-0037). `packages/architecture-visualizer` walks
+  the TypeScript AST and writes a snapshot; `packages/ui` imports it DYNAMICALLY, so 400KB of
+  scanned repository becomes its own chunk that only a reader who opens the atlas pays for.
+  `pnpm architecture:check` re-scans and fails if the checked-in copy has drifted, and
+  `tests/ui/atlas.test.ts` compares the scanned pipeline against the engine's live `TICK_ORDER`.
+- **CI order:** typecheck → lint → architecture map → coverage → a 200×120 random-policy batch
+  (no NaN, no price explosions). Node 24.
 
 ### 9.1 Commands
 
@@ -555,8 +567,8 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
 | `pnpm neutral-rate -- --runs 40 --ticks 160` | implied neutral-rate ranges and paired fixed-rate transmission |
 | `pnpm fdi -- --runs 20 --ticks 400` | the foreign-investment flow decomposed into its factors, then the marginal and century value of every order that reaches one |
-| `pnpm architecture` | scan the source and open the engine atlas on localhost:4174 |
-| `pnpm architecture:build` | regenerate and production-build the engine atlas |
+| `pnpm architecture:scan` | redraw the map of the repository the in-game atlas reads |
+| `pnpm architecture:check` | fail if that map no longer describes the repository (CI runs this) |
 | `pnpm batch -- --runs 1000 --ticks 120 --policy random` | balance sweep |
 
 ---

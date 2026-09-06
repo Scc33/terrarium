@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 export default defineConfig({
   resolve: {
     alias: {
+      '@terrarium/architecture-visualizer': fileURLToPath(new URL('./packages/architecture-visualizer/src/index.ts', import.meta.url)),
       '@terrarium/engine': fileURLToPath(new URL('./packages/engine/src/index.ts', import.meta.url)),
       '@terrarium/observation': fileURLToPath(new URL('./packages/observation/src/index.ts', import.meta.url)),
       '@terrarium/fixtures': fileURLToPath(new URL('./packages/fixtures/index.ts', import.meta.url)),

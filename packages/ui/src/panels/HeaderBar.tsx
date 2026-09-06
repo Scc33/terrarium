@@ -28,6 +28,7 @@ export function HeaderBar({
   onAccounts,
   onIndustry,
   onHouseholds,
+  onAtlas,
   onVerdict,
 }: {
   pub: PublishedState
@@ -39,6 +40,7 @@ export function HeaderBar({
   onAccounts: () => void
   onIndustry: () => void
   onHouseholds: () => void
+  onAtlas: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
 }) {
@@ -114,7 +116,7 @@ export function HeaderBar({
         </HeaderGroup>
       </div>
 
-      {/* Seven offices cost more than the ordinary desktop header can spare
+      {/* Eight offices cost more than the ordinary desktop header can spare
           before the conditional verdict joins them.
           Keep the direct row to genuinely wide screens so a new office cannot
           silently buy its space by shearing the Treasury figures again. */}
@@ -127,6 +129,7 @@ export function HeaderBar({
         <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures before playing it.">STUDY</Button>
         <Button onClick={onSettings} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
         <Button onClick={onManual} variant="secondary" size="compact" title="The manual: every lever, every instrument, how the published figures are made, and what happens when you advance a quarter.">HANDBOOK</Button>
+        <Button onClick={onAtlas} variant="secondary" size="compact" title="The atlas: how the simulation itself is built — the order of a quarter, the packages, and every source file, scanned from the repository.">ATLAS</Button>
       </nav>
       <details ref={officesMenuRef} data-tour="offices" className="relative justify-self-end min-[2048px]:hidden">
         <summary className="flex min-h-8 list-none items-center border border-dossier-paper/30 px-2.5 font-mono text-[9px] font-medium tracking-[0.15em] text-dossier-paper marker:hidden hover:border-dossier-brass hover:text-dossier-brass">
@@ -141,6 +144,7 @@ export function HeaderBar({
           <Button onClick={() => openOffice(onStudy)} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
           <Button onClick={() => openOffice(onSettings)} variant="secondary" size="compact" title="Save, load or leave this run.">RECORDS</Button>
           <Button onClick={() => openOffice(onManual)} variant="secondary" size="compact" title="The manual: every lever, every instrument, and how the figures are made.">HANDBOOK</Button>
+          <Button onClick={() => openOffice(onAtlas)} variant="secondary" size="compact" title="The atlas: how the simulation itself is built, scanned from the repository.">ATLAS</Button>
         </nav>
       </details>
     </header>
