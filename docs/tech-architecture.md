@@ -471,7 +471,7 @@ revenue, standing programmes, capacity construction, interest, and the balance a
 It reduces each run to those fiscal readings immediately, so century sweeps do not retain a
 thousand copies of the treasury's full statistical archive.
 
-What happens once that debt is gone is `pnpm surplus` (ADR-0036). A surplus redeems debt, then
+What happens once that debt is gone is `pnpm surplus` (ADR-0037). A surplus redeems debt, then
 splits on `gov.dials.surplusPayout` between a rebate to income-tax payers and `gov.fund`, the
 sovereign fund — which earns `FUND_YIELD` as its own revenue line and is spent before the
 treasury borrows again. `gov.fund` and `gov.debt` are never both positive; the pair is one net

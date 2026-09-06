@@ -324,7 +324,7 @@ export {
   CRISIS_ASSET_SAFE,
   CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
-  // What the sovereign fund earns (ADR-0036). Exported so the ledger can say
+  // What the sovereign fund earns (ADR-0037). Exported so the ledger can say
   // what the fund is paying the treasury without a second copy of the rate.
   FUND_YIELD,
   NATURAL_REAL_RATE,

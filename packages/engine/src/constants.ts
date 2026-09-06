@@ -263,7 +263,7 @@ export const RISK_PREMIUM_SLOPE = 0.06
 /** Share of the sovereign premium that reaches domestic private funding costs. */
 export const SOVEREIGN_PRIVATE_PREMIUM_SHARE = 0.5
 /**
- * What the sovereign fund earns, annualized (ADR-0036).
+ * What the sovereign fund earns, annualized (ADR-0037).
  *
  * Deliberately BELOW `POLICY_RATE_1946`, the rate the state pays on its own
  * paper, and that ordering is the reason a surplus redeems debt before it funds

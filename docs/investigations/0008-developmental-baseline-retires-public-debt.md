@@ -157,7 +157,7 @@ reproduces the old arithmetic exactly (`pnpm surplus`, 30 seeds × 400 quarters,
 | developmental | 30/30 | 67 | 87.5 % | **89.9 %** | 92.2 % |
 
 Three quarters of a passive century's entire tax take, and nine tenths of a developmental one,
-was money the model created and then deleted. ADR-0036 gives it two destinations — a sovereign
+was money the model created and then deleted. ADR-0037 gives it two destinations — a sovereign
 fund and a rebate to income-tax payers, on a standing order the cabinet sets.
 
 **The reading that belongs to THIS investigation** is what the fixed-cash artifact looks like now
@@ -179,6 +179,6 @@ neither is the terminal fund. Both are the fixed-cash rule compounding.
 
 The note this investigation closed on — "a later proposal may add a genuinely sustained
 developmental fiscal policy, but choosing its tax/spending stance is game design" — is still
-open. ADR-0036 did not add one. What it added is the register that stance would be *written* in:
+open. ADR-0037 did not add one. What it added is the register that stance would be *written* in:
 a runner policy that banked or rebated its surpluses deliberately would now be measuring
 something, where before it would have been measuring the same deletion.

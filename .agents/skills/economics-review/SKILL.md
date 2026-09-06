@@ -231,7 +231,7 @@ Use **`pnpm currency`** as the evidence for anything you change here, not the go
 it moves the level the currency floats around and does NOT switch the absorber off. The growth and
 inflation tails are identical at every setting from a hard defence to the buy rail.
 
-### Where a surplus goes (schema 44, ADR-0036)
+### Where a surplus goes (schema 44, ADR-0037)
 
 The first mechanic here that is expected to move the baseline and **does not**, which is the whole
 reading. Re-measured 1000 × 400q on `country=baseline`, before → after:

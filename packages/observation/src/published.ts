@@ -218,7 +218,7 @@ export interface PublishedState {
     outlays: number
     balance: number
     debt: number
-    /** The sovereign fund (ADR-0036) — what a surplus becomes once there is no
+    /** The sovereign fund (ADR-0037) — what a surplus becomes once there is no
      * debt left to redeem. Never positive at the same time as `debt`: the two
      * are one net position, so the pair reads as a single line. */
     fund: number

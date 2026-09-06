@@ -1,4 +1,4 @@
-# ADR-0036 — Every quarter's balance has a destination, and the cabinet chooses between two
+# ADR-0037 — Every quarter's balance has a destination, and the cabinet chooses between two
 
 **Status:** Accepted · **Date:** 2026-08-30 · **Issue:** [#211](https://github.com/Scc33/terrarium/issues/211)
 

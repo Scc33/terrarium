@@ -525,7 +525,7 @@ export function init(
         // A float. Every country opens with its currency finding its own
         // level; a peg is a decision somebody has to take (ADR-0034).
         fxIntervention: 0,
-        // A treasury with a surplus and no instruction banks it (ADR-0036).
+        // A treasury with a surplus and no instruction banks it (ADR-0037).
         // Every country opens having decided nothing about its surpluses,
         // which is itself the sovereign-fund stance.
         surplusPayout: 0,
@@ -556,7 +556,7 @@ export function init(
       debt: debt0,
       // Nobody inherits a fund. A country opens with whatever debt its recipe
       // gave it, and the fund is what its own surpluses build — the two are
-      // never both positive (ADR-0036).
+      // never both positive (ADR-0037).
       fund: 0,
       printed: 0,
     },

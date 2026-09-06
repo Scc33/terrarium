@@ -372,7 +372,7 @@ and does not stop it floating. `pnpm currency` is the evidence, and section 3 ex
 obvious "a peg trades the shock absorber for a level" story being re-derived — measured, the tails
 are identical at every setting.
 
-### Where a surplus goes (ADR-0036)
+### Where a surplus goes (ADR-0037)
 
 Every quarter's balance leaves `fiscal` with a destination, and there are exactly four:
 `balance = repaid − borrowed − printed + Δfund + rebate`. Before v44 there were three and a hole:
@@ -826,7 +826,7 @@ perfectly with no opinion about anything in the game. The first politics impleme
 - **A stock-flow test has to say where the money GOES, and "nowhere" is a state the compiler
   likes.** For twenty-odd schema versions `fiscal` computed `repaid = min(max(0, balance), debt)`,
   which is correct arithmetic, type-safe, covered by a passing composition test, and deleted three
-  quarters of every tax the treasury collected once debt reached zero (ADR-0036). What made it
+  quarters of every tax the treasury collected once debt reached zero (ADR-0037). What made it
   invisible is that `budget-composition.test.ts` asserts `revenue − outlays === balance` and stops
   there: the identity it checks is the one BEFORE the money is disposed of. When you add a
   financing branch, write the destination identity down as a comment and then as a test — and

@@ -83,7 +83,7 @@ export type CapacityId = (typeof CAPACITY_IDS)[number]
  * never needs a survey to know what it collected and what it voted).
  *
  * `fund` is the one revenue line that is not a tax: the return on the
- * sovereign fund (ADR-0036). A government that has banked its surpluses is
+ * sovereign fund (ADR-0037). A government that has banked its surpluses is
  * partly financed by them, and the books have to be able to say so — which is
  * also why nothing here may assume a revenue id names a rate in
  * `dials.taxRates`. */
@@ -396,7 +396,7 @@ export interface Cohort {
   wageIncome: Money
   transferIncome: Money
   profitIncome: Money
-  /** the surplus rebate this cohort received this quarter (ADR-0036). Stored
+  /** the surplus rebate this cohort received this quarter (ADR-0037). Stored
    * rather than folded into `transferIncome` because a rebate is not an
    * appropriation: it is voted by nobody, delivered by the tax office rather
    * than the civil service, and split by income tax paid rather than by
@@ -489,7 +489,7 @@ export interface DialState {
    * anything. */
   fxIntervention: number
   /** What the treasury does with a surplus it has nowhere else to put
-   * (ADR-0036): the share of the residual — what is left of a positive balance
+   * (ADR-0037): the share of the residual — what is left of a positive balance
    * once outstanding debt has been redeemed — handed straight back to
    * households as a rebate against the income tax they paid. The rest accrues
    * to `gov.fund`.
@@ -565,7 +565,7 @@ export interface GovernmentState {
   budget: { revenue: Money; outlays: Money; balance: Money }
   debt: Money
   /** The sovereign fund: what a surplus becomes once there is no debt left to
-   * redeem (ADR-0036). It is the destination that makes the treasury's books
+   * redeem (ADR-0037). It is the destination that makes the treasury's books
    * close — before it existed a surplus with no debt in front of it was
    * revenue collected and assigned to nothing.
    *
@@ -1171,7 +1171,7 @@ export interface StatRecord {
   outlays: Money
   balance: Money
   debt: Money
-  /** the sovereign fund as it stood at the close of the quarter (ADR-0036).
+  /** the sovereign fund as it stood at the close of the quarter (ADR-0037).
    * Filed beside `debt` because the two are one net position. */
   fund: Money
   reserves: Money
@@ -1264,7 +1264,7 @@ export interface TickFlows {
   debtInterest: Money
   /** principal redeemed this tick — a portfolio swap into savings, not income */
   debtPrincipal: Money
-  /** the surplus handed back to households this tick (ADR-0036), booked whole
+  /** the surplus handed back to households this tick (ADR-0037), booked whole
    * by `fiscal` and split across cohorts by `cohorts` in proportion to the
    * income tax each paid. Unlike a transfer it does not leak: the tax office
    * refunds against wages it has already assessed, and no programme is

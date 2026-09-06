@@ -46,7 +46,7 @@ export const cohorts: PipelineStep = {
     const transfersDelivered = gov.dials.spending.transfers * adminEff
     const lf = laborForce(state)
 
-    // The surplus rebate is split by the income tax each cohort paid (ADR-0036),
+    // The surplus rebate is split by the income tax each cohort paid (ADR-0037),
     // and since the rate is uniform that is each cohort's share of the wage
     // bill. Taken off the SECTORS rather than summed from the cohorts below,
     // because it is the same quantity `fiscal` taxed — and `allocateStaffing`

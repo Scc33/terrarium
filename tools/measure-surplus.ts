@@ -1,5 +1,5 @@
 /**
- * Where a surplus goes, and what the choice is worth (issue #211, ADR-0036):
+ * Where a surplus goes, and what the choice is worth (issue #211, ADR-0037):
  *
  *   pnpm surplus -- --runs 20 --ticks 400
  *

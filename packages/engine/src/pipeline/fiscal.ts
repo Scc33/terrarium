@@ -7,7 +7,7 @@
  * And every quarter's balance leaves this step with a destination. A deficit
  * spends the sovereign fund, then borrows, then prints; a surplus redeems debt,
  * then splits between a rebate to households and the fund, on the standing
- * order in `gov.dials.surplusPayout` (ADR-0036). The identity is asserted in
+ * order in `gov.dials.surplusPayout` (ADR-0037). The identity is asserted in
  * `tests/properties/treasury-conservation.test.ts`.
  */
 
@@ -61,7 +61,7 @@ export const fiscal: PipelineStep = {
       tariff: flows.tariffBase * gov.dials.taxRates.tariff * tariffEff,
       fuel: market.prices.energy * energyUse * gov.dials.taxRates.fuel * fuelEff,
       // The one line no tax office collects: the return on the sovereign fund
-      // (ADR-0036), on the stock as it stood at the open of the quarter — the
+      // (ADR-0037), on the stock as it stood at the open of the quarter — the
       // same convention the coupon bill below is charged on. It is not gated
       // by `eff`, because there is nothing here to evade.
       fund: (gov.fund * FUND_YIELD) / 4,
@@ -89,7 +89,7 @@ export const fiscal: PipelineStep = {
 
     // --- financing: savings before borrowing, bonds before the press ---
     // Every quarter's balance leaves here with a destination, and there are
-    // exactly four of them (ADR-0036):
+    // exactly four of them (ADR-0037):
     //
     //   balance = repaid − borrowed − printed + Δfund + rebate
     //

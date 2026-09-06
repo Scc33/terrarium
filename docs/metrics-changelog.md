@@ -306,7 +306,7 @@ reconciled to the separately noised `income_real` headline.
 ### schema 44 — A surplus has a destination
 
 - **Inputs +**: `surplusPayout` — a 0..1 standing order over what is left of a surplus once
-  outstanding debt has been redeemed (#211, ADR-0036). Zero banks it; one hands it back.
+  outstanding debt has been redeemed (#211, ADR-0037). Zero banks it; one hands it back.
 - **State +**: `GovernmentState.fund` (the sovereign fund, a stock opening at zero for every
   country), `Cohort.rebateIncome`, `StatRecord.fund`, `TickFlows.fiscalRebate` and `.fundFlow`.
 - **Outputs +**: `treasury.fund` and `books[].fund` — exact, like the rest of the treasury's books

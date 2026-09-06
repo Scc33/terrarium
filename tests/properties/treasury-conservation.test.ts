@@ -1,5 +1,5 @@
 /**
- * The treasury's books close (issue #211, ADR-0036).
+ * The treasury's books close (issue #211, ADR-0037).
  *
  * `budget-composition.test.ts` checks that the splits equal the headline
  * totals — `revenue − outlays === balance` — and stops exactly where this

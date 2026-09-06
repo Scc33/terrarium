@@ -86,7 +86,7 @@ export function validate(state: TrueState): void {
   // The pair is one net position: a surplus redeems debt before it funds
   // anything and a deficit spends the fund before it borrows, so the treasury
   // can never hold both. It is checked rather than assumed because it is what
-  // lets the sovereign risk premium go on reading `debt` alone (ADR-0036).
+  // lets the sovereign risk premium go on reading `debt` alone (ADR-0037).
   if (state.gov.fund > 1e-6 && state.gov.debt > 1e-6) {
     throw new InvariantError('the treasury holds a fund and a debt at once')
   }

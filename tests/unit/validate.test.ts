@@ -36,7 +36,7 @@ describe('validate()', () => {
     ['negative debt', (s) => (s.gov.debt = -10)],
     ['consumption weights that do not sum to 1', (s) => (s.cohorts[0].consumptionWeights.agri += 0.2)],
     ['a negative sovereign fund', (s) => (s.gov.fund = -1)],
-    // The pair is one net position (ADR-0036). A state holding both is not a
+    // The pair is one net position (ADR-0037). A state holding both is not a
     // state `fiscal` can produce, which is exactly why the alarm has to be able
     // to see it: it is what a hand-edited save or a future financing branch
     // that forgot its ordering would look like.
