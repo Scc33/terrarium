@@ -43,7 +43,10 @@ describe('the cabinet assembles itself from the levers', () => {
     // and within-drawer order from declaration order in LEVER_COPY. Pinned so
     // that reordering the copy table cannot quietly reorder the rail.
     expect(LEVER_GROUPS.map((group) => [group.group, group.tab, ...group.paths])).toEqual([
-      ['TAXATION', 'REVENUE', 'taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel'],
+      // the surplus rule sits with the rates because it is one: what is left
+      // of a surplus after the debt is redeemed goes back to the people who
+      // paid the income tax, or into the fund (ADR-0037)
+      ['TAXATION', 'REVENUE', 'taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel', 'surplusPayout'],
       ['SPENDING', 'SPENDING', 'spending.transfers', 'spending.procurement', 'spending.investment', 'spending.research'],
       ['MONEY', 'CENTRAL BANK', 'policyRate', 'assetPurchaseRate', 'capitalRequirement', 'fxIntervention'],
       ['MIGRATION', 'BORDERS', 'immigrationLimit'],

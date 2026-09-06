@@ -182,6 +182,7 @@ export {
   PLATFORM_IDS,
   CAMPAIGN_WINDOW,
   REVENUE_SOURCE_IDS,
+  TAX_RATE_IDS,
   OUTLAY_IDS,
   SPENDING_PROGRAM_IDS,
   STATUTE_IDS,
@@ -232,6 +233,7 @@ export type {
   Ratio,
   RevenueSourceId,
   RevenueSplit,
+  TaxRateId,
   IndustryPrint,
   IndustryTableId,
   Sector,
@@ -322,6 +324,9 @@ export {
   CRISIS_ASSET_SAFE,
   CRISIS_LEVERAGE_SAFE,
   DEBT_RISK_PREMIUM_AT,
+  // What the sovereign fund earns (ADR-0037). Exported so the ledger can say
+  // what the fund is paying the treasury without a second copy of the rate.
+  FUND_YIELD,
   NATURAL_REAL_RATE,
   // the household basket's own tables (ADR-0030). Exported so the mechanism
   // test can assert the inert-when-off identity against the CONSTANTS rather

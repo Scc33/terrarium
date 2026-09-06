@@ -405,7 +405,11 @@ export function householdSavingRate(state: TrueState): number {
   const incomeTaxEff = state.gov.dials.taxRates.income * taxEfficiency(state.gov.capacity.tax)
   const disposableIncome = state.cohorts.reduce(
     (sum, c) =>
-      sum + c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome,
+      sum +
+      c.wageIncome * (1 - incomeTaxEff) +
+      c.profitIncome +
+      c.transferIncome +
+      c.rebateIncome,
     0,
   )
   const consumption = state.cohorts.reduce(
@@ -469,6 +473,13 @@ const emptyQuintiles = (): Record<IncomeQuintileId, number> =>
  * quietly used gross wages instead. Poverty made that mismatch impossible to
  * leave implicit, because a tax-and-transfer programme must appear in the
  * survey the same way it lands in a household budget.
+ *
+ * The surplus rebate (ADR-0037) is in here for exactly that reason. It is money
+ * a household receives, so it reaches consumption and approval; a survey that
+ * left it out would report the Gini, the quintiles and the poverty line of a
+ * country that never paid it, and the distributional cost of the payout dial —
+ * which follows the wage bill and so misses the retired — would be invisible in
+ * every published figure while being visible in the politics.
  */
 export function householdIncomeGroups(state: TrueState): HouseholdIncomeGroup[] {
   const incomeTaxEff = state.gov.dials.taxRates.income * taxEfficiency(state.gov.capacity.tax)
@@ -476,7 +487,10 @@ export function householdIncomeGroups(state: TrueState): HouseholdIncomeGroup[] 
     .filter((c) => c.size > 1e-9)
     .map((c) => {
       const disposable =
-        c.wageIncome * (1 - incomeTaxEff) + c.transferIncome + c.profitIncome
+        c.wageIncome * (1 - incomeTaxEff) +
+        c.transferIncome +
+        c.profitIncome +
+        c.rebateIncome
       const realPerHead =
         disposable /
         Math.max(cohortCpi(state, c.id), 1e-9) /

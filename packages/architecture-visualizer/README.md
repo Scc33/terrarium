@@ -2,7 +2,7 @@
 
 This package **scans the repository**. It does not draw it: the atlas is in the game, at
 `packages/ui/src/panels/AtlasOverlay.tsx`, over the derivations in `packages/ui/src/atlas.ts`
-(ADR-0037). What lives here is the TypeScript-AST walk and the snapshot it writes.
+(ADR-0038). What lives here is the TypeScript-AST walk and the snapshot it writes.
 
 The scan reads:
 

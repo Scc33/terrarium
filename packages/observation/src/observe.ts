@@ -250,6 +250,7 @@ export function observe(state: TrueState): PublishedState {
     treasury: {
       ...state.gov.budget,
       debt: state.gov.debt,
+      fund: state.gov.fund,
       printed: state.gov.printed,
       revenueBySource: { ...state.flows.revenueBySource },
       outlaysByProgramme: { ...state.flows.outlaysByProgramme },
@@ -262,6 +263,7 @@ export function observe(state: TrueState): PublishedState {
       outlays: r.outlays,
       balance: r.balance,
       debt: r.debt,
+      fund: r.fund,
       reserves: r.reserves,
       exchangeRate: r.exchangeRate,
       revenueBySource: { ...r.revenueBySource },

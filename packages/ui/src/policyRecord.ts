@@ -29,11 +29,11 @@ import {
   type SectorId,
 } from '@terrarium/engine'
 import {
-  REVENUE_SOURCE_IDS,
+  TAX_RATE_IDS,
   type PolicyPoint,
-  type RevenueSourceId,
   type SpendingProgramId,
   type SpendingRuleMode,
+  type TaxRateId,
 } from '@terrarium/observation'
 
 /** Which desk in the cabinet an entry belongs to — the same five groups the
@@ -41,6 +41,14 @@ import {
  * written. */
 export type PolicyGroup =
   | 'TAXATION'
+  /** The surplus rule sits on its own desk here even though the cabinet keeps
+   * its slider in the revenue drawer, beside the rates it refunds. The record
+   * has a constraint the rail does not: `PolicyOverlay` draws every TAXATION
+   * line on one axis titled TAX RATES, and a payout share running to 100 would
+   * squash four rates that live between 0 and 20 into the bottom fifth of it —
+   * a chart owning somebody else's scale (ADR-0025). It is also simply not a
+   * rate. */
+  | 'TREASURY'
   | 'CENTRAL BANK'
   | 'MIGRATION'
   | 'SPENDING'
@@ -62,7 +70,11 @@ export interface PolicyLine {
   read: (point: PolicyPoint) => number
 }
 
-const TAX_FACE: Record<RevenueSourceId, { label: string; note: string }> = {
+/** Keyed by the taxes that have a RATE, not by the revenue lines. The two
+ * lists diverged at v44: the sovereign fund's return is a revenue line nobody
+ * posts a rate for, and a record walking `REVENUE_SOURCE_IDS` here would index
+ * `taxRates` with an id that has no rate behind it. */
+const TAX_FACE: Record<TaxRateId, { label: string; note: string }> = {
   income: { label: 'INCOME TAX', note: 'A tax on workers’ pay. A stronger tax office collects more of the posted rate.' },
   corporate: { label: 'CORPORATE TAX', note: 'A tax on company profits.' },
   tariff: { label: 'TARIFF', note: 'A tax on imported goods, collected at the border.' },
@@ -149,6 +161,11 @@ const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; grou
     note: 'The most people the country will admit each year, as a share of the population. It limits arrivals, never departures.',
     group: 'MIGRATION',
   },
+  surplusPayout: {
+    label: 'SURPLUS REBATE',
+    note: 'The share of a surplus handed back to income-tax payers once the national debt has been redeemed. The rest is banked in the sovereign fund.',
+    group: 'TREASURY',
+  },
 }
 
 /** Insertion order of the face record — which is the order the cabinet desks
@@ -166,7 +183,7 @@ export const RULE_MODE_LABEL: Record<SpendingRuleMode, string> = {
  * sector stops this file compiling until it has been named — the same
  * compile-enforcement the ledger's ink tables carry. */
 export const POLICY_LINES: readonly PolicyLine[] = [
-  ...REVENUE_SOURCE_IDS.map((id): PolicyLine => ({
+  ...TAX_RATE_IDS.map((id): PolicyLine => ({
     key: `tax.${id}`,
     label: TAX_FACE[id].label,
     group: 'TAXATION',
@@ -216,6 +233,7 @@ export const POLICY_LINES: readonly PolicyLine[] = [
 
 export const POLICY_LINES_BY_GROUP: Record<PolicyGroup, readonly PolicyLine[]> = {
   TAXATION: POLICY_LINES.filter((l) => l.group === 'TAXATION'),
+  TREASURY: POLICY_LINES.filter((l) => l.group === 'TREASURY'),
   'CENTRAL BANK': POLICY_LINES.filter((l) => l.group === 'CENTRAL BANK'),
   MIGRATION: POLICY_LINES.filter((l) => l.group === 'MIGRATION'),
   SPENDING: POLICY_LINES.filter((l) => l.group === 'SPENDING'),

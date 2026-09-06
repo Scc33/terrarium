@@ -49,4 +49,5 @@ the old one and update the Status line of both.
 | [0034](0034-the-exchange-rate-clears-a-market.md) | The exchange rate is a price that clears a market, and the cabinet can stand in it | Accepted |
 | [0035](0035-staffing-is-rationed-against-who-exists.md) | The staffing table is a demand for skills; who fills a post is rationed against who exists | Accepted |
 | [0036](0036-surplus-skill-bumps-joblessness-down.md) | Surplus skill bumps joblessness down; it does not change how many jobs exist | Accepted |
-| [0037](0037-the-atlas-is-a-scan-the-game-reads.md) | The atlas is a scan of the repository, and the game is the only thing that draws it | Accepted |
+| [0037](0037-a-surplus-has-a-destination.md) | Every quarter's balance has a destination, and the cabinet chooses between two | Accepted |
+| [0038](0038-the-atlas-is-a-scan-the-game-reads.md) | The atlas is a scan of the repository, and the game is the only thing that draws it | Accepted |

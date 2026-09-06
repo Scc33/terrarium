@@ -103,6 +103,13 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
     resists:
       'It is the clearest example of the model having no scripted rules: nothing connects fuel to bread except transport being an input to agriculture. Industry, labour and the landed all mind it.',
   },
+  surplusPayout: {
+    label: 'Surplus rebate',
+    group: 'TAXATION',
+    hint: 'What to do with a surplus once the national debt is gone. At zero it is banked in a sovereign fund; at the top it is handed straight back to the people who paid the income tax.',
+    resists:
+      'It only ever touches what is LEFT of a surplus after outstanding debt has been redeemed, so it changes nothing while the country still owes money. Labour wants the money back; the money interest wants the fund, because a fund is a balance sheet and a rebate is a balance sheet spent. The fund earns a modest return that shows up as its own line in the books — below what the state pays on its own paper, which is why debt is always retired first.',
+  },
   'spending.transfers': {
     label: 'Transfers',
     group: 'SPENDING',

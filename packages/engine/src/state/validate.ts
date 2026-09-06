@@ -81,7 +81,20 @@ export function validate(state: TrueState): void {
     }
   }
   finite(state.gov.debt, 'debt')
+  finite(state.gov.fund, 'fund')
+  if (state.gov.fund < 0) throw new InvariantError('fund < 0')
+  // The pair is one net position: a surplus redeems debt before it funds
+  // anything and a deficit spends the fund before it borrows, so the treasury
+  // can never hold both. It is checked rather than assumed because it is what
+  // lets the sovereign risk premium go on reading `debt` alone (ADR-0037).
+  if (state.gov.fund > 1e-6 && state.gov.debt > 1e-6) {
+    throw new InvariantError('the treasury holds a fund and a debt at once')
+  }
   finite(state.gov.budget.balance, 'budget.balance')
+  finite(state.gov.dials.surplusPayout, 'surplusPayout')
+  if (state.gov.dials.surplusPayout < 0 || state.gov.dials.surplusPayout > 1) {
+    throw new InvariantError('surplusPayout out of range')
+  }
   finite(state.gov.dials.immigrationLimit, 'immigrationLimit')
   if (
     state.gov.dials.immigrationLimit < 0 ||
