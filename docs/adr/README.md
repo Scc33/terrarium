@@ -48,3 +48,4 @@ the old one and update the Status line of both.
 | [0033](0033-human-development-is-a-published-proxy-composite.md) | Human development is a proxy composite of aligned published returns | Accepted |
 | [0034](0034-the-exchange-rate-clears-a-market.md) | The exchange rate is a price that clears a market, and the cabinet can stand in it | Accepted |
 | [0035](0035-staffing-is-rationed-against-who-exists.md) | The staffing table is a demand for skills; who fills a post is rationed against who exists | Accepted |
+| [0036](0036-surplus-skill-bumps-joblessness-down.md) | Surplus skill bumps joblessness down; it does not change how many jobs exist | Accepted |

@@ -158,6 +158,11 @@ interface Reading {
   professionalSurplus: number
   /** …of whom, actually idle: the same correction, for the #27 column */
   professionalIdle: number
+  /** Professionals working outside services: a conservative, directly
+   * observable lower bound on over-qualified employment. Services contains
+   * both professional and urban posts, so its internal bumping is invisible
+   * after the allocation is collapsed to sector × actual cohort. */
+  professionalUnderemployed: number
   /** how hard agriculture is pressed against `SUBSISTENCE_CAP × ruralLF` */
   valveSaturation: number
 }
@@ -189,6 +194,9 @@ function read(s: TrueState): Reading {
     shortage += supply * Math.max(0, tightness[id] - 1)
   }
   const agri = s.sectors.find((sector) => sector.id === 'agri')
+  const professionalUnderemployed = s.sectors
+    .filter((sector) => sector.id !== 'services')
+    .reduce((sum, sector) => sum + (heads[sector.id].professionals ?? 0), 0)
   const ruralCeiling = SUBSISTENCE_CAP * Math.max(lf.rural_workers ?? 0, 1e-9)
   const employed = s.sectors.reduce((sum, sector) => sum + sector.employment, 0)
   return {
@@ -203,6 +211,7 @@ function read(s: TrueState): Reading {
       ((lf.professionals ?? 0) * Math.max(0, 1 - tightness.professionals)) / Math.max(total, 1e-9),
     professionalIdle:
       Math.max(0, (lf.professionals ?? 0) - working('professionals')) / Math.max(total, 1e-9),
+    professionalUnderemployed: professionalUnderemployed / Math.max(total, 1e-9),
     valveSaturation: (agri?.employment ?? 0) / ruralCeiling,
   }
 }
@@ -405,9 +414,10 @@ console.log('   The issue’s own scenario: a schooled workforce the economy is 
 console.log('   professionals. ADR-0032’s crossing gate reads RELATIVE tightness, so it keeps')
 console.log('   professionalising a country already in absolute professional surplus — but it')
 console.log('   also throttles the leg, which is why this column is small and not zero.')
-console.log('   `surplus` and `idle` are EQUAL here, and that equality is the finding: a spare')
-console.log('   professional has no lesser post to take, because when the top rung is in surplus')
-console.log('   every rung below it is too. Substitution fills posts; it cannot create them.')
+console.log('   Bumping down turns part of that surplus from IDLE into UNDEREMPLOYED work.')
+console.log('   Underemployment here is the conservative visible floor: professionals outside')
+console.log('   services. A professional filling an urban services post is also bumped down, but')
+console.log('   the sector x cohort allocation cannot distinguish that post from a professional one.')
 for (const country of COUNTRIES) {
   console.log(`\n   ${country}`)
   console.log(
@@ -416,6 +426,7 @@ for (const country of COUNTRIES) {
       ...ARM_IDS.flatMap((arm) => [
         `${arm} surplus`.padStart(22),
         'idle'.padStart(10),
+        'underemp'.padStart(12),
         'tightness'.padStart(12),
       ]),
     ].join(''),
@@ -429,6 +440,7 @@ for (const country of COUNTRIES) {
           return [
             pct(median(rs.map((r) => at(r, mark).professionalSurplus))).padStart(22),
             pct(median(rs.map((r) => at(r, mark).professionalIdle))).padStart(10),
+            pct(median(rs.map((r) => at(r, mark).professionalUnderemployed))).padStart(12),
             ratio(median(rs.map((r) => at(r, mark).tightness.professionals))).padStart(12),
           ]
         }),

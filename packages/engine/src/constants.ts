@@ -59,6 +59,8 @@ export const EMPLOYMENT_ADJUST = 0.12 // fraction of gap closed per quarter
  * (investigation 0021).
  */
 export const EMPLOYMENT_CEILING = 0.97
+/** Share of idle higher-skill applicants who contest a lesser post; zero is inert (ADR-0036). */
+export const OVERQUALIFIED_HIRING_PREFERENCE = 0.5
 export const WAGE_DEMAND_GAIN = 0.15
 export const WAGE_INFLATION_PASSTHROUGH = 0.35
 /** Phillips anchor: wage growth responds to economy-wide slack around this
@@ -70,7 +72,6 @@ export const WAGE_SLACK_GAIN = 0.08
 export const WAGE_MAX_UP = 0.08
 export const WAGE_MAX_DOWN = 0.035
 export const LABOR_SHARE = 0.62
-
 // participation rate of cohort members in the labor force
 export const PARTICIPATION: Record<CohortId, number> = {
   rural_workers: 0.55,
@@ -110,13 +111,12 @@ export const LABOR_SOURCE: Record<SectorId, Partial<Record<CohortId, number>>> =
  * rungs, so a farm hand reaching a profession skips the one urbanization
  * exists to represent.
  *
- * There is no "how much substitution" constant beside this, and that is a
- * finding rather than an omission. Firms pay `wages[sid] × employment[sid]`
+ * There is no "how much substitution" constant beside this: firms pay
+ * `wages[sid] × employment[sid]`
  * in `production`, so every post a sector holds is money already leaving the
  * firm; leaving one unfilled would delete household income that was paid.
  * The displaced post therefore goes to SOMEBODY by construction, and the only
  * open question is who — never whether. See ADR-0035.
- *
  * Cohorts with no participation never appear in an allocation (they have no
  * labour force to draw on), so their rank is unreachable and arbitrary.
  */
