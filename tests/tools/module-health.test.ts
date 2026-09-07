@@ -47,7 +47,10 @@ const MODULE_LINE_BASELINE = {
   // Executable hotspot: institution power, compliance, and appointment updates.
   'packages/engine/src/pipeline/institutions.ts': 435,
   // Executable hotspot: funding, lag, noise, revision, and vector-publication machinery.
-  'packages/engine/src/pipeline/statistics.ts': 900,
+  // Ratcheted from 900 when #205 lifted the declarative catalogue into
+  // `indicatorSpecs.ts`; what is left is the machinery, and it should not
+  // reabsorb the half that grows every time an instrument ships.
+  'packages/engine/src/pipeline/statistics.ts': 581,
   // Executable hotspot: deterministic construction of the complete opening state.
   'packages/engine/src/state/init.ts': 655,
   // Cohesive schema: total state contracts and canonical id lists.
