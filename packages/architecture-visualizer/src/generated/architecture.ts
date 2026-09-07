@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a9e7e16",
+  "revision": "4ff46b8",
   "repoRoot": "../..",
   "packages": [
     {
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 98,
-      "lines": 18689
+      "moduleCount": 108,
+      "lines": 19053
     }
   ],
   "modules": [
@@ -2997,6 +2997,9 @@ export const architecture = {
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/policyRecord.ts",
         "packages/ui/src/saveFile.ts",
         "packages/ui/src/spendingRules.ts",
@@ -5267,9 +5270,17 @@ export const architecture = {
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/panels/cabinet/BlocRow.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/ReformRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/policyRecord.ts",
         "packages/ui/src/publicAssets.ts",
         "packages/ui/src/spendingRules.ts",
+        "packages/ui/src/stateFootprint.ts",
         "packages/ui/src/statutes.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
@@ -6453,38 +6464,53 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The treasury now has seven exact outlay lines, but a seven-colour pie is not readable in the dossier register. Preserve every book entry in PublishedState and combine the two state-building programmes only for chart geometry.",
-      "lines": 34,
+      "lines": 68,
       "exports": [
         {
           "name": "OUTLAY_CHART_IDS",
           "kind": "constant",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 9
+          "line": 15
         },
         {
           "name": "OutlayChartId",
           "kind": "type",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 18
+          "line": 24
         },
         {
           "name": "OutlayChartValues",
           "kind": "type",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 19
+          "line": 25
         },
         {
           "name": "outlayChartValues",
           "kind": "function",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 24
+          "line": 30
+        },
+        {
+          "name": "OUTLAY_FACE",
+          "kind": "constant",
+          "path": "packages/ui/src/budgetChart.ts",
+          "line": 43
+        },
+        {
+          "name": "OUTLAY_CHART_FACE",
+          "kind": "constant",
+          "path": "packages/ui/src/budgetChart.ts",
+          "line": 56
         }
       ],
       "imports": [
-        "packages/observation/src/index.ts"
+        "packages/observation/src/index.ts",
+        "packages/ui/src/shares.ts"
       ],
       "importedBy": [
-        "packages/ui/src/panels/LedgerOverlay.tsx"
+        "packages/ui/src/panels/AccountsOverlay.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/stateFootprint.ts"
       ],
       "path": "packages/ui/src/budgetChart.ts",
       "line": 1
@@ -6544,7 +6570,8 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/App.tsx",
         "packages/ui/src/levers.ts",
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts"
       ],
       "path": "packages/ui/src/cabinetNavigation.ts",
       "line": 1
@@ -6875,7 +6902,12 @@ export const architecture = {
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/ElectionOverlay.tsx",
         "packages/ui/src/panels/ElectionResultOverlay.tsx",
-        "packages/ui/src/panels/FinanceOverlay.tsx"
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/cabinet/BlocRow.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+        "packages/ui/src/panels/cabinet/ReformRow.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
       ],
       "path": "packages/ui/src/components/labels.ts",
       "line": 1
@@ -7298,7 +7330,14 @@ export const architecture = {
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/StudyReport.tsx",
         "packages/ui/src/panels/Walkthrough.tsx",
-        "packages/ui/src/panels/WireOverlay.tsx"
+        "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/panels/cabinet/BlocRow.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+        "packages/ui/src/panels/cabinet/ReformRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
       ],
       "path": "packages/ui/src/components/ui/index.ts",
       "line": 1
@@ -8500,7 +8539,9 @@ export const architecture = {
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx"
       ],
       "path": "packages/ui/src/incidence.ts",
       "line": 1
@@ -8701,7 +8742,10 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/ui/src/manual.ts",
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts"
       ],
       "path": "packages/ui/src/levers.ts",
       "line": 1
@@ -8893,8 +8937,8 @@ export const architecture = {
         "packages/ui/src/components/Gauge/Gauge.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
         "packages/ui/src/manual.ts",
-        "packages/ui/src/panels/ControlRail.tsx",
-        "packages/ui/src/panels/Instruments.tsx"
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx"
       ],
       "path": "packages/ui/src/maturity.ts",
       "line": 1
@@ -9003,20 +9047,23 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The expenditure accounts, opened out — what the economy's output was FOR.",
-      "lines": 156,
+      "lines": 297,
       "exports": [
         {
           "name": "AccountsOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/AccountsOverlay.tsx",
-          "line": 42
+          "line": 72
         }
       ],
       "imports": [
         "packages/observation/src/index.ts",
         "packages/ui/src/accounts.ts",
+        "packages/ui/src/budgetChart.ts",
         "packages/ui/src/components/series.ts",
-        "packages/ui/src/components/ui/index.ts"
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/shares.ts",
+        "packages/ui/src/stateFootprint.ts"
       ],
       "importedBy": [
         "packages/ui/src/App.tsx"
@@ -9088,6 +9135,290 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+      "label": "BlocRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The whip count. Bloc power is read off the economy each quarter, so this is a live picture of who is actually in the room — and the bar shows EFFECTIVE power, i.e. after an organised society's check, because that is the number that actually prices your levers. Alerts here use…",
+      "lines": 44,
+      "exports": [
+        {
+          "name": "BlocRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+          "line": 13
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "label": "CapacityRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "One capacity programme: eight quarters of funding for a ministry. The statistical office gets the extra line, because it is the one capacity whose return is an instrument appearing on the wall rather than a number moving.",
+      "lines": 81,
+      "exports": [
+        {
+          "name": "CapacityRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+          "line": 15
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "label": "DialRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "An ordinary dial order: move the slider, see the delta, see who it reaches. The row stages an action rather than applying one — nothing here reaches the engine until the cabinet enacts.",
+      "lines": 66,
+      "exports": [
+        {
+          "name": "DialRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/DialRow.tsx",
+          "line": 15
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/incidence.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/dials.ts",
+      "label": "dials",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The slider's arithmetic — range, step, and how a reading is printed. This is the half of a dial that belongs to the control rather than to the policy, so it stays here; what the lever IS lives in `../../levers` beside the words the handbook prints about it.",
+      "lines": 112,
+      "exports": [
+        {
+          "name": "DialDef",
+          "kind": "interface",
+          "path": "packages/ui/src/panels/cabinet/dials.ts",
+          "line": 23
+        },
+        {
+          "name": "DialGroup",
+          "kind": "interface",
+          "path": "packages/ui/src/panels/cabinet/dials.ts",
+          "line": 35
+        },
+        {
+          "name": "DIALS",
+          "kind": "constant",
+          "path": "packages/ui/src/panels/cabinet/dials.ts",
+          "line": 105
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/cabinetNavigation.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/panels/cabinet/format.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/dials.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/format.ts",
+      "label": "format",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "How a cabinet row prints a reading. These are the rail's own units — a rate as a percentage, an appropriation as cash — and they are shared by the dial mechanics beside them and by the rows that draw them.",
+      "lines": 13,
+      "exports": [
+        {
+          "name": "pct",
+          "kind": "constant",
+          "path": "packages/ui/src/panels/cabinet/format.ts",
+          "line": 7
+        },
+        {
+          "name": "pct1",
+          "kind": "constant",
+          "path": "packages/ui/src/panels/cabinet/format.ts",
+          "line": 8
+        },
+        {
+          "name": "pctSigned",
+          "kind": "constant",
+          "path": "packages/ui/src/panels/cabinet/format.ts",
+          "line": 11
+        },
+        {
+          "name": "money",
+          "kind": "constant",
+          "path": "packages/ui/src/panels/cabinet/format.ts",
+          "line": 12
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts"
+      ],
+      "path": "packages/ui/src/panels/cabinet/format.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "label": "IncidenceNote",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "Who a drafted programme change reaches, read off the ministry's own rules. Unfogged on purpose (see `../../incidence`): the schedule of claims is a thing the government wrote, so it owes no survey to know it. The money only — a preview of how households would FEEL about it wou…",
+      "lines": 47,
+      "exports": [
+        {
+          "name": "IncidenceNote",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+          "line": 13
+        }
+      ],
+      "imports": [
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/incidence.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "label": "ReformRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "Institutional reforms are generational, ratcheting, and contested. The price on each button is what the engine will actually charge — veto premium and reform-window discount already in it — so the room's objection is legible before you pay.",
+      "lines": 59,
+      "exports": [
+        {
+          "name": "ReformRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+          "line": 12
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "label": "SpendingRuleRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "An appropriation, which is a rule rather than a number: fixed cash, indexed to the official inflation print, or a share of the officially published nominal GDP. The row shows the rule the cabinet has voted alongside what it resolves to this quarter, because those are different…",
+      "lines": 137,
+      "exports": [
+        {
+          "name": "SpendingRuleRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+          "line": 39
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/incidence.ts",
+        "packages/ui/src/levers.ts",
+        "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts",
+        "packages/ui/src/panels/cabinet/format.ts",
+        "packages/ui/src/spendingRules.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "label": "StatuteRow",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "One statute on the books (ADR-0027).",
+      "lines": 119,
+      "exports": [
+        {
+          "name": "StatuteRow",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+          "line": 23
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/statutes.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/panels/CensusOverlay.tsx",
       "label": "CensusOverlay",
       "packageId": "ui",
@@ -9121,13 +9452,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 968,
+      "lines": 372,
       "exports": [
         {
           "name": "ControlRail",
           "kind": "function",
           "path": "packages/ui/src/panels/ControlRail.tsx",
-          "line": 631
+          "line": 35
         }
       ],
       "imports": [
@@ -9137,10 +9468,13 @@ export const architecture = {
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/gameRules.ts",
-        "packages/ui/src/incidence.ts",
-        "packages/ui/src/levers.ts",
-        "packages/ui/src/maturity.ts",
-        "packages/ui/src/spendingRules.ts",
+        "packages/ui/src/panels/cabinet/BlocRow.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/ReformRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/statutes.ts",
         "packages/ui/src/store/gameStore.ts"
       ],
@@ -9435,13 +9769,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The treasury ledger, opened out. Everything here is EXACT — these are the government's books on itself, the one corner of the world that arrives on time, unrevised and true — so it is drawn flat in ink, with no error band and no revision stamp anywhere.",
-      "lines": 230,
+      "lines": 201,
       "exports": [
         {
           "name": "LedgerOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/LedgerOverlay.tsx",
-          "line": 82
+          "line": 53
         }
       ],
       "imports": [
@@ -10125,12 +10459,14 @@ export const architecture = {
       "imports": [],
       "importedBy": [
         "packages/ui/src/accounts.ts",
+        "packages/ui/src/budgetChart.ts",
         "packages/ui/src/census.ts",
         "packages/ui/src/components/ui/DonutChart/DonutChart.tsx",
         "packages/ui/src/components/ui/StackedAreaChart/StackedAreaChart.tsx",
         "packages/ui/src/dev/ComponentGallery.tsx",
         "packages/ui/src/households.ts",
         "packages/ui/src/industry.ts",
+        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/plot.ts"
@@ -10144,37 +10480,43 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "Pure UI arithmetic for the cabinet's recurring expenditure controls.",
-      "lines": 57,
+      "lines": 77,
       "exports": [
         {
           "name": "OfficialNominalGdp",
           "kind": "interface",
           "path": "packages/ui/src/spendingRules.ts",
-          "line": 6
+          "line": 13
+        },
+        {
+          "name": "officialNominalGdpByQuarter",
+          "kind": "function",
+          "path": "packages/ui/src/spendingRules.ts",
+          "line": 26
         },
         {
           "name": "latestOfficialNominalGdp",
           "kind": "function",
           "path": "packages/ui/src/spendingRules.ts",
-          "line": 12
+          "line": 40
         },
         {
           "name": "equivalentRuleValue",
           "kind": "function",
           "path": "packages/ui/src/spendingRules.ts",
-          "line": 29
+          "line": 49
         },
         {
           "name": "currentRuleValue",
           "kind": "function",
           "path": "packages/ui/src/spendingRules.ts",
-          "line": 40
+          "line": 60
         },
         {
           "name": "proposedSpending",
           "kind": "function",
           "path": "packages/ui/src/spendingRules.ts",
-          "line": 48
+          "line": 68
         }
       ],
       "imports": [
@@ -10182,9 +10524,60 @@ export const architecture = {
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/stateFootprint.ts"
       ],
       "path": "packages/ui/src/spendingRules.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/stateFootprint.ts",
+      "label": "stateFootprint",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "How big the state is — the treasury's exact books read against the office's estimate of the economy they sit inside.",
+      "lines": 116,
+      "exports": [
+        {
+          "name": "FootprintPoint",
+          "kind": "interface",
+          "path": "packages/ui/src/stateFootprint.ts",
+          "line": 46
+        },
+        {
+          "name": "StateFootprint",
+          "kind": "interface",
+          "path": "packages/ui/src/stateFootprint.ts",
+          "line": 61
+        },
+        {
+          "name": "stateFootprint",
+          "kind": "function",
+          "path": "packages/ui/src/stateFootprint.ts",
+          "line": 77
+        },
+        {
+          "name": "footprintSeries",
+          "kind": "function",
+          "path": "packages/ui/src/stateFootprint.ts",
+          "line": 102
+        },
+        {
+          "name": "programmeRows",
+          "kind": "function",
+          "path": "packages/ui/src/stateFootprint.ts",
+          "line": 111
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/budgetChart.ts",
+        "packages/ui/src/spendingRules.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/AccountsOverlay.tsx"
+      ],
+      "path": "packages/ui/src/stateFootprint.ts",
       "line": 1
     },
     {
@@ -10225,7 +10618,8 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/ui/src/manual.ts",
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/ControlRail.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
       ],
       "path": "packages/ui/src/statutes.ts",
       "line": 1
@@ -10293,7 +10687,12 @@ export const architecture = {
         "packages/ui/src/panels/DraftingRoom.tsx",
         "packages/ui/src/panels/ElectionOverlay.tsx",
         "packages/ui/src/panels/Instruments.tsx",
-        "packages/ui/src/panels/SettingsOverlay.tsx"
+        "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/ReformRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
       ],
       "path": "packages/ui/src/store/gameStore.ts",
       "line": 1
@@ -12244,6 +12643,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/budgetChart.ts",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/census.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -12880,12 +13284,27 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/budgetChart.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
       "target": "packages/ui/src/components/series.ts",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/AccountsOverlay.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/shares.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "target": "packages/ui/src/stateFootprint.ts",
       "typeOnly": false
     },
     {
@@ -12911,6 +13330,226 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/AtlasViews.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/BlocRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/levers.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/maturity.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/incidence.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/levers.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/dials.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/dials.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/dials.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/dials.ts",
+      "target": "packages/ui/src/cabinetNavigation.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/dials.ts",
+      "target": "packages/ui/src/levers.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/dials.ts",
+      "target": "packages/ui/src/panels/cabinet/format.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "target": "packages/ui/src/incidence.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/incidence.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/levers.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/dials.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/format.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/spendingRules.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "target": "packages/ui/src/statutes.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+      "target": "packages/ui/src/store/gameStore.ts",
       "typeOnly": false
     },
     {
@@ -12970,22 +13609,37 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/incidence.ts",
+      "target": "packages/ui/src/panels/cabinet/BlocRow.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/levers.ts",
+      "target": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/maturity.ts",
+      "target": "packages/ui/src/panels/cabinet/DialRow.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/spendingRules.ts",
+      "target": "packages/ui/src/panels/cabinet/dials.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/ControlRail.tsx",
+      "target": "packages/ui/src/panels/cabinet/StatuteRow.tsx",
       "typeOnly": false
     },
     {
@@ -13509,6 +14163,21 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/stateFootprint.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/stateFootprint.ts",
+      "target": "packages/ui/src/budgetChart.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/stateFootprint.ts",
+      "target": "packages/ui/src/spendingRules.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/statutes.ts",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -13651,14 +14320,14 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 38,
-      "typeOnlyCount": 7
+      "count": 41,
+      "typeOnlyCount": 8
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 51,
-      "typeOnlyCount": 40
+      "count": 59,
+      "typeOnlyCount": 47
     }
   ],
   "pipeline": [

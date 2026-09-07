@@ -177,11 +177,22 @@ can be tested — anything pushed into a component becomes untestable:
   from `LEVER_GROUPS`/`LEVER_COPY`, instruments from `INDICATOR_IDS` sorted by
   `INDICATOR_FUNDED_AT`, blocs/classes/rules/appointments from their own tables — so a new one
   is documented the quarter it ships, and cannot ship unnamed. Only prose about MECHANISM is
-  authored. `levers.ts` is where a dial's WORDS live; `ControlRail` keeps only the slider's
-  arithmetic — and a lever names its own cabinet drawer there, so the drawers are ASSEMBLED and
-  a new `DialPath` cannot compile without a home. The one list the manual copies by hand is the
-  tick order (`TICK_ORDER` is across the import boundary); `tests/ui/manual.test.ts` crosses it
+  authored. `levers.ts` is where a dial's WORDS live; `panels/cabinet/dials.ts` keeps only the
+  slider's arithmetic — and a lever names its own cabinet drawer there, so the drawers are
+  ASSEMBLED and a new `DialPath` cannot compile without a home. The one list the manual copies
+  by hand is the tick order (`TICK_ORDER` is across the import boundary); `tests/ui/manual.test.ts` crosses it
   and fails by name when a pipeline step moves.
+- **`ui/src/panels/cabinet/`** — one file per cabinet row, and `panels/ControlRail.tsx` is the
+  composition root above them: the tab strip, the drawer bodies and the enact footer, and
+  nothing else. Rows import their siblings directly — there is no barrel, because
+  `components/ui` is the only indexed shared-primitive folder and a second index invites a row
+  to be imported from outside the cabinet. Each row reads the store itself rather than being
+  prop-drilled, so adding one costs a file and a line in the drawer that shows it. Formatters
+  live in `format.ts` and the slider arithmetic in `dials.ts` because both are shared by rows
+  that would otherwise each keep their own copy — and because
+  `react-refresh/only-export-components` refuses a `.tsx` module that exports a plain function
+  beside a component, which is the rule that decides what may live next to a row and what has
+  to move to a `.ts` file.
 - **`ui/src/walkthrough.ts`** — the opening tour's six cards. A card must never sit on the side
   of the screen its own subject is on (pinned by `tests/ui/walkthrough.test.ts`, and again in
   the browser by the `walkthrough-wall` visual test) — a tour card covering the thing it points
