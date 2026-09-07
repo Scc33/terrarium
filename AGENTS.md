@@ -200,6 +200,16 @@ can be tested — anything pushed into a component becomes untestable:
   `data-tour-active` on `<body>`; that attribute is deliberately named differently from the
   regions' `data-tour`, because one name for both makes `[data-tour="wall"]` select the body too
   and every measurement of the region silently becomes a measurement of the document.
+- **`ui/src/shell/`** — the four hooks `App` runs so the component can describe the SCREEN
+  rather than implement it: `useBootSequence` (the four ways a session starts),
+  `useGlobalShortcuts` (Space, Escape, the backtick hatch, and the dev console's own state,
+  because backtick is the only way in), `useSceneOverlays` and `useCabinetChrome`. Two of them
+  carry a rule that is invisible in review and in jsdom. The scenes are ONE hook because the
+  verdict outranks the count when a lost election ends the run — split in two, that precedence
+  becomes an ordering dependency between two `useEffect`s in two files. And the cabinet's
+  collapse hands focus to the narrow expand rail because the pressed button is unmounting;
+  without it a keyboard user falls back to `<body>` and tabs in from the top of the document.
+  Nothing in the visual suite catches that, so tab through the cabinet by hand.
 
 Import shared primitives from `components/ui`, never by reaching into a folder.
 

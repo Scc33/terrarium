@@ -5,7 +5,7 @@
  * the wire's spike, the study, the records office.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useGame } from './store/gameStore'
 import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
@@ -30,13 +30,15 @@ import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
 import { CountrySelect } from './panels/CountrySelect'
 import { DraftingRoom } from './panels/DraftingRoom'
-import { Button, Modal, useFocusTrap } from './components/ui'
+import { Button, Modal } from './components/ui'
 import { hasBeenBriefed, markBriefed, stepAt } from './walkthrough'
 import type { ManualChapterId } from './manual'
-import { draftFrom, sharedCountryFromUrl, type CountryDocument } from './countryDraft'
+import { draftFrom, type CountryDocument } from './countryDraft'
 import type { CuratedCountryId } from '@terrarium/engine'
-import type { CabinetGroup } from './cabinetNavigation'
-import { cabinetStartsCollapsed, rememberCabinetCollapsed } from './layoutPreferences'
+import { useBootSequence } from './shell/useBootSequence'
+import { useCabinetChrome } from './shell/useCabinetChrome'
+import { useGlobalShortcuts } from './shell/useGlobalShortcuts'
+import { useSceneOverlays } from './shell/useSceneOverlays'
 
 /**
  * The paperwork that is only ever `(pub, onClose)` — a table, so opening a new
@@ -60,15 +62,12 @@ export default function App() {
     stagedAffordable,
     newGame,
     newDraftedGame,
-    loadAutosave,
     loadError,
     drafts,
-    loadDrafts,
     saveDraft,
     deleteDraft,
     clearStudy,
   } = useGame()
-  const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
   const [overlay, setOverlay] = useState<OverlayKind>(null)
   /** the draft currently open in the drafting room, and the country it was
    * opened from — the origin is what the DRAFTED marks are measured against */
@@ -77,10 +76,6 @@ export default function App() {
    * in the posting room because the drafting room's own ACCEPT starts a game
    * too, and a year chosen next door is still the year that player means. */
   const [appointedAt, setAppointedAt] = useState(0)
-  const [cabinetOpen, setCabinetOpen] = useState(false)
-  /** A browser view preference, not a rule of the run. Below `xl` the cabinet
-   * remains a drawer regardless; this only gives the desktop wall its width. */
-  const [cabinetCollapsed, setCabinetCollapsed] = useState(cabinetStartsCollapsed)
   /** the handbook opens on whichever chapter the player was reaching for —
    * the records office wants the methodology, the header wants the front */
   const [manualChapter, setManualChapter] = useState<ManualChapterId>('briefing')
@@ -90,104 +85,24 @@ export default function App() {
    * inside the war room, so a tour armed here waits for a game to exist
    * without needing an effect to notice one arriving. */
   const [tourStep, setTourStep] = useState<number | null>(() => (hasBeenBriefed() ? null : 0))
-  const [devOpen, setDevOpen] = useState(false)
-  const [cabinetGroup, setCabinetGroup] = useState<CabinetGroup>('TAXATION')
-  const [cabinetFocusRequest, setCabinetFocusRequest] = useState(0)
-  const cabinetDrawerRef = useRef<HTMLDivElement>(null)
-  const cabinetReturnFocusRef = useRef<HTMLElement>(null)
-  const cabinetExpandRef = useRef<HTMLButtonElement>(null)
-  const focusCollapsedCabinet = useRef(false)
-  const hadCard = useRef(false)
-  const lastCampaignSeen = useRef<number | null>(null)
-  const lastCountSeen = useRef<number | null>(null)
-  const closeCabinet = useCallback(() => setCabinetOpen(false), [])
   const closeOverlay = useCallback(() => setOverlay(null), [])
-  const setCabinetCollapsedPreference = useCallback((collapsed: boolean) => {
-    setCabinetCollapsed(collapsed)
-    rememberCabinetCollapsed(collapsed)
-  }, [])
-  const collapseCabinet = useCallback(() => {
-    // The pressed button is about to leave the tree. Hand focus to the narrow
-    // replacement rail so keyboard users do not fall back to <body>.
-    focusCollapsedCabinet.current = true
-    setCabinetCollapsedPreference(true)
-  }, [setCabinetCollapsedPreference])
 
-  useFocusTrap({
-    active: cabinetOpen,
-    containerRef: cabinetDrawerRef,
-    initialFocusSelector: '[role="tab"][aria-selected="true"]',
-    onEscape: closeCabinet,
-    restoreFocusRef: cabinetReturnFocusRef,
-  })
-
-  useEffect(() => {
-    if (!cabinetCollapsed || !focusCollapsedCabinet.current) return
-    focusCollapsedCabinet.current = false
-    cabinetExpandRef.current?.focus()
-  }, [cabinetCollapsed])
-
-  useEffect(() => {
-    const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
-    if (visualSeed) {
-      newGame('procedural', visualSeed)
-      return
-    }
-    void loadDrafts()
-
-    // a shared country arrives in the fragment. It opens the posting room with
-    // the country on the shelf rather than starting it — accepting a stranger's
-    // posting is the player's decision, not the link's.
-    let shared: CountryDocument | null = null
-    try {
-      shared = sharedCountryFromUrl(window.location.href)
-    } catch (error) {
-      console.warn('shared country could not be opened:', error)
-    }
-    if (shared) {
-      history.replaceState(null, '', window.location.pathname + window.location.search)
-      void saveDraft(shared).then(() => setStartup('selecting'))
-      return
-    }
-
-    void loadAutosave().then((found) => {
-      if (!found) setStartup('selecting')
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // a century is four hundred quarters; making the player travel to a button
-  // four hundred times is a tax on the only verb the game has. Space advances,
-  // Escape closes whatever paperwork is on the desk.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement | null
-      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
-      if (e.key === 'Escape') {
-        setOverlay(null)
-        return
-      }
-      // backtick opens the maintenance hatch. Dev builds only — in production
-      // `__DEV_TOOLS__` is a literal false and this branch is dropped.
-      if (__DEV_TOOLS__ && e.key === '`') {
-        e.preventDefault()
-        setDevOpen((o) => !o)
-        return
-      }
-      // the tour keeps its own focus on NEXT, so Space belongs to that button
-      // rather than to the quarter. Returning BEFORE preventDefault is the
-      // whole point: swallowing the key here left the tour advancing on Enter
-      // only, with Space doing nothing at all.
-      if (tourStep !== null) return
-      if (e.code === 'Space' && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault()
-        const s = useGame.getState()
-        if (overlay === null && !devOpen && !s.advancing && s.published?.inPower) s.advance()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [overlay, devOpen, tourStep])
+  const {
+    cabinetOpen,
+    cabinetCollapsed,
+    cabinetGroup,
+    setCabinetGroup,
+    cabinetFocusRequest,
+    cabinetDrawerRef,
+    cabinetExpandRef,
+    closeCabinet,
+    collapseCabinet,
+    openCabinet,
+    setCabinetCollapsedPreference,
+  } = useCabinetChrome()
+  const { startup, setStartup } = useBootSequence()
+  const { devOpen, closeDevConsole } = useGlobalShortcuts({ overlay, tourStep, onCloseOverlay: closeOverlay })
+  useSceneOverlays({ published, onScene: setOverlay })
 
   const endTour = useCallback(() => {
     setTourStep(null)
@@ -198,37 +113,6 @@ export default function App() {
     setManualChapter(chapter)
     setOverlay('manual')
   }
-
-  // the verdict presents itself exactly once, when the run ends
-  useEffect(() => {
-    const has = published?.reportCard !== undefined
-    if (has && !hadCard.current) setOverlay('verdict')
-    hadCard.current = has
-  }, [published])
-
-  // The election is a scene, so it comes to the player rather than
-  // waiting to be found: the campaign opens itself the quarter it becomes
-  // available, and the count presents itself once when the votes are in.
-  // Each fires once per election — reopening on every advance would make the
-  // campaign a nag rather than a moment.
-  useEffect(() => {
-    if (!published) return
-    // keyed on the quarter the vote HAPPENS, not on the countdown, so the
-    // campaign opens once per election rather than once per advance
-    const c = published.campaign
-    const voteAt = c ? published.tick + c.quartersToElection : null
-    if (voteAt !== null && lastCampaignSeen.current !== voteAt) {
-      lastCampaignSeen.current = voteAt
-      setOverlay('election')
-      return
-    }
-    // the verdict outranks the count when a lost election ends the run
-    const r = published.lastElection
-    if (r && lastCountSeen.current !== r.tick && published.reportCard === undefined) {
-      lastCountSeen.current = r.tick
-      setOverlay('count')
-    }
-  }, [published])
 
   // the drafting room's wiring, shared by both places the posting room appears
   const openDraft = (doc: CountryDocument) => {
@@ -295,20 +179,6 @@ export default function App() {
     )
   }
 
-  const openCabinet = (group?: CabinetGroup) => {
-    if (group) setCabinetGroup(group)
-    if (window.matchMedia('(min-width: 1280px)').matches) {
-      // A route to a cabinet control is also an explicit request to see it.
-      // The focusRequest lands on the chosen tab after the rail remounts.
-      setCabinetCollapsedPreference(false)
-    } else {
-      cabinetReturnFocusRef.current = document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null
-      setCabinetOpen(true)
-    }
-    setCabinetFocusRequest((request) => request + 1)
-  }
   // the `in` guard is the check; the cast is only because narrowing a union of
   // string literals by `in` is not something TypeScript does
   const Paperwork =
@@ -475,7 +345,7 @@ export default function App() {
         />
       )}
       {draftingRoom}
-      {__DEV_TOOLS__ && devOpen && <DevConsole onClose={() => setDevOpen(false)} />}
+      {__DEV_TOOLS__ && devOpen && <DevConsole onClose={closeDevConsole} />}
     </div>
   )
 }

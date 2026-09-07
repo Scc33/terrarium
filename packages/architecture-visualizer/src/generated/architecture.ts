@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "49448e5",
+  "revision": "8a75b6d",
   "repoRoot": "../..",
   "packages": [
     {
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 108,
-      "lines": 19053
+      "moduleCount": 112,
+      "lines": 19176
     }
   ],
   "modules": [
@@ -5329,6 +5329,7 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/policyRecord.ts",
         "packages/ui/src/publicAssets.ts",
+        "packages/ui/src/shell/useSceneOverlays.ts",
         "packages/ui/src/spendingRules.ts",
         "packages/ui/src/stateFootprint.ts",
         "packages/ui/src/statutes.ts",
@@ -6327,21 +6328,19 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 482,
+      "lines": 352,
       "exports": [
         {
           "name": "App",
           "kind": "function",
           "path": "packages/ui/src/App.tsx",
-          "line": 55
+          "line": 57
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
-        "packages/ui/src/cabinetNavigation.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/countryDraft.ts",
-        "packages/ui/src/layoutPreferences.ts",
         "packages/ui/src/manual.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/AtlasOverlay.tsx",
@@ -6366,6 +6365,10 @@ export const architecture = {
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/Walkthrough.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/shell/useBootSequence.ts",
+        "packages/ui/src/shell/useCabinetChrome.ts",
+        "packages/ui/src/shell/useGlobalShortcuts.ts",
+        "packages/ui/src/shell/useSceneOverlays.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/walkthrough.ts"
       ],
@@ -6618,10 +6621,10 @@ export const architecture = {
       ],
       "imports": [],
       "importedBy": [
-        "packages/ui/src/App.tsx",
         "packages/ui/src/levers.ts",
         "packages/ui/src/panels/ControlRail.tsx",
-        "packages/ui/src/panels/cabinet/dials.ts"
+        "packages/ui/src/panels/cabinet/dials.ts",
+        "packages/ui/src/shell/useCabinetChrome.ts"
       ],
       "path": "packages/ui/src/cabinetNavigation.ts",
       "line": 1
@@ -7387,7 +7390,8 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
-        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+        "packages/ui/src/shell/useCabinetChrome.ts"
       ],
       "path": "packages/ui/src/components/ui/index.ts",
       "line": 1
@@ -8066,6 +8070,7 @@ export const architecture = {
         "packages/ui/src/panels/DraftingRoom.tsx",
         "packages/ui/src/panels/StudyReport.tsx",
         "packages/ui/src/panels/StudyReport.tsx",
+        "packages/ui/src/shell/useBootSequence.ts",
         "packages/ui/src/store/gameStore.ts"
       ],
       "path": "packages/ui/src/countryDraft.ts",
@@ -8711,7 +8716,7 @@ export const architecture = {
       ],
       "imports": [],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/useCabinetChrome.ts"
       ],
       "path": "packages/ui/src/layoutPreferences.ts",
       "line": 1
@@ -10525,6 +10530,105 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/shell/useBootSequence.ts",
+      "label": "useBootSequence",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "How a session starts. Exactly one of four things happens on mount: a visual test asks for a named seed, a shared country arrives in the fragment, an autosave is found, or the posting room opens. `startup` is which of those is still outstanding — the war room shows the splash s…",
+      "lines": 49,
+      "exports": [
+        {
+          "name": "useBootSequence",
+          "kind": "function",
+          "path": "packages/ui/src/shell/useBootSequence.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/ui/src/countryDraft.ts",
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/shell/useBootSequence.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/shell/useCabinetChrome.ts",
+      "label": "useCabinetChrome",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The cabinet's chrome — whether the drawer is open, whether the desktop rail is collapsed, which drawer is showing, and where keyboard focus goes when any of that changes. None of it belongs to a run: the collapse is a preference of this BROWSER, kept beside the wall pins in lo…",
+      "lines": 84,
+      "exports": [
+        {
+          "name": "useCabinetChrome",
+          "kind": "function",
+          "path": "packages/ui/src/shell/useCabinetChrome.ts",
+          "line": 18
+        }
+      ],
+      "imports": [
+        "packages/ui/src/cabinetNavigation.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/layoutPreferences.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/shell/useCabinetChrome.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/shell/useGlobalShortcuts.ts",
+      "label": "useGlobalShortcuts",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The keys that work anywhere in the war room. A century is four hundred quarters; making the player travel to a button four hundred times is a tax on the only verb the game has. Space advances, Escape closes whatever paperwork is on the desk, and backtick opens the maintenance…",
+      "lines": 60,
+      "exports": [
+        {
+          "name": "useGlobalShortcuts",
+          "kind": "function",
+          "path": "packages/ui/src/shell/useGlobalShortcuts.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/ui/src/store/gameStore.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/shell/useGlobalShortcuts.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/shell/useSceneOverlays.ts",
+      "label": "useSceneOverlays",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The three overlays that come to the player rather than waiting to be found: the verdict when a run ends, the campaign when an election becomes available, and the count when the votes are in.",
+      "lines": 60,
+      "exports": [
+        {
+          "name": "useSceneOverlays",
+          "kind": "function",
+          "path": "packages/ui/src/shell/useSceneOverlays.ts",
+          "line": 18
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/shell/useSceneOverlays.ts",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/spendingRules.ts",
       "label": "spendingRules",
       "packageId": "ui",
@@ -10742,7 +10846,9 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/DialRow.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
-        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+        "packages/ui/src/shell/useBootSequence.ts",
+        "packages/ui/src/shell/useGlobalShortcuts.ts"
       ],
       "path": "packages/ui/src/store/gameStore.ts",
       "line": 1
@@ -12544,22 +12650,12 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/cabinetNavigation.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/countryDraft.ts",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/layoutPreferences.ts",
       "typeOnly": false
     },
     {
@@ -12680,6 +12776,26 @@ export const architecture = {
     {
       "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/WireOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/shell/useBootSequence.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/shell/useCabinetChrome.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/shell/useGlobalShortcuts.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/App.tsx",
+      "target": "packages/ui/src/shell/useSceneOverlays.ts",
       "typeOnly": false
     },
     {
@@ -14213,6 +14329,41 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/shell/useBootSequence.ts",
+      "target": "packages/ui/src/countryDraft.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/useBootSequence.ts",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/useCabinetChrome.ts",
+      "target": "packages/ui/src/cabinetNavigation.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/shell/useCabinetChrome.ts",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/useCabinetChrome.ts",
+      "target": "packages/ui/src/layoutPreferences.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/useGlobalShortcuts.ts",
+      "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/useSceneOverlays.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/spendingRules.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": true
@@ -14386,8 +14537,8 @@ export const architecture = {
     {
       "source": "ui",
       "target": "observation",
-      "count": 59,
-      "typeOnlyCount": 47
+      "count": 60,
+      "typeOnlyCount": 48
     }
   ],
   "pipeline": [

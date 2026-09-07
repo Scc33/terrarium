@@ -28,6 +28,11 @@ const NEW_MODULE_LINE_CAP = 600
  * (ADR-0024). `derive.ts` is the same case once more: the two shared
  * household-income bases live there, and a new income field has to appear in
  * both or the survey reports a country that never received it.
+ *
+ * A module DELIBERATELY SPLIT keeps its row at the post-split size even once it
+ * falls under the new-file cap, so it cannot quietly reabsorb what was lifted
+ * out of it — dropping the row would hand `ControlRail` and `App` back every
+ * line their splits removed, with nothing in CI to notice.
  */
 const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
@@ -63,8 +68,9 @@ const MODULE_LINE_BASELINE = {
   'packages/runner/src/run.ts': 418,
   // Analysis tool: multi-seed stability probes and their diagnostics.
   'packages/runner/src/stability.ts': 600,
-  // Executable hotspot: top-level game orchestration and overlay routing.
-  'packages/ui/src/App.tsx': 487,
+  // Screen composition root: boot, keyboard, scene precedence and cabinet chrome
+  // are hooks in `shell/`. Ratcheted from 487 by #208.
+  'packages/ui/src/App.tsx': 352,
   // Cohesive painter: shared chart geometry, inspection, comparison, and accessibility.
   'packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx': 642,
   // Cohesive total record: generated country fields and validator-mirroring arithmetic.
