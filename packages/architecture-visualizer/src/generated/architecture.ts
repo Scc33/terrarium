@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "8a75b6d",
+  "revision": "63e3200",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 44,
-      "lines": 15558
+      "lines": 15571
     },
     {
       "id": "fixtures",
@@ -3676,49 +3676,49 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "The measurement catalogue — one specification per published indicator: what the office is trying to measure, and how badly it measures it at zero capacity. Nothing here measures anything. `pipeline/statistics.ts` owns the machinery (funding gates, lags, revisions, the `obs:*`…",
-      "lines": 339,
+      "lines": 363,
       "exports": [
         {
           "name": "DirectIndicatorSpec",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 19
+          "line": 30
         },
         {
           "name": "HUMAN_DEVELOPMENT_COMPONENT_IDS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 33
+          "line": 46
         },
         {
           "name": "HumanDevelopmentComponentId",
           "kind": "type",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 39
+          "line": 52
         },
         {
           "name": "ConstructedIndicatorSpec",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 41
+          "line": 54
         },
         {
           "name": "IndicatorSpec",
           "kind": "type",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 47
+          "line": 60
         },
         {
           "name": "isDirectIndicatorSpec",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 49
+          "line": 62
         },
         {
           "name": "INDICATOR_SPECS",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
-          "line": 52
+          "line": 76
         }
       ],
       "imports": [
@@ -4057,19 +4057,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 581,
+      "lines": 570,
       "exports": [
         {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 327
+          "line": 316
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 530
+          "line": 519
         }
       ],
       "imports": [
@@ -15143,17 +15143,17 @@ export const architecture = {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 327
+          "line": 316
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 530
+          "line": 519
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 530
+      "line": 519
     },
     {
       "order": 17,
@@ -15211,7 +15211,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 531
+          "line": 520
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",

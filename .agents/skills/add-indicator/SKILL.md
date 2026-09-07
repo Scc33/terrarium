@@ -6,23 +6,31 @@ description: Add a new published indicator to Terrarium's instrument wall, or re
 # Adding an indicator
 
 An indicator is a **published** number: fogged by the statistical office, gated on capacity,
-and drawn on a fixed dial face. Six tables have to agree. Five are total `Record`s and the
-build walks you through them; **one is an array and fails silently** — that is the trap.
+and drawn on a fixed dial face. Six tables have to agree, and all six are now total `Record`s —
+add the id first and the build walks you through every one of them.
 
 ## The tables
 
 | # | What | Where | Enforced? |
 |---|------|-------|-----------|
 | 1 | `INDICATOR_IDS` | `packages/engine/src/state/schema.ts` | source of truth |
-| 2 | `INDICATOR_SPECS` | `packages/engine/src/pipeline/indicatorSpecs.ts` | **NO — array** |
+| 2 | `INDICATOR_SPECS` | `packages/engine/src/pipeline/indicatorSpecs.ts` | `Record` ✓ (key = `spec.id`) |
 | 3 | `INDICATOR_FUNDED_AT` | `packages/engine/src/constants.ts` | `Record` ✓ |
 | 4 | `PRESENTATION` | `packages/observation/src/observe.ts` | `Record` ✓ |
 | 5 | `NAMES` | `packages/ui/src/components/labels.ts` | `Record` ✓ |
 | 6 | `INDICATOR_FACE` | `packages/ui/src/domains.ts` | `Record` ✓ |
 
-**`INDICATOR_SPECS` is an array, not a `Record`.** Add an id without a spec and everything
-compiles, every test passes, and the instrument shows a blank plate forever because nothing
-ever publishes it. Check this first when a new indicator "doesn't appear".
+**`INDICATOR_SPECS` was an array until #209**, and a missing entry used to compile clean, pass
+every test, and leave a blank plate on the wall forever. It is now keyed by id, and the mapped
+type ties each key to its own spec — so an omission, an unknown key, and
+`gdp_growth: { id: 'inflation' }` are all build failures.
+
+**Append your entry at the END of the catalogue.** The step inserts into `state.stats.series`
+as it iterates, and `stableStringify` rounds values without sorting keys, so that object's
+insertion order is part of every state hash. Reordering the record moves every long-run hash
+while leaving every published value bit-identical — the 40-quarter goldens publish four of the
+thirty-seven series and cannot see it. `tests/unit/indicator-specs.test.ts` pins the existing
+order as a prefix, so appending needs no change there and reordering fails by name.
 
 ## Steps
 

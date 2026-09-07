@@ -10,14 +10,27 @@
  * substream per (indicator, measured quarter, revision), so no draw depends on
  * how many draws preceded it. Entry order therefore cannot move a number —
  * but it IS the insertion order of `state.stats.series`, and `stableStringify`
- * does not sort keys, so reordering this array moves every long-run state
- * hash. Add to the end.
+ * does not sort keys, so reordering this record moves every long-run state
+ * hash while leaving every published value bit-identical. A record LOOKS
+ * unordered, which is what makes alphabetizing it a tempting, invisible and
+ * expensive change. Add to the end; `tests/unit/indicator-specs.test.ts` pins
+ * the existing order as a prefix.
  */
 
 import type { IndicatorId, StatRecord } from '../state/schema'
 
-export interface DirectIndicatorSpec {
-  id: Exclude<IndicatorId, 'human_development'>
+/** Everything the office measures directly. `human_development` is the one
+ * indicator with no true value of its own — it is constructed from published
+ * component prints, never from TrueState. */
+type DirectIndicatorId = Exclude<IndicatorId, 'human_development'>
+
+/** Generic in its own id so the catalogue below can tie each KEY to the spec
+ * filed under it. Left unparameterized — `DirectIndicatorSpec` — it is the
+ * ordinary wide spec every reader wants. */
+export interface DirectIndicatorSpec<
+  K extends DirectIndicatorId = DirectIndicatorId,
+> {
+  id: K
   /** true value for measured quarter q (may need q−1 for growth) */
   trueValue(record: StatRecord[], q: number): number
   baseSd: number // first-print noise, in indicator units, at zero capacity
@@ -49,8 +62,19 @@ export type IndicatorSpec = DirectIndicatorSpec | ConstructedIndicatorSpec
 export const isDirectIndicatorSpec = (spec: IndicatorSpec): spec is DirectIndicatorSpec =>
   'trueValue' in spec
 
-export const INDICATOR_SPECS: IndicatorSpec[] = [
-  {
+/** One spec per indicator, and the KEY is the spec's id. The mapped type is
+ * what makes the catalogue total: omit an indicator, invent a key, or file
+ * `gdp_growth: { id: 'inflation' }` and the build stops. It used to be an
+ * array, which is why the `add-indicator` skill had to open by warning that a
+ * missing entry compiles clean and leaves a blank plate on the wall forever. */
+type IndicatorSpecsById = {
+  [K in IndicatorId]: K extends 'human_development'
+    ? ConstructedIndicatorSpec
+    : DirectIndicatorSpec<Exclude<K, 'human_development'>>
+}
+
+export const INDICATOR_SPECS: IndicatorSpecsById = {
+  gdp_growth: {
     id: 'gdp_growth',
     trueValue: (h, q) => {
       const prev = q > 0 ? h[q - 1].realGdp : h[q].realGdp
@@ -59,13 +83,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 2.5,
     withLevels: true,
   },
-  {
+  gdp_per_capita: {
     id: 'gdp_per_capita',
     trueValue: (h, q) => h[q].realGdpPerCapita,
     baseSd: 0.035,
     relativeSd: true,
   },
-  {
+  debt_to_gdp: {
     id: 'debt_to_gdp',
     // Debt is a stock; the worksheet's GDP is a quarterly flow. Annualize the
     // denominator before reporting the conventional public-debt ratio.
@@ -76,13 +100,13 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.05,
     relativeSd: true,
   },
-  {
+  consumption_per_capita: {
     id: 'consumption_per_capita',
     trueValue: (h, q) => h[q].realConsumptionPerCapita,
     baseSd: 0.05,
     relativeSd: true,
   },
-  {
+  household_saving_rate: {
     id: 'household_saving_rate',
     trueValue: (h, q) => h[q].householdSavingRate * 100,
     baseSd: 3,
@@ -99,7 +123,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
   // not a thing a pie can draw, and a dial that reads −2% of the economy is
   // worse than no dial. A statistical office's error on a small aggregate is
   // proportional anyway: it is estimating a total, not counting to it.
-  {
+  consumption_share: {
     id: 'consumption_share',
     // the biggest component and the best surveyed: retail returns and the
     // household budget survey both bear on it
@@ -107,7 +131,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.04,
     relativeSd: true,
   },
-  {
+  investment_share: {
     id: 'investment_share',
     // the hardest line in the accounts. Capital formation has to be inferred
     // from company returns and construction permits, and it is the component
@@ -116,14 +140,14 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.25,
     relativeSd: true,
   },
-  {
+  export_share: {
     id: 'export_share',
     // customs count what crosses the border, so the volume is well observed
     trueValue: (h, q) => h[q].exportShare * 100,
     baseSd: 0.1,
     relativeSd: true,
   },
-  {
+  fdi_inflows: {
     id: 'fdi_inflows',
     // Company returns and cross-border transactions are reconciled against
     // nominal GDP. Both numerator and denominator are quarterly here; their
@@ -132,31 +156,31 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.12,
     relativeSd: true,
   },
-  {
+  inflation: {
     id: 'inflation',
     trueValue: (h, q) => h[q].inflationQ * 4 * 100,
     baseSd: 3.0,
   },
-  {
+  price_food: {
     id: 'price_food',
     trueValue: (h, q) => h[q].priceFood * 100,
     baseSd: 0.04,
     relativeSd: true,
     fastLag: true,
   },
-  {
+  price_fuel: {
     id: 'price_fuel',
     trueValue: (h, q) => h[q].priceFuel * 100,
     baseSd: 0.04,
     relativeSd: true,
     fastLag: true,
   },
-  {
+  unemployment: {
     id: 'unemployment',
     trueValue: (h, q) => h[q].unemployment * 100,
     baseSd: 2.0,
   },
-  {
+  labor_force_participation: {
     id: 'labor_force_participation',
     trueValue: (h, q) => h[q].laborForceParticipation * 100,
     // The numerator comes from the same household returns as unemployment;
@@ -164,7 +188,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     // points rather than proportional to the size of the population.
     baseSd: 1.5,
   },
-  {
+  human_capital: {
     id: 'human_capital',
     trueValue: (h, q) => h[q].humanCapital * 100,
     // Completion records are reconciled against a labour-force sample. The
@@ -172,26 +196,26 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     // country inherited.
     baseSd: 2.5,
   },
-  {
+  payrolls: {
     id: 'payrolls',
     trueValue: (h, q) => h[q].payrolls,
     baseSd: 0.05,
     relativeSd: true,
   },
-  {
+  capital_stock: {
     id: 'capital_stock',
     trueValue: (h, q) => h[q].capitalTotal,
     baseSd: 0.05,
     relativeSd: true,
   },
-  {
+  technology_attainment: {
     id: 'technology_attainment',
     trueValue: (h, q) => h[q].technologyAttainment * 100,
     // Productivity accounts are model-heavy international comparisons: noisy
     // in points of frontier attainment, even when the factories are countable.
     baseSd: 3,
   },
-  {
+  productivity: {
     // Output per worker, against this country's own 1946. The companion to
     // `technology_attainment`, and the one that carries the LEVEL: attainment
     // is a ratio to a moving frontier and saturates near 90 for anybody
@@ -213,27 +237,27 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.06,
     relativeSd: true,
   },
-  {
+  conf_consumer: {
     id: 'conf_consumer',
     trueValue: (h, q) => h[q].confConsumer * 100,
     baseSd: 5,
   },
-  {
+  conf_business: {
     id: 'conf_business',
     trueValue: (h, q) => h[q].confBusiness * 100,
     baseSd: 5,
   },
-  {
+  approval: {
     id: 'approval',
     trueValue: (h, q) => h[q].approvalIndex * 100,
     baseSd: 6,
   },
-  {
+  gini: {
     id: 'gini',
     trueValue: (h, q) => h[q].gini * 100,
     baseSd: 3,
   },
-  {
+  income_real: {
     // The LEVEL, against the 1946 household. This is the thing the Gini
     // beside it cannot say: a shape statistic reports the same 42 points for
     // a country three times richer than it was, so on its own it can neither
@@ -243,7 +267,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.05,
     relativeSd: true,
   },
-  {
+  poverty_rate: {
     // The headcount is an absolute basic-needs measure. Unlike the Gini it
     // can fall when every household becomes richer without the distribution
     // changing; unlike the income index it says how many people were left
@@ -255,52 +279,52 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.08,
     relativeSd: true,
   },
-  {
+  life_expectancy: {
     id: 'life_expectancy',
     trueValue: (h, q) => h[q].lifeExpectancy,
     // Life tables are estimates even when deaths are registered: small errors
     // in age-specific hazards accumulate over an entire synthetic lifetime.
     baseSd: 1.5,
   },
-  {
+  human_development: {
     id: 'human_development',
     derivedFrom: HUMAN_DEVELOPMENT_COMPONENT_IDS,
   },
-  {
+  net_migration: {
     id: 'net_migration',
     trueValue: (h, q) => h[q].netMigrationRate,
     // Border registers count entries and exits, but a weak office still has
     // informal crossings and delayed local returns to reconcile.
     baseSd: 1.5,
   },
-  {
+  birth_rate: {
     id: 'birth_rate',
     trueValue: (h, q) => h[q].birthRate,
     baseSd: 2.5,
   },
-  {
+  death_rate: {
     id: 'death_rate',
     trueValue: (h, q) => h[q].deathRate,
     baseSd: 2,
   },
-  {
+  terms_of_trade: {
     id: 'terms_of_trade',
     trueValue: (h, q) => h[q].termsOfTrade,
     baseSd: 2.5,
   },
-  {
+  asset_prices: {
     id: 'asset_prices',
     trueValue: (h, q) => h[q].assetPrice * 100,
     baseSd: 0.05,
     relativeSd: true,
     fastLag: true, // markets mark to market same-quarter
   },
-  {
+  unrest: {
     id: 'unrest',
     trueValue: (h, q) => h[q].unrest * 100,
     baseSd: 12,
   },
-  {
+  pollution: {
     // Indexed against the standard 1946 country, so 100 is "as dirty as a
     // 1946 economy" and the needle means the same thing in every country and
     // every decade. Relative noise: a monitoring service estimates a burden
@@ -311,7 +335,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.07,
     relativeSd: true,
   },
-  {
+  credit_growth: {
     id: 'credit_growth',
     trueValue: (h, q) => {
       const prev = q > 0 ? h[q - 1].creditToGdp : h[q].creditToGdp
@@ -319,7 +343,7 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     },
     baseSd: 4,
   },
-  {
+  credit_to_gdp: {
     // the leverage LEVEL, in points of annual GDP. Relative noise: a
     // supervisor's count of loan books is proportionally uncertain, and an
     // absolute band wide enough for a 110%-of-GDP boom would swamp the 37%
@@ -329,10 +353,10 @@ export const INDICATOR_SPECS: IndicatorSpec[] = [
     baseSd: 0.06,
     relativeSd: true,
   },
-  {
+  bank_capital_ratio: {
     id: 'bank_capital_ratio',
     trueValue: (h, q) => h[q].bankCapitalRatio * 100,
     baseSd: 0.06,
     relativeSd: true,
   },
-]
+}
