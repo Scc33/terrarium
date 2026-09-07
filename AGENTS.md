@@ -521,9 +521,14 @@ correct rather than a bug: they read the burden accumulated up to the start of t
 
 ### Adding an indicator
 
-→ **`add-indicator` skill.** Six tables must agree; five are total `Record`s the compiler
-checks, but `INDICATOR_SPECS` is an **array**, so a missing spec compiles clean and the
-instrument simply never publishes.
+→ **`add-indicator` skill.** Six tables must agree, and since #209 all six are total `Record`s
+the compiler checks — `INDICATOR_SPECS` was the array that let a missing spec compile clean and
+leave the instrument silently unpublished. Its mapped type ties each KEY to its own `spec.id`,
+so a typo cannot file one indicator's measurement under another's name. What no type can see is
+ENTRY ORDER, and that is now the thing to be careful with: the step inserts into
+`state.stats.series` as it iterates the catalogue and `stableStringify` does not sort keys, so
+reordering the record moves every long-run state hash while leaving every published value
+bit-identical. Append at the end; `tests/unit/indicator-specs.test.ts` pins the rest as a prefix.
 
 Not every fogged output is an indicator. The **industrial census** (schema 31,
 `PublishedState.industry`) is value added and employment by sector, published on the office's

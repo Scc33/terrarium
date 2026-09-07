@@ -69,20 +69,6 @@ const LAGS = [1, 2]
 const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
 const noiseScale = (cap: number) => 1 - 0.85 * cap
 
-/** The three source specs determine the date on which an aligned component
- * can exist. Build this tiny index once rather than searching all 37 specs for
- * every candidate composite. It also turns a missing direct spec into a loud
- * startup error instead of a permanently blank HDI plate. */
-const HUMAN_DEVELOPMENT_COMPONENT_SPECS = new Map(
-  HUMAN_DEVELOPMENT_COMPONENT_IDS.map((id) => {
-    const spec = INDICATOR_SPECS.find((candidate) => candidate.id === id)
-    if (!spec || !isDirectIndicatorSpec(spec)) {
-      throw new Error(`human development component ${id} needs a direct indicator spec`)
-    }
-    return [id, spec] as const
-  }),
-)
-
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
@@ -289,7 +275,10 @@ function alignedDevelopmentPrints(
   const revisionDelay = REVISION_DELAYS[revision]
   if (cap === undefined || revisionDelay === undefined) return null
   const find = (id: HumanDevelopmentComponentId) => {
-    const spec = HUMAN_DEVELOPMENT_COMPONENT_SPECS.get(id)!
+    // The source spec decides the date on which an aligned component can
+    // exist. The catalogue is keyed, so the spec is here and is direct by
+    // construction — this used to be an indexed search past a runtime guard.
+    const spec = INDICATOR_SPECS[id]
     const componentPublishedAt =
       forQtr + (spec.fastLag ? 1 : lagFor(cap)) + revisionDelay
     return printsPublishedAt(series[id] ?? [], componentPublishedAt).find(
@@ -535,7 +524,7 @@ export const statistics: PipelineStep = {
     // releases dated t+1 are what lands on the desk as the next quarter opens
     const releaseDate = state.meta.tick + 1
     const series = { ...state.stats.series }
-    for (const spec of INDICATOR_SPECS) {
+    for (const spec of Object.values(INDICATOR_SPECS)) {
       if (!isDirectIndicatorSpec(spec)) continue
       const due = printsDue(spec, record, releaseDate, seed, state.meta.rules.fullInstrumentation)
       if (due.length > 0) series[spec.id] = [...(series[spec.id] ?? []), ...due]

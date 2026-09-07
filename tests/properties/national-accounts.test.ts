@@ -14,7 +14,7 @@ import {
   isDirectIndicatorSpec,
 } from '../../packages/engine/src/pipeline/indicatorSpecs'
 
-const DIRECT_INDICATOR_SPECS = INDICATOR_SPECS.filter(isDirectIndicatorSpec)
+const DIRECT_INDICATOR_SPECS = Object.values(INDICATOR_SPECS).filter(isDirectIndicatorSpec)
 
 const withStats = (statistical: number) => ({
   ...standardCountry,
