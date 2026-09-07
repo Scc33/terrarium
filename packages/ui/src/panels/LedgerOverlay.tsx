@@ -13,52 +13,23 @@
 
 import { useState } from 'react'
 import { FUND_YIELD } from '@terrarium/engine'
-import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type OutlayId, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
+import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
-import {
-  OUTLAY_CHART_IDS,
-  outlayChartValues,
-  type OutlayChartId,
-} from '../budgetChart'
+import { OUTLAY_CHART_FACE, OUTLAY_CHART_IDS, outlayChartValues } from '../budgetChart'
 
-/** The printed face of the budget. Both tables are total records, so the day
- * the engine adds a tax or a programme this file stops compiling until it has
- * been named and given an ink — the same compile-enforcement `domains.ts`
- * puts on dial faces. */
+/** The printed face of the revenue side. A total record, so the day the
+ * engine adds a tax this file stops compiling until it has been named and
+ * given an ink — the same compile-enforcement `domains.ts` puts on dial
+ * faces. Its opposite number, the outlay face, moved to `../budgetChart` when
+ * the expenditure accounts began drawing the same programmes against GDP. */
 const REVENUE_FACE: Record<RevenueSourceId, { label: string; ink: string; note: string }> = {
   income: { label: 'Income tax', ink: SHARE_INKS[0], note: 'Levied on wages. What you collect is the rate times the wage bill times your tax administration — the rate you set is never the rate you get.' },
   corporate: { label: 'Corporate', ink: SHARE_INKS[1], note: 'Levied on positive sector profits. The base vanishes in a slump, which is when you need it.' },
   tariff: { label: 'Tariff', ink: SHARE_INKS[2], note: 'Levied at the border. Customs posts are the easiest revenue a weak state can raise — and the first thing that shrinks as you industrialise.' },
   fuel: { label: 'Fuel excise', ink: SHARE_INKS[3], note: 'Levied on every energy purchase, household and industrial. Cheap to collect, and it reaches the price of bread by way of the lorries.' },
   fund: { label: 'Fund return', ink: SHARE_INKS[4], note: `The return on the sovereign fund — the one revenue line no tax office collects, and the one no rate is posted for. It pays ${(FUND_YIELD * 100).toFixed(0)}% a year on the stock, which is less than the state pays on its own paper: that is why a surplus redeems debt before it banks anything.` },
-}
-
-const OUTLAY_FACE: Record<OutlayId, { label: string; note: string }> = {
-  transfers: { label: 'Transfers', note: 'Pensions and relief, paid to households. Delivery leaks through weak administration; the budget is charged in full regardless.' },
-  procurement: { label: 'Procurement', note: 'The state buying goods and services from the economy.' },
-  investment: { label: 'Public works', note: 'Construction that adds to the national capital stock.' },
-  research: { label: 'Research', note: 'Public R&D grants. Administration and skilled staffing decide how much useful work the appropriation buys.' },
-  subsidies: { label: 'Subsidies', note: 'All sector subsidies together. The per-sector split is on the control rail.' },
-  capacity: { label: 'Ministries', note: 'Capacity programmes still building — tax administration, the statistical office, the civil service, the schools. Voted for years at a time.' },
-  interest: { label: 'Debt service', note: 'Coupons on outstanding debt, at the policy rate plus whatever premium the bond market charges you for the debt you already carry. The one line no dial reduces this quarter.' },
-}
-
-/** Seven exact outlay lines become six stable chart bands. Research and active
- * ministry construction are the common state-building bucket; the summary
- * above still prints research on its own line. */
-const OUTLAY_CHART_FACE: Record<OutlayChartId, { label: string; ink: string; note: string }> = {
-  transfers: { ...OUTLAY_FACE.transfers, ink: SHARE_INKS[0] },
-  procurement: { ...OUTLAY_FACE.procurement, ink: SHARE_INKS[1] },
-  investment: { ...OUTLAY_FACE.investment, ink: SHARE_INKS[2] },
-  subsidies: { ...OUTLAY_FACE.subsidies, ink: SHARE_INKS[3] },
-  state_building: {
-    label: 'Research & ministries',
-    ink: SHARE_INKS[4],
-    note: `${OUTLAY_FACE.research.note} ${OUTLAY_FACE.capacity.note}`,
-  },
-  interest: { ...OUTLAY_FACE.interest, ink: SHARE_INKS[5] },
 }
 
 const money = (v: number) => v.toFixed(1)
