@@ -100,14 +100,39 @@ can be tested — anything pushed into a component becomes untestable:
   about budgets: reuse them rather than hand-rolling a chart. Pure for the usual reason — a
   wedge that emits `NaN` into its path draws nothing, which in review is indistinguishable from
   a category with no money in it. `SHARE_INKS` stops at six, the widest split the books have;
-  bucket a tail into "other" rather than extend the ramp. The label/ink tables in
-  `panels/LedgerOverlay.tsx` are total `Record`s over the engine's id lists, so a new tax or
-  spending line fails the build until it has been named and given an ink.
+  bucket a tail into "other" rather than extend the ramp. The label/ink tables are total
+  `Record`s over the engine's id lists, so a new tax or spending line fails the build until it
+  has been named and given an ink — the revenue face in `panels/LedgerOverlay.tsx`, the outlay
+  faces in `ui/src/budgetChart.ts` because two panels now draw the same programmes in two
+  denominators and a programme that changed colour between them would read as a different one.
 - **`ui/src/industry.ts`** — the industrial census read for the page: GDP down the PRODUCTION
   side, the composition twin of `accounts.ts`. Its shares are taken against the CENSUS's own
   total, never the GDP headline — the two come from different releases with different survey
   error, and dividing one by the other imports a fog it never had. `SECTOR_FACE` is a total
   `Record` over `SECTOR_IDS`, so a sixth sector fails the build until named and inked.
+
+- **`ui/src/stateFootprint.ts`** — how big the state is, which is the one question the
+  expenditure accounts beside it can never answer. The state's own final consumption runs under
+  1% of final expenditure in this engine (it buys goods and pays transfers and employs nobody),
+  so `StatRecord.governmentShare` is measured and deliberately unpublished — a dial reading
+  "government: 0.7%" would be true and would badly misinform a treasury moving a fifth of the
+  economy (investigation 0002). The honest reading is the treasury's EXACT books over the
+  office's published nominal GDP, and three rules keep it honest: it is never a fourth wedge in
+  the pie (outlays include transfers, subsidies and debt service, which finance spending the
+  three accounts already counted, so it gets its own lens); the denominator is IMPORTED from
+  `spendingRules.ts`, the same one a GDP-share appropriation resolves against, so the wall and
+  the cabinet cannot disagree about the size of the country; and a quarter the office has not
+  yet priced is DROPPED rather than carried forward, because dividing this quarter's spending by
+  last quarter's economy invents a movement the treasury never made — the publication lag is
+  reported instead. Its lens is gated on the BOOKS and never on the expenditure survey beside
+  it — "a mechanic you cannot reach is not a mechanic" in the UI register: passive Meridia and
+  passive Costona never compile those accounts in sixty years, while the footprint is on the
+  desk from 1946 Q2, so a room gated as a whole hid the one reading that needed no survey from
+  exactly the government with none.
+  What it makes visible is worth knowing: over a century of capacity building
+  with the opening appropriations left in cash, Meridia's outlays fall from 10.2% of GDP to
+  0.7% while receipts climb from 7.9% to 32.4%. The ledger's own SHARES mode cannot show that,
+  because it normalizes the budget against itself.
 
 - **`ui/src/census.ts`** — the DEMOGRAPHIC census read, and the counterweight to the fog: heads
   are countable without a statistical office, so the head count, its year-on-year growth rate,
