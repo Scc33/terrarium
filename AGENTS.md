@@ -124,7 +124,12 @@ can be tested — anything pushed into a component becomes untestable:
   the cabinet cannot disagree about the size of the country; and a quarter the office has not
   yet priced is DROPPED rather than carried forward, because dividing this quarter's spending by
   last quarter's economy invents a movement the treasury never made — the publication lag is
-  reported instead. What it makes visible is worth knowing: over a century of capacity building
+  reported instead. Its lens is gated on the BOOKS and never on the expenditure survey beside
+  it — "a mechanic you cannot reach is not a mechanic" in the UI register: passive Meridia and
+  passive Costona never compile those accounts in sixty years, while the footprint is on the
+  desk from 1946 Q2, so a room gated as a whole hid the one reading that needed no survey from
+  exactly the government with none.
+  What it makes visible is worth knowing: over a century of capacity building
   with the opening appropriations left in cash, Meridia's outlays fall from 10.2% of GDP to
   0.7% while receipts climb from 7.9% to 32.4%. The ledger's own SHARES mode cannot show that,
   because it normalizes the budget against itself.

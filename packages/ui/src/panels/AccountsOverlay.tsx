@@ -16,6 +16,17 @@
  * exact books over the office's estimate of output (see `../stateFootprint`).
  * It is a lens of its own rather than a fourth wedge, because a reader who
  * takes it for one has double-counted every transfer in the budget.
+ *
+ * EVERY LENS IS GATED ON ITS OWN DATA, and that is load-bearing rather than
+ * tidy. The three accounts need a 0.35 statistical office; the state's weight
+ * needs only the treasury's books and the headline output estimate, which is
+ * published from the first quarter at zero capacity. Gating the whole room on
+ * the expenditure survey — which the first version did — hid the one reading
+ * that does not depend on it behind the funding of the ones that do: measured,
+ * a passive Meridia and a passive Costona never compile the accounts at all in
+ * sixty years, while the footprint is on the desk from 1946 Q2. So an unfunded
+ * survey blanks its own lens with the requirement named, exactly as an
+ * unfunded instrument does on the rack, and the state's lens opens anyway.
  */
 
 import type { PublishedState } from '@terrarium/observation'
@@ -47,27 +58,35 @@ const band = (half: number | undefined): string =>
 
 type Lens = 'mix' | 'drift' | 'state'
 
+/** What the mix and the drift show while the survey behind them is unfunded —
+ * the rack's own manners, so the player is told what to build rather than
+ * shown an empty grid. */
+const UNSURVEYED = (
+  <EmptyState title="THE OFFICE CANNOT YET COMPILE THE EXPENDITURE SIDE" requirement="EXPENDITURE ACCOUNTS">
+    Counting output is one job; establishing who bought it is another. Until the
+    statistical office can survey capital formation and collate customs volumes, the
+    ministry knows how much the country produced and not what kind of country produced it.
+  </EmptyState>
+)
+
 export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
-  const [lens, setLens] = useState<Lens>('mix')
   const readings = readAccounts(pub)
   const footprint = stateFootprint(pub)
+  // open on whichever lens has something in it
+  const [lens, setLens] = useState<Lens>(readings || !footprint ? 'mix' : 'state')
 
-  if (!readings) {
+  if (!readings && !footprint) {
     return (
       <Modal title="THE EXPENDITURE ACCOUNTS — WHO THE OUTPUT IS FOR" onClose={onClose} size="full">
-        <EmptyState title="THE OFFICE CANNOT YET COMPILE THE EXPENDITURE SIDE" requirement="EXPENDITURE ACCOUNTS">
-          Counting output is one job; establishing who bought it is another. Until the
-          statistical office can survey capital formation and collate customs volumes, the
-          ministry knows how much the country produced and not what kind of country produced it.
-        </EmptyState>
+        {UNSURVEYED}
       </Modal>
     )
   }
 
-  const shares = toShares(readings)
+  const shares = readings ? toShares(readings) : []
   const rows = accountRows(pub)
-  const sum = publishedSum(readings)
-  const measured = readings[0].forQtr
+  const sum = readings ? publishedSum(readings) : 0
+  const measured = readings ? readings[0].forQtr : pub.tick
   const series = (key: AccountId) => {
     const s = pub.indicators[key]
     return s ? shapeSeries(s, Number.MAX_SAFE_INTEGER, pub.tick).map((p) => ({ tick: p.forQtr, value: p.value })) : []
@@ -87,7 +106,7 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
       <OverlayLayout
         summary={(
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
-            {readings.map((r) => (
+            {readings?.map((r) => (
               <Metric
                 key={r.key}
                 label={r.label.toUpperCase()}
@@ -95,13 +114,15 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
                 title={`${r.note} This report covers ${yearOf(r.forQtr)} Q${qOf(r.forQtr)}. The office says it may be off by ${band(r.errorBand)}.`}
               />
             ))}
-            <Metric
-              label="SINCE THE FIRST SURVEY"
-              value={readings
-                .map((r) => `${r.sinceFirst >= 0 ? '+' : ''}${r.sinceFirst.toFixed(1)}`)
-                .join(' / ')}
-              title="How many percentage points each of the three expenditure shares has moved since its first report, in the order they are listed."
-            />
+            {readings && (
+              <Metric
+                label="SINCE THE FIRST SURVEY"
+                value={readings
+                  .map((r) => `${r.sinceFirst >= 0 ? '+' : ''}${r.sinceFirst.toFixed(1)}`)
+                  .join(' / ')}
+                title="How many percentage points each of the three expenditure shares has moved since its first report, in the order they are listed."
+              />
+            )}
             {footprint && (
               <Metric
                 label="THE STATE · % OF GDP"
@@ -125,7 +146,7 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
             ]}
           />
         )}
-        note={lens === 'state' ? (
+        note={lens === 'state' && footprint ? (
           <>
             Half of this reading is exact and half of it is not. The books are yours and arrive
             unrevised; the economy you are dividing them by is the office’s estimate, so the
@@ -133,8 +154,9 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
             did nothing at all. It is also not a fourth account: outlays include transfers,
             subsidies and debt service, which pay for spending the survey next door has already
             counted where the money landed. Read it as weight, not as demand.
+            {!readings && <> That survey is unfunded, which is why the other lenses are blank and this one is not.</>}
           </>
-        ) : (
+        ) : readings ? (
           <>
             The three prints sum to {sum.toFixed(1)}, not 100. Each is a separate survey with its
             own error, and the remainder also holds the state’s own purchases, which are never
@@ -143,12 +165,16 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
             badly misinform you about your own weight in the economy.
             {footprint && <> What the treasury actually moves is under THE STATE — its exact books over the office’s estimate of output.</>}
           </>
-        )}
+        ) : undefined}
         footer={lens === 'state' && footprint
           ? `EXACT BOOKS OVER A SURVEYED DENOMINATOR · ${yearOf(footprint.latest.tick)} Q${qOf(footprint.latest.tick)}`
-          : `SURVEYED · MEASURED FOR ${yearOf(measured)} Q${qOf(measured)} · REVISABLE`}
+          : readings
+            ? `SURVEYED · MEASURED FOR ${yearOf(measured)} Q${qOf(measured)} · REVISABLE`
+            : undefined}
       >
-        {lens === 'mix' && (
+        {lens !== 'state' && !readings && UNSURVEYED}
+
+        {lens === 'mix' && readings && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[352px_minmax(0,1fr)]">
             <div className="flex flex-col gap-1">
               <div className="flex items-baseline justify-between font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
@@ -179,7 +205,7 @@ export function AccountsOverlay({ pub, onClose }: { pub: PublishedState; onClose
           </div>
         )}
 
-        {lens === 'drift' && (
+        {lens === 'drift' && readings && (
           <div className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-3">
             {readings.map((r) => (
               <LineChart
