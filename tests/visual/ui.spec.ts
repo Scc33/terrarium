@@ -587,6 +587,76 @@ test('financial overlay empty state', async ({ page }) => {
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
 
+test('public asset books show opening balances, transactions and history without overflowing', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  await openGame(page)
+  await (await officeButton(page, 'FINANCE')).click()
+  let dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
+  await dialog.getByRole('button', { name: 'CENTRAL BANK', exact: true }).click()
+  await expect(dialog.getByText('PURCHASED ASSETS', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('OPENING BOOK', { exact: true })).toHaveCount(2)
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  // Post actual orders and let them settle. The labels are the cabinet's
+  // public controls, so this also proves that the book is reachable in play.
+  for (let i = 0; i < 12; i++) await page.getByRole('button', { name: 'ADVANCE QUARTER' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  const purchases = page.getByRole('slider', { name: 'Asset purchases', exact: true })
+  await purchases.press('Home')
+  await purchases.press('ArrowRight')
+  await page.getByRole('slider', { name: 'FX intervention', exact: true }).press('ArrowLeft')
+  await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
+  await (await officeButton(page, 'FINANCE')).click()
+  dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
+  await dialog.getByRole('button', { name: 'CENTRAL BANK', exact: true }).click()
+  await expect(dialog.getByText('OPENING BOOK', { exact: true })).toHaveCount(0)
+  await expect(dialog.getByText('ASSETS BOUGHT', { exact: true })).toBeVisible()
+  await expect(page).toHaveScreenshot('central-bank-assets.png')
+  const fits = async () => page.evaluate(`(() => {
+    const d = document.querySelector('[role="dialog"]');
+    const r = d.getBoundingClientRect();
+    return { pageScroll: document.documentElement.scrollHeight > innerHeight + 1,
+      horizontal: d.scrollWidth > d.clientWidth + 1,
+      offscreen: r.bottom > innerHeight + 1 || r.right > innerWidth + 1 };
+  })()`)
+  expect(await fits()).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'Open the full treasury ledger' }).click()
+  dialog = page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })
+  await dialog.getByRole('button', { name: 'SAVINGS & FINANCING', exact: true }).click()
+  await expect(dialog.getByText('SOVEREIGN FUND', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('BONDS ISSUED', { exact: true })).toBeVisible()
+  expect(await fits()).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
+  await expect(page).toHaveScreenshot('treasury-financing.png')
+  await page.setViewportSize({ width: 820, height: 760 })
+  expect(await fits()).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await page.keyboard.press('Escape')
+  await page.keyboard.press('Backquote')
+  await page.getByRole('combobox').selectOption('meridia')
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050', exact: true }).fill('1987')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  await expect(page.locator('header').first()).toContainText('1987')
+  const count = page.getByRole('dialog', { name: 'THE COUNT' })
+  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+  await page.getByRole('tab', { name: 'REVENUE 5 CONTROLS' }).click()
+  await page.getByRole('slider', { name: 'Surplus rebate', exact: true }).press('End')
+  await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
+  await page.getByRole('button', { name: 'Open the full treasury ledger' }).click()
+  dialog = page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })
+  await dialog.getByRole('button', { name: 'SAVINGS & FINANCING', exact: true }).click()
+  await expect(dialog.getByText('SOVEREIGN FUND', { exact: true })).toHaveCount(2)
+  await expect(dialog.getByText('REBATE PAID', { exact: true })).toBeVisible()
+  expect(await fits()).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
+  await expect(page).toHaveScreenshot('sovereign-fund-financing.png')
+  expect(errors).toEqual([])
+})
+
 test('financial overlay plots the position and the stance once surveyed', async ({ page }) => {
   // The empty state above proves the brass plates. This proves the figures —
   // and specifically the one thing no unit test can see: that the shaded

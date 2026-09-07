@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 42. The short player-facing design is in
+*How the code is actually arranged, as of schema 45. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -370,6 +370,15 @@ available at the zero-rate floor but can inflate the same credit/asset pair that
 risk, while a tighter capital floor leans directly against that leverage.
 
 ---
+
+Central-bank holdings have an exact acquisition-cost book (ADR-0038), separate from
+both FX reserves and the sovereign fund. Purchase orders use official GDP so an
+exact transaction cannot disclose hidden output. The posted monetary stance retains
+its existing private-rate effect. Finance shows both central-bank stocks and actual
+purchases/FX fills; the ledger's Savings & Financing view exposes the v44 fund's
+settlement. Both reuse `publicAssets.ts` and `PublicAssetBook` over exact published
+records, which also appear in data exports. `state/accounts.ts` owns the self-account
+projection; `state/finance.ts` owns the financial stock type and opening balances.
 
 ## 5. Actions
 

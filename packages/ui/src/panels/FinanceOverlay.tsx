@@ -1,34 +1,6 @@
-/**
- * THE FINANCIAL SYSTEM — the money dials, the two excesses, and the banks.
- *
- * The wall can tell you lending is growing and capital is dear. It cannot
- * tell you whether that combination is dangerous, and the engine's answer is
- * a PRODUCT rather than a sum:
- *
- *   hazard = base + fragility × max(0, leverage − rail) × max(0, valuation − rail)
- *
- * So either excess alone is harmless, and the old version of this overlay —
- * two unthresholded line charts side by side — drew a safe asset boom and a
- * country about to lose its banks in identical ink. THE POSITION view exists
- * to make the product visible: one axis each, one shaded corner, and a trail
- * showing how the country got where it is standing.
- *
- * Three views, because they answer three different questions:
- *
- *   THE POSITION  where the country stands, and what would have to be true
- *                 for a crisis. Fogged: both coordinates are surveys.
- *   THE STANCE    the three money dials over the whole run. EXACT — the
- *                 minute book, no band and no revision, deliberately drawn
- *                 beside the fogged charts so the difference is visible.
- *   THE BANKS     the shock absorber against the floor the government set,
- *                 which is the only way to see whether that lever binds.
- *
- * The fog lesson from the first version is kept and sharpened: a crash always
- * makes the wire, so crisis bands are drawn even over an empty plot. The
- * build-up is what you have to fund a statistical office to see. What changed
- * is that a crisis is now found by `NewsItem.kind`, not by matching prose —
- * see `../finance`.
- */
+/** The financial system: fogged market positions and private-bank buffers,
+ * exact policy minutes, and the central bank's own asset book. Crisis marks
+ * come from the wire even when the surveys behind a plot are unfunded. */
 
 import { useState } from 'react'
 import { FIRST_YEAR } from '@terrarium/engine'
@@ -46,6 +18,7 @@ import {
 } from '../components/ui'
 import type { ChartRule } from '../components/ui'
 import { NAMES } from '../components/labels'
+import { PublicAssetBook } from './PublicAssetBook'
 import {
   LEVERAGE_RAIL,
   VALUATION_RAIL,
@@ -62,7 +35,7 @@ const yearOf = (q: number) => FIRST_YEAR + Math.floor(q / 4)
 const qtrLabel = (q: number) => `${yearOf(q)} Q${(q % 4) + 1}`
 const pct1 = (v: number) => `${v.toFixed(1)}%`
 
-type View = 'position' | 'stance' | 'banks'
+type View = 'position' | 'stance' | 'banks' | 'assets'
 
 const CW = 500
 const CH = 132
@@ -221,12 +194,14 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
               { value: 'position', label: 'THE POSITION', title: 'Borrowing against asset valuation. Only the shaded corner is dangerous.' },
               { value: 'stance', label: 'THE STANCE', title: 'The three money dials over the whole run, exactly as they were set.' },
               { value: 'banks', label: 'THE BANKS', title: 'What the banks can absorb, against the floor you set them.' },
+              { value: 'assets', label: 'CENTRAL BANK', title: 'Purchased assets and foreign reserves: what the central bank holds and what it bought or sold.' },
             ]}
           />
         )}
         note={NOTE[view]}
-        footer="THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS"
+        footer={view === 'assets' ? 'CENTRAL BANK BOOKS · EXACT · NO SURVEY REQUIRED' : 'THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS'}
       >
+        {view === 'assets' && <PublicAssetBook pub={pub} book="bank" />}
         {view === 'position' && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-1">
@@ -402,6 +377,7 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
  * (`levers.ts`, `NAMES`); nothing here duplicates them.
  */
 const NOTE: Record<View, string> = {
+  assets: 'Asset purchases exchange newly created money for assets. Currency defence runs the other way: foreign reserves are sold for domestic money and the reserve book shrinks. Neither holding is the sovereign fund used to finance the budget; the treasury’s savings and financing appear in the ledger.',
   position:
     'A crash needs both at once. High borrowing with cheap capital is a country that owes a lot and can pay; expensive capital with little borrowing is an exuberant market with nothing lent against it. The shaded corner is where the two meet, and the risk climbs with the product of the two excesses rather than with either one.',
   stance:

@@ -50,6 +50,7 @@ describe('the published-state contract (§1.1)', () => {
       'spendingRules',
       'statutes',
       'treasury',
+      'centralBank',
       'capacity',
       'capacityBuilding',
       'books',

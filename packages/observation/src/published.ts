@@ -214,6 +214,12 @@ export interface PublishedState {
   /** the treasury keeps exact books on itself — including *which* tax paid
    * for *which* programme, the question a headline balance cannot answer */
   treasury: {
+    fundFlow: number
+    fiscalRebate: number
+    bondsIssued: number
+    debtRepaid: number
+    deficitPrinting: number
+
     revenue: number
     outlays: number
     balance: number
@@ -230,6 +236,15 @@ export interface PublishedState {
   capacityBuilding: Array<{ target: CapacityId; remaining: Qtr }>
   /** the treasury's own books, every quarter, exact — no fog on yourself */
   books: Array<{
+    centralBankAssets: number
+    assetPurchases: number
+    fxIntervention: number
+    fundFlow: number
+    fiscalRebate: number
+    bondsIssued: number
+    debtRepaid: number
+    deficitPrinting: number
+
     tick: Qtr
     revenue: number
     outlays: number
@@ -281,6 +296,8 @@ export interface PublishedState {
    * fogged and belongs to the indicators. */
   policy: PolicyPoint[]
   reserves: number
+  /** Exact acquisition-cost holdings and the last completed quarter's transactions. */
+  centralBank: { assets: number; purchases: number; fxIntervention: number }
   exchangeRate: number
   politicalCapital: number
   quartersToElection: number
