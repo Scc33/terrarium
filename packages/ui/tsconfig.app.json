@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
+      "@terrarium/architecture-visualizer": ["../architecture-visualizer/src/index.ts"],
       "@terrarium/engine": ["../engine/src/index.ts"],
       "@terrarium/observation": ["../observation/src/index.ts"],
       "@terrarium/fixtures": ["../fixtures/index.ts"]

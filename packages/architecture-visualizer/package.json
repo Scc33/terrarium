@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "scan": "tsx scripts/generate.ts",
-    "dev": "pnpm run scan && vite",
-    "build": "pnpm run scan && vite build",
-    "preview": "vite preview"
+    "check": "tsx scripts/generate.ts --check"
   },
   "devDependencies": {
     "@typescript/native": "npm:typescript@^7.0.2",
     "tsx": "^4.23.12",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "vite": "^8.2.2"
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
   }
 }

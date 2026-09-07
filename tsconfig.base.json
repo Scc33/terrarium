@@ -15,6 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
+      "@terrarium/architecture-visualizer": ["./packages/architecture-visualizer/src/index.ts"],
       "@terrarium/engine": ["./packages/engine/src/index.ts"],
       "@terrarium/observation": ["./packages/observation/src/index.ts"],
       "@terrarium/fixtures": ["./packages/fixtures/index.ts"]

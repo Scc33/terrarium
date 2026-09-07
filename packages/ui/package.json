@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@terrarium/architecture-visualizer": "workspace:*",
     "@terrarium/engine": "workspace:*",
     "@terrarium/fixtures": "workspace:*",
     "@terrarium/observation": "workspace:*",

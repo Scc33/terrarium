@@ -10,6 +10,11 @@
  * So: build the app for production and read the bundle. This is the only test
  * in the suite that asserts on build output, because it is the only claim that
  * is about the bundler rather than the code.
+ *
+ * What counts as evidence is in `./shipped-strings`, with the reasoning: the
+ * build minifies, so only string literals and property names are worth
+ * grepping for — and those are also the strings the atlas's map of exported
+ * symbols cannot print, which is what keeps the two from colliding.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -17,6 +22,7 @@ import { readdirSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { FORBIDDEN_IN_BUNDLE } from './shipped-strings'
 
 const repo = fileURLToPath(new URL('../..', import.meta.url))
 const dist = join(repo, 'packages/ui/dist')
@@ -49,15 +55,7 @@ describe('the production build strips the dev console', () => {
     expect(bundle).toContain('MINISTRY OF NATIONAL ECONOMY')
   })
 
-  it.each([
-    ['dev:scenario', 'the scenario request message'],
-    ['dev:inspect', 'the truth request message'],
-    ['dev:truth', 'the true-state reply message'],
-    ['DEV CONSOLE', 'the panel chrome'],
-    ['RUN SCENARIO', 'the panel controls'],
-    ['applyScenario', 'the scenario builder'],
-    ['populationScale', 'a scenario-only field name'],
-  ])('drops %s (%s)', (needle) => {
+  it.each(FORBIDDEN_IN_BUNDLE.map((entry) => [...entry]))('drops %s (%s)', (needle) => {
     expect(bundle).not.toContain(needle)
   })
 

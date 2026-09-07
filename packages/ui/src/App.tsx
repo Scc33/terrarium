@@ -20,6 +20,7 @@ import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ManualOverlay } from './panels/ManualOverlay'
+import { AtlasOverlay } from './panels/AtlasOverlay'
 import { Walkthrough } from './panels/Walkthrough'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
 import { CensusOverlay } from './panels/CensusOverlay'
@@ -37,23 +38,19 @@ import type { CuratedCountryId } from '@terrarium/engine'
 import type { CabinetGroup } from './cabinetNavigation'
 import { cabinetStartsCollapsed, rememberCabinetCollapsed } from './layoutPreferences'
 
-type OverlayKind =
-  | 'ledger'
-  | 'policy'
-  | 'accounts'
-  | 'industry'
-  | 'households'
-  | 'wire'
-  | 'study'
-  | 'settings'
-  | 'verdict'
-  | 'census'
-  | 'finance'
-  | 'election'
-  | 'count'
-  | 'country'
-  | 'manual'
-  | null
+/**
+ * The paperwork that is only ever `(pub, onClose)` — a table, so opening a new
+ * office is a word here rather than a line in a union and a line in the render
+ * that have to agree. The overlays below the table are the ones that ask for
+ * something else: a report card, a posting, a chapter, a scan.
+ */
+const PAPERWORK = {
+  ledger: LedgerOverlay, policy: PolicyOverlay, accounts: AccountsOverlay, industry: IndustryOverlay,
+  households: HouseholdOverlay, wire: WireOverlay, study: StudyOverlay, census: CensusOverlay,
+  finance: FinanceOverlay, election: ElectionOverlay, count: ElectionResultOverlay,
+} as const
+
+type OverlayKind = keyof typeof PAPERWORK | 'settings' | 'verdict' | 'country' | 'manual' | 'atlas' | null
 
 export default function App() {
   const {
@@ -104,6 +101,7 @@ export default function App() {
   const lastCampaignSeen = useRef<number | null>(null)
   const lastCountSeen = useRef<number | null>(null)
   const closeCabinet = useCallback(() => setCabinetOpen(false), [])
+  const closeOverlay = useCallback(() => setOverlay(null), [])
   const setCabinetCollapsedPreference = useCallback((collapsed: boolean) => {
     setCabinetCollapsed(collapsed)
     rememberCabinetCollapsed(collapsed)
@@ -311,6 +309,10 @@ export default function App() {
     }
     setCabinetFocusRequest((request) => request + 1)
   }
+  // the `in` guard is the check; the cast is only because narrowing a union of
+  // string literals by `in` is not something TypeScript does
+  const Paperwork =
+    overlay !== null && overlay in PAPERWORK ? PAPERWORK[overlay as keyof typeof PAPERWORK] : null
   const compactDraftCost = stagedCost !== null && Number.isFinite(stagedCost)
     ? `${stagedCost.toFixed(1)} PC`
     : 'PRICING…'
@@ -321,6 +323,7 @@ export default function App() {
         pub={published}
         onStudy={() => setOverlay('study')}
         onManual={() => openManual('briefing')}
+        onAtlas={() => setOverlay('atlas')}
         onSettings={() => setOverlay('settings')}
         onCensus={() => setOverlay('census')}
         onFinance={() => setOverlay('finance')}
@@ -412,13 +415,7 @@ export default function App() {
       </div>
       <NewsWire pub={published} onOpen={() => setOverlay('wire')} />
 
-      {overlay === 'ledger' && <LedgerOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'policy' && <PolicyOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'accounts' && <AccountsOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'industry' && <IndustryOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'households' && <HouseholdOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'wire' && <WireOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'study' && <StudyOverlay pub={published} onClose={() => setOverlay(null)} />}
+      {Paperwork && <Paperwork pub={published} onClose={closeOverlay} />}
       {overlay === 'settings' && (
         <SettingsOverlay
           pub={published}
@@ -427,10 +424,6 @@ export default function App() {
           onMethodology={() => openManual('figures')}
         />
       )}
-      {overlay === 'census' && <CensusOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'finance' && <FinanceOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'election' && <ElectionOverlay pub={published} onClose={() => setOverlay(null)} />}
-      {overlay === 'count' && <ElectionResultOverlay pub={published} onClose={() => setOverlay(null)} />}
       {overlay === 'verdict' && published.reportCard && (
         <ReportCardOverlay pub={published} card={published.reportCard} onClose={() => setOverlay(null)} />
       )}
@@ -456,9 +449,11 @@ export default function App() {
               setOverlay(null)
               setTourStep(0)
             }}
+            onAtlas={() => setOverlay('atlas')}
           />
         </Modal>
       )}
+      {overlay === 'atlas' && <AtlasOverlay onClose={closeOverlay} />}
       {tourStep !== null && overlay === null && (
         <Walkthrough
           index={tourStep}

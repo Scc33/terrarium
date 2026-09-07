@@ -942,3 +942,55 @@ test('the opening walkthrough introduces the room without covering it', async ({
 
   await expect(page).toHaveScreenshot('walkthrough-wall.png')
 })
+
+/**
+ * The atlas (#128), asserted rather than photographed.
+ *
+ * A screenshot is the wrong instrument here for a reason worth writing down:
+ * the page prints the scan's own figures — the revision, the file count, the
+ * line total — so every rescan of the repository would move a baseline without
+ * anything about the layout having changed, and a baseline that is re-blessed
+ * routinely is a baseline nobody reads. What is worth pinning is the part that
+ * is invisible in review AND in jsdom: that 400KB of scanned repository, which
+ * arrives by dynamic import and therefore exists only in a real browser, lands
+ * in a dialog whose three views each fit inside their own edges.
+ */
+test('the engine atlas paints its three views inside its own edges', async ({ page }) => {
+  await openGame(page)
+  await (await officeButton(page, 'ATLAS')).click()
+  const atlas = page.getByRole('dialog', { name: /THE ENGINE ATLAS/ })
+  await expect(atlas).toBeVisible()
+  // the snapshot is a separate chunk; the summary figures are what prove it landed
+  await expect(atlas.getByText('SCANNED AT')).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  const shear = `(() => {
+    const dialog = document.querySelector('[role="dialog"]')
+    const box = dialog.getBoundingClientRect()
+    const out = []
+    dialog.querySelectorAll('*').forEach((el) => {
+      const r = el.getBoundingClientRect()
+      if (r.width === 0 && r.height === 0) return
+      if (r.right > box.right + 1 || r.left < box.left - 1) {
+        out.push({ cls: (el.getAttribute('class') || '').slice(0, 60), text: (el.textContent || '').slice(0, 40) })
+      }
+    })
+    return out
+  })()`
+
+  for (const view of ['THE QUARTER', 'THE SYSTEM', 'THE FILES']) {
+    await atlas.getByRole('button', { name: view, exact: true }).click()
+    expect(await page.evaluate(shear), view).toEqual([])
+  }
+
+  // Every link out of the atlas is a permalink at the commit the map was drawn
+  // at. A link to the moving branch would keep working and quietly land a
+  // reader a few lines off the symbol it named — further off every month.
+  const revision = (await atlas.getByText(/^[0-9a-f]{7,}$/).first().textContent())?.trim()
+  expect(revision).toMatch(/^[0-9a-f]{7,}$/)
+  const links = await atlas.locator('a[href*="github.com"]').evaluateAll((nodes) =>
+    nodes.map((node) => (node as { href: string }).href),
+  )
+  expect(links.length).toBeGreaterThan(0)
+  for (const href of links) expect(href).toContain(`/blob/${revision}/`)
+})
