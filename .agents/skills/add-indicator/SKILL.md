@@ -14,7 +14,7 @@ build walks you through them; **one is an array and fails silently** — that is
 | # | What | Where | Enforced? |
 |---|------|-------|-----------|
 | 1 | `INDICATOR_IDS` | `packages/engine/src/state/schema.ts` | source of truth |
-| 2 | `INDICATOR_SPECS` | `packages/engine/src/pipeline/statistics.ts` | **NO — array** |
+| 2 | `INDICATOR_SPECS` | `packages/engine/src/pipeline/indicatorSpecs.ts` | **NO — array** |
 | 3 | `INDICATOR_FUNDED_AT` | `packages/engine/src/constants.ts` | `Record` ✓ |
 | 4 | `PRESENTATION` | `packages/observation/src/observe.ts` | `Record` ✓ |
 | 5 | `NAMES` | `packages/ui/src/components/labels.ts` | `Record` ✓ |

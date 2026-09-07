@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "4ff46b8",
+  "revision": "49448e5",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 43,
-      "lines": 15531
+      "moduleCount": 44,
+      "lines": 15558
     },
     {
       "id": "fixtures",
@@ -3671,6 +3671,66 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/engine/src/pipeline/indicatorSpecs.ts",
+      "label": "indicatorSpecs",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "The measurement catalogue — one specification per published indicator: what the office is trying to measure, and how badly it measures it at zero capacity. Nothing here measures anything. `pipeline/statistics.ts` owns the machinery (funding gates, lags, revisions, the `obs:*`…",
+      "lines": 339,
+      "exports": [
+        {
+          "name": "DirectIndicatorSpec",
+          "kind": "interface",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 19
+        },
+        {
+          "name": "HUMAN_DEVELOPMENT_COMPONENT_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 33
+        },
+        {
+          "name": "HumanDevelopmentComponentId",
+          "kind": "type",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 39
+        },
+        {
+          "name": "ConstructedIndicatorSpec",
+          "kind": "interface",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 41
+        },
+        {
+          "name": "IndicatorSpec",
+          "kind": "type",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 47
+        },
+        {
+          "name": "isDirectIndicatorSpec",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 49
+        },
+        {
+          "name": "INDICATOR_SPECS",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+          "line": 52
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/statistics.ts"
+      ],
+      "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
+      "line": 1
+    },
+    {
       "id": "packages/engine/src/pipeline/institutions.ts",
       "label": "institutions",
       "packageId": "engine",
@@ -3997,31 +4057,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 893,
+      "lines": 581,
       "exports": [
-        {
-          "name": "isDirectIndicatorSpec",
-          "kind": "constant",
-          "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 88
-        },
-        {
-          "name": "INDICATOR_SPECS",
-          "kind": "constant",
-          "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 91
-        },
         {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 639
+          "line": 327
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 842
+          "line": 530
         }
       ],
       "imports": [
@@ -4030,6 +4078,7 @@ export const architecture = {
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/indicatorSpecs.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/accounts.ts",
@@ -4950,6 +4999,7 @@ export const architecture = {
         "packages/engine/src/pipeline/finance.ts",
         "packages/engine/src/pipeline/fiscal.ts",
         "packages/engine/src/pipeline/foreignInvestment.ts",
+        "packages/engine/src/pipeline/indicatorSpecs.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/pipeline/politics.ts",
@@ -11703,6 +11753,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/engine/src/pipeline/indicatorSpecs.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/engine/src/pipeline/institutions.ts",
       "target": "packages/engine/src/constants.ts",
       "typeOnly": false
@@ -12005,6 +12060,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/statistics.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/pipeline/indicatorSpecs.ts",
       "typeOnly": false
     },
     {
@@ -14922,38 +14982,27 @@ export const architecture = {
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/indicatorSpecs.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/accounts.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "exports": [
         {
-          "name": "isDirectIndicatorSpec",
-          "kind": "constant",
-          "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 88
-        },
-        {
-          "name": "INDICATOR_SPECS",
-          "kind": "constant",
-          "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 91
-        },
-        {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 639
+          "line": 327
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 842
+          "line": 530
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 842
+      "line": 530
     },
     {
       "order": 17,
@@ -15011,7 +15060,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 843
+          "line": 531
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",

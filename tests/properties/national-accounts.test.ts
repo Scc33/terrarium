@@ -12,7 +12,7 @@ import { taxEfficiency } from '../../packages/engine/src/constants'
 import {
   INDICATOR_SPECS,
   isDirectIndicatorSpec,
-} from '../../packages/engine/src/pipeline/statistics'
+} from '../../packages/engine/src/pipeline/indicatorSpecs'
 
 const DIRECT_INDICATOR_SPECS = INDICATOR_SPECS.filter(isDirectIndicatorSpec)
 
