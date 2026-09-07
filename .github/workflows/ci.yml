@@ -39,7 +39,7 @@ jobs:
         run: pnpm lint
 
       # The atlas the game ships is a checked-in scan of this repository
-      # (ADR-0038). A stale one does not look broken, it looks like a smaller
+      # (ADR-0039). A stale one does not look broken, it looks like a smaller
       # codebase — so a structural change that was not rescanned fails here.
       - name: Architecture map is current
         run: pnpm architecture:check

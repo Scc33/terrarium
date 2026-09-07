@@ -8,7 +8,7 @@
  * does that and one that does not is a handful of `__DEV_TOOLS__` guards.
  *
  * The list lives here rather than inside that test because a SECOND thing now
- * has to respect it. Since ADR-0038 the game ships a scanned map of its own
+ * has to respect it. Since ADR-0039 the game ships a scanned map of its own
  * repository, and that map prints every module's exported symbol NAMES as
  * data. A needle that happens to be one of those names stops being evidence:
  * it is in the bundle either way, so it can no longer tell a leak from a map.

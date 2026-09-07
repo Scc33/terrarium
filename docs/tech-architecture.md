@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 42. The short player-facing design is in
+*How the code is actually arranged, as of schema 45. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -73,7 +73,7 @@ terrarium/
 │   │   │   ├── domains.ts        # FIXED per-indicator dial faces (ADR-0006)
 │   │   │   ├── shares.ts         # pie / stacked-band geometry (pure, tested)
 │   │   │   ├── maturity.ts       # diegetic per-instrument visual maturity
-│   │   │   ├── atlas.ts          # the engine atlas over the scan (pure, tested) — ADR-0038
+│   │   │   ├── atlas.ts          # the engine atlas over the scan (pure, tested) — ADR-0039
 │   │   │   └── devScenario.ts    # dev-console scenarios (pure, tested) — ADR-0010
 │   │   └── package.json
 │   │
@@ -84,7 +84,7 @@ terrarium/
 │   │   ├── countries/standard.ts # parameter vectors
 │   │   └── scripts/scripts.ts    # named action scripts ("passive", "fuelTaxAtQ8", …)
 │   │
-│   └── architecture-visualizer/  # the SCANNER behind the in-game atlas (ADR-0038)
+│   └── architecture-visualizer/  # the SCANNER behind the in-game atlas (ADR-0039)
 │       ├── scripts/analyze.ts    # TS AST scan: modules, imports, exports, TICK_ORDER
 │       ├── scripts/generate.ts   # writes the snapshot; `--check` fails if it has drifted
 │       └── src/                  # model.ts (shapes) + the checked-in generated snapshot
@@ -119,7 +119,7 @@ The dependency direction is enforced at two independent levels, because either a
 - Even the worker uses the engine's public API, not its state internals.
 - `@terrarium/architecture-visualizer` is the one workspace package `ui` may import that is not
   on the `ui → observation → engine` spine. It is a data package — a scan of the repository —
-  so it carries no engine types and no state; see ADR-0038.
+  so it carries no engine types and no state; see ADR-0039.
 
 **At the data boundary** (`tests/contract/published-state.test.ts`): a lint rule stops you
 importing a true-state *type*, but not from posting a true-state *value* through a
@@ -376,6 +376,15 @@ risk, while a tighter capital floor leans directly against that leverage.
 
 ---
 
+Central-bank holdings have an exact acquisition-cost book (ADR-0038), separate from
+both FX reserves and the sovereign fund. Purchase orders use official GDP so an
+exact transaction cannot disclose hidden output. The posted monetary stance retains
+its existing private-rate effect. Finance shows both central-bank stocks and actual
+purchases/FX fills; the ledger's Savings & Financing view exposes the v44 fund's
+settlement. Both reuse `publicAssets.ts` and `PublicAssetBook` over exact published
+records, which also appear in data exports. `state/accounts.ts` owns the self-account
+projection; `state/finance.ts` owns the financial stock type and opening balances.
+
 ## 5. Actions
 
 ```ts
@@ -549,7 +558,7 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   must never reach a player — currently the dev console. Do **not** use `import.meta.env.DEV`
   for this: it derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` produces a
   bundle with the dev code still in it. See ADR-0010.
-- **The engine atlas is a checked-in scan** (ADR-0038). `packages/architecture-visualizer` walks
+- **The engine atlas is a checked-in scan** (ADR-0039). `packages/architecture-visualizer` walks
   the TypeScript AST and writes a snapshot; `packages/ui` imports it DYNAMICALLY, so 400KB of
   scanned repository becomes its own chunk that only a reader who opens the atlas pays for.
   `pnpm architecture:check` re-scans and fails if the checked-in copy has drifted, and

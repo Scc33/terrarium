@@ -1,4 +1,4 @@
-# ADR-0038 — The atlas is a scan of the repository, and the game is the only thing that draws it
+# ADR-0039 — The atlas is a scan of the repository, and the game is the only thing that draws it
 
 **Status:** Accepted · **Date:** 2026-09-06 · **Issue:** [#128](https://github.com/Scc33/terrarium/issues/128)
 

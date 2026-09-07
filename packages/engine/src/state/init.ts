@@ -5,13 +5,13 @@
  * tick 1 doesn't open with a shock.
  */
 
+import { initialFinance } from './finance'
 import type { Seed } from '../rng/rng'
 import { emissionsPerHead } from '../pipeline/environment'
 import {
   adminEffectiveness,
   taxEfficiency,
   ASSET_PURCHASE_RATE_DEFAULT,
-  BANK_TARGET_RATIO,
   CAPITAL_REQUIREMENT_DEFAULT,
   CONF_NEUTRAL,
   CREDIT_BASE,
@@ -430,6 +430,7 @@ export function init(
     tariffBase: 0,
     currentAccount: 0,
     fxIntervention: 0,
+    assetPurchases: 0,
     subsidyDelivered: sectorRecord(() => 0),
     revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0, fund: 0 },
     outlaysByProgramme: {
@@ -483,15 +484,7 @@ export function init(
       researchStock: 0,
     },
     cohorts,
-    finance: {
-      assetPrice: 1,
-      bankCapital: BANK_TARGET_RATIO * creditOutstanding0,
-      creditOutstanding: creditOutstanding0,
-      creditToGdp: creditToGdp0,
-      creditGrowth: 0,
-      crisisQtrsLeft: 0,
-      crisisSeverity: 0,
-    },
+    finance: initialFinance(creditOutstanding0, creditToGdp0),
     sectors: SECTOR_IDS.map((id) => ({
       id,
       capital: capital[id],

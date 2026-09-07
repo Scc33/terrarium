@@ -16,6 +16,7 @@ import { FUND_YIELD } from '@terrarium/engine'
 import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type OutlayId, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
+import { PublicAssetBook } from './PublicAssetBook'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 import {
   OUTLAY_CHART_IDS,
@@ -75,7 +76,7 @@ function sharesOf<K extends string>(
   return ids.map((id) => ({ key: id, value: values[id] ?? 0, ...faceOf[id] }))
 }
 
-type Side = 'revenue' | 'outlays'
+type Side = 'revenue' | 'outlays' | 'financing'
 type Mode = 'money' | 'share'
 
 export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
@@ -123,7 +124,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             label="BALANCE"
             value={(t.balance >= 0 ? '+' : '') + money(t.balance)}
             tone={t.balance < 0 ? 'danger' : undefined}
-            title="Revenue minus spending. Below zero is a deficit that must be covered by borrowing or new money."
+            title="Revenue minus spending. A deficit draws the sovereign fund before borrowing or printing. A surplus repays debt, then splits between the fund and household rebates."
           />
           <Metric label="DEBT" value={t.debt.toFixed(0)} title="Money the government still owes." />
           {t.fund > 0 && (
@@ -151,9 +152,10 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             options={[
               { value: 'revenue', label: 'REVENUE BY SOURCE', title: 'Which taxes are carrying the state.' },
               { value: 'outlays', label: 'OUTLAYS BY PROGRAMME', title: 'What the money is voted to.' },
+              { value: 'financing', label: 'SAVINGS & FINANCING', title: 'Where surpluses go and how deficits are covered.' },
             ]}
           />
-          <SegmentedControl
+          {side !== 'financing' && <SegmentedControl
             label="Chart mode"
             value={mode}
             onChange={setMode}
@@ -161,18 +163,18 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               { value: 'money', label: 'LEVELS', title: 'Money per quarter, stacked — how much there was.' },
               { value: 'share', label: 'SHARES', title: 'Each quarter normalised to its own total — how the mix shifted, even as the totals grew tenfold.' },
             ]}
-          />
+          />}
           </>
         )}
         note={(
           <>
-            Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.
+            {side === 'financing' ? 'Surplus = debt repaid + fund saved + rebate paid. Deficit = fund drawn + bonds issued + money printed. Fund returns are revenue, already included in the balance. These savings finance the budget you vote; the central bank’s foreign reserves have a separate job.' : 'Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.'}
             {t.printed > 0.5 && <span className="mt-1 block font-mono text-[9px] tracking-[0.08em] text-dossier-warn">THE MINT HAS PRINTED {t.printed.toFixed(1)} TO DATE. THE BOND MARKET NOTICED.</span>}
           </>
         )}
         footer="EXACT TREASURY BOOKS · QUARTERLY · NEVER REVISED"
       >
-        <div className="flex flex-col gap-3">
+        {side === 'financing' ? <PublicAssetBook pub={pub} book="treasury" /> : <div className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[352px_minmax(0,1fr)]">
           <div className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
@@ -220,7 +222,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           <LineChart label="FX RESERVES" data={series((x) => x.reserves)} height={78} />
           <LineChart label="EXCHANGE RATE" data={series((x) => x.exchangeRate)} height={78} />
         </div>
-        </div>
+        </div>}
       </OverlayLayout>
     </Modal>
   )

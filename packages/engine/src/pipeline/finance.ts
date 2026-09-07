@@ -57,6 +57,7 @@ import { clamp } from '../math'
 import { SECTOR_IDS, type NewsItem, type Sector } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { privateRealRate } from './derive'
+import { officialNominalGdp } from '../state/spending'
 
 export const finance: PipelineStep = {
   name: 'finance',
@@ -65,6 +66,10 @@ export const finance: PipelineStep = {
     const news: NewsItem[] = []
 
     const annualGdp = Math.max(4 * flows.nominalGdp, 1e-9)
+    // An exact transaction scaled by hidden GDP would publish that GDP by
+    // division. Like GDP-share appropriations, orders use the official book.
+    // Annualized share × quarterly GDP: the two annualization fours cancel.
+    const assetPurchases = gov.dials.assetPurchaseRate * (officialNominalGdp(state) ?? 0)
     const realRate = privateRealRate(state)
     const profitRate =
       SECTOR_IDS.reduce((s, sid) => s + flows.profits[sid], 0) / Math.max(flows.nominalGdp, 1e-9)
@@ -172,6 +177,7 @@ export const finance: PipelineStep = {
       ...state,
       sectors: allocateCredit(state.sectors, creditOutstanding),
       finance: {
+        centralBankAssets: fin.centralBankAssets + assetPurchases,
         assetPrice,
         bankCapital,
         creditOutstanding,
@@ -181,6 +187,7 @@ export const finance: PipelineStep = {
         crisisSeverity,
       },
       ledger: confidence === ledger.confidence ? ledger : { ...ledger, confidence },
+      flows: { ...flows, assetPurchases },
       stats: news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
     }
   },

@@ -155,7 +155,7 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
   assetPurchaseRate: {
     label: 'Asset purchases',
     group: 'MONEY',
-    hint: 'Central-bank purchases that lower borrowing costs when rates are near zero. They can also fuel risky lending and asset booms.',
+    hint: 'Central-bank purchases that lower borrowing costs and can fuel asset booms. Orders are sized from official GDP; holdings and transactions appear in Finance → Central Bank.',
     resists:
       'Industry and labour want it; the money interest is the one that minds, because it is the state setting the price of the assets they hold. It works on the same channel a rate cut does, so the two stack — and so does the bubble they pay for.',
   },

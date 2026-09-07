@@ -3,7 +3,7 @@
  *
  * `scan` writes the snapshot; `--check` writes nothing and fails if a fresh
  * scan disagrees with the checked-in one. CI runs the second, because the
- * snapshot is now a build input of the game (ADR-0038) — a stale map does not
+ * snapshot is now a build input of the game (ADR-0039) — a stale map does not
  * announce itself, it just quietly describes a repository that no longer
  * exists, and that is the failure mode the issue behind this was reporting.
  *

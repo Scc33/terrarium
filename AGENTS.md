@@ -512,7 +512,7 @@ latter derives from ambient `NODE_ENV`, so `NODE_ENV=test pnpm build` ships the 
 serializer, and `--mode production` does not save you. `tests/ui/dev-build-strip.test.ts`
 builds the bundle and greps it; if that test goes, the guarantee goes with it.
 
-### The engine atlas (ADR-0038)
+### The engine atlas (ADR-0039)
 
 The game explains itself down to the source. `packages/architecture-visualizer` is a SCANNER —
 it walks the TypeScript AST and writes a snapshot of the repository (`TICK_ORDER` and its
