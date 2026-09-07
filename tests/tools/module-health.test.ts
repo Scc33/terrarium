@@ -70,8 +70,8 @@ const MODULE_LINE_BASELINE = {
   'packages/ui/src/manual.ts': 706,
   // Presentation hotspot: exact census summaries and charts in one dossier.
   'packages/ui/src/panels/CensusOverlay.tsx': 502,
-  // Executable hotspot: cabinet drawers, controls, quoting, and action dispatch.
-  'packages/ui/src/panels/ControlRail.tsx': 968,
+  // Composition root: cabinet tab strip, drawer bodies, and the enact footer.
+  'packages/ui/src/panels/ControlRail.tsx': 372,
   // Executable hotspot: posting-room selection, drafting, rules, and appointment flows.
   'packages/ui/src/panels/CountrySelect.tsx': 644,
   // Presentation hotspot: banking diagnostics, phase chart, and crisis episodes.
