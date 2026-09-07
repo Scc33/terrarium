@@ -21,7 +21,22 @@ contract, so it's called out below.
 
 ---
 
-## Current contract (schema 44)
+## Schema 45 — central-bank assets and financing books (#212)
+
+- `finance.centralBankAssets` starts at zero and accumulates purchases at acquisition
+  cost. Quarterly purchases are `assetPurchaseRate × officialNominalGdp`; they await
+  the first official release. The existing pace-based private-rate channel is unchanged.
+  No sales, maturities, coupons, revaluation or gain/loss accounting is modeled.
+- Exact, ungated `PublishedState.centralBank` contains `assets`, `purchases`, and
+  signed `fxIntervention`. Foreign reserves retain their existing domestic-money book.
+- `treasury` adds `fundFlow`, `fiscalRebate`, `bondsIssued`, `debtRepaid`, and
+  `deficitPrinting`, exposing the existing sovereign-fund settlement from v44.
+  `books[]` adds these columns plus `centralBankAssets`, `assetPurchases`, and
+  `fxIntervention`. Figures describe completed quarters, not pending cabinet orders.
+- The same additive fields appear in published-data exports within format v1.
+  No new funding gate, indicator, replay input or pipeline reordering.
+
+## Current contract (schema 45)
 
 ### Inputs
 

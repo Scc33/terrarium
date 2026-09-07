@@ -81,6 +81,8 @@ export function validate(state: TrueState): void {
     }
   }
   finite(state.gov.debt, 'debt')
+  finite(state.finance.centralBankAssets, 'centralBankAssets')
+  if (state.finance.centralBankAssets < 0) throw new InvariantError('centralBankAssets < 0')
   finite(state.gov.fund, 'fund')
   if (state.gov.fund < 0) throw new InvariantError('fund < 0')
   // The pair is one net position: a surplus redeems debt before it funds

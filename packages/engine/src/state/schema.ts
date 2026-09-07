@@ -3,6 +3,7 @@
  * structured-clone-able, hashable, diffable. Reserved fields ship at zero.
  */
 
+import type { FinanceState } from './finance'
 import type { Seed } from '../rng/rng'
 import type { DeskId, EventId, Prominence } from '../events/ids'
 
@@ -737,27 +738,7 @@ export interface TechState {
   researchStock: number
 }
 
-// ---------- the financial sector: fragility ----------
-export interface FinanceState {
-  /** asset valuation per unit of capital — a Tobin's q, 1946 = 1. The bubble
-   * variable: departs from its profitability/rate fundamental on credit and
-   * animal spirits, and production reads it as the price of investing. */
-  assetPrice: number
-  /** the banking system's net worth — the buffer against loan losses. Crises
-   * write it down; the interest margin rebuilds it. Thin capital → a crunch. */
-  bankCapital: Money
-  /** total credit outstanding = Σ sector.credit (cached for cheap reads) */
-  creditOutstanding: Money
-  /** credit / annual nominal GDP — the leverage gauge and the fragility clock */
-  creditToGdp: number
-  /** last quarter's change in credit/GDP, annualized — the boom signal a
-   * bank supervisor would report; also what bids asset prices up */
-  creditGrowth: number
-  /** quarters of an active banking crisis still to run; 0 = calm */
-  crisisQtrsLeft: Qtr
-  /** how hard the current crisis hit, 0..1 — sizes the crunch and the drag */
-  crisisSeverity: number
-}
+export type { FinanceState } from './finance'
 
 // ---------- institutions and the Narrow Corridor ----------
 /** One veto player. `power` is DERIVED from the economy each quarter — the
@@ -1167,6 +1148,14 @@ export interface StatRecord {
   reservesQtrs: number
   utilization: Ratio
   // the treasury's own books — exact, no fog on yourself
+  centralBankAssets: Money
+  assetPurchases: Money
+  fxIntervention: Money
+  fundFlow: Money
+  fiscalRebate: Money
+  bondsIssued: Money
+  debtRepaid: Money
+  deficitPrinting: Money
   revenue: Money
   outlays: Money
   balance: Money
@@ -1203,6 +1192,8 @@ export interface StatsOffice {
 
 // ---------- per-tick flows (scratch, recomputed every tick; kept for inspectability) ----------
 export interface TickFlows {
+  /** Actual purchases, sized from official GDP, in money this quarter. */
+  assetPurchases: Money
   /** final demand by sector, real units */
   finalDemand: Record<SectorId, number>
   /** gross output demanded (Leontief-required), real units */
@@ -1337,7 +1328,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 44 // v44: a surplus has a destination — the sovereign fund and the rebate dial (#211)
+export const SCHEMA_VERSION = 45 // v45: central-bank holdings and public financing books (#212)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

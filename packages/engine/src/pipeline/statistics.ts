@@ -8,6 +8,7 @@
  * politics reads these prints, not the truth (ADR-0003).
  */
 
+import { publicAccountRecord } from '../state/accounts'
 import { rngFor, type Seed } from '../rng/rng'
 import {
   HOUSEHOLD_INCOME_SD,
@@ -474,15 +475,7 @@ function recordOf(state: TrueState): StatRecord {
     printedShare: flows.printedThisQtr / Math.max(flows.nominalGdp, 1e-9),
     reservesQtrs: external.reserves / Math.max(flows.tariffBase, 1e-9),
     utilization: sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length,
-    revenue: gov.budget.revenue,
-    outlays: gov.budget.outlays,
-    balance: gov.budget.balance,
-    debt: gov.debt,
-    fund: gov.fund,
-    reserves: external.reserves,
-    exchangeRate: external.exchangeRate,
-    revenueBySource: { ...flows.revenueBySource },
-    outlaysByProgramme: { ...flows.outlaysByProgramme },
+    ...publicAccountRecord(state),
     policy: policyRecordOf(gov),
   }
 }

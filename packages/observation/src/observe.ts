@@ -1,3 +1,4 @@
+import { treasuryFinancing } from '../../engine/src/state/accounts'
 /**
  * observe() — a pure projection of what the government can see (ADR-0003). The
  * fog itself (lag, noise, revisions, funding gates) lives in the engine's
@@ -248,6 +249,7 @@ export function observe(state: TrueState): PublishedState {
     dials: structuredClone(state.gov.dials),
     spendingRules: structuredClone(state.gov.spendingRules),
     treasury: {
+      ...treasuryFinancing(state),
       ...state.gov.budget,
       debt: state.gov.debt,
       fund: state.gov.fund,
@@ -263,6 +265,14 @@ export function observe(state: TrueState): PublishedState {
       outlays: r.outlays,
       balance: r.balance,
       debt: r.debt,
+      centralBankAssets: r.centralBankAssets,
+      assetPurchases: r.assetPurchases,
+      fxIntervention: r.fxIntervention,
+      fundFlow: r.fundFlow,
+      fiscalRebate: r.fiscalRebate,
+      bondsIssued: r.bondsIssued,
+      debtRepaid: r.debtRepaid,
+      deficitPrinting: r.deficitPrinting,
       fund: r.fund,
       reserves: r.reserves,
       exchangeRate: r.exchangeRate,
@@ -289,6 +299,11 @@ export function observe(state: TrueState): PublishedState {
     // its own decisions, whatever its statistical office can or cannot see.
     policy: state.stats.record.map((r) => ({ tick: r.tick, ...structuredClone(r.policy) })),
     reserves: state.external.reserves,
+    centralBank: {
+      assets: state.finance.centralBankAssets,
+      purchases: state.flows.assetPurchases,
+      fxIntervention: state.flows.fxIntervention,
+    },
     exchangeRate: state.external.exchangeRate,
     politicalCapital: state.politics.politicalCapital,
     quartersToElection: state.politics.quartersToElection,
