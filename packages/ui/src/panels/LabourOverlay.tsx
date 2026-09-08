@@ -15,8 +15,8 @@ import {
 } from '../components/ui'
 import {
   labourAvailability,
+  labourIndicatorForQuarter,
   labourTraces,
-  latestLabourIndicator,
   readLabour,
 } from '../labour'
 
@@ -49,8 +49,8 @@ export function LabourOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
     )
   }
 
-  const underuse = latestLabourIndicator(pub, 'labour_underuse')
-  const unemployment = latestLabourIndicator(pub, 'unemployment')
+  const underuse = labourIndicatorForQuarter(pub, 'labour_underuse', release.forQtr)
+  const unemployment = labourIndicatorForQuarter(pub, 'unemployment', release.forQtr)
   const joblessTraces = labourTraces(pub, 'jobless')
   const underemployedTraces = labourTraces(pub, 'underemployed')
 

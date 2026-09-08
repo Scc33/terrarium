@@ -19,7 +19,7 @@ export const LABOUR_CLASS_FACE: Record<
     label: 'Rural workers',
     short: 'RURAL',
     ink: SHARE_INKS[0],
-    note: 'Farm and village labour, including people recruited into rural posts from other trades.',
+    note: 'Farm and village labour by trade, whether or not that is the post they hold.',
   },
   urban_workers: {
     label: 'Urban workers',
@@ -111,17 +111,26 @@ export function labourTraces(
   }))
 }
 
-/** Latest settled headline print, or null while its instrument is absent. */
-export function latestLabourIndicator(
+/**
+ * Best-revision headline print for one specific quarter — the quarter the
+ * occupational survey's own release names, not each instrument's own latest.
+ * `unemployment`'s funding gate sits below the occupational survey's, so
+ * left to pick independently it can settle a newer quarter than the return
+ * beside it; the overlay would then label two different quarters with one
+ * survey date. Absent here means that instrument genuinely has no print for
+ * this quarter yet, which is honest rather than misleading.
+ */
+export function labourIndicatorForQuarter(
   pub: PublishedState,
   id: Extract<IndicatorId, 'unemployment' | 'labour_underuse'>,
+  forQtr: number,
 ): number | null {
   const points = pub.indicators[id]?.points
   if (!points || points.length === 0) return null
-  const best = new Map<number, (typeof points)[number]>()
+  let best: (typeof points)[number] | null = null
   for (const point of points) {
-    const current = best.get(point.forQtr)
-    if (!current || point.revision > current.revision) best.set(point.forQtr, point)
+    if (point.forQtr !== forQtr) continue
+    if (!best || point.revision > best.revision) best = point
   }
-  return [...best.values()].sort((a, b) => a.forQtr - b.forQtr).at(-1)?.value ?? null
+  return best?.value ?? null
 }

@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "3ad8b36",
+  "revision": "e441fb9",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 114,
-      "lines": 19481
+      "lines": 19490
     }
   ],
   "modules": [
@@ -8941,7 +8941,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The occupational labour survey, arranged for the labour office.",
-      "lines": 128,
+      "lines": 137,
       "exports": [
         {
           "name": "LABOUR_CLASS_FACE",
@@ -8992,10 +8992,10 @@ export const architecture = {
           "line": 101
         },
         {
-          "name": "latestLabourIndicator",
+          "name": "labourIndicatorForQuarter",
           "kind": "function",
           "path": "packages/ui/src/labour.ts",
-          "line": 115
+          "line": 123
         }
       ],
       "imports": [

@@ -8,8 +8,8 @@ import { LABOUR_SURVEY_FUNDED_AT } from '@terrarium/engine'
 import {
   LABOUR_CLASS_FACE,
   labourAvailability,
+  labourIndicatorForQuarter,
   labourTraces,
-  latestLabourIndicator,
   readLabour,
 } from '../../packages/ui/src/labour'
 
@@ -78,10 +78,14 @@ describe('reading the occupational labour survey', () => {
     expect(labourAvailability(pubWith([print(4)], 0))).toBe('reporting')
   })
 
-  it('reads the two independently published headlines', () => {
-    const pub = pubWith([print(4)])
-    expect(latestLabourIndicator(pub, 'unemployment')).toBe(12)
-    expect(latestLabourIndicator(pub, 'labour_underuse')).toBe(16)
-    expect(latestLabourIndicator({ ...pub, indicators: {} }, 'labour_underuse')).toBeNull()
+  it('reads each headline for the survey quarter named, not its own latest', () => {
+    const pub = pubWith([print(20)])
+    expect(labourIndicatorForQuarter(pub, 'unemployment', 20)).toBe(12)
+    expect(labourIndicatorForQuarter(pub, 'labour_underuse', 20)).toBe(16)
+    expect(labourIndicatorForQuarter({ ...pub, indicators: {} }, 'labour_underuse', 20)).toBeNull()
+    // unemployment's lower funding gate can settle a newer quarter than the
+    // occupational release; a mismatched quarter must read null, not that
+    // newer value, or the overlay would date it to the wrong survey.
+    expect(labourIndicatorForQuarter(pub, 'unemployment', 24)).toBeNull()
   })
 })
