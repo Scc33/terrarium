@@ -17,16 +17,10 @@ import {
   HOUSEHOLD_POVERTY_GAP_SD,
   HOUSEHOLD_SURVEY_FUNDED_AT,
   INDICATOR_FUNDED_AT,
-  INDUSTRY_CENSUS_FUNDED_AT,
-  INDUSTRY_EMPLOYMENT_SD,
-  INDUSTRY_VALUE_ADDED_SD,
   POVERTY_LINE_REAL,
   STAT_ERROR_BAND_CAPACITY_GATE,
   STAT_ERROR_BAND_Z,
-  STAT_FAST_LAG_CAPACITY,
   STAT_GDP_LEVEL_RELATIVE_SD,
-  STAT_LAGS,
-  STAT_NOISE_CAPACITY_GAIN,
   STAT_REVISION_DELAYS,
   STAT_REVISION_SETTLING_RATE,
 } from '../constants'
@@ -35,15 +29,12 @@ import { clamp } from '../math'
 import { humanDevelopmentDimensions, humanDevelopmentIndex } from '../humanDevelopment'
 import {
   INCOME_QUINTILE_IDS,
-  INDUSTRY_TABLE_IDS,
   SECTOR_IDS,
   SPENDING_PROGRAM_IDS,
   STATUTE_IDS,
   type IndicatorId,
   type HouseholdSurveyPrint,
   type IncomeQuintileId,
-  type IndustryPrint,
-  type IndustryTableId,
   type PolicyRecord,
   type SectorId,
   type StatPrint,
@@ -64,6 +55,10 @@ import {
   termsOfTrade,
   totalLaborForce,
 } from './derive'
+import { labourMarket } from './labourMarket'
+import { industryPrintsDue } from './industrySurvey'
+import { labourPrintsDue } from './labourSurvey'
+import { lagFor, noiseScale, PUBLICATION_LAGS, REVISION_DELAYS } from './measurement'
 import {
   HUMAN_DEVELOPMENT_COMPONENT_IDS,
   INDICATOR_SPECS,
@@ -72,13 +67,11 @@ import {
   type HumanDevelopmentComponentId,
 } from './indicatorSpecs'
 
-const lagFor = (cap: number) => (cap >= STAT_FAST_LAG_CAPACITY ? 1 : 2)
-const noiseScale = (cap: number) => 1 - STAT_NOISE_CAPACITY_GAIN * cap
-
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
   const population = state.demography.pyramid.reduce((s, n) => s + n, 0)
   const households = householdIncomeDistribution(state)
+  const labour = labourMarket(state)
   // the expenditure side: four non-negative claims on one quarter's output.
   // Consumption and exports come from the sector demand vectors, capital
   // formation is public and private together, and what is left of the state's
@@ -103,6 +96,8 @@ function recordOf(state: TrueState): StatRecord {
       flows.foreignDirectInvestmentValue / Math.max(flows.nominalGdp, 1e-9),
     inflationQ: flows.inflationQ,
     unemployment: flows.unemployment,
+    labourMarket: labour.byClass,
+    labourUnderuse: labour.underuse,
     laborForceParticipation: population > 1e-9 ? totalLaborForce(state) / population : 0,
     humanCapital: state.demography.humanCapital,
     payrolls: sectors.reduce((s, x) => s + (x.id === 'agri' ? 0 : x.employment), 0),
@@ -214,9 +209,9 @@ function printsDue(
   fullInstrumentation: boolean,
 ): StatPrint[] {
   const out: StatPrint[] = []
-  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
-    for (const lag of STAT_LAGS) {
-      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
+  for (let r = 0; r < REVISION_DELAYS.length; r++) {
+    for (const lag of PUBLICATION_LAGS) {
+      const q = publishedAt - lag - REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       // the survey didn't exist that quarter
@@ -369,82 +364,6 @@ export function humanDevelopmentPrintsDue(
   return out
 }
 
-/** The noise on each of the census's two tables, as a fraction of the figure
- * at zero capacity. A total `Record` over the table ids, and the ONLY place
- * either number is read: the wobble the office applies and the band it
- * confesses come from this one entry, in the same loop iteration, so they
- * cannot drift into two different accounts of how well it measured. (The same
- * rule `politicalCostOfAction` keeps for a quote and its charge.) */
-const INDUSTRY_SD: Record<IndustryTableId, number> = {
-  valueAdded: INDUSTRY_VALUE_ADDED_SD,
-  employment: INDUSTRY_EMPLOYMENT_SD,
-}
-
-/**
- * The industrial census's releases dated `publishedAt` — the same clock,
- * funding gate, lag and revision schedule the indicators run on, applied to a
- * vector instead of a scalar.
- *
- * It deliberately reuses `lagFor` and `noiseScale` rather than owning a
- * second measurement model: this is the same office, and an industry survey
- * that got sharper faster than the accounts it has to reconcile with would be
- * a statement about the fog nobody meant to make. What it does NOT reuse is
- * `IndicatorSpec`, because a spec is a scalar with a dial face and this has
- * neither (see `IndustryPrint`).
- *
- * Each industry gets an INDEPENDENT draw, which is why the published parts do
- * not sum to the published GDP. That is the office confessing its method, not
- * a bug: the
- * office is estimating five things, not dividing one thing five ways. The
- * two tables draw from separate substreams so that adding a third column
- * later cannot shift the census a century of saves already published.
- */
-function industryPrintsDue(
-  record: StatRecord[],
-  publishedAt: number,
-  seed: Seed,
-  fullInstrumentation: boolean,
-): IndustryPrint[] {
-  const out: IndustryPrint[] = []
-  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
-    for (const lag of STAT_LAGS) {
-      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
-      if (q < 0 || q >= record.length) continue
-      const cap = record[q].statCapacity
-      if (!fullInstrumentation && cap < INDUSTRY_CENSUS_FUNDED_AT) continue
-      if (lagFor(cap) !== lag) continue
-      const settling = noiseScale(cap) * Math.pow(STAT_REVISION_SETTLING_RATE, r)
-      const truth = record[q].industry
-      const tables = {} as Record<IndustryTableId, Record<SectorId, number>>
-      const errorBand = {} as IndustryPrint['errorBand']
-      for (const table of INDUSTRY_TABLE_IDS) {
-        const sd = INDUSTRY_SD[table] * settling
-        const rng = rngFor(seed, `obs:industry:${table}:${q}:${r}`, 0)
-        const figures = {} as Record<SectorId, number>
-        for (const sid of SECTOR_IDS) {
-          // A negative industry is not a thing a census can report, and a
-          // negative wedge cannot be drawn at all (`donutSlices` drops it).
-          // The floor bites only where the truth is already near zero.
-          figures[sid] = Math.max(0, truth[sid][table] * (1 + rng.normal(0, sd)))
-        }
-        tables[table] = figures
-        // the same threshold the indicators confess a band at, and relative
-        // for the same reason the noise is
-        errorBand[table] = cap >= STAT_ERROR_BAND_CAPACITY_GATE ? STAT_ERROR_BAND_Z * sd : 0
-      }
-      out.push({
-        forQtr: q,
-        publishedAt,
-        revision: r,
-        errorBand,
-        valueAdded: tables.valueAdded,
-        employment: tables.employment,
-      })
-    }
-  }
-  return out
-}
-
 /**
  * Household-budget survey releases. The office estimates five ranked real
  * incomes, then reconciles their shares from that same set of estimates. That
@@ -458,9 +377,9 @@ function householdPrintsDue(
   fullInstrumentation: boolean,
 ): HouseholdSurveyPrint[] {
   const out: HouseholdSurveyPrint[] = []
-  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
-    for (const lag of STAT_LAGS) {
-      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
+  for (let r = 0; r < REVISION_DELAYS.length; r++) {
+    for (const lag of PUBLICATION_LAGS) {
+      const q = publishedAt - lag - REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       if (!fullInstrumentation && cap < HOUSEHOLD_SURVEY_FUNDED_AT) continue
@@ -555,6 +474,14 @@ export const statistics: PipelineStep = {
     )
     const industry =
       censusDue.length > 0 ? [...state.stats.industry, ...censusDue] : state.stats.industry
+    const labourDue = labourPrintsDue(
+      record,
+      releaseDate,
+      seed,
+      state.meta.rules.fullInstrumentation,
+    )
+    const labour =
+      labourDue.length > 0 ? [...state.stats.labour, ...labourDue] : state.stats.labour
     const householdDue = householdPrintsDue(
       record,
       releaseDate,
@@ -570,6 +497,6 @@ export const statistics: PipelineStep = {
     // than on the one before it.
     const filed = conditionDispatches(state, record)
     const news = filed.length > 0 ? [...state.stats.news, ...filed] : state.stats.news
-    return { ...state, stats: { record, series, industry, households, news } }
+    return { ...state, stats: { record, series, industry, labour, households, news } }
   },
 }

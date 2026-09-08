@@ -819,6 +819,52 @@ test('household office shows poverty and both quintile views once surveyed', asy
   await expect(page).toHaveScreenshot('households-share.png')
 })
 
+test('labour office separates joblessness from work below training', async ({ page }) => {
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page
+    .getByRole('combobox', { name: 'COUNTRY RECIPE' })
+    .selectOption({ label: 'Costona — The landowners’ settlement' })
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050' }).fill('1980')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  const count = page.getByRole('dialog', { name: 'THE COUNT' })
+  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+
+  await (await officeButton(page, 'LABOUR')).click()
+  const labour = page.getByRole('dialog', {
+    name: 'THE LABOUR OFFICE — WORK AND OCCUPATION',
+  })
+  await expect(labour.getByText('LABOUR UNDERUSE', { exact: true })).toBeVisible()
+  await expect(labour.getByText('WITHOUT WORK, BY CLASS', { exact: true })).toBeVisible()
+  await expect(labour.getByText('WORKING BELOW TRAINING, BY CLASS', { exact: true })).toBeVisible()
+
+  const fit = await page.evaluate(`(() => {
+    const doc = document.scrollingElement;
+    const dialog = document.querySelector('[role="dialog"]');
+    const box = dialog?.getBoundingClientRect();
+    return {
+      horizontalPageScroll: (doc?.scrollWidth ?? 0) > (doc?.clientWidth ?? 0),
+      verticalPageScroll: (doc?.scrollHeight ?? 0) > (doc?.clientHeight ?? 0),
+      horizontalDialogScroll: (dialog?.scrollWidth ?? 0) > (dialog?.clientWidth ?? 0),
+      insideViewport:
+        box != null && box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight,
+    };
+  })()`)
+  expect(fit).toEqual({
+    horizontalPageScroll: false,
+    verticalPageScroll: false,
+    horizontalDialogScroll: false,
+    insideViewport: true,
+  })
+
+  await page.mouse.move(0, 0)
+  await expect(page).toHaveScreenshot('labour-office.png')
+  await labour.getByRole('row', { name: /Professionals/ }).scrollIntoViewIfNeeded()
+  await expect(labour.getByRole('row', { name: /Professionals/ })).toBeVisible()
+})
+
 test('census files life expectancy with the population flows', async ({ page }) => {
   await openGame(page)
   await page.keyboard.press('Backquote')

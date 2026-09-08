@@ -178,6 +178,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // demand toward the sector the richest working cohort staffs), not because
   // the face was wrong before.
   unrest: { lo: 0, hi: 70 },
+  // Schema 46, 12 seeds × 6 countries × 400 funded quarters: p01–p99
+  // 8.6–29.6%, extrema 6.2–40.1. Zero is the honest lower rail for a rate;
+  // the 30% upper rail covers the middle 98% and lets exceptional mismatch
+  // peg visibly.
+  labour_underuse: { lo: 0, hi: 30 },
 }
 
 /**

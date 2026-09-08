@@ -1,7 +1,6 @@
 /**
  * The ministry handbook: everything the game knows how to explain about
  * itself, as data rather than as markup.
- *
  * Three complaints made this: nobody could find out what a lever did without
  * pulling it (#33), the methodology behind the published figures existed only
  * in the engine's comments (#32), and there was no manual of the sort a boxed
@@ -438,7 +437,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
           { term: 'The wall', detail: 'The instruments, the ledger and the corridor plot. Everything you can see about the country.', meta: 'CENTRE' },
           { term: 'The cabinet', detail: 'Every lever, grouped by decision domain, with the draft-and-enact flow pinned below it.', meta: 'RIGHT' },
           { term: 'The wire', detail: 'Rumours and dispatches along the bottom. Some of them are wrong; that is the point.', meta: 'BOTTOM' },
-          { term: 'The offices', detail: 'Households, industry, accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
+          { term: 'The offices', detail: 'Households, labour, industry, accounts, finance, the census, the study and the records office — the paperwork that does not fit on the wall.', meta: 'HEADER' },
         ],
       },
     ],
@@ -507,8 +506,9 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
       {
         heading: 'NOT EVERY SURVEY IS AN INSTRUMENT',
         body: [
-          'The office publishes two compositions that are not families of dials. The industrial census — in the industry office, on the header — reports what each industry produced and how many people it employed. The household survey ranks people into five equal fifths and reports each fifth’s real income and share of all household income. Both are fogged exactly like the wall: gated on statistical capacity, released with the same lag, revised on the same schedule.',
+          'The office publishes three breakdowns that are not families of dials. The industrial census reports what each industry produced and how many people it employed. The household survey ranks people into five equal fifths and reports each fifth’s real income and share of all household income. The labour survey reports joblessness and work below training for rural, urban and professional workers. All three are in the offices on the header, and all three are fogged exactly like the wall: gated on statistical capacity, released with the same lag, revised on the same schedule.',
           'Because each industry is surveyed separately, the five figures do not add up to the published output, and the census states its own uncertainty per table rather than for the release: an enumerator can count heads at a factory gate and has to estimate what the factory made, so the jobs column is measured better than the output column and says so.',
+          'The labour page keeps one quick underuse headline on the wall and the class split in the office. Underuse is people without a job plus employed people holding a post below their training. Each class and the headline are sampled independently, so the rows do not add back to the dial; an absent survey means the office does not know, never that mismatch is zero.',
           'The household page keeps one quick poverty rate on the wall and the distribution behind it in the office. Poverty means income below one fixed real 1946 basket per person each quarter; the line does not rise when the country grows. The rate can move in steps because the economy models five classes rather than individual households, so the page also carries the poverty gap — how far below the line people remain — and that can improve before a whole class crosses.',
         ],
       },

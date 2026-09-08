@@ -4,6 +4,7 @@
  */
 
 import type { FinanceState } from './finance'
+import type { LabourMarketPrint, LabourMarketRecord } from './labour'
 import type { Seed } from '../rng/rng'
 import type { DeskId, EventId, Prominence } from '../events/ids'
 
@@ -288,6 +289,8 @@ export const INDICATOR_IDS = [
    * the historical fact rather than a flourish. */
   'pollution',
   'unrest',
+  /** open joblessness plus employment below the worker's occupational rung */
+  'labour_underuse',
 ] as const
 export type IndicatorId = (typeof INDICATOR_IDS)[number]
 
@@ -1048,6 +1051,8 @@ export interface StatRecord {
   foreignDirectInvestmentShare: Ratio
   inflationQ: number
   unemployment: Ratio
+  labourMarket: LabourMarketRecord // exact occupational-survey worksheet
+  labourUnderuse: Ratio
   /** labor force as a share of the whole census population. This is the
    * LF / population term in the exact per-capita growth identity; unlike the
    * live head count, the published share comes from the labour force survey. */
@@ -1184,6 +1189,7 @@ export interface StatsOffice {
   /** the industrial census, in publication order. A vector release rather
    * than an `IndicatorId`, for the reasons on `IndustryPrint`. */
   industry: IndustryPrint[]
+  labour: LabourMarketPrint[]
   /** household-budget survey releases, in publication order. Quintiles are a
    * vector rather than five separate wall indicators (ADR-0030). */
   households: HouseholdSurveyPrint[]
@@ -1328,7 +1334,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 45 // v45: central-bank holdings and public financing books (#212)
+export const SCHEMA_VERSION = 46 // v46: occupational labour survey and underuse indicator (#197)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

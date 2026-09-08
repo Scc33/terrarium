@@ -13,6 +13,12 @@ import {
   type SectorId,
 } from '../state/schema'
 
+export interface StaffingAllocation {
+  heads: Record<SectorId, Record<CohortId, number>>
+  /** Employed heads holding a post below their own skill rank, by actual cohort. */
+  underemployed: Record<CohortId, number>
+}
+
 const SKILL_RANKS = COHORT_IDS.map((id) => SKILL_RANK[id])
 const MAX_SKILL_RANK = Math.max(...SKILL_RANKS)
 const MIN_SKILL_RANK = Math.min(...SKILL_RANKS)
@@ -51,13 +57,13 @@ function grid(sectorCount: number, value: number): number[][] {
  * cover total posts. After own-skill hiring settles, surplus higher-ranked
  * applicants may bump matched workers down one rung (ADR-0036).
  */
-export function allocateStaffing(
+function allocation(
   sectors: readonly Pick<Sector, 'id' | 'employment'>[],
   supply: Readonly<Record<CohortId, number>>,
   /** Zero reproduces ADR-0035 exactly; one lets every surplus applicant
    * contest a matched post on the immediately lower rung. */
   bumpingPreference = OVERQUALIFIED_HIRING_PREFERENCE,
-): Record<SectorId, Record<CohortId, number>> {
+): StaffingAllocation {
   const nS = sectors.length
   const nC = COHORT_IDS.length
   let supplyTotal = 0
@@ -66,6 +72,7 @@ export function allocateStaffing(
   const spare = COHORT_IDS.map((id) => supply[id])
   const remaining = grid(nS, 0)
   const heads = grid(nS, 0)
+  const underemployed = new Array<number>(nC).fill(0)
   for (let si = 0; si < nS; si++) {
     const row = LABOR_SOURCE[sectors[si].id]
     for (let ci = 0; ci < nC; ci++) {
@@ -109,6 +116,7 @@ export function allocateStaffing(
           for (const ci of ladder[distance][wi]) {
             const take = posts * (spare[ci] / eligible) * served[ci]
             heads[si][ci] += take
+            if (SKILL_RANKS[ci] > SKILL_RANKS[wi]) underemployed[ci] += take
             remaining[si][wi] -= take
           }
         }
@@ -150,7 +158,9 @@ export function allocateStaffing(
             heads[si][wi] -= fromPost
             spare[wi] += fromPost
             for (const ci of higher) {
-              heads[si][ci] += fromPost * (spare[ci] / applicants)
+              const take = fromPost * (spare[ci] / applicants)
+              heads[si][ci] += take
+              underemployed[ci] += take
             }
           }
         }
@@ -191,10 +201,34 @@ export function allocateStaffing(
 
   // `fromEntries` makes caller-supplied ids data rather than computed writes,
   // keeping `__proto__` from writing through to Object.prototype.
-  return Object.fromEntries(
+  return {
+    heads: Object.fromEntries(
     sectors.map((sector, si) => [
       sector.id,
       Object.fromEntries(COHORT_IDS.map((id, ci) => [id, heads[si][ci]])),
     ]),
-  ) as Record<SectorId, Record<CohortId, number>>
+    ) as Record<SectorId, Record<CohortId, number>>,
+    underemployed: Object.fromEntries(
+      COHORT_IDS.map((id, ci) => [id, underemployed[ci]]),
+    ) as Record<CohortId, number>,
+  }
+}
+
+export function allocateStaffing(
+  sectors: readonly Pick<Sector, 'id' | 'employment'>[],
+  supply: Readonly<Record<CohortId, number>>,
+  bumpingPreference = OVERQUALIFIED_HIRING_PREFERENCE,
+): Record<SectorId, Record<CohortId, number>> {
+  return allocation(sectors, supply, bumpingPreference).heads
+}
+
+/** The same allocation, retaining which actual cohorts filled lower-rung
+ * posts. Statistics uses this sidecar; the economic pipeline keeps consuming
+ * `allocateStaffing`'s bit-identical collapsed head count. */
+export function allocateStaffingDetailed(
+  sectors: readonly Pick<Sector, 'id' | 'employment'>[],
+  supply: Readonly<Record<CohortId, number>>,
+  bumpingPreference = OVERQUALIFIED_HIRING_PREFERENCE,
+): StaffingAllocation {
+  return allocation(sectors, supply, bumpingPreference)
 }

@@ -9,7 +9,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { INDICATOR_IDS, STANDARD_RULES, init, step, type TrueState } from '@terrarium/engine'
+import {
+  INDICATOR_IDS,
+  LABOUR_CLASS_IDS,
+  LABOUR_MARKET_TABLE_IDS,
+  STANDARD_RULES,
+  init,
+  step,
+  type TrueState,
+} from '@terrarium/engine'
 import { observe, type PublishedState } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 
@@ -45,6 +53,7 @@ describe('the published-state contract (§1.1)', () => {
       'rules',
       'indicators',
       'industry',
+      'labour',
       'households',
       'dials',
       'spendingRules',
@@ -149,6 +158,8 @@ describe('the published-state contract (§1.1)', () => {
       'privateDomesticDemandReal',
       'governmentDomesticDemandReal',
       'publicInvestmentReal',
+      'labourMarket',
+      'labourUnderuse',
     ]
     for (const f of forbidden) expect(keys.has(f), `LEAKED true-state field: ${f}`).toBe(false)
   })
@@ -186,6 +197,23 @@ describe('the published-state contract (§1.1)', () => {
         value === 100 * truth.incomeQuintileReal[id as keyof typeof truth.incomeQuintileReal] / baseline,
       )
       expect(exact).toBe(false)
+    }
+  })
+
+  it('the occupational split crosses as independent survey returns, never as the worksheet', () => {
+    const state = play('contract-labour', 30, 1)
+    const pub = observe(state)
+    expect(pub.labour.length).toBeGreaterThan(0)
+    for (const print of pub.labour) {
+      expect(print.forQtr).toBeLessThan(pub.tick)
+      expect(print.publishedAt).toBeGreaterThan(print.forQtr)
+      const truth = state.stats.record[print.forQtr].labourMarket
+      for (const table of LABOUR_MARKET_TABLE_IDS) {
+        expect(
+          LABOUR_CLASS_IDS.some((id) => print[table][id] !== truth[id][table]),
+          `${table} crossed as exact truth`,
+        ).toBe(true)
+      }
     }
   })
 

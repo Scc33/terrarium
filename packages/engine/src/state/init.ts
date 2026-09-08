@@ -638,7 +638,7 @@ export function init(
       debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
-    stats: { record: [], series: {}, industry: [], households: [], news: [] },
+    stats: { record: [], series: {}, industry: [], labour: [], households: [], news: [] },
     score: {
       discountedWelfare: 0,
       discountWeight: 0,

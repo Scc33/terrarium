@@ -359,4 +359,12 @@ export const INDICATOR_SPECS: IndicatorSpecsById = {
     baseSd: 0.06,
     relativeSd: true,
   },
+  labour_underuse: {
+    id: 'labour_underuse',
+    // Open joblessness plus people working below their occupational rung. The
+    // survey table is measured independently, so its fogged rows do not sum
+    // back to this separately sampled headline.
+    trueValue: (h, q) => h[q].labourUnderuse * 100,
+    baseSd: 2.5,
+  },
 }

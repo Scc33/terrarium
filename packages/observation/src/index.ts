@@ -17,6 +17,8 @@ export {
   TAX_RATE_IDS,
   SECTOR_IDS,
   INDUSTRY_TABLE_IDS,
+  LABOUR_CLASS_IDS,
+  LABOUR_MARKET_TABLE_IDS,
   INCOME_QUINTILE_IDS,
   STATUTE_IDS,
   type IndicatorId,
@@ -26,6 +28,9 @@ export {
   // the production side, by industry — a fogged vector release, not a dial
   type IndustryPoint,
   type IndustryTableId,
+  type LabourClassId,
+  type LabourMarketPoint,
+  type LabourMarketTableId,
   type HouseholdIncomePoint,
   type IncomeQuintileId,
   type SectorId,

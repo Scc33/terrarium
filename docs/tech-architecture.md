@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 45. The short player-facing design is in
+*How the code is actually arranged, as of schema 46. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -184,7 +184,7 @@ interface TrueState {
   external: ExternalState      // partners, prices, reserves, the FX market, foreign-owned capital
   politics: PoliticalState
   ledger: FragilityLedger
-  stats: StatsOffice           // prints, revisions, industry + household surveys — the fog's own state
+  stats: StatsOffice           // prints, revisions, industry + labour + household surveys — the fog's own state
   score: { discountedWelfare; discountWeight }   // accumulated as the run happens
 }
 ```
@@ -193,7 +193,7 @@ Id lists in `schema.ts` are the single source of truth and are exported as `cons
 downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
 
 `SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
-`INDICATOR_IDS` · `INDUSTRY_TABLE_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` ·
+`INDICATOR_IDS` · `INDUSTRY_TABLE_IDS` · `LABOUR_CLASS_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` ·
 `SPENDING_PROGRAM_IDS` · `AGE_BANDS` · `PARTNER_IDS`
 
 **Schema rules:**
@@ -216,6 +216,8 @@ interface PublishedState {
                                    // unless rules.fullInstrumentation fits them all
   industry: IndustryPoint[]        // the industrial census: value added and employment by
                                    // sector, fogged. A VECTOR release, not an indicator (§3.2)
+  labour: LabourMarketPoint[]      // joblessness + underemployment by occupational class,
+                                   // fogged independently from the underuse headline (§3.2)
   households: HouseholdIncomePoint[] // household quintiles + poverty gap, fogged (§3.2)
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
@@ -238,7 +240,7 @@ not from hidden state and not by a second observation draw (ADR-0033).
 
 ### 3.2 Not every fogged output is an indicator
 
-`industry` is the exception, and the shape is reusable. The industrial census publishes a
+`industry`, `labour`, and `households` are the vector exceptions. The industrial census publishes a
 **vector** — two tables (`INDUSTRY_TABLE_IDS`: `valueAdded`, `employment`) over `SECTOR_IDS` —
 on the office's ordinary clock: the same funding gate (`INDUSTRY_CENSUS_FUNDED_AT`), the same
 capacity-dependent lag, the same three revisions, the same `noiseScale`. What it does not have
@@ -256,7 +258,13 @@ Two properties follow and both are load-bearing:
   `Record<IndustryTableId, number>` read from the same constant that draws the noise, in the same
   loop iteration, so the quote and the wobble cannot become two accounts of the same survey.
 
-Reach for this shape when what you want to publish is a *composition* rather than a number.
+The occupational labour survey reuses that shape at a **0.45** gate. It publishes `jobless` and
+`underemployed` over rural workers, urban workers and professionals, with each cell drawn from its
+own `obs:labour:*` substream. The scalar `labour_underuse` instrument is measured independently as
+open joblessness plus lower-rung employment, so the fogged rows do not sum back to its fogged
+headline. An unfunded survey is an empty array, never a vector of zeroes.
+
+Reach for this shape when what you want to publish is a *composition or breakdown* rather than a number.
 
 ---
 
