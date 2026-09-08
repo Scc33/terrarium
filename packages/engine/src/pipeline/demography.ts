@@ -23,14 +23,18 @@ import {
   FERT_SECULAR_Q,
   FERT_SURVIVAL_GAIN,
   FERT_URBAN_GAIN,
+  FERT_URBAN_NEUTRAL,
   FERTILE_YEARS,
   HUMAN_CAPITAL_ADJUST_Q,
+  JOBS_PULL_UNEMPLOYMENT_GAIN,
+  LIVING_STANDARD_LOG_FLOOR,
   MIG_EMIGRATION_CAP_Q,
   MIG_LABOR_GAIN,
   MIG_PERFORMANCE_GAIN_Q,
   MIG_PERFORMANCE_GAP_CAP,
   MIG_WORLD_FRONTIER_SHARE,
   MORT_BASE_ANNUAL,
+  MORT_CEILING,
   MORT_FLOOR,
   MORT_INCOME_GAIN,
   MORT_SECULAR_Q,
@@ -72,6 +76,8 @@ export function vitalRates(pyramid: number[], tfr: number, mortalityIndex: numbe
     (s, n, i) => s + n * (MORT_BASE_ANNUAL[i] / 4) * mortalityIndex,
     0,
   )
+  // a fixed 50/50 sex ratio, not a tunable balance lever
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   const women = 0.5 * sumBands(pyramid, FERTILE_BANDS[0], FERTILE_BANDS[1])
   const births = (tfr * women) / (FERTILE_YEARS * 4)
   const per1000 = (flowQ: number) => (totalPop > 1e-9 ? ((flowQ * 4) / totalPop) * 1000 : 0)
@@ -194,7 +200,7 @@ export const demography: PipelineStep = {
     const d = state.demography
     const p = d.pyramid
     const living = livingStandard(state)
-    const lnLiving = Math.log(Math.max(living, 0.05))
+    const lnLiving = Math.log(Math.max(living, LIVING_STANDARD_LOG_FLOOR))
     // Buildings arrive through fiscal in two years. People learn on a
     // generational clock, so the stock only closes a fraction of the gap to
     // the current school system each quarter. This happens before technology
@@ -229,13 +235,13 @@ export const demography: PipelineStep = {
       Math.exp(-MORT_SECULAR_Q * state.meta.tick) *
         (1 - MORT_INCOME_GAIN * lnLiving + pollutionHarm),
       MORT_FLOOR,
-      1.3,
+      MORT_CEILING,
     )
     const urbanShare = 1 - d.classShares.rural_workers
     const tfr = clamp(
       FERT_MAX -
         FERT_INCOME_GAIN * Math.max(0, lnLiving) -
-        FERT_URBAN_GAIN * Math.max(0, urbanShare - 0.5) -
+        FERT_URBAN_GAIN * Math.max(0, urbanShare - FERT_URBAN_NEUTRAL) -
         FERT_SURVIVAL_GAIN * (1 - mortalityIndex) -
         FERT_EDU_GAIN * Math.max(0, humanCapital - EDUCATION_1946) -
         FERT_SECULAR_Q * state.meta.tick,
@@ -245,7 +251,9 @@ export const demography: PipelineStep = {
 
     // --- cohort-component quarter: die, age, be born ---
     const deaths = p.map((n, i) => n * (MORT_BASE_ANNUAL[i] / 4) * mortalityIndex)
-    // uniform age within a 5-year band: 1/20th graduates each quarter
+    // uniform age within a 5-year band: 1/20th graduates each quarter —
+    // band width, not a tunable
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers
     const aged = p.map((n, i) => (i < AGE_BANDS - 1 ? (n - deaths[i]) / 20 : 0))
     const { births, crudeBirthRate, crudeDeathRate } = vitalRates(p, tfr, mortalityIndex)
 
@@ -288,7 +296,11 @@ export const demography: PipelineStep = {
     const wageGap = (w.manuf + w.services) / 2 / Math.max(w.agri, 1e-9) - 1
     // Open unemployment answers whether the cities have jobs to pull people
     // into. Bumping only reallocates existing posts and is not a vacancy.
-    const jobsPull = clamp(1 - 5 * (state.flows.unemployment - NATURAL_UNEMPLOYMENT), 0, 1)
+    const jobsPull = clamp(
+      1 - JOBS_PULL_UNEMPLOYMENT_GAIN * (state.flows.unemployment - NATURAL_UNEMPLOYMENT),
+      0,
+      1,
+    )
     const move =
       URBANIZATION_GAIN * d.classShares.rural_workers * clamp(wageGap, 0, 1) * jobsPull
 

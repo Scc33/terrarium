@@ -24,7 +24,9 @@
 import {
   COUP_AT,
   COUP_P,
+  ELECTION_OUTCOME_NOISE_SD,
   ELECTION_WIN_THRESHOLD,
+  ELECTION_WIN_THRESHOLD_FLOOR,
   PC_HEADLINE_CAP,
   PC_HEADLINE_SALIENCE,
   PC_INCOME_APPROVAL_NEUTRAL,
@@ -70,7 +72,7 @@ function headlineGdp(prints: StatPrint[] | undefined): StatPrint | null {
  * the opposition from the count, which is the same thing on the night and a
  * different thing entirely on the report card. */
 export function electionThreshold(repression: number): number {
-  return Math.max(0.05, ELECTION_WIN_THRESHOLD - REPRESSION_VOTE_EDGE * repression)
+  return Math.max(ELECTION_WIN_THRESHOLD_FLOOR, ELECTION_WIN_THRESHOLD - REPRESSION_VOTE_EDGE * repression)
 }
 
 export const politics: PipelineStep = {
@@ -133,7 +135,7 @@ export const politics: PipelineStep = {
       const platform = pol.campaign?.platform ?? 'record'
       const swing = pol.campaign?.swing ?? 0
       const threshold = electionThreshold(inst.stocks.repression)
-      const won = approval + swing + rng.normal(0, 0.03) >= threshold
+      const won = approval + swing + rng.normal(0, ELECTION_OUTCOME_NOISE_SD) >= threshold
       const suppressed = won && platform === 'suppression'
       const retainsOffice = won || protectedTenure
       const result: ElectionResult = {

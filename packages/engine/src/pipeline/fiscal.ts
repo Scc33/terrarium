@@ -16,8 +16,12 @@ import {
   CAPACITY_DECAY_BY_ID,
   DEBT_CEILING,
   FIN_FAVOR_DEPTH,
+  FUEL_EFF_BASE,
+  FUEL_EFF_CAPACITY_GAIN,
   FUND_YIELD,
   LAND_FAVOR_TAX,
+  TARIFF_EFF_BASE,
+  TARIFF_EFF_CAPACITY_GAIN,
   taxEfficiency,
 } from '../constants'
 import { clamp, sumRecord } from '../math'
@@ -43,8 +47,8 @@ export const fiscal: PipelineStep = {
       effectiveBlocPower(state, 'landowners')
     const moneyAnger = financierAnger(state)
     const eff = taxEfficiency(gov.capacity.tax) * (1 - LAND_FAVOR_TAX * landAnger)
-    const tariffEff = 0.5 + 0.5 * gov.capacity.tax // customs posts are easy to man
-    const fuelEff = 0.7 + 0.3 * gov.capacity.tax // excise at the depot, likewise
+    const tariffEff = TARIFF_EFF_BASE + TARIFF_EFF_CAPACITY_GAIN * gov.capacity.tax // customs posts are easy to man
+    const fuelEff = FUEL_EFF_BASE + FUEL_EFF_CAPACITY_GAIN * gov.capacity.tax // excise at the depot, likewise
 
     // --- revenue ---
     const wageBase = state.sectors.reduce((s, sec) => s + market.wages[sec.id] * sec.employment, 0)
@@ -101,10 +105,15 @@ export const fiscal: PipelineStep = {
     // 0008).
     const drawn = balance < 0 ? Math.min(-balance, gov.fund) : 0
     const deficit = Math.max(0, -balance) - drawn
+    // annualize (×4) then take one quarter of it back (×0.25) — a unit
+    // round trip kept explicit for readability, not two independent levers.
+    /* eslint-disable @typescript-eslint/no-magic-numbers -- the 4 above is
+       already ignored; 0.25 is its pair, not a second tunable */
     const bondCapacity =
       debtToGdp > DEBT_CEILING
         ? 0
         : BOND_MARKET_DEPTH * 4 * flows.nominalGdp * 0.25 * (1 - FIN_FAVOR_DEPTH * moneyAnger)
+    /* eslint-enable @typescript-eslint/no-magic-numbers */
     const printedThisQtr = Math.max(0, deficit - bondCapacity)
     const borrowed = deficit - printedThisQtr
     const repaid = Math.min(Math.max(0, balance), gov.debt)

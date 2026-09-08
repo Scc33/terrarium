@@ -11,17 +11,36 @@
 import {
   adminEffectiveness,
   CONF_NEUTRAL,
+  FDI_ADMIN_FACTOR_FLOOR,
+  FDI_ADMIN_FACTOR_GAIN,
   FDI_BASE_ANNUAL_GDP_SHARE,
+  FDI_CATCHUP_FACTOR_MAX,
+  FDI_CATCHUP_FACTOR_MIN,
   FDI_CATCHUP_FLOOR,
   FDI_CATCHUP_GAIN,
+  FDI_CONFIDENCE_FACTOR_MAX,
+  FDI_CONFIDENCE_FACTOR_MIN,
   FDI_CONFIDENCE_GAIN,
   FDI_CRISIS_MULTIPLIER,
+  FDI_CYCLE_FACTOR_MAX,
+  FDI_CYCLE_FACTOR_MIN,
+  FDI_CYCLE_WEIGHT_FINANCIAL,
+  FDI_CYCLE_WEIGHT_MANUFACTURING,
+  FDI_CYCLE_WEIGHT_REGIONAL,
+  FDI_EXPORT_FACTOR_MAX,
+  FDI_EXPORT_FACTOR_MIN,
   FDI_EXPORT_GAIN,
+  FDI_MACRO_STABILITY_FLOOR,
   FDI_NORMAL_AFTER_TAX_PROFIT_SHARE,
   FDI_OWNERSHIP_SATURATION,
   FDI_PRICE_INSTABILITY_AT,
   FDI_PRICE_INSTABILITY_DRAG,
+  FDI_REFERENCE_EXPORT_SHARE,
+  FDI_RETURN_FACTOR_MAX,
+  FDI_RETURN_FACTOR_MIN,
   FDI_RETURN_GAIN,
+  FDI_TARIFF_DRAG,
+  FDI_TARIFF_FACTOR_MIN,
   fdiStructuralAttraction,
   taxEfficiency,
   TECH_EXPOSURE,
@@ -48,8 +67,8 @@ export const foreignInvestment: PipelineStep = {
     const afterTaxProfitShare = (positiveProfits * (1 - corporateTax)) / nominalGdp
     const returnFactor = clamp(
       1 + FDI_RETURN_GAIN * (afterTaxProfitShare - FDI_NORMAL_AFTER_TAX_PROFIT_SHARE),
-      0.45,
-      1.6,
+      FDI_RETURN_FACTOR_MIN,
+      FDI_RETURN_FACTOR_MAX,
     )
 
     const exportsValue = SECTOR_IDS.reduce(
@@ -57,11 +76,15 @@ export const foreignInvestment: PipelineStep = {
       0,
     )
     const exportShare = exportsValue / nominalGdp
-    const exportFactor = clamp(1 + FDI_EXPORT_GAIN * (exportShare - 0.15), 0.7, 1.5)
+    const exportFactor = clamp(
+      1 + FDI_EXPORT_GAIN * (exportShare - FDI_REFERENCE_EXPORT_SHARE),
+      FDI_EXPORT_FACTOR_MIN,
+      FDI_EXPORT_FACTOR_MAX,
+    )
     const confidenceFactor = clamp(
       1 + FDI_CONFIDENCE_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL),
-      0.5,
-      1.4,
+      FDI_CONFIDENCE_FACTOR_MIN,
+      FDI_CONFIDENCE_FACTOR_MAX,
     )
     const priceInstability = Math.max(
       0,
@@ -69,7 +92,7 @@ export const foreignInvestment: PipelineStep = {
     )
     const macroStabilityFactor = clamp(
       1 - FDI_PRICE_INSTABILITY_DRAG * priceInstability,
-      0.15,
+      FDI_MACRO_STABILITY_FLOOR,
       1,
     )
     // Read the gap sector by sector, then average it. The published technology
@@ -84,20 +107,25 @@ export const foreignInvestment: PipelineStep = {
       }, 0) / SECTOR_IDS.length
     const catchUpFactor = clamp(
       FDI_CATCHUP_FLOOR + FDI_CATCHUP_GAIN * meanCatchUpGap,
-      0.5,
-      1.25,
+      FDI_CATCHUP_FACTOR_MIN,
+      FDI_CATCHUP_FACTOR_MAX,
     )
-    const administrativeFactor = 0.5 + 0.5 * adminEffectiveness(gov.capacity.administrative)
-    const tariffFactor = clamp(1 - 0.6 * gov.dials.taxRates.tariff, 0.4, 1)
+    const administrativeFactor =
+      FDI_ADMIN_FACTOR_FLOOR + FDI_ADMIN_FACTOR_GAIN * adminEffectiveness(gov.capacity.administrative)
+    const tariffFactor = clamp(
+      1 - FDI_TARIFF_DRAG * gov.dials.taxRates.tariff,
+      FDI_TARIFF_FACTOR_MIN,
+      1,
+    )
 
     const activity = (id: 'financial' | 'manufacturing' | 'regional') =>
       external.world.partners.find((partner) => partner.id === id)?.activity ?? 1
     const foreignCycle = clamp(
-      0.5 * activity('financial') +
-        0.3 * activity('manufacturing') +
-        0.2 * activity('regional'),
-      0.35,
-      1.5,
+      FDI_CYCLE_WEIGHT_FINANCIAL * activity('financial') +
+        FDI_CYCLE_WEIGHT_MANUFACTURING * activity('manufacturing') +
+        FDI_CYCLE_WEIGHT_REGIONAL * activity('regional'),
+      FDI_CYCLE_FACTOR_MIN,
+      FDI_CYCLE_FACTOR_MAX,
     )
     const crisisFactor = finance.crisisQtrsLeft > 0 ? FDI_CRISIS_MULTIPLIER : 1
     const structural = fdiStructuralAttraction(

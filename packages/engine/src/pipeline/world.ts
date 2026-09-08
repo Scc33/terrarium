@@ -22,6 +22,8 @@ import {
   PARTNER_BOOM_AT,
   PARTNER_CYCLE,
   PARTNER_SLUMP_AT,
+  WORLD_PRICE_MAX,
+  WORLD_PRICE_MIN,
   WORLD_PRICE_REVERT,
   WORLD_PRICE_VOL,
   WORLD_SUPPLY_PRICE_GAIN,
@@ -129,7 +131,7 @@ export const world: PipelineStep = {
         WORLD_PRICE_REVERT * (1 - p) -
         WORLD_SUPPLY_PRICE_GAIN * pressure +
         rng.normal(0, WORLD_PRICE_VOL[sid])
-      return clamp(p * (1 + move), 0.2, 8)
+      return clamp(p * (1 + move), WORLD_PRICE_MIN, WORLD_PRICE_MAX)
     })
 
     return {

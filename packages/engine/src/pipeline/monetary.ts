@@ -5,7 +5,12 @@
  * in production (investment reads the real rate).
  */
 
-import { EXPECTATION_ADAPT, PRINT_PRICE_PRESSURE } from '../constants'
+import {
+  EXPECTATION_ADAPT,
+  INFLATION_EXPECTATIONS_MAX,
+  INFLATION_EXPECTATIONS_MIN,
+  PRINT_PRICE_PRESSURE,
+} from '../constants'
 import { clamp } from '../math'
 import type { PipelineStep } from './pipeline'
 
@@ -21,8 +26,8 @@ export const monetary: PipelineStep = {
       ledger.inflationExpectations +
         EXPECTATION_ADAPT * (realizedAnnual - ledger.inflationExpectations) +
         printPressure,
-      -0.05,
-      3,
+      INFLATION_EXPECTATIONS_MIN,
+      INFLATION_EXPECTATIONS_MAX,
     )
     return { ...state, ledger: { ...ledger, inflationExpectations } }
   },

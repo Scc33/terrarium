@@ -37,6 +37,37 @@ import {
   BLOC_FAVOR_ADAPT,
   BLOC_FAVOR_BASE,
   INSTITUTIONS_1946,
+  FAVOR_FINANCIERS_CORPORATE_TAX,
+  FAVOR_FINANCIERS_COURTS,
+  FAVOR_FINANCIERS_DEBT,
+  FAVOR_FINANCIERS_DEBT_NEUTRAL,
+  FAVOR_FINANCIERS_INFLATION,
+  FAVOR_FINANCIERS_INFLATION_NEUTRAL,
+  FAVOR_FINANCIERS_PRINTING,
+  FAVOR_FINANCIERS_REAL_RATE,
+  FAVOR_FINANCIERS_REAL_RATE_CLAMP,
+  FAVOR_INDUSTRIALISTS_COURTS,
+  FAVOR_INDUSTRIALISTS_CORPORATE_TAX,
+  FAVOR_INDUSTRIALISTS_FUEL_TAX,
+  FAVOR_INDUSTRIALISTS_LABOR_RIGHTS,
+  FAVOR_INDUSTRIALISTS_REAL_RATE,
+  FAVOR_INDUSTRIALISTS_SUBSIDY,
+  FAVOR_INDUSTRIALISTS_TARIFF,
+  FAVOR_LANDOWNERS_CORPORATE_TAX,
+  FAVOR_LANDOWNERS_INCOME_TAX,
+  FAVOR_LANDOWNERS_LABOR_RIGHTS,
+  FAVOR_LANDOWNERS_REPRESSION,
+  FAVOR_LANDOWNERS_SUBSIDY,
+  FAVOR_LANDOWNERS_SUFFRAGE,
+  FAVOR_LANDOWNERS_TARIFF,
+  FAVOR_UNIONS_FUEL_TAX,
+  FAVOR_UNIONS_INFLATION,
+  FAVOR_UNIONS_INFLATION_NEUTRAL,
+  FAVOR_UNIONS_LABOR_RIGHTS,
+  FAVOR_UNIONS_REPRESSION,
+  FAVOR_UNIONS_SUFFRAGE,
+  FAVOR_UNIONS_TRANSFERS,
+  FAVOR_UNIONS_UNEMPLOYMENT,
   FIN_POWER_CREDIT,
   FIN_POWER_DEBT,
   IND_POWER_GAIN,
@@ -180,50 +211,51 @@ function favorTargets(state: TrueState): Record<BlocId, number> {
   return {
     landowners: clamp(
       BLOC_FAVOR_BASE.landowners +
-        8 * subsidyShare(['agri']) +
-        0.5 * dials.taxRates.tariff -
-        1.2 * dials.taxRates.income -
-        0.8 * dials.taxRates.corporate -
-        1.0 * inst.labor_rights -
-        0.8 * inst.suffrage +
+        FAVOR_LANDOWNERS_SUBSIDY * subsidyShare(['agri']) +
+        FAVOR_LANDOWNERS_TARIFF * dials.taxRates.tariff -
+        FAVOR_LANDOWNERS_INCOME_TAX * dials.taxRates.income -
+        FAVOR_LANDOWNERS_CORPORATE_TAX * dials.taxRates.corporate -
+        FAVOR_LANDOWNERS_LABOR_RIGHTS * inst.labor_rights -
+        FAVOR_LANDOWNERS_SUFFRAGE * inst.suffrage +
         MIG_LAND_FAVOR_GAIN * immigration +
-        0.5 * inst.repression,
+        FAVOR_LANDOWNERS_REPRESSION * inst.repression,
       -1,
       1,
     ),
     industrialists: clamp(
       BLOC_FAVOR_BASE.industrialists +
-        8 * subsidyShare(['manuf', 'energy', 'transport']) +
-        0.6 * dials.taxRates.tariff -
-        1.2 * dials.taxRates.corporate -
-        2.0 * Math.max(0, realRate - NATURAL_REAL_RATE) -
-        1.0 * inst.labor_rights -
-        0.8 * dials.taxRates.fuel +
+        FAVOR_INDUSTRIALISTS_SUBSIDY * subsidyShare(['manuf', 'energy', 'transport']) +
+        FAVOR_INDUSTRIALISTS_TARIFF * dials.taxRates.tariff -
+        FAVOR_INDUSTRIALISTS_CORPORATE_TAX * dials.taxRates.corporate -
+        FAVOR_INDUSTRIALISTS_REAL_RATE * Math.max(0, realRate - NATURAL_REAL_RATE) -
+        FAVOR_INDUSTRIALISTS_LABOR_RIGHTS * inst.labor_rights -
+        FAVOR_INDUSTRIALISTS_FUEL_TAX * dials.taxRates.fuel +
         MIG_INDUSTRIAL_FAVOR_GAIN * immigration +
-        0.3 * inst.courts,
+        FAVOR_INDUSTRIALISTS_COURTS * inst.courts,
       -1,
       1,
     ),
     financiers: clamp(
       BLOC_FAVOR_BASE.financiers +
-        0.6 * inst.courts +
-        3.0 * clamp(realRate - NATURAL_REAL_RATE, -0.05, 0.05) -
-        2.0 * Math.max(0, annualInflation - 0.03) -
-        40 * printedShare -
-        1.0 * Math.max(0, state.ledger.debtToGdp - 0.6) -
-        0.8 * dials.taxRates.corporate,
+        FAVOR_FINANCIERS_COURTS * inst.courts +
+        FAVOR_FINANCIERS_REAL_RATE *
+          clamp(realRate - NATURAL_REAL_RATE, ...FAVOR_FINANCIERS_REAL_RATE_CLAMP) -
+        FAVOR_FINANCIERS_INFLATION * Math.max(0, annualInflation - FAVOR_FINANCIERS_INFLATION_NEUTRAL) -
+        FAVOR_FINANCIERS_PRINTING * printedShare -
+        FAVOR_FINANCIERS_DEBT * Math.max(0, state.ledger.debtToGdp - FAVOR_FINANCIERS_DEBT_NEUTRAL) -
+        FAVOR_FINANCIERS_CORPORATE_TAX * dials.taxRates.corporate,
       -1,
       1,
     ),
     unions: clamp(
       BLOC_FAVOR_BASE.unions +
-        1.5 * inst.labor_rights +
-        0.8 * inst.suffrage +
-        6 * (dials.spending.transfers / gdp) -
-        2.0 * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) -
-        1.0 * dials.taxRates.fuel -
-        1.5 * inst.repression -
-        0.8 * Math.max(0, annualInflation - 0.05) -
+        FAVOR_UNIONS_LABOR_RIGHTS * inst.labor_rights +
+        FAVOR_UNIONS_SUFFRAGE * inst.suffrage +
+        FAVOR_UNIONS_TRANSFERS * (dials.spending.transfers / gdp) -
+        FAVOR_UNIONS_UNEMPLOYMENT * Math.max(0, state.flows.unemployment - NATURAL_UNEMPLOYMENT) -
+        FAVOR_UNIONS_FUEL_TAX * dials.taxRates.fuel -
+        FAVOR_UNIONS_REPRESSION * inst.repression -
+        FAVOR_UNIONS_INFLATION * Math.max(0, annualInflation - FAVOR_UNIONS_INFLATION_NEUTRAL) -
         MIG_UNION_FAVOR_LOSS * immigration,
       -1,
       1,

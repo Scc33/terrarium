@@ -4,6 +4,7 @@
  * 1946 economy (the long-run stability criterion).
  */
 
+import { SECTOR_IDS } from './state/schema'
 import type {
   BlocId,
   CapacityId,
@@ -15,6 +16,7 @@ import type {
   SectorId,
   StatuteId,
 } from './state/schema'
+import type { DialPath } from './actions/types'
 
 // ---------- production ----------
 export const CAPITAL_ELASTICITY = 0.35
@@ -24,6 +26,29 @@ export const UTILIZATION_AT_INIT = 0.85
 /** economies run with headroom; demand at this share of potential is "neutral"
  * for prices and hiring — above it markets tighten, below it they slacken */
 export const NORMAL_UTILIZATION = 0.85
+/** Government procurement buys mostly durable manufactures and skilled
+ * services — share of the procurement dial that becomes real demand for
+ * each (the rest of the sectors get none). */
+export const GOV_PROCUREMENT_MANUF_SHARE = 0.4
+export const GOV_PROCUREMENT_SERVICES_SHARE = 0.6
+/** Public research spends mostly on skilled services and some equipment. */
+export const GOV_RESEARCH_MANUF_SHARE = 0.2
+export const GOV_RESEARCH_SERVICES_SHARE = 0.8
+/** Investment demand — private, public and foreign combined — buys mostly
+ * plant and equipment, the rest structures and services. */
+export const INVESTMENT_DEMAND_MANUF_SHARE = 0.6
+export const INVESTMENT_DEMAND_SERVICES_SHARE = 0.4
+/** A quarter's nominal GDP cannot print below this share of its real GDP —
+ * guards downstream ratios against a pathological price collapse. */
+export const NOMINAL_GDP_FLOOR_SHARE = 0.05
+/** This quarter's investment is allocated across sectors by utilization
+ * pressure above this neutral point — distinct from `NORMAL_UTILIZATION`,
+ * which governs prices and hiring, because capital allocation is calibrated
+ * separately even though the two channels share a value today. */
+export const INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION = 0.5
+/** …and every sector keeps at least this much allocation weight, so one with
+ * no pressure at all is never fully starved of this tick's investment. */
+export const INVESTMENT_ALLOCATION_PRESSURE_FLOOR = 0.05
 
 // ---------- input-output table (row = input, col = output) ----------
 // column order: agri, manuf, energy, services, transport
@@ -44,9 +69,23 @@ export const TATONNEMENT = {
 }
 /** slack cuts prices more weakly than shortage raises them */
 export const SLACK_GAIN_RATIO = 0.4
+/** unit cost cannot price below this, so a subsidy or a cheap-input quarter
+ * can't drive the cost anchor to zero or negative */
+export const UNIT_COST_FLOOR = 0.01
+/** how much of quarterly inflation expectations bleeds into the price drift
+ * term directly, on top of the excess-demand and cost-anchor channels */
+export const PRICE_DRIFT_EXPECTATIONS_GAIN = 0.15
+/** quarterly price noise, standard deviation */
+export const PRICE_NOISE_SD = 0.003
+/** no posted price falls below this */
+export const PRICE_FLOOR = 0.05
 
 // ---------- labor ----------
 export const EMPLOYMENT_ADJUST = 0.12 // fraction of gap closed per quarter
+/** hiring targets demand capped at this multiple of current output, so a
+ * sudden demand spike doesn't send the staffing target to an implausible
+ * level before employment has a chance to adjust */
+export const HIRING_DEMAND_CAP = 1.25
 /**
  * The economy cannot employ more people than exist. `labor` holds total
  * employment under this share of the labour force every quarter, and that
@@ -67,10 +106,17 @@ export const WAGE_INFLATION_PASSTHROUGH = 0.35
  * natural rate — the long-run full-employment attractor */
 export const NATURAL_UNEMPLOYMENT = 0.075
 export const WAGE_SLACK_GAIN = 0.08
+/** how fast realized productivity gains stop passing through to wages as
+ * unemployment rises above natural — shut off entirely 20 points above it,
+ * the same gate `JOBS_PULL_UNEMPLOYMENT_GAIN` applies to migration/urbanization */
+export const TFP_SLACK_GATE_GAIN = 5
 /** wages are sticky downward — the asymmetry is the great stabilizer of the
  * postwar economy, and losing it is what made gold-standard busts so deep */
 export const WAGE_MAX_UP = 0.08
 export const WAGE_MAX_DOWN = 0.035
+/** no posted wage falls below this, floor under the whole bargain regardless
+ * of what tightness, inflation passthrough and the minimum-wage statute do */
+export const WAGE_ABSOLUTE_FLOOR = 0.05
 export const LABOR_SHARE = 0.62
 // participation rate of cohort members in the labor force
 export const PARTICIPATION: Record<CohortId, number> = {
@@ -137,6 +183,11 @@ export const MPC: Record<CohortId, number> = {
   retirees: 0.98,
 }
 export const SAVINGS_DRAWDOWN = 0.03 // share of savings spent per quarter
+/** Permanent-income smoothing: households spend against a blend of this
+ * quarter's disposable income and their EMA habitual standard of living —
+ * the main damper of the postwar consumption cycle. */
+export const CONSUMPTION_CURRENT_INCOME_WEIGHT = 0.45
+export const CONSUMPTION_HABIT_WEIGHT = 0.55
 
 // households buy little raw energy/transport directly — those costs arrive
 // embedded in goods via the I/O table (that's the fuel-tax → bread chain)
@@ -242,6 +293,13 @@ export const TRANSFER_SHARE: Record<CohortId, number> = {
   business_owners: 0,
 }
 
+/** The EMA a cohort's habitual standard of living is measured against —
+ * `lastRealIncome`, which approval judges growth against, and `engelIncome`,
+ * the same smoothing per head for the Engel shift (ADR-0030). One weight for
+ * both: they are the same mechanism read on two bases, not two coincidences. */
+export const HABITUAL_INCOME_EMA_PERSISTENCE = 0.75
+export const HABITUAL_INCOME_EMA_GAIN = 0.25
+
 /** One standard 1946 basket per person per quarter. This fixed real line is
  * deliberately shared by every country and year: broad-based growth can lift
  * people over it, while Gini and quintile shares carry the relative story.
@@ -253,6 +311,14 @@ export const POVERTY_LINE_REAL = 1
 export const taxEfficiency = (capacity: number): number => Math.pow(Math.max(0, capacity), 0.6)
 /** program delivery: share of spending that reaches its target */
 export const adminEffectiveness = (capacity: number): number => 0.35 + 0.65 * Math.pow(Math.max(0, capacity), 0.8)
+/** tariff collection efficiency: customs posts are easy to man, so even a
+ * capacity-zero office still collects half of what is owed at the border */
+export const TARIFF_EFF_BASE = 0.5
+export const TARIFF_EFF_CAPACITY_GAIN = 0.5
+/** fuel-duty collection efficiency: excise at the depot is likewise easy to
+ * man, so it starts from a higher base and rides capacity less */
+export const FUEL_EFF_BASE = 0.7
+export const FUEL_EFF_CAPACITY_GAIN = 0.3
 /** deficits beyond this share of GDP can't find buyers and get monetized */
 export const BOND_MARKET_DEPTH = 0.05
 /** …and beyond this debt/GDP, markets close entirely */
@@ -407,6 +473,38 @@ export const HOUSEHOLD_INCOME_SD = 0.08
  * income estimate because it depends on each poor return's distance from the
  * line, not merely which side of the line it falls on. */
 export const HOUSEHOLD_POVERTY_GAP_SD = 0.1
+/** How fast a revision converges on the truth: each of the office's
+ * revisions multiplies the first-print noise by this factor (r=0 first
+ * print, r=1 at +2 quarters, r=2 at +5 quarters), so the second revision
+ * confesses roughly a fifth of the first print's error. Shared by every
+ * survey the office runs — indicators, the industry census, the household
+ * budget survey — because it is the same office revising its own work the
+ * same way. */
+export const STAT_REVISION_SETTLING_RATE = 0.45
+/** How much a fully-capable office's noise still exceeds a perfect one: at
+ * cap=1 the noise floor is `1 - STAT_NOISE_CAPACITY_GAIN` of its
+ * zero-capacity value, never zero — capacity buys a sharper survey, not a
+ * perfect one. */
+export const STAT_NOISE_CAPACITY_GAIN = 0.85
+/** Statistical capacity above which a first print settles to a one-quarter
+ * lag instead of two. */
+export const STAT_FAST_LAG_CAPACITY = 0.5
+/** Statistical capacity below which the office will not confess an error
+ * band at all (reported as a bare figure, `errorBand: 0`) — a band on top of
+ * noise this large would itself overstate how confident the office can be. */
+export const STAT_ERROR_BAND_CAPACITY_GATE = 0.45
+/** The 95% normal-interval multiplier the office quotes beside every print
+ * once it does confess a band. */
+export const STAT_ERROR_BAND_Z = 1.96
+/** Relative error on the office's real/nominal GDP LEVEL estimates that ride
+ * along with a `withLevels` indicator's print, independent of that
+ * indicator's own noise draw. */
+export const STAT_GDP_LEVEL_RELATIVE_SD = 0.03
+/** Quarters after a first print at which the office re-estimates a figure:
+ * the print itself, then +2 and +5. */
+export const STAT_REVISION_DELAYS = [0, 2, 5] as const
+/** The two lags a first print can carry, gated by `STAT_FAST_LAG_CAPACITY`. */
+export const STAT_LAGS = [1, 2] as const
 /** neglect is a policy. This is institutional decay: school buildings and
  * teaching systems deteriorate. The people they already taught persist in
  * `demography.humanCapital`, which moves on its own generational clock. */
@@ -422,17 +520,34 @@ export const CONF_NEUTRAL = 0.55
 export const CONF_ADAPT = 0.15 // per quarter toward conditions
 export const CONF_MPC_GAIN = 0.08 // ±4% consumption swing across full range
 export const CONF_INV_GAIN = 0.3 // added to the investment factor
+/** Consumer sentiment: response to the trend in habitual real income, and to
+ * unemployment relative to `NATURAL_UNEMPLOYMENT`. */
+export const CONF_CONSUMER_TREND_GAIN = 6
+export const CONF_CONSUMER_UNEMPLOYMENT_GAIN = 1.5
+/** Business sentiment: response to capacity utilization relative to
+ * `NORMAL_UTILIZATION`, and to the profit rate relative to this reference. */
+export const CONF_BUSINESS_UTILIZATION_GAIN = 1.5
+export const CONF_BUSINESS_PROFIT_GAIN = 1.5
+export const CONF_BUSINESS_PROFIT_REFERENCE = 0.35
 
 // ---------- monetary ----------
 export const EXPECTATION_ADAPT = 0.12 // per quarter, toward realized inflation
 export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (printed/GDP)
+export const INFLATION_EXPECTATIONS_MIN = -0.05
+export const INFLATION_EXPECTATIONS_MAX = 3
 export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investment
 export const NATURAL_REAL_RATE = 0.02
 /** Lewis-model capital widening: surplus labor (cheap hands, fat margins)
  * pulls investment beyond replacement. Without this, a growing labor force
  * outruns the capital stock and unemployment ratchets. */
 export const INVESTMENT_SLACK_GAIN = 3.0
+/** the "neutral" capacity utilization for the investment factor — distinct
+ * from `NORMAL_UTILIZATION`, which governs prices and hiring, because the two
+ * channels are calibrated separately even though they share a value today. */
+export const INVESTMENT_NORMAL_UTILIZATION = 0.85
+export const INVESTMENT_UTIL_GAIN = 0.5 // added to the investment factor per unit utilization above neutral
 export const INVESTMENT_FACTOR_MAX = 1.7 // was 1.3 when the labor force was static
+export const INVESTMENT_FACTOR_MIN = 0.5
 
 // ---------- foreign direct investment ----------
 /** A Meridia-sized, open, mid-poor country attracts roughly this share of
@@ -450,12 +565,26 @@ export const FDI_OPENNESS_FLOOR = 0.2
 export const FDI_OPENNESS_GAIN = 0.8
 export const FDI_CATCHUP_FLOOR = 0.6
 export const FDI_CATCHUP_GAIN = 0.8
+/** How far the catch-up gap may swing the structural draw before it clamps. */
+export const FDI_CATCHUP_FACTOR_MIN = 0.5
+export const FDI_CATCHUP_FACTOR_MAX = 1.25
 /** Company returns, business sentiment and public administration move the
  * marginal project around the structural country draw. */
 export const FDI_NORMAL_AFTER_TAX_PROFIT_SHARE = 0.28
 export const FDI_RETURN_GAIN = 3
+/** How far the after-tax profit gap may swing the structural draw. */
+export const FDI_RETURN_FACTOR_MIN = 0.45
+export const FDI_RETURN_FACTOR_MAX = 1.6
 export const FDI_CONFIDENCE_GAIN = 0.8
+/** How far business confidence may swing the structural draw. */
+export const FDI_CONFIDENCE_FACTOR_MIN = 0.5
+export const FDI_CONFIDENCE_FACTOR_MAX = 1.4
 export const FDI_EXPORT_GAIN = 1.5
+/** An export-platform project cares about export share relative to this
+ * ordinary level, and how far that gap may swing the structural draw. */
+export const FDI_REFERENCE_EXPORT_SHARE = 0.15
+export const FDI_EXPORT_FACTOR_MIN = 0.7
+export const FDI_EXPORT_FACTOR_MAX = 1.5
 /** Imported machinery is part of gross capital formation but not domestic
  * demand. The rest of an FDI project is local construction and services. */
 export const FDI_IMPORTED_CAPITAL_SHARE = 0.35
@@ -464,6 +593,8 @@ export const FDI_IMPORTED_CAPITAL_SHARE = 0.35
  * projects before FDI can amplify an already unstable random-policy path. */
 export const FDI_PRICE_INSTABILITY_AT = 0.08
 export const FDI_PRICE_INSTABILITY_DRAG = 2.5
+/** Price instability only ever drags the structural draw down, never boosts it. */
+export const FDI_MACRO_STABILITY_FLOOR = 0.15
 /** Foreign ownership is sticky but not limitless. A mature foreign-owned
  * stock crowds out new acquisitions before it can become the whole economy. */
 export const FDI_OWNERSHIP_SATURATION = 0.45
@@ -474,6 +605,22 @@ export const FDI_CRISIS_MULTIPLIER = 0.3
 /** Foreign parents repatriate part of after-tax earnings; the retained share
  * stays available to the domestic firm rather than vanishing from income. */
 export const FDI_PROFIT_REMIT_SHARE = 0.4
+/** A capable civil service smooths the path for a foreign project; a weak
+ * one never blocks it outright, only halves the benefit. */
+export const FDI_ADMIN_FACTOR_FLOOR = 0.5
+export const FDI_ADMIN_FACTOR_GAIN = 0.5
+/** Tariffs make imported inputs and machinery dearer, dragging on the
+ * marginal FDI project — a drag only, so the factor never boosts above 1. */
+export const FDI_TARIFF_DRAG = 0.6
+export const FDI_TARIFF_FACTOR_MIN = 0.4
+/** The structural draw also rides the world cycle: a financial center's
+ * sudden stops matter most for a capital inflow, then the manufacturing
+ * giant's secular demand, then the correlated regional neighbor. */
+export const FDI_CYCLE_WEIGHT_FINANCIAL = 0.5
+export const FDI_CYCLE_WEIGHT_MANUFACTURING = 0.3
+export const FDI_CYCLE_WEIGHT_REGIONAL = 0.2
+export const FDI_CYCLE_FACTOR_MIN = 0.35
+export const FDI_CYCLE_FACTOR_MAX = 1.5
 
 /** Immutable terrain shared by opening-stock calibration and the live flow.
  * It captures issue #40's core scale claim: FDI/GDP is larger in smaller,
@@ -588,6 +735,8 @@ export const CATCHUP_Q = 0.02
 export const ABSORB_BASE = 0.05
 export const ABSORB_EDU_GAIN = 0.9
 export const ABSORB_OPENNESS_WEIGHT = 0.3 // share of absorption gated on trade exposure
+/** openness above this buys no more absorptive capacity */
+export const ABSORB_OPENNESS_CAP = 1.5
 /** near the frontier, everyone drips forward a little on their own */
 export const FRONTIER_OWN_DRIFT_Q = 0.0008
 /** where a country starts relative to the 1946 frontier: development buys
@@ -658,6 +807,15 @@ export const HUMAN_CAPITAL_ADJUST_Q = 0.01
  * along), unlike the report card, which grades against the 1946 you
  * inherited. */
 export const LIVING_STANDARD_1946 = 1.63
+/** floor on the living standard before taking its log for the vital-rates
+ * terms below — same guard as `MEAN_LOG_CONSUMPTION_FLOOR`, on a different
+ * reading of income, so a collapsed economy still returns a finite (very
+ * negative) log rather than blowing up. */
+export const LIVING_STANDARD_LOG_FLOOR = 0.05
+/** floor on real consumption per capita before taking its log — guards the
+ * welfare integrand against a near-zero or negative reading blowing up to
+ * -infinity */
+export const MEAN_LOG_CONSUMPTION_FLOOR = 0.01
 /** annual mortality per person by 5-year band at the 1946 poor-country
  * baseline (mortalityIndex = 1). The first band carries child mortality —
  * the thing income growth crushes first, and a fertility input. */
@@ -670,6 +828,9 @@ export const MORT_INCOME_GAIN = 0.18
 /** …and with a slow worldwide drip of medicine, whoever you are */
 export const MORT_SECULAR_Q = 0.0006
 export const MORT_FLOOR = 0.35 // even 2050 medicine has limits
+/** the other rail: a pollution-and-secular-drift mortality index cannot climb
+ * past this multiple of the 1946 baseline */
+export const MORT_CEILING = 1.3
 
 /** fertility: high at 1946, endogenously transitioning. You don't set it;
  * you cause it (income, cities, surviving children, slow norm drift). */
@@ -677,6 +838,9 @@ export const FERT_MAX = 5.6
 export const FERT_MIN = 1.55
 export const FERT_INCOME_GAIN = 1.6 // TFR drop per ln(living standard)
 export const FERT_URBAN_GAIN = 2.0 // TFR drop per unit rise in urban share
+/** urban share above this neutral point is what starts pulling fertility
+ * down — a country half urban is not yet a city-dwelling one */
+export const FERT_URBAN_NEUTRAL = 0.5
 /** surviving children need no replacements: TFR drop per unit fall in the
  * mortality index — the transition's engine even where incomes lag */
 export const FERT_SURVIVAL_GAIN = 1.5
@@ -724,6 +888,11 @@ export const SUBSISTENCE_CAP = 0.92
 
 /** rural→urban drift per quarter per unit of urban/rural wage gap */
 export const URBANIZATION_GAIN = 0.004
+/** how fast the cities stop pulling as open unemployment rises above natural
+ * — the move (urbanization) and the rise (professionalization) both gate on
+ * this same "do the cities have jobs" read, closing off entirely once
+ * unemployment is 20 points above the natural rate */
+export const JOBS_PULL_UNEMPLOYMENT_GAIN = 5
 
 /**
  * The SECOND boundary the class transition crosses: urban worker →
@@ -808,6 +977,9 @@ export const LEGITIMACY_GRADE_ELECTIONS: Array<{ atLeast: number; grade: 'B' | '
 
 // ---------- trade ----------
 export const TRADE_ELASTICITY = 1.5
+/** exports cannot exceed this share of a sector's potential output, however
+ * favorable the relative price */
+export const EXPORT_CAP_SHARE_OF_POTENTIAL = 0.5
 export const EXPORT_BASE_SHARE: Record<SectorId, number> = {
   agri: 0.14,
   manuf: 0.1,
@@ -822,6 +994,10 @@ export const IMPORT_BASE_SHARE: Record<SectorId, number> = {
   services: 0.02,
   transport: 0,
 }
+/** the ceiling on how much of a sector's potential output can be sold abroad
+ * in one quarter — `production` applies it to realized exports, and `init`
+ * mirrors it to seed the opening trade balance on the same basis */
+export const EXPORT_CAPACITY_CAP = 0.5
 export const RESERVES_INIT_QTRS = 2 // starting reserves ≈ this many quarters of imports
 /** public debt a country inherits when its recipe names no opening balance
  * sheet. Was a literal in `init`; it moved here once the country editor needed
@@ -837,6 +1013,35 @@ export const INCOME_TAX_1946 = 0.15
 export const CORPORATE_TAX_1946 = 0.2
 export const TARIFF_1946 = 0.1
 export const DEPRECIATION_WHEN_BROKE = 0.05 // FX depreciation per quarter at a failed defence
+
+/** How `init` splits the quarter-one budget it can actually afford. Sums to
+ * 1: transfers, procurement and investment are the whole of it, because
+ * research opens at zero (a policy choice, not a hidden passive subsidy). */
+export const INIT_TRANSFERS_SHARE = 0.36
+export const INIT_PROCUREMENT_SHARE = 0.39
+export const INIT_INVESTMENT_SHARE = 0.25
+/** a small structural deficit is period-realistic and sustainable */
+export const INIT_BUDGET_DEFICIT_FACTOR = 1.05
+/** how much of a country's tariff base it actually collects at zero tax
+ * capacity, and the additional share bought by a full one */
+export const INIT_TARIFF_CAPACITY_FLOOR = 0.5
+export const INIT_TARIFF_CAPACITY_GAIN = 0.5
+/** the ceiling on how much of the opening capital stock a recipe's structural
+ * attraction can hand to foreign owners on day one */
+export const FDI_OPENING_OWNERSHIP_CAP = 0.3
+/** opening wealth for a cohort still living off war-bond-era savings, as a
+ * multiple of disposable income — retirees hold the paper */
+export const INIT_RETIREE_SAVINGS_MULTIPLE = 8
+/** The discount seeding `lastRealIncome` below the undiscounted disposable
+ * figure `engelReference`/`engelIncome` are sealed from. It is a deliberate
+ * bias for the loss-aversion reader alone (see the seeding comment at the
+ * cohort loop); anything sealed from the undiscounted figure must NOT also
+ * apply this discount, or the ratio converges on 1/this value and every
+ * basket drifts toward luxuries on an economy that earned nothing. */
+export const INIT_HABIT_INCOME_DISCOUNT = 0.99
+export const INIT_APPROVAL_HONEYMOON = 0.55 // a modest honeymoon
+export const INIT_INFLATION_EXPECTATIONS = 0.03
+export const INIT_UNEMPLOYMENT = 0.07
 
 // ---------- the foreign exchange market (ADR-0034) ----------
 // The exchange rate is a PRICE with a fundamental, and it reverts to it — the
@@ -1031,6 +1236,9 @@ export const WORLD_SUPPLY_WEIGHTS: Record<SectorId, Partial<Record<PartnerId, nu
 /** how hard a supplier's cycle moves the world price it sells (steady-state
  * offset ≈ GAIN·Δactivity·share / WORLD_PRICE_REVERT — kept gentle) */
 export const WORLD_SUPPLY_PRICE_GAIN = 0.02
+/** rails on a world price index, 1946=1: a fifth of parity to eight times it */
+export const WORLD_PRICE_MIN = 0.2
+export const WORLD_PRICE_MAX = 8
 
 // ---------- the financial sector: fragility ----------
 // Credit and asset prices are the amplifier and the fragility clock. A boom
@@ -1051,6 +1259,10 @@ export const ASSET_REVERT = 0.12 // pull toward fundamental per quarter (must be
 export const ASSET_FUND_PROFIT_GAIN = 1.4 // fundamental rises with the profit rate…
 export const ASSET_NORMAL_PROFIT = 0.38 // …above this (≈ the init profit rate, so calm q≈1)
 export const ASSET_FUND_RATE_GAIN = 4.0 // …and falls with the real rate above natural (the discount channel — strong, so easing is what inflates a bubble and tight passive rates keep it calm)
+/** bounds on the fundamental valuation itself — capital can be worth as
+ * little as half of book or as much as twice it before the clamp bites */
+export const ASSET_FUND_MIN = 0.5
+export const ASSET_FUND_MAX = 2
 /** credit ACCELERATION (Δ credit/GDP) bids assets up — the bubble feedback.
  * On the flow, not the level, so a bubble deflates once credit stops growing.
  * Kept below reversion's reach so a bubble needs a genuine boom or a rate cut
@@ -1068,6 +1280,10 @@ export const CREDIT_RATE_GAIN = 3.0 // cheap money → more borrowing (per unit 
 export const CREDIT_COLLATERAL_GAIN = 0.25 // high asset prices → more collateral → more credit (per q above 1)
 export const CREDIT_SPIRITS_GAIN = 0.25
 export const CREDIT_ADJUST = 0.1 // credit stocks move toward target
+/** rails on credit/GDP itself — both the target and the realized ratio clamp
+ * here */
+export const CREDIT_RATIO_MIN = 0.02
+export const CREDIT_RATIO_MAX = 2.5
 /** banks lend against capital: a capital-ratio requirement caps credit at
  * bankCapital / the requirement. The inherited 6% floor is slack during a
  * calm boom, but the player's upper range can lean directly against one. */
@@ -1098,12 +1314,23 @@ export const CRISIS_FRAGILITY_P = 0.9 // × (leverage excess)·(overvaluation)
 /** imported crises: a money-centre sudden stop abroad lights the fuse at home,
  * the more so the more levered you are */
 export const CRISIS_IMPORT_GAIN = 0.2 // × (0.9 − financial-partner activity)⁺ · (1 + leverage excess)
+/** financial-partner activity below this adds import pressure to the crisis
+ * hazard (the "0.9" above) */
+export const FINANCIAL_ACTIVITY_SAFE = 0.9
 export const CRISIS_DURATION: [number, number] = [4, 8] // quarters of a run-down crunch
 export const CRISIS_SEVERITY_GAIN = 2.5 // × (leverage excess)·(overvaluation), atop a 0.4 floor
+export const CRISIS_SEVERITY_BASE = 0.4 // the floor CRISIS_SEVERITY_GAIN sits atop
+export const CRISIS_SEVERITY_IMPORT_GAIN = 0.5 // × import pressure, added to severity
+export const CRISIS_SEVERITY_MIN = 0.3 // the smallest severity a crisis that fires can have
 export const CRISIS_ASSET_CRASH = 0.55 // asset prices fall up to this × severity on impact
 export const CRISIS_WRITEOFF = 0.15 // bank capital loss, share of credit × severity
+/** a write-off never fully empties the bank — capital is battered, not zeroed */
+export const BANK_CAPITAL_FLOOR = 0.01
 export const CRISIS_CREDIT_CRUNCH = 0.55 // credit target cut to this fraction while the crisis runs
 export const CRISIS_CONF_SHOCK = 0.3 // confidence floored to this on onset — a panic
+/** import pressure above this earns the wire's "sudden stop" framing instead
+ * of an ordinary domestic banking-crisis dispatch — same crisis, different story */
+export const CRISIS_SUDDEN_STOP_IMPORT_PRESSURE_AT = 0.02
 
 /** the investment channel: production reads asset prices (Tobin's q) and the
  * crunch. A boom in asset prices pulls investment; a crisis freezes it. */
@@ -1113,6 +1340,21 @@ export const FIN_CRUNCH_DRAG = 0.6 // subtracted from the investment factor at f
 // ---------- politics ----------
 export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains
+/**
+ * The logistic regression behind the approval target: a bias term, then
+ * income growth (loss-averse, capped so a windfall or a collapse cannot
+ * alone saturate the logistic), own-basket inflation above an ordinary
+ * target, joblessness above the natural rate, and queues for goods that
+ * never arrived.
+ */
+export const APPROVAL_TARGET_BASE = 0.3
+export const APPROVAL_GROWTH_GAIN = 15
+export const APPROVAL_GROWTH_CAP = 0.15
+export const APPROVAL_INFLATION_GAIN = 8
+export const APPROVAL_INFLATION_REFERENCE = 0.04
+export const APPROVAL_JOBLESS_GAIN = 3
+export const APPROVAL_JOBLESS_REFERENCE = 0.07
+export const APPROVAL_SHORTAGE_GAIN = 5
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
 export const PC_INCOME_APPROVAL_NEUTRAL = 0.35 // near ELECTION_WIN_THRESHOLD, not the scale's 0.5 midpoint
 export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
@@ -1121,6 +1363,10 @@ export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something 
 export const PC_HEADLINE_SALIENCE = 0.1
 export const PC_HEADLINE_CAP = 0.5 // the papers only care so much either way
 export const ELECTION_WIN_THRESHOLD = 0.38
+/** the bar at the ballot box never falls below this, however hard repression leans on it */
+export const ELECTION_WIN_THRESHOLD_FLOOR = 0.05
+/** noise on election night — support and the threshold both carry it */
+export const ELECTION_OUTCOME_NOISE_SD = 0.03
 export const PC_START = 20
 export const PC_MAX = 100
 
@@ -1138,6 +1384,104 @@ export const PC_COST_CAPACITY = 2
  * of ordinary policy — unless a crisis has prised the window open */
 export const PC_COST_REFORM = 26
 export const PC_COST_CAMPAIGN = 4
+
+/** Dial bounds and the "one full step" denominator `dialObjections` divides a
+ * move by to size it for the room and for `PC_COST_DIAL_SLOPE`. These are the
+ * pricing layer's own numbers — a rate's economic ceiling elsewhere in this
+ * file (e.g. `FX_INTERVENTION_MAX`) is what the dial can physically reach;
+ * these say how much of that range counts as a normal-sized order. */
+export const TAX_RATE_INCOME_MAX = 0.8
+export const TAX_RATE_CORPORATE_MAX = 0.8
+export const TAX_RATE_TARIFF_MAX = 1.0
+export const TAX_RATE_FUEL_MAX = 2.0
+/** you can announce a UBI your tax base can't support — the game never says no */
+export const SPENDING_DIAL_MAX_GDP_SHARE = 1
+export const SPENDING_DIAL_SCALE_GDP_SHARE = 0.1
+export const SUBSIDY_DIAL_MAX_GDP_SHARE = 0.2
+export const SUBSIDY_DIAL_SCALE_GDP_SHARE = 0.1
+export const IMMIGRATION_LIMIT_DIAL_SCALE = 0.01
+export const POLICY_RATE_DIAL_MAX = 0.5
+export const POLICY_RATE_DIAL_SCALE = 0.1
+export const ASSET_PURCHASE_RATE_DIAL_SCALE = 0.1
+/** A tenth of the rail, so that crossing the whole FX-intervention range costs
+ * about what crossing the whole range of the bank-capital floor does. At
+ * 0.02 — the first draft — a moderate order priced at 64 PC against the 20 a
+ * new cabinet holds, and the runner skipped it silently: every arm of the
+ * paired study came out identical to the last decimal. */
+export const FX_INTERVENTION_DIAL_SCALE = 0.05
+/** A quarter of the rail, so that moving from banking everything to handing
+ * everything back costs about what crossing the policy rate does. The dial
+ * is a doctrine rather than a setting: nobody nudges it by a point. */
+export const SURPLUS_PAYOUT_DIAL_SCALE = 0.25
+export const CAPITAL_REQUIREMENT_DIAL_SCALE = 0.1
+/** the ceiling on a single capacity-investment order, as a share of GDP */
+export const CAPACITY_INVESTMENT_MAX_GDP_SHARE = 0.4
+/** a ministry at (or building toward) this share of full strength can't
+ * absorb another investment order */
+export const CAPACITY_MINISTRY_FULL_STRENGTH_GATE = 0.95
+
+/** How much each bloc minds an INCREASE in a lever, −1..1. Negative means
+ * they want it higher. Moving a lever their way earns goodwill on the same
+ * scale — the same primitive `STATUTE_STANCE` below uses, on the same sign
+ * convention. */
+export type Stance = Partial<Record<BlocId, number>>
+
+export const SUBSIDY_STANCE: Record<SectorId, Stance> = {
+  agri: { landowners: -0.9, financiers: 0.3 },
+  manuf: { industrialists: -0.8, financiers: 0.3 },
+  energy: { industrialists: -0.7, financiers: 0.3 },
+  transport: { industrialists: -0.6, financiers: 0.3 },
+  services: { industrialists: -0.3, financiers: 0.2 },
+}
+
+export const DIAL_STANCE: Record<DialPath, Stance> = {
+  'taxRates.income': { landowners: 0.5, industrialists: 0.3, financiers: 0.2, unions: 0.4 },
+  'taxRates.corporate': { industrialists: 0.9, financiers: 0.5, landowners: 0.3, unions: -0.3 },
+  'taxRates.tariff': { industrialists: -0.5, landowners: -0.3, financiers: 0.3, unions: 0.2 },
+  'taxRates.fuel': { industrialists: 0.6, unions: 0.5, landowners: 0.4 },
+  'spending.transfers': { financiers: 0.5, unions: -0.6, landowners: 0.2, industrialists: 0.2 },
+  'spending.procurement': { industrialists: -0.4, financiers: 0.4 },
+  'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
+  'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
+  immigrationLimit: {
+    landowners: -0.25,
+    industrialists: -0.6,
+    financiers: -0.1,
+    unions: 0.8,
+  },
+  policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
+  assetPurchaseRate: { financiers: 0.4, industrialists: -0.5, unions: -0.2 },
+  capitalRequirement: { financiers: 0.9, industrialists: 0.3, unions: -0.2 },
+  // A rise here BUYS foreign currency, which holds the domestic one down. The
+  // room reads that as an exporters' policy, because it is one: industry and
+  // the landed interest sell abroad and want the cheaper currency, while the
+  // money interest holds domestic paper it would rather not see debased and
+  // labour buys the imports that get dearer. Cutting below zero — spending
+  // reserves to hold the currency UP — reverses all four, which is the same
+  // coalition an overvalued currency has always had.
+  fxIntervention: { industrialists: -0.6, landowners: -0.4, financiers: 0.7, unions: 0.4 },
+  // A rise here hands the surplus back instead of banking it, and the room
+  // splits on it the way it splits on any giveaway. Labour is the bloc whose
+  // members receive it — the rebate follows the wage bill — and the money
+  // interest minds it most, because a sovereign fund is a creditor's balance
+  // sheet and a rebate is a creditor's balance sheet spent. Industry and the
+  // landed interest mind it mildly: the money goes to wage earners, not to
+  // them, and it arrives as consumer demand rather than as investment.
+  surplusPayout: { financiers: 0.6, industrialists: 0.2, landowners: 0.2, unions: -0.7 },
+  ...(Object.fromEntries(
+    SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
+  ) as Record<`subsidies.${SectorId}`, Stance>),
+}
+
+/** Institutional reform, and the reason it is hard: the people who would lose
+ * by it are, by construction, the people currently holding the veto. */
+export const REFORM_STANCE: Record<InstitutionId, Stance> = {
+  suffrage: { landowners: 0.9, industrialists: 0.4, financiers: 0.2, unions: -0.8 },
+  press: { landowners: 0.4, industrialists: 0.3, financiers: 0.1, unions: -0.5 },
+  labor_rights: { industrialists: 0.9, landowners: 0.7, financiers: 0.4, unions: -1 },
+  courts: { landowners: 0.2, industrialists: -0.3, financiers: -0.6, unions: -0.2 },
+  repression: { unions: 0.9, landowners: -0.5, industrialists: -0.2, financiers: -0.1 },
+}
 
 // ---------- institutions and the Narrow Corridor ----------
 // Societal power is the y-axis of the Narrow Corridor and a live
@@ -1270,6 +1614,48 @@ export const BLOC_FAVOR_BASE: Record<BlocId, number> = {
   financiers: 0.02,
   unions: -0.27,
 }
+
+/** What moves each bloc's favor target away from `BLOC_FAVOR_BASE`, one
+ * coefficient per policy term `favorTargets` reads. Same primitive as a
+ * cohort's consumption weight: a preference, not an effect arrow. Grouped by
+ * bloc, in the order `favorTargets` applies them. */
+export const FAVOR_LANDOWNERS_SUBSIDY = 8
+export const FAVOR_LANDOWNERS_TARIFF = 0.5
+export const FAVOR_LANDOWNERS_INCOME_TAX = 1.2
+export const FAVOR_LANDOWNERS_CORPORATE_TAX = 0.8
+export const FAVOR_LANDOWNERS_LABOR_RIGHTS = 1.0
+export const FAVOR_LANDOWNERS_SUFFRAGE = 0.8
+export const FAVOR_LANDOWNERS_REPRESSION = 0.5
+
+export const FAVOR_INDUSTRIALISTS_SUBSIDY = 8
+export const FAVOR_INDUSTRIALISTS_TARIFF = 0.6
+export const FAVOR_INDUSTRIALISTS_CORPORATE_TAX = 1.2
+export const FAVOR_INDUSTRIALISTS_REAL_RATE = 2.0
+export const FAVOR_INDUSTRIALISTS_LABOR_RIGHTS = 1.0
+export const FAVOR_INDUSTRIALISTS_FUEL_TAX = 0.8
+export const FAVOR_INDUSTRIALISTS_COURTS = 0.3
+
+export const FAVOR_FINANCIERS_COURTS = 0.6
+export const FAVOR_FINANCIERS_REAL_RATE = 3.0
+/** the real-rate term is itself clamped before it is weighted, so a runaway
+ * rate cannot dominate the sum on its own */
+export const FAVOR_FINANCIERS_REAL_RATE_CLAMP: [number, number] = [-0.05, 0.05]
+export const FAVOR_FINANCIERS_INFLATION = 2.0
+export const FAVOR_FINANCIERS_INFLATION_NEUTRAL = 0.03
+export const FAVOR_FINANCIERS_PRINTING = 40
+export const FAVOR_FINANCIERS_DEBT = 1.0
+export const FAVOR_FINANCIERS_DEBT_NEUTRAL = 0.6
+export const FAVOR_FINANCIERS_CORPORATE_TAX = 0.8
+
+export const FAVOR_UNIONS_LABOR_RIGHTS = 1.5
+export const FAVOR_UNIONS_SUFFRAGE = 0.8
+export const FAVOR_UNIONS_TRANSFERS = 6
+export const FAVOR_UNIONS_UNEMPLOYMENT = 2.0
+export const FAVOR_UNIONS_FUEL_TAX = 1.0
+export const FAVOR_UNIONS_REPRESSION = 1.5
+export const FAVOR_UNIONS_INFLATION = 0.8
+export const FAVOR_UNIONS_INFLATION_NEUTRAL = 0.05
+
 /** defying a bloc costs you its goodwill, in proportion to how much it minded */
 export const BLOC_DEFIANCE = 0.5
 /** the PC premium on a lever the room does not want moved */

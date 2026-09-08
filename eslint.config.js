@@ -51,6 +51,59 @@ export default defineConfig([
     },
   },
   {
+    // Every behavioral constant lives in constants.ts, tune there, nowhere
+    // else (ADR-0007, #179). This does not flag a literal assigned to a
+    // named `const` — that IS the fix — only one used bare inside an
+    // expression. `ignore` covers structural uses ADR-0007 itself carves
+    // out: array indices, unit identities, and the odd sign flip.
+    files: ['packages/engine/src/**/*.ts'],
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: {
+      '@typescript-eslint/no-magic-numbers': [
+        'error',
+        {
+          // structural: identities, divide-by-zero epsilons, and the
+          // calendar/rate unit conversions ADR-0007 names outright (quarters
+          // per year, per-cent, per-mille)
+          ignore: [0, 1, -1, 2, 1e-12, 1e-9, 1e-6, 4, 100, 400, 1000, 4000],
+          ignoreArrayIndexes: true,
+          ignoreEnums: true,
+          ignoreReadonlyClassProperties: true,
+          ignoreTypeIndexes: true,
+        },
+      ],
+    },
+  },
+  {
+    // Declarative catalogues, not tuning surfaces: each entry is authored
+    // once, commented in place, and read exactly once. Naming every entry
+    // into constants.ts would force a reader back and forth between two
+    // files to understand one line, which is the opposite of ADR-0007's
+    // point — it exists so a REUSED coefficient is findable, not so a
+    // one-off catalog row is renamed.
+    files: [
+      'packages/engine/src/constants.ts',
+      'packages/engine/src/countries.ts',
+      'packages/engine/src/countryDocument.ts',
+      'packages/engine/src/hash.ts',
+      'packages/engine/src/interregnum.ts',
+      'packages/engine/src/pipeline/indicatorSpecs.ts',
+      'packages/engine/src/events/catalogue.ts',
+      'packages/engine/src/events/conditions.ts',
+      'packages/engine/src/events/eras.ts',
+      // xmur3/mulberry32: named, standard bit-mixing constants for a specific
+      // published PRNG algorithm, not a tunable behavior of the simulation.
+      'packages/engine/src/rng/rng.ts',
+      // canonical schema contracts and id lists, not tuning knobs — a band
+      // index tuple like WORKING_BANDS is already the named constant; its
+      // own array elements are not a second thing to name.
+      'packages/engine/src/state/schema.ts',
+    ],
+    rules: {
+      '@typescript-eslint/no-magic-numbers': 'off',
+    },
+  },
+  {
     // ui may only see PublishedState — never true state internals (§1.1)
     files: ['packages/ui/**/*.{ts,tsx}'],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],

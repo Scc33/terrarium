@@ -9,11 +9,16 @@ import {
   DEPRECIATION_Q,
   EMPLOYMENT_ADJUST,
   EMPLOYMENT_CEILING,
+  HIRING_DEMAND_CAP,
+  INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION,
+  INVESTMENT_ALLOCATION_PRESSURE_FLOOR,
   NATURAL_UNEMPLOYMENT,
   NORMAL_UTILIZATION,
   SUBSISTENCE_ABSORPTION_Q,
   SUBSISTENCE_CAP,
+  TFP_SLACK_GATE_GAIN,
   UNION_FAVOR_WAGE,
+  WAGE_ABSOLUTE_FLOOR,
   WAGE_DEMAND_GAIN,
   WAGE_SLACK_GAIN,
   WAGE_INFLATION_PASSTHROUGH,
@@ -40,12 +45,16 @@ export const labor: PipelineStep = {
     // headroom* — firms keep spare capacity, so hiring targets potential
     // above current demand rather than exactly at it
     const targets = state.sectors.map((s) => {
-      const demanded = Math.min(flows.grossDemand[s.id], 1.25 * Math.max(s.output, 1e-9))
+      const demanded = Math.min(flows.grossDemand[s.id], HIRING_DEMAND_CAP * Math.max(s.output, 1e-9))
       return laborForOutput(s, demanded / NORMAL_UTILIZATION)
     })
+    // a numerical guard against zero employment (wages divide by it below),
+    // not a behavioural floor
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
     let newEmployment = state.sectors.map((s, i) =>
       Math.max(0.01, s.employment + EMPLOYMENT_ADJUST * (targets[i] - s.employment)),
     )
+    /* eslint-enable @typescript-eslint/no-magic-numbers */
     // the subsistence valve: idle hands drift onto the family farm rather
     // than a dole queue that doesn't exist — open unemployment becomes
     // agricultural underemployment at falling marginal product. Farms can
@@ -68,7 +77,8 @@ export const labor: PipelineStep = {
     // in a slump; slack drags wage growth (Phillips) — the cost→price→export
     // channel is what re-anchors the economy to full employment
     const tfpTerm =
-      Math.max(0, state.tech.tfpGrowthQ) * clamp(1 - 5 * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
+      Math.max(0, state.tech.tfpGrowthQ) *
+      clamp(1 - TFP_SLACK_GATE_GAIN * (uLast - NATURAL_UNEMPLOYMENT), 0, 1)
     const slackTerm = WAGE_SLACK_GAIN * (NATURAL_UNEMPLOYMENT - uLast)
     // An aggrieved and legally organized labor movement does not petition,
     // it bargains — and the wage push then runs through costs into prices like
@@ -97,12 +107,17 @@ export const labor: PipelineStep = {
         -WAGE_MAX_DOWN,
         WAGE_MAX_UP,
       )
-      return Math.max(floor, Math.max(0.05, market.wages[sid] * (1 + move)))
+      return Math.max(floor, Math.max(WAGE_ABSOLUTE_FLOOR, market.wages[sid] * (1 + move)))
     })
 
     // capital: depreciate, then allocate this tick's investment by
     // utilization pressure (public investment spreads as infrastructure)
-    const pressures = state.sectors.map((s) => Math.max(0.05, s.capacityUtilization - 0.5))
+    const pressures = state.sectors.map((s) =>
+      Math.max(
+        INVESTMENT_ALLOCATION_PRESSURE_FLOOR,
+        s.capacityUtilization - INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION,
+      ),
+    )
     const pressureSum = pressures.reduce((a, b) => a + b, 0)
     const sectors = state.sectors.map((s, i) => ({
       ...s,

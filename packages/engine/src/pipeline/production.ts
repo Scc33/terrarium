@@ -11,20 +11,33 @@ import {
   CONF_INV_GAIN,
   CONF_MPC_GAIN,
   CONF_NEUTRAL,
+  CONSUMPTION_CURRENT_INCOME_WEIGHT,
+  CONSUMPTION_HABIT_WEIGHT,
   DEPRECIATION_Q,
+  EXPORT_CAP_SHARE_OF_POTENTIAL,
   FIN_CRUNCH_DRAG,
   FIN_INVEST_Q_GAIN,
   FDI_IMPORTED_CAPITAL_SHARE,
   FDI_PROFIT_REMIT_SHARE,
+  GOV_PROCUREMENT_MANUF_SHARE,
+  GOV_PROCUREMENT_SERVICES_SHARE,
+  GOV_RESEARCH_MANUF_SHARE,
+  GOV_RESEARCH_SERVICES_SHARE,
   IND_FAVOR_INVEST,
   IMPORT_BASE_SHARE,
   EXPORT_BASE_SHARE,
+  INVESTMENT_DEMAND_MANUF_SHARE,
+  INVESTMENT_DEMAND_SERVICES_SHARE,
   INVESTMENT_FACTOR_MAX,
+  INVESTMENT_FACTOR_MIN,
+  INVESTMENT_NORMAL_UTILIZATION,
   INVESTMENT_RATE_SENSITIVITY,
   INVESTMENT_SLACK_GAIN,
+  INVESTMENT_UTIL_GAIN,
   MPC,
   NATURAL_REAL_RATE,
   NATURAL_UNEMPLOYMENT,
+  NOMINAL_GDP_FLOOR_SHARE,
   SAVINGS_DRAWDOWN,
   taxEfficiency,
   TRADE_ELASTICITY,
@@ -64,7 +77,8 @@ export const production: PipelineStep = {
       // into savings through bad quarters — this is the great damper of the
       // postwar consumption cycle
       const habitual = c.lastRealIncome * cohortCpi(state, c.id)
-      const smoothed = 0.45 * disposable + 0.55 * habitual
+      const smoothed =
+        CONSUMPTION_CURRENT_INCOME_WEIGHT * disposable + CONSUMPTION_HABIT_WEIGHT * habitual
       const spirits = 1 + CONF_MPC_GAIN * (state.ledger.confidence.consumer - CONF_NEUTRAL)
       const budget = Math.max(0, MPC[c.id] * smoothed * spirits + SAVINGS_DRAWDOWN * c.savings)
       cohortSpend[c.id] = budget
@@ -79,7 +93,12 @@ export const production: PipelineStep = {
     // --- government demand ---
     const adminEff = adminEffectiveness(gov.capacity.administrative)
     const procurementReal = sectorRecord((sid) => {
-      const share = sid === 'manuf' ? 0.4 : sid === 'services' ? 0.6 : 0
+      const share =
+        sid === 'manuf'
+          ? GOV_PROCUREMENT_MANUF_SHARE
+          : sid === 'services'
+            ? GOV_PROCUREMENT_SERVICES_SHARE
+            : 0
       return (gov.dials.spending.procurement * adminEff * share) / market.prices[sid]
     })
     // Research is real government final demand as well as a technology input:
@@ -87,7 +106,12 @@ export const production: PipelineStep = {
     // step decides what knowledge that work produced; this keeps the money from
     // vanishing from national accounts while avoiding physical capital gains.
     const researchReal = sectorRecord((sid) => {
-      const share = sid === 'manuf' ? 0.2 : sid === 'services' ? 0.8 : 0
+      const share =
+        sid === 'manuf'
+          ? GOV_RESEARCH_MANUF_SHARE
+          : sid === 'services'
+            ? GOV_RESEARCH_SERVICES_SHARE
+            : 0
       return (gov.dials.spending.research * adminEff * share) / market.prices[sid]
     })
 
@@ -107,7 +131,7 @@ export const production: PipelineStep = {
     const invFactor = clamp(
       1 +
         INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
-        0.5 * (avgUtil - 0.85) +
+        INVESTMENT_UTIL_GAIN * (avgUtil - INVESTMENT_NORMAL_UTILIZATION) +
         CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
         // Open unemployment is the investable quantity here: bumping changes
         // who holds existing posts, but it creates no unfilled post or extra
@@ -118,7 +142,7 @@ export const production: PipelineStep = {
         FIN_INVEST_Q_GAIN * (fin.assetPrice - 1) -
         (fin.crisisQtrsLeft > 0 ? FIN_CRUNCH_DRAG * fin.crisisSeverity : 0) -
         investmentStrike,
-      0.5,
+      INVESTMENT_FACTOR_MIN,
       INVESTMENT_FACTOR_MAX,
     )
     const domesticPrivateInvReal = replacement * invFactor
@@ -137,7 +161,11 @@ export const production: PipelineStep = {
       SECTOR_IDS.reduce((sum, sid) => sum + procurementReal[sid] + researchReal[sid], 0) +
       govInvReal
     const invDemand = sectorRecord((sid) =>
-      sid === 'manuf' ? 0.6 * investmentReal : sid === 'services' ? 0.4 * investmentReal : 0,
+      sid === 'manuf'
+        ? INVESTMENT_DEMAND_MANUF_SHARE * investmentReal
+        : sid === 'services'
+          ? INVESTMENT_DEMAND_SERVICES_SHARE * investmentReal
+          : 0,
     )
 
     // --- trade demand at relative prices ---
@@ -154,7 +182,7 @@ export const production: PipelineStep = {
           state.params.openness *
           foreignDemand *
           Math.pow(ratio, TRADE_ELASTICITY),
-        0.5 * qPot[i],
+        EXPORT_CAP_SHARE_OF_POTENTIAL * qPot[i],
       )
     })
     const importsReal = sectorRecord((sid, i) => {
@@ -237,7 +265,7 @@ export const production: PipelineStep = {
       realGdp += output[sid] * (1 - colReal)
       nominalGdp += output[sid] * (market.prices[sid] - colNominal)
     }
-    nominalGdp = Math.max(nominalGdp, 0.05 * realGdp)
+    nominalGdp = Math.max(nominalGdp, NOMINAL_GDP_FLOOR_SHARE * realGdp)
 
     return {
       ...state,
