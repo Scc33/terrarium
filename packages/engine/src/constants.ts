@@ -1114,9 +1114,7 @@ export const FIN_CRUNCH_DRAG = 0.6 // subtracted from the investment factor at f
 export const APPROVAL_DRIFT = 0.2 // per quarter toward experienced conditions
 export const LOSS_AVERSION = 2.0 // losses hurt ~2× gains
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
-// centered near ELECTION_WIN_THRESHOLD (0.38), not at the scale's 0.5 midpoint —
-// a government that can barely win a ballot should be roughly breaking even
-export const PC_INCOME_APPROVAL_NEUTRAL = 0.35
+export const PC_INCOME_APPROVAL_NEUTRAL = 0.35 // near ELECTION_WIN_THRESHOLD, not the scale's 0.5 midpoint
 export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
 /** Salience: PC per point of PUBLISHED annualized GDP growth — noisy
  * statistics make this noisy, which is the point of funding the office */
