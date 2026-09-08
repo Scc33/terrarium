@@ -38,7 +38,9 @@ const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
   'packages/engine/src/actions/apply.ts': 800,
   // Cohesive ledger: the total, lint-enforced home for every behavioral constant.
-  'packages/engine/src/constants.ts': 1609,
+  // Ratcheted from 1609 for PC_INCOME_APPROVAL_NEUTRAL, naming the accrual
+  // formula's approval break-even instead of leaving it a bare literal.
+  'packages/engine/src/constants.ts': 1610,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.

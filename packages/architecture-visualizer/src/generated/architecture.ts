@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "63e3200",
+  "revision": "f3632cb",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 44,
-      "lines": 15571
+      "lines": 15577
     },
     {
       "id": "fixtures",
@@ -149,7 +149,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
-      "lines": 1609,
+      "lines": 1610,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -1514,664 +1514,670 @@ export const architecture = {
           "line": 1116
         },
         {
-          "name": "PC_INCOME_FLOOR",
+          "name": "PC_INCOME_APPROVAL_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 1117
         },
         {
-          "name": "PC_HEADLINE_SALIENCE",
+          "name": "PC_INCOME_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1120
+          "line": 1118
         },
         {
-          "name": "PC_HEADLINE_CAP",
+          "name": "PC_HEADLINE_SALIENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 1121
         },
         {
-          "name": "ELECTION_WIN_THRESHOLD",
+          "name": "PC_HEADLINE_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 1122
         },
         {
-          "name": "PC_START",
+          "name": "ELECTION_WIN_THRESHOLD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 1123
         },
         {
-          "name": "PC_MAX",
+          "name": "PC_START",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 1124
         },
         {
+          "name": "PC_MAX",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 1125
+        },
+        {
           "name": "PC_REPRESSION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1128
+          "line": 1129
         },
         {
           "name": "PC_UNREST_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1130
+          "line": 1131
         },
         {
           "name": "PC_COST_DIAL_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1133
+          "line": 1134
         },
         {
           "name": "PC_COST_DIAL_SLOPE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1134
+          "line": 1135
         },
         {
           "name": "PC_COST_CAPACITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1135
+          "line": 1136
         },
         {
           "name": "PC_COST_REFORM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1138
+          "line": 1139
         },
         {
           "name": "PC_COST_CAMPAIGN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1139
+          "line": 1140
         },
         {
           "name": "SOC_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1148
+          "line": 1149
         },
         {
           "name": "SOC_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1149
+          "line": 1150
         },
         {
           "name": "SOC_FRANCHISE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1150
+          "line": 1151
         },
         {
           "name": "SOC_PRESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1151
+          "line": 1152
         },
         {
           "name": "SOC_LABOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1152
+          "line": 1153
         },
         {
           "name": "SOC_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1153
+          "line": 1154
         },
         {
           "name": "SOC_EDU",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1154
+          "line": 1155
         },
         {
           "name": "SOC_URBAN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1155
+          "line": 1156
         },
         {
           "name": "SOC_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1156
+          "line": 1157
         },
         {
           "name": "SOC_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1157
+          "line": 1158
         },
         {
           "name": "SOC_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1158
+          "line": 1159
         },
         {
           "name": "STATE_CAPACITY_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1163
+          "line": 1164
         },
         {
           "name": "STATE_REPRESSION_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1164
+          "line": 1165
         },
         {
           "name": "CORRIDOR_HALF_WIDTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1167
+          "line": 1168
         },
         {
           "name": "REPRESSION_DECAY_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1171
+          "line": 1172
         },
         {
           "name": "INSTITUTION_EROSION_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1172
+          "line": 1173
         },
         {
           "name": "REFORM_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1173
+          "line": 1174
         },
         {
           "name": "REFORM_WINDOW_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1176
+          "line": 1177
         },
         {
           "name": "REFORM_WINDOW_DISCOUNT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1177
+          "line": 1178
         },
         {
           "name": "REFORM_WINDOW_VETO_RELIEF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1178
+          "line": 1179
         },
         {
           "name": "INSTITUTIONS_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1182
+          "line": 1183
         },
         {
           "name": "UNREST_ADAPT_UP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1198
+          "line": 1199
         },
         {
           "name": "UNREST_ADAPT_DOWN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1199
+          "line": 1200
         },
         {
           "name": "UNREST_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1200
+          "line": 1201
         },
         {
           "name": "UNREST_DISCONTENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1217
+          "line": 1218
         },
         {
           "name": "UNREST_VOICELESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1218
+          "line": 1219
         },
         {
           "name": "UNREST_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1219
+          "line": 1220
         },
         {
           "name": "UNREST_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1220
+          "line": 1221
         },
         {
           "name": "UNREST_CRISIS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1221
+          "line": 1222
         },
         {
           "name": "UNREST_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1225
+          "line": 1226
         },
         {
           "name": "UNREST_DESPOTISM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1230
+          "line": 1231
         },
         {
           "name": "UNREST_ANARCHY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1231
+          "line": 1232
         },
         {
           "name": "REVOLT_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1235
+          "line": 1236
         },
         {
           "name": "REVOLT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1236
+          "line": 1237
         },
         {
           "name": "COUP_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1239
+          "line": 1240
         },
         {
           "name": "COUP_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1240
+          "line": 1241
         },
         {
           "name": "LAND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1246
+          "line": 1247
         },
         {
           "name": "IND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1247
+          "line": 1248
         },
         {
           "name": "FIN_POWER_CREDIT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1248
+          "line": 1249
         },
         {
           "name": "FIN_POWER_DEBT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1249
+          "line": 1250
         },
         {
           "name": "UNION_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1250
+          "line": 1251
         },
         {
           "name": "SOCIETY_CHECK",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1254
+          "line": 1255
         },
         {
           "name": "BLOC_FAVOR_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1255
+          "line": 1256
         },
         {
           "name": "BLOC_FAVOR_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1266
+          "line": 1267
         },
         {
           "name": "BLOC_DEFIANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1273
+          "line": 1274
         },
         {
           "name": "VETO_COST_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1275
+          "line": 1276
         },
         {
           "name": "PLEDGE_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1277
+          "line": 1278
         },
         {
           "name": "PLEDGE_VETO_MULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1278
+          "line": 1279
         },
         {
           "name": "FIN_FAVOR_PREMIUM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1282
+          "line": 1283
         },
         {
           "name": "FIN_FAVOR_DEPTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1283
+          "line": 1284
         },
         {
           "name": "IND_FAVOR_INVEST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1284
+          "line": 1285
         },
         {
           "name": "UNION_FAVOR_WAGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1285
+          "line": 1286
         },
         {
           "name": "LAND_FAVOR_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1286
+          "line": 1287
         },
         {
           "name": "ELITE_CAPTURE_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1294
+          "line": 1295
         },
         {
           "name": "ELITE_VETO_ABSORB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1295
+          "line": 1296
         },
         {
           "name": "ELITE_ABSORB_CLAMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1296
+          "line": 1297
         },
         {
           "name": "StatuteLevel",
           "kind": "interface",
           "path": "packages/engine/src/constants.ts",
-          "line": 1321
+          "line": 1322
         },
         {
           "name": "STATUTE_LEVELS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1336
+          "line": 1337
         },
         {
           "name": "STATUTE_STANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1369
+          "line": 1370
         },
         {
           "name": "STATUTE_PHASE_IN_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1384
+          "line": 1385
         },
         {
           "name": "STATUTE_COMPLIANCE_ADMIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1389
+          "line": 1390
         },
         {
           "name": "STATUTE_COMPLIANCE_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1390
+          "line": 1391
         },
         {
           "name": "STATUTE_EVASION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1392
+          "line": 1393
         },
         {
           "name": "STATUTE_COMPLIANCE_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1397
+          "line": 1398
         },
         {
           "name": "STATUTE_COMPLIANCE_CEILING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1398
+          "line": 1399
         },
         {
           "name": "STATUTE_CONGESTION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1402
+          "line": 1403
         },
         {
           "name": "COMPETITION_CAPTURE_RELIEF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1414
+          "line": 1415
         },
         {
           "name": "SCHOOLING_LABOR_WITHDRAWAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1428
+          "line": 1429
         },
         {
           "name": "ABATEMENT_COST_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1441
+          "line": 1442
         },
         {
           "name": "SCHOOLING_ATTAINMENT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1446
+          "line": 1447
         },
         {
           "name": "MINIMUM_WAGE_ANCHOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1460
+          "line": 1461
         },
         {
           "name": "PC_COST_STATUTE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1464
+          "line": 1465
         },
         {
           "name": "STATUTE_ENTRENCHMENT_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1468
+          "line": 1469
         },
         {
           "name": "STATUTE_REPEAL_PREMIUM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1469
+          "line": 1470
         },
         {
           "name": "PLATFORM_SWING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1473
+          "line": 1474
         },
         {
           "name": "LARGESSE_BUMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1482
+          "line": 1483
         },
         {
           "name": "LARGESSE_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1483
+          "line": 1484
         },
         {
           "name": "COALITION_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1484
+          "line": 1485
         },
         {
           "name": "SUPPRESSION_REPRESSION_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1485
+          "line": 1486
         },
         {
           "name": "FRANCHISE_SUFFRAGE_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1486
+          "line": 1487
         },
         {
           "name": "REPRESSION_VOTE_EDGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1489
+          "line": 1490
         },
         {
           "name": "PLATFORM_BLOC_COST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1491
+          "line": 1492
         },
         {
           "name": "COALITION_FAVOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1498
+          "line": 1499
         },
         {
           "name": "COALITION_FAVOR_SNUB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1499
+          "line": 1500
         },
         {
           "name": "POSITION_GRADE_CUTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1504
+          "line": 1505
         },
         {
           "name": "CARETAKER_CAPACITY_EVERY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1521
+          "line": 1522
         },
         {
           "name": "CARETAKER_CAPACITY_SPEND",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1522
+          "line": 1523
         },
         {
           "name": "NEWS_REPORT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1542
+          "line": 1543
         },
         {
           "name": "NEWS_REPORTS_PER_QTR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1545
+          "line": 1546
         },
         {
           "name": "NEWS_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1549
+          "line": 1550
         },
         {
           "name": "NEWS_COOLDOWN_GROWTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1567
+          "line": 1568
         },
         {
           "name": "NEWS_COOLDOWN_MAX_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1569
+          "line": 1570
         },
         {
           "name": "WORLD_PHASE_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1581
+          "line": 1582
         },
         {
           "name": "NEWS_THIN_PAGE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1584
+          "line": 1585
         },
         {
           "name": "NEWS_COLOUR_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1588
+          "line": 1589
         },
         {
           "name": "NEWS_COLOUR_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1591
+          "line": 1592
         },
         {
           "name": "PRESS_CAPTURED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1608
+          "line": 1609
         }
       ],
       "imports": [
@@ -3905,19 +3911,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 10 — politics. Political capital accrues from enfranchisement-weighted approval; elections every 16 quarters are the forcing function. Salience (ADR-0003): the growth term reads the statistics office's CURRENT headline — credit is banked when the number prints, and a late…",
-      "lines": 179,
+      "lines": 184,
       "exports": [
         {
           "name": "electionThreshold",
           "kind": "function",
           "path": "packages/engine/src/pipeline/politics.ts",
-          "line": 71
+          "line": 72
         },
         {
           "name": "politics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/politics.ts",
-          "line": 75
+          "line": 76
         }
       ],
       "imports": [
@@ -15179,17 +15185,17 @@ export const architecture = {
           "name": "electionThreshold",
           "kind": "function",
           "path": "packages/engine/src/pipeline/politics.ts",
-          "line": 71
+          "line": 72
         },
         {
           "name": "politics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/politics.ts",
-          "line": 75
+          "line": 76
         }
       ],
       "path": "packages/engine/src/pipeline/politics.ts",
-      "line": 75
+      "line": 76
     }
   ],
   "seams": [
@@ -15215,7 +15221,7 @@ export const architecture = {
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",
-          "line": 76
+          "line": 77
         },
         {
           "path": "packages/observation/src/observe.ts",
