@@ -42,6 +42,7 @@ export type IndicatorRelease = IndicatorPoint & {
 type HistoricalPublishedKey =
   | 'indicators'
   | 'industry'
+  | 'labour'
   | 'households'
   | 'books'
   | 'census'
@@ -69,6 +70,8 @@ export interface HistoricalDataExport {
     indicatorReleases: IndicatorRelease[]
     /** Vector releases from the industrial census, in publication order. */
     industryReleases: PublishedState['industry']
+    /** Joblessness and underemployment by occupational class. */
+    labourReleases: PublishedState['labour']
     /** Income by population fifth from the household-budget survey. */
     householdReleases: PublishedState['households']
     /** Exact government books, one row per quarter. */
@@ -98,6 +101,7 @@ export function createHistoricalDataExport(
   const {
     indicators,
     industry,
+    labour,
     households,
     books,
     census,
@@ -136,6 +140,7 @@ export function createHistoricalDataExport(
     records: {
       indicatorReleases,
       industryReleases: industry,
+      labourReleases: labour,
       householdReleases: households,
       treasury: books,
       census,

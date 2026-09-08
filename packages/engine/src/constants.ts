@@ -357,6 +357,7 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
  * return. Poverty, inequality and the quintile books unlock together because
  * they are three readings of the same enumerators' schedules. */
 export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
+export const LABOUR_SURVEY_FUNDED_AT = 0.45 // labour-force survey + employers' returns
 /** Terrarium Human Development Index goalposts (ADR-0033). Health retains
  * UNDP's canonical 20–85-year range. Income uses engine units, not PPP dollars:
  * a schema-38 funded all-country century measured p01–p99 6.3–113.8, while
@@ -443,8 +444,8 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   // statistics.
   pollution: 0.4,
   unrest: 0.4,
+  labour_underuse: LABOUR_SURVEY_FUNDED_AT,
 }
-
 /** The industrial census sits on the establishment survey's rung, beside
  * `payrolls` and `capital_stock`, because it IS that survey: an office that
  * can count heads at every factory can also ask what those factories made,
@@ -466,6 +467,8 @@ export const INDUSTRY_CENSUS_FUNDED_AT = 0.3
 export const INDUSTRY_VALUE_ADDED_SD = 0.06
 /** …and on the head count beside it, which an enumerator can actually count. */
 export const INDUSTRY_EMPLOYMENT_SD = 0.04
+export const LABOUR_JOBLESS_SD = 0.025 // absolute rate error
+export const LABOUR_UNDEREMPLOYED_SD = 0.035 // occupational matching is harder to classify
 /** First-print relative error on each quintile's real-income estimate. The
  * five figures are ranked and reconciled into shares after noise is applied. */
 export const HOUSEHOLD_INCOME_SD = 0.08

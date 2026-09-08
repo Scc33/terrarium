@@ -72,6 +72,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   bank_capital_ratio: { dossier: 'BANK CAPITAL · % CREDIT', terminal: 'BANK.CAP %CR', plate: 'BANK CAPITAL', short: 'BANK CAP.', needs: 'BANK SUPERVISION', note: 'The banks’ own money set against what they have lent. It absorbs losses, and lending stops growing when it falls to the floor you set.' },
   pollution: { dossier: 'AIR QUALITY · IDX', terminal: 'POLLUTION IDX', plate: 'POLLUTION', short: 'POLLUTION', needs: 'ENVIRONMENTAL MONITORS', note: 'The pollution burden the economy is carrying, against a 1946 economy at 100. Dirty industry raises it; better technique and emissions rules lower it. It shortens lives and makes the harvest fail more often.' },
   unrest: { dossier: 'PUBLIC ORDER · IDX', terminal: 'UNREST IDX', plate: 'PUBLIC ORDER', short: 'UNREST', needs: 'PROVINCIAL REPORTS', note: 'Pressure from public anger and hardship. Higher numbers mean greater risk of disorder or revolt.' },
+  labour_underuse: { dossier: 'LABOUR UNDERUSE · %', terminal: 'LAB.UNDERUSE %', plate: 'LABOUR UNDERUSE', short: 'UNDERUSE', needs: 'OCCUPATIONAL SURVEY', note: 'People unable to find work, plus people working below their training, as a share of the workforce.' },
 }
 
 /**

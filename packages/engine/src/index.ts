@@ -6,7 +6,6 @@
  *
  * All pure. The save file is literally {version, params, seed, rules, actionLog}.
  */
-
 import { applyAction } from './actions/apply'
 import type { Action, ActionLog } from './actions/types'
 import { runTick } from './pipeline/pipeline'
@@ -24,7 +23,6 @@ import {
   type TrueState,
 } from './state/schema'
 import type { Seed } from './rng/rng'
-
 export function init(
   params: CountryParams,
   seed: Seed,
@@ -41,7 +39,6 @@ export function applyActions(s: TrueState, actions: Action[]): TrueState {
 export function step(s: TrueState): TrueState {
   return runTick(s)
 }
-
 // ---------- saves ----------
 /** A save whose own replay inputs contradict each other. Distinct from
  * `InvalidCountryError` (a vector this build refuses) because nothing is wrong
@@ -247,6 +244,7 @@ export type {
   TickFlows,
   TrueState,
 } from './state/schema'
+export { LABOUR_CLASS_IDS, LABOUR_MARKET_TABLE_IDS, type LabourClassId, type LabourMarketPrint, type LabourMarketTableId } from './state/labour'
 export {
   humanDevelopmentDimensions,
   humanDevelopmentIndex,
@@ -301,6 +299,7 @@ export {
   statutesInForce,
   urbanShare,
 } from './pipeline/derive'
+export { labourMarket, type LabourMarketReading } from './pipeline/labourMarket'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
 export { migrationFlow, professionalCeiling, vitalRates } from './pipeline/demography'
 export { droughtHazardMultiplier } from './pipeline/shocks'
@@ -338,6 +337,7 @@ export {
   fdiStructuralAttraction,
   INDICATOR_FUNDED_AT,
   HOUSEHOLD_SURVEY_FUNDED_AT,
+  LABOUR_SURVEY_FUNDED_AT,
   HUMAN_DEVELOPMENT_INCOME_MAX,
   HUMAN_DEVELOPMENT_INCOME_MIN,
   HUMAN_DEVELOPMENT_LIFE_MAX,

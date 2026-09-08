@@ -4,7 +4,6 @@
  * bottom. Overlays are ministry paperwork on top — the ledger's full books,
  * the wire's spike, the study, the records office.
  */
-
 import { useCallback, useState } from 'react'
 import { useGame } from './store/gameStore'
 import { HeaderBar } from './panels/HeaderBar'
@@ -16,6 +15,7 @@ import { PolicyOverlay } from './panels/PolicyOverlay'
 import { AccountsOverlay } from './panels/AccountsOverlay'
 import { IndustryOverlay } from './panels/IndustryOverlay'
 import { HouseholdOverlay } from './panels/HouseholdOverlay'
+import { LabourOverlay } from './panels/LabourOverlay'
 import { WireOverlay } from './panels/WireOverlay'
 import { StudyOverlay } from './panels/StudyOverlay'
 import { SettingsOverlay } from './panels/SettingsOverlay'
@@ -39,7 +39,6 @@ import { useBootSequence } from './shell/useBootSequence'
 import { useCabinetChrome } from './shell/useCabinetChrome'
 import { useGlobalShortcuts } from './shell/useGlobalShortcuts'
 import { useSceneOverlays } from './shell/useSceneOverlays'
-
 /**
  * The paperwork that is only ever `(pub, onClose)` — a table, so opening a new
  * office is a word here rather than a line in a union and a line in the render
@@ -49,7 +48,7 @@ import { useSceneOverlays } from './shell/useSceneOverlays'
 const PAPERWORK = {
   ledger: LedgerOverlay, policy: PolicyOverlay, accounts: AccountsOverlay, industry: IndustryOverlay,
   households: HouseholdOverlay, wire: WireOverlay, study: StudyOverlay, census: CensusOverlay,
-  finance: FinanceOverlay, election: ElectionOverlay, count: ElectionResultOverlay,
+  labour: LabourOverlay, finance: FinanceOverlay, election: ElectionOverlay, count: ElectionResultOverlay,
 } as const
 
 type OverlayKind = keyof typeof PAPERWORK | 'settings' | 'verdict' | 'country' | 'manual' | 'atlas' | null
@@ -199,6 +198,7 @@ export default function App() {
         onFinance={() => setOverlay('finance')}
         onAccounts={() => setOverlay('accounts')}
         onIndustry={() => setOverlay('industry')}
+        onLabour={() => setOverlay('labour')}
         onHouseholds={() => setOverlay('households')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />

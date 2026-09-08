@@ -82,6 +82,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   bank_capital_ratio: { label: 'Bank capital', unit: '% of credit' },
   pollution: { label: 'Pollution burden', unit: '1946 = 100' },
   unrest: { label: 'Public order', unit: 'idx' },
+  labour_underuse: { label: 'Labour underuse', unit: '%' },
 }
 
 /** Discounted effective duration of an n-quarter tenure — the denominator
@@ -240,6 +241,12 @@ export function observe(state: TrueState): PublishedState {
       errorBand: { ...print.errorBand },
       valueAdded: { ...print.valueAdded },
       employment: { ...print.employment },
+    })),
+    labour: state.stats.labour.map((print) => ({
+      ...print,
+      errorBand: { ...print.errorBand },
+      jobless: { ...print.jobless },
+      underemployed: { ...print.underemployed },
     })),
     households: state.stats.households.map((print) => ({
       ...print,

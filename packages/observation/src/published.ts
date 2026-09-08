@@ -17,6 +17,7 @@ import type {
   IndicatorId,
   IndustryPrint,
   InstitutionId,
+  LabourMarketPrint,
   NewsItem,
   OutlaySplit,
   PlatformId,
@@ -34,6 +35,8 @@ export {
   INDICATOR_IDS,
   INCOME_QUINTILE_IDS,
   INDUSTRY_TABLE_IDS,
+  LABOUR_CLASS_IDS,
+  LABOUR_MARKET_TABLE_IDS,
   SECTOR_IDS,
   OUTLAY_IDS,
   REVENUE_SOURCE_IDS,
@@ -50,7 +53,14 @@ export type { GameRuleId, GameRules } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit, TaxRateId } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
-export type { IncomeQuintileId, IndustryTableId, Statute, StatuteId } from '@terrarium/engine'
+export type {
+  IncomeQuintileId,
+  IndustryTableId,
+  LabourClassId,
+  LabourMarketTableId,
+  Statute,
+  StatuteId,
+} from '@terrarium/engine'
 
 /** One quarter of the government's own record of itself. */
 export type PolicyPoint = PolicyRecord & { tick: Qtr }
@@ -71,6 +81,9 @@ export interface IndicatorSeries {
  * establishment survey is funded. See `IndustryPrint` in the engine for why
  * this is a vector release rather than a family of indicators. */
 export type IndustryPoint = IndustryPrint
+
+/** One fogged occupational labour-force survey release. */
+export type LabourMarketPoint = LabourMarketPrint
 
 /** One fogged household-budget survey release. */
 export type HouseholdIncomePoint = HouseholdSurveyPrint
@@ -201,6 +214,9 @@ export interface PublishedState {
    * unfunded survey says: the country has industries, the ministry has no
    * means of counting them apart. */
   industry: IndustryPoint[]
+  /** Joblessness and underemployment by wage-earning occupational class.
+   * Empty until the occupational survey is funded. */
+  labour: LabourMarketPoint[]
   /** Household-budget survey, absent until the same enumerators that produce
    * the Gini are funded. Five equal population bins, never true cohorts. */
   households: HouseholdIncomePoint[]

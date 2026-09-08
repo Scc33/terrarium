@@ -21,6 +21,23 @@ contract, so it's called out below.
 
 ---
 
+## Schema 46 — occupational labour survey and underuse headline (#197)
+
+- **Outputs +**: `labour_underuse` (`%`, fogged, unlock **0.45**) — open joblessness plus
+  employed people filling a post below their occupational rung, as a share of the surveyed
+  labour force.
+- **Outputs +**: `PublishedState.labour[]`, a fogged vector release over
+  `LABOUR_CLASS_IDS` (`rural_workers`, `urban_workers`, `professionals`). Each release carries
+  independently sampled `jobless` and `underemployed` rates by class plus one confessed band
+  per table. The rows deliberately do not reconcile to the separately sampled headline.
+- **Internal state +**: `StatRecord.labourMarket` and `labourUnderuse` are the exact worksheet;
+  `StatsOffice.labour` holds only lagged, noisy, revised releases. `fullInstrumentation` lifts
+  the **0.45** funding gate and nothing else.
+- **Published-data export +**: `records.labourReleases`, additive within export format v1.
+- Pipeline and replay inputs unchanged. The staffing allocation retains its desired-post rung
+  only as a derived reporting sidecar; employment, wages, output and every economic reader are
+  unchanged.
+
 ## Schema 45 — central-bank assets and financing books (#212)
 
 - `finance.centralBankAssets` starts at zero and accumulates purchases at acquisition
@@ -36,7 +53,7 @@ contract, so it's called out below.
 - The same additive fields appear in published-data exports within format v1.
   No new funding gate, indicator, replay input or pipeline reordering.
 
-## Current contract (schema 45)
+## Current contract (schema 46)
 
 ### Inputs
 
@@ -203,6 +220,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `conf_consumer` | idx | 0.45 | v1.5 | consumer confidence |
 | `conf_business` | idx | 0.45 | v1.5 | business confidence |
 | `income_real` | 1946=100 | 0.45 | v14 | real household income per head (own-basket deflated) |
+| `labour_underuse` | % | 0.45 | v46 | open joblessness + workers filling a post below their occupational rung |
 | `poverty_rate` | % population | 0.55 | v35 | population below one standard 1946 consumption basket per person per quarter |
 | `household_saving_rate` | % disposable income | 0.45 | v15 | disposable income not consumed; consumption is the complement |
 | `productivity` | 1946=100 | 0.40 | v19 | annualized real GDP ÷ total employment (incl. agriculture), indexed to own 1946 |
@@ -220,6 +238,24 @@ additionally carries level estimates, while `human_development` carries its norm
 `{ health, skills, income }` components. Lag, noise, and error bands shrink as statistical
 capacity rises; below `TERMINAL_AT = 0.5` the UI renders a dossier gauge, above it a terminal
 ticker.
+
+### Outputs — the occupational labour survey (fogged vector)
+
+`PublishedState.labour`, since v46. One release carries `jobless` and `underemployed` rates
+over the three wage-earning occupational classes in `LABOUR_CLASS_IDS`. Both are shares of each
+class's own labour force. Business owners are absent because their labour-force participation is
+zero: they are self-employed and receive profit income.
+
+Unlocks at **0.45** statistical capacity (`LABOUR_SURVEY_FUNDED_AT`). It uses the same
+capacity-dependent lag, three-revision schedule and `noiseScale(capacity)` as the rest of the
+office. Every table/class cell draws from its own `obs:labour:*` substream, so the published
+rows do not add back to the independently fogged `labour_underuse` headline. `errorBand` carries
+one absolute half-width per table, in rate units.
+
+The true underemployment count comes from the existing staffing allocation: a worker holds an
+existing job but the job asked for a lower occupational rung. Retaining that desired-post fact is
+measurement only; it does not create or delete a post and no economic or political reader consumes
+the published result.
 
 ### Outputs — the industrial census (fogged, and not an indicator)
 

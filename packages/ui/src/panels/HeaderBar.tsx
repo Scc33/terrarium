@@ -27,6 +27,7 @@ export function HeaderBar({
   onFinance,
   onAccounts,
   onIndustry,
+  onLabour,
   onHouseholds,
   onAtlas,
   onVerdict,
@@ -39,6 +40,7 @@ export function HeaderBar({
   onFinance: () => void
   onAccounts: () => void
   onIndustry: () => void
+  onLabour: () => void
   onHouseholds: () => void
   onAtlas: () => void
   /** present only once the run has ended and a report card exists */
@@ -116,7 +118,7 @@ export function HeaderBar({
         </HeaderGroup>
       </div>
 
-      {/* Eight offices cost more than the ordinary desktop header can spare
+      {/* Nine offices cost more than the ordinary desktop header can spare
           before the conditional verdict joins them.
           Keep the direct row to genuinely wide screens so a new office cannot
           silently buy its space by shearing the Treasury figures again. */}
@@ -124,6 +126,7 @@ export function HeaderBar({
         {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
         <Button onClick={onHouseholds} variant="secondary" size="compact" title="See poverty and real household income for every fifth of the population.">HOUSEHOLDS</Button>
         <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output and where people work.">INDUSTRY</Button>
+        <Button onClick={onLabour} variant="secondary" size="compact" title="See joblessness and work below training across the occupational classes.">LABOUR</Button>
         <Button onClick={onAccounts} variant="secondary" size="compact" title="See who buys the economy’s output: households, investors, government or other countries.">ACCOUNTS</Button>
         <Button onClick={onFinance} variant="secondary" size="compact" title="See lending, banks and asset prices, including signs of a bubble or crisis.">FINANCE</Button>
         <Button onClick={onStudy} variant="secondary" size="compact" title="Test this country across many possible futures before playing it.">STUDY</Button>
@@ -139,6 +142,7 @@ export function HeaderBar({
           {onVerdict && <Button onClick={() => openOffice(onVerdict)} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
           <Button onClick={() => openOffice(onHouseholds)} variant="secondary" size="compact" title="See poverty and income across the population.">HOUSEHOLDS</Button>
           <Button onClick={() => openOffice(onIndustry)} variant="secondary" size="compact" title="See which industries make the economy’s output.">INDUSTRY</Button>
+          <Button onClick={() => openOffice(onLabour)} variant="secondary" size="compact" title="See joblessness and work below training by occupational class.">LABOUR</Button>
           <Button onClick={() => openOffice(onAccounts)} variant="secondary" size="compact" title="See who buys the economy’s output.">ACCOUNTS</Button>
           <Button onClick={() => openOffice(onFinance)} variant="secondary" size="compact" title="See lending, banks and asset prices.">FINANCE</Button>
           <Button onClick={() => openOffice(onStudy)} variant="secondary" size="compact" title="Test this country across many possible futures.">STUDY</Button>
