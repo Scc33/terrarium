@@ -14,7 +14,7 @@ import {
   type LabourMarketTableId,
 } from '../state/labour'
 import type { StatRecord } from '../state/schema'
-import { lagFor, noiseScale, PUBLICATION_LAGS, REVISION_DELAYS } from './measurement'
+import { errorBandFor, lagFor, PUBLICATION_LAGS, REVISION_DELAYS, settlingFor } from './measurement'
 
 const LABOUR_SD: Record<LabourMarketTableId, number> = {
   jobless: LABOUR_JOBLESS_SD,
@@ -36,7 +36,7 @@ export function labourPrintsDue(
       const cap = record[q].statCapacity
       if (!fullInstrumentation && cap < LABOUR_SURVEY_FUNDED_AT) continue
       if (lagFor(cap) !== lag) continue
-      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const settling = settlingFor(cap, r)
       const tables = {} as Record<
         LabourMarketTableId,
         Record<(typeof LABOUR_CLASS_IDS)[number], number>
@@ -50,7 +50,7 @@ export function labourPrintsDue(
           figures[id] = clamp(record[q].labourMarket[id][table] + rng.normal(0, sd), 0, 1)
         }
         tables[table] = figures
-        errorBand[table] = cap >= 0.45 ? 1.96 * sd : 0
+        errorBand[table] = errorBandFor(cap, sd)
       }
       out.push({ forQtr: q, publishedAt, revision: r, errorBand,
         jobless: tables.jobless, underemployed: tables.underemployed })

@@ -14,7 +14,7 @@ import {
   type SectorId,
   type StatRecord,
 } from '../state/schema'
-import { lagFor, noiseScale, PUBLICATION_LAGS, REVISION_DELAYS } from './measurement'
+import { errorBandFor, lagFor, PUBLICATION_LAGS, REVISION_DELAYS, settlingFor } from './measurement'
 
 const INDUSTRY_SD: Record<IndustryTableId, number> = {
   valueAdded: INDUSTRY_VALUE_ADDED_SD,
@@ -36,7 +36,7 @@ export function industryPrintsDue(
       const cap = record[q].statCapacity
       if (!fullInstrumentation && cap < INDUSTRY_CENSUS_FUNDED_AT) continue
       if (lagFor(cap) !== lag) continue
-      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const settling = settlingFor(cap, r)
       const truth = record[q].industry
       const tables = {} as Record<IndustryTableId, Record<SectorId, number>>
       const errorBand = {} as IndustryPrint['errorBand']
@@ -48,7 +48,7 @@ export function industryPrintsDue(
           figures[sid] = Math.max(0, truth[sid][table] * (1 + rng.normal(0, sd)))
         }
         tables[table] = figures
-        errorBand[table] = cap >= 0.45 ? 1.96 * sd : 0
+        errorBand[table] = errorBandFor(cap, sd)
       }
       out.push({
         forQtr: q,
