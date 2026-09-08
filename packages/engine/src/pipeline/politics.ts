@@ -100,9 +100,10 @@ export const politics: PipelineStep = {
     const salience = headline
       ? clamp(PC_HEADLINE_SALIENCE * headline.value, -PC_HEADLINE_CAP, PC_HEADLINE_CAP)
       : 0
-    // accrual is centered (approval 0.5 ≈ break-even) but floored: even a
-    // despised government can eventually scrape together one act of policy —
-    // without the floor a slump locks every dial exactly when action is needed
+    // accrual is centered (approval 0.35 ≈ break-even, near ELECTION_WIN_THRESHOLD
+    // rather than the scale's 0.5 midpoint) but floored: even a despised
+    // government can eventually scrape together one act of policy — without
+    // the floor a slump locks every dial exactly when action is needed
     const pcBase = Math.max(
       PC_INCOME_SCALE * (approval - PC_INCOME_APPROVAL_NEUTRAL) + salience,
       PC_INCOME_FLOOR,

@@ -1356,8 +1356,7 @@ export const APPROVAL_JOBLESS_GAIN = 3
 export const APPROVAL_JOBLESS_REFERENCE = 0.07
 export const APPROVAL_SHORTAGE_GAIN = 5
 export const PC_INCOME_SCALE = 6 // political capital per quarter at full approval
-/** the approval level accrual is centered on before the floor applies */
-export const PC_INCOME_APPROVAL_NEUTRAL = 0.35
+export const PC_INCOME_APPROVAL_NEUTRAL = 0.35 // near ELECTION_WIN_THRESHOLD, not the scale's 0.5 midpoint
 export const PC_INCOME_FLOOR = 0.5 // even a hated government scrapes something together
 /** Salience: PC per point of PUBLISHED annualized GDP growth — noisy
  * statistics make this noisy, which is the point of funding the office */

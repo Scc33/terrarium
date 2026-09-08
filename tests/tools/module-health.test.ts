@@ -39,10 +39,12 @@ const MODULE_LINE_BASELINE = {
   'packages/engine/src/actions/apply.ts': 800,
   // Cohesive ledger: the total, lint-enforced home for every behavioral constant.
   // Ratcheted from 1609 by #179: a lint-enforced no-magic-numbers pass moved
-  // ~100 previously-scattered coefficients here, which is this file doing its
-  // one job, not scope creep — the split that would relieve it (domain tuning
-  // modules) stays blocked on a superseding ADR, per this file's own note.
-  'packages/engine/src/constants.ts': 1997,
+  // ~100 previously-scattered coefficients here (including
+  // PC_INCOME_APPROVAL_NEUTRAL, naming the accrual formula's approval
+  // break-even), which is this file doing its one job, not scope creep —
+  // the split that would relieve it (domain tuning modules) stays blocked
+  // on a superseding ADR, per this file's own note.
+  'packages/engine/src/constants.ts': 1996,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
