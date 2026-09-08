@@ -9,10 +9,27 @@
 import {
   adminEffectiveness,
   APPROVAL_DRIFT,
+  APPROVAL_GROWTH_CAP,
+  APPROVAL_GROWTH_GAIN,
+  APPROVAL_INFLATION_GAIN,
+  APPROVAL_INFLATION_REFERENCE,
+  APPROVAL_JOBLESS_GAIN,
+  APPROVAL_JOBLESS_REFERENCE,
+  APPROVAL_SHORTAGE_GAIN,
+  APPROVAL_TARGET_BASE,
   BOND_HOLDING,
   CONF_ADAPT,
+  CONF_BUSINESS_PROFIT_GAIN,
+  CONF_BUSINESS_PROFIT_REFERENCE,
+  CONF_BUSINESS_UTILIZATION_GAIN,
+  CONF_CONSUMER_TREND_GAIN,
+  CONF_CONSUMER_UNEMPLOYMENT_GAIN,
   CONF_NEUTRAL,
+  HABITUAL_INCOME_EMA_GAIN,
+  HABITUAL_INCOME_EMA_PERSISTENCE,
   LOSS_AVERSION,
+  NATURAL_UNEMPLOYMENT,
+  NORMAL_UTILIZATION,
   PROFIT_SHARE,
   taxEfficiency,
   TRANSFER_SHARE,
@@ -124,11 +141,11 @@ export const cohorts: PipelineStep = {
       }
 
       const target = logistic(
-        0.3 +
-          15 * clamp(adjGrowth, -0.15, 0.15) -
-          8 * Math.max(0, basketInflAnnual - 0.04) -
-          3 * (jobless - 0.07) -
-          5 * shortage,
+        APPROVAL_TARGET_BASE +
+          APPROVAL_GROWTH_GAIN * clamp(adjGrowth, -APPROVAL_GROWTH_CAP, APPROVAL_GROWTH_CAP) -
+          APPROVAL_INFLATION_GAIN * Math.max(0, basketInflAnnual - APPROVAL_INFLATION_REFERENCE) -
+          APPROVAL_JOBLESS_GAIN * (jobless - APPROVAL_JOBLESS_REFERENCE) -
+          APPROVAL_SHORTAGE_GAIN * shortage,
       )
       const approval = clamp(c.approval + APPROVAL_DRIFT * (target - c.approval), 0, 1)
 
@@ -142,12 +159,16 @@ export const cohorts: PipelineStep = {
         savings,
         approval,
         // EMA: the standard of living people measure themselves against
-        lastRealIncome: 0.75 * c.lastRealIncome + 0.25 * realIncome,
+        lastRealIncome:
+          HABITUAL_INCOME_EMA_PERSISTENCE * c.lastRealIncome +
+          HABITUAL_INCOME_EMA_GAIN * realIncome,
         // the same smoothing, PER HEAD, for the Engel shift (ADR-0030). Kept
         // separate rather than derived from the line above, because dividing a
         // lagging aggregate by a current headcount makes a shrinking cohort
         // look richer than it is.
-        engelIncome: 0.75 * c.engelIncome + 0.25 * (realIncome / Math.max(c.size, 1e-9)),
+        engelIncome:
+          HABITUAL_INCOME_EMA_PERSISTENCE * c.engelIncome +
+          HABITUAL_INCOME_EMA_GAIN * (realIncome / Math.max(c.size, 1e-9)),
         lastCpi: cpi,
       }
     })
@@ -166,7 +187,9 @@ export const cohorts: PipelineStep = {
     }
     const trend = incomeHabit > 1e-9 ? incomeNow / incomeHabit - 1 : 0
     const consumerTarget = clamp(
-      CONF_NEUTRAL + 6 * trend - 1.5 * (flows.unemployment - 0.075),
+      CONF_NEUTRAL +
+        CONF_CONSUMER_TREND_GAIN * trend -
+        CONF_CONSUMER_UNEMPLOYMENT_GAIN * (flows.unemployment - NATURAL_UNEMPLOYMENT),
       0,
       1,
     )
@@ -175,7 +198,9 @@ export const cohorts: PipelineStep = {
     const profitRate =
       SECTOR_IDS.reduce((s, sid) => s + flows.profits[sid], 0) / Math.max(flows.nominalGdp, 1e-9)
     const businessTarget = clamp(
-      CONF_NEUTRAL + 1.5 * (avgUtil - 0.85) + 1.5 * (profitRate - 0.35),
+      CONF_NEUTRAL +
+        CONF_BUSINESS_UTILIZATION_GAIN * (avgUtil - NORMAL_UTILIZATION) +
+        CONF_BUSINESS_PROFIT_GAIN * (profitRate - CONF_BUSINESS_PROFIT_REFERENCE),
       0,
       1,
     )

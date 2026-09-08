@@ -21,6 +21,14 @@ import {
   INDUSTRY_EMPLOYMENT_SD,
   INDUSTRY_VALUE_ADDED_SD,
   POVERTY_LINE_REAL,
+  STAT_ERROR_BAND_CAPACITY_GATE,
+  STAT_ERROR_BAND_Z,
+  STAT_FAST_LAG_CAPACITY,
+  STAT_GDP_LEVEL_RELATIVE_SD,
+  STAT_LAGS,
+  STAT_NOISE_CAPACITY_GAIN,
+  STAT_REVISION_DELAYS,
+  STAT_REVISION_SETTLING_RATE,
 } from '../constants'
 import { conditionDispatches } from '../events/conditions'
 import { clamp } from '../math'
@@ -64,10 +72,8 @@ import {
   type HumanDevelopmentComponentId,
 } from './indicatorSpecs'
 
-const REVISION_DELAYS = [0, 2, 5] // quarters after first publication
-const LAGS = [1, 2]
-const lagFor = (cap: number) => (cap >= 0.5 ? 1 : 2)
-const noiseScale = (cap: number) => 1 - 0.85 * cap
+const lagFor = (cap: number) => (cap >= STAT_FAST_LAG_CAPACITY ? 1 : 2)
+const noiseScale = (cap: number) => 1 - STAT_NOISE_CAPACITY_GAIN * cap
 
 function recordOf(state: TrueState): StatRecord {
   const { flows, sectors, gov, external, ledger, finance, institutions: inst } = state
@@ -208,9 +214,9 @@ function printsDue(
   fullInstrumentation: boolean,
 ): StatPrint[] {
   const out: StatPrint[] = []
-  for (let r = 0; r < REVISION_DELAYS.length; r++) {
-    for (const lag of LAGS) {
-      const q = publishedAt - lag - REVISION_DELAYS[r]
+  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
+    for (const lag of STAT_LAGS) {
+      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       // the survey didn't exist that quarter
@@ -218,17 +224,17 @@ function printsDue(
       if ((spec.fastLag ? 1 : lagFor(cap)) !== lag) continue
       const truth = spec.trueValue(record, q)
       const sd =
-        spec.baseSd * (spec.relativeSd ? Math.abs(truth) : 1) * noiseScale(cap) * Math.pow(0.45, r)
+        spec.baseSd * (spec.relativeSd ? Math.abs(truth) : 1) * noiseScale(cap) * Math.pow(STAT_REVISION_SETTLING_RATE, r)
       const rng = rngFor(seed, `obs:${spec.id}:${q}:${r}`, 0)
       const print: StatPrint = {
         forQtr: q,
         publishedAt,
         value: truth + rng.normal(0, sd),
         revision: r,
-        errorBand: cap >= 0.45 ? 1.96 * sd : 0,
+        errorBand: cap >= STAT_ERROR_BAND_CAPACITY_GATE ? STAT_ERROR_BAND_Z * sd : 0,
       }
       if (spec.withLevels) {
-        const relErr = 1 + rng.normal(0, 0.03 * noiseScale(cap) * Math.pow(0.45, r))
+        const relErr = 1 + rng.normal(0, STAT_GDP_LEVEL_RELATIVE_SD * noiseScale(cap) * Math.pow(STAT_REVISION_SETTLING_RATE, r))
         print.levels = {
           real: record[q].realGdp * relErr,
           nominal: record[q].nominalGdp * relErr,
@@ -272,7 +278,7 @@ function alignedDevelopmentPrints(
   revision: number,
 ): AlignedDevelopmentPrints | null {
   const cap = record[forQtr]?.statCapacity
-  const revisionDelay = REVISION_DELAYS[revision]
+  const revisionDelay = STAT_REVISION_DELAYS[revision]
   if (cap === undefined || revisionDelay === undefined) return null
   const find = (id: HumanDevelopmentComponentId) => {
     // The source spec decides the date on which an aligned component can
@@ -400,14 +406,14 @@ function industryPrintsDue(
   fullInstrumentation: boolean,
 ): IndustryPrint[] {
   const out: IndustryPrint[] = []
-  for (let r = 0; r < REVISION_DELAYS.length; r++) {
-    for (const lag of LAGS) {
-      const q = publishedAt - lag - REVISION_DELAYS[r]
+  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
+    for (const lag of STAT_LAGS) {
+      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       if (!fullInstrumentation && cap < INDUSTRY_CENSUS_FUNDED_AT) continue
       if (lagFor(cap) !== lag) continue
-      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const settling = noiseScale(cap) * Math.pow(STAT_REVISION_SETTLING_RATE, r)
       const truth = record[q].industry
       const tables = {} as Record<IndustryTableId, Record<SectorId, number>>
       const errorBand = {} as IndustryPrint['errorBand']
@@ -424,7 +430,7 @@ function industryPrintsDue(
         tables[table] = figures
         // the same threshold the indicators confess a band at, and relative
         // for the same reason the noise is
-        errorBand[table] = cap >= 0.45 ? 1.96 * sd : 0
+        errorBand[table] = cap >= STAT_ERROR_BAND_CAPACITY_GATE ? STAT_ERROR_BAND_Z * sd : 0
       }
       out.push({
         forQtr: q,
@@ -452,15 +458,15 @@ function householdPrintsDue(
   fullInstrumentation: boolean,
 ): HouseholdSurveyPrint[] {
   const out: HouseholdSurveyPrint[] = []
-  for (let r = 0; r < REVISION_DELAYS.length; r++) {
-    for (const lag of LAGS) {
-      const q = publishedAt - lag - REVISION_DELAYS[r]
+  for (let r = 0; r < STAT_REVISION_DELAYS.length; r++) {
+    for (const lag of STAT_LAGS) {
+      const q = publishedAt - lag - STAT_REVISION_DELAYS[r]
       if (q < 0 || q >= record.length) continue
       const cap = record[q].statCapacity
       if (!fullInstrumentation && cap < HOUSEHOLD_SURVEY_FUNDED_AT) continue
       if (lagFor(cap) !== lag) continue
 
-      const settling = noiseScale(cap) * Math.pow(0.45, r)
+      const settling = noiseScale(cap) * Math.pow(STAT_REVISION_SETTLING_RATE, r)
       const incomeSd = HOUSEHOLD_INCOME_SD * settling
       const gapSd = HOUSEHOLD_POVERTY_GAP_SD * settling
       const measuredIncome = INCOME_QUINTILE_IDS.map((id) => {
@@ -487,9 +493,9 @@ function householdPrintsDue(
         forQtr: q,
         publishedAt,
         revision: r,
-        incomeErrorBand: cap >= 0.45 ? 1.96 * incomeSd : 0,
+        incomeErrorBand: cap >= STAT_ERROR_BAND_CAPACITY_GATE ? STAT_ERROR_BAND_Z * incomeSd : 0,
         povertyGapErrorBand:
-          cap >= 0.45 ? 1.96 * gapSd * Math.abs(record[q].povertyGap) : 0,
+          cap >= STAT_ERROR_BAND_CAPACITY_GATE ? STAT_ERROR_BAND_Z * gapSd * Math.abs(record[q].povertyGap) : 0,
         incomeReal,
         incomeShare,
         povertyGap,

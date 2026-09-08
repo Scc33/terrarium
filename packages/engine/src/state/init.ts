@@ -33,8 +33,20 @@ import {
   TARIFF_1946,
   TRADE_ELASTICITY,
   EXPORT_BASE_SHARE,
+  EXPORT_CAPACITY_CAP,
   IMPORT_BASE_SHARE,
   INCOME_TAX_1946,
+  INIT_APPROVAL_HONEYMOON,
+  INIT_BUDGET_DEFICIT_FACTOR,
+  INIT_HABIT_INCOME_DISCOUNT,
+  INIT_INFLATION_EXPECTATIONS,
+  INIT_INVESTMENT_SHARE,
+  INIT_PROCUREMENT_SHARE,
+  INIT_RETIREE_SAVINGS_MULTIPLE,
+  INIT_TARIFF_CAPACITY_FLOOR,
+  INIT_TARIFF_CAPACITY_GAIN,
+  INIT_TRANSFERS_SHARE,
+  INIT_UNEMPLOYMENT,
   TATONNEMENT,
   TRANSFER_SHARE,
   UTILIZATION_AT_INIT,
@@ -72,6 +84,7 @@ import {
   IMMIGRATION_LIMIT_DEFAULT,
   FERT_MAX,
   FDI_OPENING_OWNERSHIP_BASE,
+  FDI_OPENING_OWNERSHIP_CAP,
   FDI_PROFIT_REMIT_SHARE,
   TECH_ATTAINED_BASE,
   TECH_ATTAINED_DEV_GAIN,
@@ -93,11 +106,15 @@ const BASE_DEVELOPMENT = 0.35
 /** The standard 1946 pyramid for a 27.5M mid-poor country: young and broad
  * (35% under 15), thinning fast past 60. Bands sum to BASE_POP; 60+ sums to
  * 3.0 (the standard retiree class). */
+/* eslint-disable @typescript-eslint/no-magic-numbers -- authored
+   reference-country data, the same catalog exception as BASE_GROSS above
+   (which is exempt as object-literal values; this is exempt as an array). */
 const PYRAMID_1946 = [
   3.6, 3.2, 2.8, // 0–14
   2.45, 2.2, 1.95, 1.75, 1.55, 1.4, 1.3, 1.2, 1.1, // 15–59
   1.05, 0.85, 0.6, 0.35, 0.15, // 60+
 ]
+/* eslint-enable @typescript-eslint/no-magic-numbers */
 
 /** Synthesize a 1946-shaped pyramid consistent with class sizes: the
  * standard shape, rescaled so the non-retired bands sum to the working
@@ -264,7 +281,10 @@ export function init(
   for (const id of SECTOR_IDS) {
     const potential = gross[id] / UTILIZATION_AT_INIT
     // The export cap `production` applies, at the opening relative price of 1.
-    exportOrder0 += Math.min(EXPORT_BASE_SHARE[id] * potential * openness, 0.5 * potential)
+    exportOrder0 += Math.min(
+      EXPORT_BASE_SHARE[id] * potential * openness,
+      EXPORT_CAPACITY_CAP * potential,
+    )
     importOrder0 += IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
   }
   const tradeBalance0 = exportOrder0 - importOrder0
@@ -273,16 +293,17 @@ export function init(
   const revenue0 =
     wageBill0 * INCOME_TAX_1946 * taxEff +
     profits0 * CORPORATE_TAX_1946 * taxEff +
-    importsValue * TARIFF_1946 * (0.5 + 0.5 * params.capacities.tax)
+    importsValue *
+      TARIFF_1946 *
+      (INIT_TARIFF_CAPACITY_FLOOR + INIT_TARIFF_CAPACITY_GAIN * params.capacities.tax)
   const debtToGdp0 = params.structure?.debtToGdp ?? DEBT_TO_GDP_1946
   const debt0 = debtToGdp0 * gdp0 * 4
-  const interest0 = (debt0 * 0.04) / 4
-  // a small structural deficit is period-realistic and sustainable
-  const grossBudget0 = Math.max(0, 1.05 * revenue0 - interest0)
+  const interest0 = (debt0 * POLICY_RATE_1946) / 4
+  const grossBudget0 = Math.max(0, INIT_BUDGET_DEFICIT_FACTOR * revenue0 - interest0)
   const spendingDials = {
-    transfers: 0.36 * grossBudget0,
-    procurement: 0.39 * grossBudget0,
-    investment: 0.25 * grossBudget0,
+    transfers: INIT_TRANSFERS_SHARE * grossBudget0,
+    procurement: INIT_PROCUREMENT_SHARE * grossBudget0,
+    investment: INIT_INVESTMENT_SHARE * grossBudget0,
     // Research is a policy choice rather than a hidden passive growth subsidy.
     // Leaving it at zero keeps the inherited economy on the historical track.
     research: 0,
@@ -294,7 +315,7 @@ export function init(
   const foreignOwnedCapital0 =
     capitalTotal0 *
     Math.min(
-      0.3,
+      FDI_OPENING_OWNERSHIP_CAP,
       FDI_OPENING_OWNERSHIP_BASE *
         fdiStructuralAttraction(openingPopulation, params.development, params.openness),
     )
@@ -308,7 +329,7 @@ export function init(
     FDI_PROFIT_REMIT_SHARE *
     Math.min(1, foreignOwnedCapital0 / Math.max(capitalTotal0, 1e-9)) *
     profitTotal *
-    (1 - 0.2 * taxEff)
+    (1 - CORPORATE_TAX_1946 * taxEff)
 
   // Cohort employment, through the SAME allocation `cohorts.run` recomputes
   // it with (ADR-0035). Not the raw `LABOR_SOURCE` table: two of the five
@@ -347,7 +368,7 @@ export function init(
     // for business owners and 8-28% too LOW for retirees, who hold paper and
     // earn no wages. Opposite signs, same bug as the wage leg below.
     const profitIncome =
-      (profitTotal * (1 - 0.2 * taxEff) - remittances0) * PROFIT_SHARE[cid] +
+      (profitTotal * (1 - CORPORATE_TAX_1946 * taxEff) - remittances0) * PROFIT_SHARE[cid] +
       interest0 * BOND_HOLDING[cid]
     const size = params.cohortSizes[cid]
     // The habitual standard of living, and every leg of it must be seeded on
@@ -362,15 +383,15 @@ export function init(
     // that cohort's basket permanently (ADR-0030) — and `growth` below reads
     // it through the loss-aversion multiplier, which is what the 0.99 is for.
     const incomeAfterTax =
-      wageIncome * (1 - 0.15 * taxEff) +
+      wageIncome * (1 - INCOME_TAX_1946 * taxEff) +
       profitIncome +
       transfersDelivered * TRANSFER_SHARE[cid]
     // Opening wealth is a multiple of what the household actually has to live
     // on, so it reads the SAME disposable figure — a hybrid of gross wages and
     // net profits would recalibrate the war-bond inheritance for one cohort and
     // not another, and `SAVINGS_DRAWDOWN` spends it from the first quarter.
-    const savings = incomeAfterTax * (cid === 'retirees' ? 8 : 1)
-    const lastRealIncome = incomeAfterTax * 0.99
+    const savings = incomeAfterTax * (cid === 'retirees' ? INIT_RETIREE_SAVINGS_MULTIPLE : 1)
+    const lastRealIncome = incomeAfterTax * INIT_HABIT_INCOME_DISCOUNT
     return {
       id: cid,
       size,
@@ -401,7 +422,7 @@ export function init(
       // with.
       engelReference: incomeAfterTax / Math.max(size, 1e-9),
       engelIncome: incomeAfterTax / Math.max(size, 1e-9),
-      approval: 0.55, // a modest honeymoon
+      approval: INIT_APPROVAL_HONEYMOON,
       enfranchisement: params.enfranchisement[cid],
       lastRealIncome,
       lastCpi: 1,
@@ -449,7 +470,7 @@ export function init(
     nominalGdp: gdp0,
     realGdp: gdp0,
     inflationQ: 0,
-    unemployment: 0.07,
+    unemployment: INIT_UNEMPLOYMENT,
     printedThisQtr: 0,
   }
 
@@ -613,7 +634,7 @@ export function init(
       lastElection: null,
     },
     ledger: {
-      inflationExpectations: 0.03,
+      inflationExpectations: INIT_INFLATION_EXPECTATIONS,
       debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },

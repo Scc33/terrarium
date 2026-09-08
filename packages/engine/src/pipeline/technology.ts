@@ -14,6 +14,7 @@
 import {
   ABSORB_BASE,
   ABSORB_EDU_GAIN,
+  ABSORB_OPENNESS_CAP,
   ABSORB_OPENNESS_WEIGHT,
   adminEffectiveness,
   BREAKTHROUGH_HAZARD_MAX,
@@ -58,7 +59,10 @@ export function frontierGrowthAt(tick: number): number {
 export function absorptiveCapacity(state: TrueState): number {
   const humanCapital = state.demography.humanCapital
   const opennessFactor =
-    1 - ABSORB_OPENNESS_WEIGHT + ABSORB_OPENNESS_WEIGHT * clamp(state.params.openness, 0, 1.5) / 1.5
+    1 -
+    ABSORB_OPENNESS_WEIGHT +
+    (ABSORB_OPENNESS_WEIGHT * clamp(state.params.openness, 0, ABSORB_OPENNESS_CAP)) /
+      ABSORB_OPENNESS_CAP
   return clamp(
     (ABSORB_BASE + ABSORB_EDU_GAIN * humanCapital) * opennessFactor * creativeDestruction(state),
     0,

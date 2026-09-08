@@ -22,6 +22,7 @@ import {
   LABOR_ELASTICITY,
   LABOR_SOURCE,
   LIVING_STANDARD_1946,
+  MEAN_LOG_CONSUMPTION_FLOOR,
   MINIMUM_WAGE_ANCHOR,
   MORT_BASE_ANNUAL,
   OVERQUALIFIED_HIRING_PREFERENCE,
@@ -83,12 +84,17 @@ export function periodLifeExpectancy(annualMortality: readonly number[]): number
 
   let survivors = 1
   let personYears = 0
+  // A band is 5 years of 4 quarters each, and each quarter contributes 1/4
+  // (0.25) of a person-year below — both are the band width, not an
+  // independent tunable, hence the disable comments rather than a name.
   for (let band = 0; band < AGE_BANDS - 1; band++) {
     const quarterlyHazard = annualMortality[band] / 4
     if (!Number.isFinite(quarterlyHazard) || quarterlyHazard < 0 || quarterlyHazard > 1) {
       throw new RangeError('annual mortality must be finite and between 0 and 4')
     }
+    // eslint-disable-next-line @typescript-eslint/no-magic-numbers -- see above
     for (let quarter = 0; quarter < 20; quarter++) {
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers -- see above
       personYears += 0.25 * survivors
       survivors *= 1 - quarterlyHazard
     }
@@ -98,6 +104,7 @@ export function periodLifeExpectancy(annualMortality: readonly number[]): number
   if (!Number.isFinite(terminalHazard) || terminalHazard <= 0 || terminalHazard > 1) {
     throw new RangeError('the open-ended age band needs positive annual mortality at most 4')
   }
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers -- see above
   return personYears + (0.25 * survivors) / terminalHazard
 }
 
@@ -366,6 +373,9 @@ export function approvalIndex(state: TrueState): number {
     weightSum += w
     weightedApproval += w * c.approval
   }
+  // no enfranchised weight to average: neutral midpoint, a degenerate-case
+  // guard rather than a tunable
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   return weightSum > 0 ? weightedApproval / weightSum : 0.5
 }
 
@@ -377,7 +387,7 @@ export function meanLogConsumption(state: TrueState): number {
   let popSum = 0
   for (const c of state.cohorts) {
     const cpc = state.flows.cohortSpend[c.id] / cohortCpi(state, c.id) / Math.max(c.size, 1e-9)
-    logSum += c.size * Math.log(Math.max(cpc, 0.01))
+    logSum += c.size * Math.log(Math.max(cpc, MEAN_LOG_CONSUMPTION_FLOOR))
     popSum += c.size
   }
   return popSum > 1e-9 ? logSum / popSum : 0

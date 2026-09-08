@@ -20,6 +20,8 @@
 import {
   ASSET_BUBBLE_AT,
   ASSET_CREDIT_GAIN,
+  ASSET_FUND_MAX,
+  ASSET_FUND_MIN,
   ASSET_FUND_PROFIT_GAIN,
   ASSET_FUND_RATE_GAIN,
   ASSET_MAX,
@@ -28,6 +30,7 @@ import {
   ASSET_REVERT,
   ASSET_SPIRITS_GAIN,
   ASSET_VOL,
+  BANK_CAPITAL_FLOOR,
   BANK_DIVIDEND_Q,
   BANK_MARGIN,
   BANK_SPREAD,
@@ -37,6 +40,8 @@ import {
   CREDIT_BASE,
   CREDIT_COLLATERAL_GAIN,
   CREDIT_RATE_GAIN,
+  CREDIT_RATIO_MAX,
+  CREDIT_RATIO_MIN,
   CREDIT_SPIRITS_GAIN,
   CRISIS_ASSET_CRASH,
   CRISIS_ASSET_SAFE,
@@ -47,8 +52,13 @@ import {
   CRISIS_FRAGILITY_P,
   CRISIS_IMPORT_GAIN,
   CRISIS_LEVERAGE_SAFE,
+  CRISIS_SEVERITY_BASE,
   CRISIS_SEVERITY_GAIN,
+  CRISIS_SEVERITY_IMPORT_GAIN,
+  CRISIS_SEVERITY_MIN,
+  CRISIS_SUDDEN_STOP_IMPORT_PRESSURE_AT,
   CRISIS_WRITEOFF,
+  FINANCIAL_ACTIVITY_SAFE,
   LOAN_LOSS_BASE_Q,
   NATURAL_REAL_RATE,
 } from '../constants'
@@ -80,8 +90,8 @@ export const finance: PipelineStep = {
       1 +
         ASSET_FUND_PROFIT_GAIN * (profitRate - ASSET_NORMAL_PROFIT) -
         ASSET_FUND_RATE_GAIN * (realRate - NATURAL_REAL_RATE),
-      0.5,
-      2,
+      ASSET_FUND_MIN,
+      ASSET_FUND_MAX,
     )
 
     // --- credit: a target from rates, collateral, spirits — capped by capital ---
@@ -95,8 +105,12 @@ export const finance: PipelineStep = {
     if (inCrisis) targetRatio *= CRISIS_CREDIT_CRUNCH
     // banks can only lend so far on their capital
     const maxRatio = fin.bankCapital / (gov.dials.capitalRequirement * annualGdp)
-    targetRatio = clamp(Math.min(targetRatio, maxRatio), 0.02, 2.5)
-    const creditToGdp = clamp(prevRatio + CREDIT_ADJUST * (targetRatio - prevRatio), 0.02, 2.5)
+    targetRatio = clamp(Math.min(targetRatio, maxRatio), CREDIT_RATIO_MIN, CREDIT_RATIO_MAX)
+    const creditToGdp = clamp(
+      prevRatio + CREDIT_ADJUST * (targetRatio - prevRatio),
+      CREDIT_RATIO_MIN,
+      CREDIT_RATIO_MAX,
+    )
     const dRatio = creditToGdp - prevRatio
 
     // --- asset price: fundamental pull vs credit acceleration and spirits ---
@@ -132,15 +146,18 @@ export const finance: PipelineStep = {
       const overvaluation = Math.max(0, assetPrice - CRISIS_ASSET_SAFE)
       const financialActivity =
         external.world.partners.find((p) => p.id === 'financial')?.activity ?? 1
-      const importPressure = Math.max(0, 0.9 - financialActivity) * (1 + leverageExcess)
+      const importPressure =
+        Math.max(0, FINANCIAL_ACTIVITY_SAFE - financialActivity) * (1 + leverageExcess)
       const pCrisis =
         CRISIS_BASE_P +
         CRISIS_FRAGILITY_P * leverageExcess * overvaluation +
         CRISIS_IMPORT_GAIN * importPressure
       if (rng.next() < pCrisis) {
         crisisSeverity = clamp(
-          0.4 + CRISIS_SEVERITY_GAIN * leverageExcess * overvaluation + 0.5 * importPressure,
-          0.3,
+          CRISIS_SEVERITY_BASE +
+            CRISIS_SEVERITY_GAIN * leverageExcess * overvaluation +
+            CRISIS_SEVERITY_IMPORT_GAIN * importPressure,
+          CRISIS_SEVERITY_MIN,
           1,
         )
         crisisQtrsLeft = Math.round(rng.range(CRISIS_DURATION[0], CRISIS_DURATION[1]))
@@ -148,7 +165,10 @@ export const finance: PipelineStep = {
         // the balance-sheet hit: bad loans write down bank capital, which then
         // caps lending — credit runs off gradually over the crisis (the
         // in-crisis target cut), not vanishing overnight
-        bankCapital = Math.max(bankCapital - creditOutstanding * CRISIS_WRITEOFF * crisisSeverity, 0.01)
+        bankCapital = Math.max(
+          bankCapital - creditOutstanding * CRISIS_WRITEOFF * crisisSeverity,
+          BANK_CAPITAL_FLOOR,
+        )
         // a panic: confidence craters, and the ordinary channels do the rest
         confidence = {
           consumer: Math.min(confidence.consumer, CRISIS_CONF_SHOCK),
@@ -162,7 +182,9 @@ export const finance: PipelineStep = {
         news.push(
           fileDispatch(
             state,
-            importPressure > 0.02 ? 'banking_crisis_sudden_stop' : 'banking_crisis',
+            importPressure > CRISIS_SUDDEN_STOP_IMPORT_PRESSURE_AT
+              ? 'banking_crisis_sudden_stop'
+              : 'banking_crisis',
           ),
         )
       } else if (fin.assetPrice < ASSET_BUBBLE_AT && assetPrice >= ASSET_BUBBLE_AT) {

@@ -10,7 +10,11 @@ import {
   EMISSION_INTENSITY,
   LABOR_SHARE,
   NORMAL_UTILIZATION,
+  PRICE_DRIFT_EXPECTATIONS_GAIN,
+  PRICE_FLOOR,
+  PRICE_NOISE_SD,
   SLACK_GAIN_RATIO,
+  UNIT_COST_FLOOR,
 } from '../constants'
 import { clamp, sectorRecord } from '../math'
 import { SECTOR_IDS } from '../state/schema'
@@ -57,7 +61,7 @@ export const prices: PipelineStep = {
       const unitAbatement =
         ABATEMENT_COST_GAIN * abatement * EMISSION_INTENSITY[sid] * unitCost0(unitInterCost, unitLabor, unitCapital)
       const unitCost = Math.max(
-        0.01,
+        UNIT_COST_FLOOR,
         unitInterCost + unitLabor + unitCapital + unitAbatement - unitSubsidy,
       )
       const targetPrice = unitCost * (1 + markup)
@@ -67,11 +71,11 @@ export const prices: PipelineStep = {
       const gap = (market.excessDemand[sid] + (1 - NORMAL_UTILIZATION) * qPot) / qPot
       const edTerm = demandGain * (gap > 0 ? gap : SLACK_GAIN_RATIO * gap)
       const costTerm = costGain * ((targetPrice - p) / p)
-      const driftTerm = 0.15 * (ledger.inflationExpectations / 4)
-      const noise = rng.normal(0, 0.003)
+      const driftTerm = PRICE_DRIFT_EXPECTATIONS_GAIN * (ledger.inflationExpectations / 4)
+      const noise = rng.normal(0, PRICE_NOISE_SD)
 
       const move = clamp(edTerm + costTerm + driftTerm + noise, -maxMovePerTick, maxMovePerTick)
-      return Math.max(0.05, p * (1 + move))
+      return Math.max(PRICE_FLOOR, p * (1 + move))
     })
 
     // CPI over aggregate household consumption (weights = last tick's spend)
@@ -79,6 +83,9 @@ export const prices: PipelineStep = {
     let cpiOld = 0
     let cpiNew = 0
     for (const sid of SECTOR_IDS) {
+      // no spend to weight by yet: fall back to an equal 1/SECTOR_IDS.length
+      // weight, a structural default rather than a tunable
+      // eslint-disable-next-line @typescript-eslint/no-magic-numbers
       const w = totalHh > 1e-9 ? flows.householdDemand[sid] / totalHh : 0.2
       const fuel = sid === 'energy' ? 1 + state.gov.dials.taxRates.fuel : 1
       cpiOld += w * market.prices[sid] * fuel

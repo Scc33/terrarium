@@ -21,17 +21,24 @@
 import { fileDispatch } from '../events/file'
 import type { EventId } from '../events/ids'
 import {
+  ASSET_PURCHASE_RATE_DIAL_SCALE,
   ASSET_PURCHASE_RATE_MAX,
   BLOC_DEFIANCE,
   CAPACITY_BUILD_QTRS,
   CAPACITY_COST_PER_POINT,
+  CAPACITY_INVESTMENT_MAX_GDP_SHARE,
+  CAPACITY_MINISTRY_FULL_STRENGTH_GATE,
+  CAPITAL_REQUIREMENT_DIAL_SCALE,
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
+  DIAL_STANCE,
+  FX_INTERVENTION_DIAL_SCALE,
   FX_INTERVENTION_MAX,
   COALITION_FAVOR_GAIN,
   COALITION_FAVOR_SNUB,
   COALITION_SWING_GAIN,
   FRANCHISE_SUFFRAGE_STEP,
+  IMMIGRATION_LIMIT_DIAL_SCALE,
   IMMIGRATION_LIMIT_MAX,
   LARGESSE_BUMP,
   LARGESSE_SWING_GAIN,
@@ -45,16 +52,29 @@ import {
   PLATFORM_SWING,
   PLEDGE_QTRS,
   PLEDGE_VETO_MULT,
+  POLICY_RATE_DIAL_MAX,
+  POLICY_RATE_DIAL_SCALE,
+  REFORM_STANCE,
   REFORM_STEP,
   REFORM_WINDOW_AT,
   REFORM_WINDOW_DISCOUNT,
   REFORM_WINDOW_VETO_RELIEF,
+  SPENDING_DIAL_MAX_GDP_SHARE,
+  SPENDING_DIAL_SCALE_GDP_SHARE,
   STATUTE_ENTRENCHMENT_QTRS,
   STATUTE_LEVELS,
   STATUTE_REPEAL_PREMIUM,
   STATUTE_STANCE,
+  SUBSIDY_DIAL_MAX_GDP_SHARE,
+  SUBSIDY_DIAL_SCALE_GDP_SHARE,
   SUPPRESSION_REPRESSION_STEP,
+  SURPLUS_PAYOUT_DIAL_SCALE,
+  TAX_RATE_CORPORATE_MAX,
+  TAX_RATE_FUEL_MAX,
+  TAX_RATE_INCOME_MAX,
+  TAX_RATE_TARIFF_MAX,
   VETO_COST_GAIN,
+  type Stance,
 } from '../constants'
 import { clamp } from '../math'
 import { effectiveBlocPower } from '../pipeline/derive'
@@ -78,67 +98,6 @@ import {
 import type { Action, DialPath } from './types'
 
 export class IllegalActionError extends Error {}
-
-/** How much each bloc minds an INCREASE in a lever, −1..1. Negative means they
- * want it higher. Moving a lever their way earns goodwill on the same scale. */
-type Stance = Partial<Record<BlocId, number>>
-
-const SUBSIDY_STANCE: Record<SectorId, Stance> = {
-  agri: { landowners: -0.9, financiers: 0.3 },
-  manuf: { industrialists: -0.8, financiers: 0.3 },
-  energy: { industrialists: -0.7, financiers: 0.3 },
-  transport: { industrialists: -0.6, financiers: 0.3 },
-  services: { industrialists: -0.3, financiers: 0.2 },
-}
-
-const DIAL_STANCE: Record<DialPath, Stance> = {
-  'taxRates.income': { landowners: 0.5, industrialists: 0.3, financiers: 0.2, unions: 0.4 },
-  'taxRates.corporate': { industrialists: 0.9, financiers: 0.5, landowners: 0.3, unions: -0.3 },
-  'taxRates.tariff': { industrialists: -0.5, landowners: -0.3, financiers: 0.3, unions: 0.2 },
-  'taxRates.fuel': { industrialists: 0.6, unions: 0.5, landowners: 0.4 },
-  'spending.transfers': { financiers: 0.5, unions: -0.6, landowners: 0.2, industrialists: 0.2 },
-  'spending.procurement': { industrialists: -0.4, financiers: 0.4 },
-  'spending.investment': { industrialists: -0.5, financiers: 0.3, unions: -0.3 },
-  'spending.research': { industrialists: -0.4, financiers: 0.4, unions: -0.2 },
-  immigrationLimit: {
-    landowners: -0.25,
-    industrialists: -0.6,
-    financiers: -0.1,
-    unions: 0.8,
-  },
-  policyRate: { financiers: -0.6, industrialists: 0.6, unions: 0.4 },
-  assetPurchaseRate: { financiers: 0.4, industrialists: -0.5, unions: -0.2 },
-  capitalRequirement: { financiers: 0.9, industrialists: 0.3, unions: -0.2 },
-  // A rise here BUYS foreign currency, which holds the domestic one down. The
-  // room reads that as an exporters' policy, because it is one: industry and
-  // the landed interest sell abroad and want the cheaper currency, while the
-  // money interest holds domestic paper it would rather not see debased and
-  // labour buys the imports that get dearer. Cutting below zero — spending
-  // reserves to hold the currency UP — reverses all four, which is the same
-  // coalition an overvalued currency has always had.
-  fxIntervention: { industrialists: -0.6, landowners: -0.4, financiers: 0.7, unions: 0.4 },
-  // A rise here hands the surplus back instead of banking it, and the room
-  // splits on it the way it splits on any giveaway. Labour is the bloc whose
-  // members receive it — the rebate follows the wage bill — and the money
-  // interest minds it most, because a sovereign fund is a creditor's balance
-  // sheet and a rebate is a creditor's balance sheet spent. Industry and the
-  // landed interest mind it mildly: the money goes to wage earners, not to
-  // them, and it arrives as consumer demand rather than as investment.
-  surplusPayout: { financiers: 0.6, industrialists: 0.2, landowners: 0.2, unions: -0.7 },
-  ...(Object.fromEntries(
-    SECTOR_IDS.map((sid) => [`subsidies.${sid}`, SUBSIDY_STANCE[sid]]),
-  ) as Record<`subsidies.${SectorId}`, Stance>),
-}
-
-/** Institutional reform, and the reason it is hard: the people who would lose by
- * it are, by construction, the people currently holding the veto. */
-const REFORM_STANCE: Record<InstitutionId, Stance> = {
-  suffrage: { landowners: 0.9, industrialists: 0.4, financiers: 0.2, unions: -0.8 },
-  press: { landowners: 0.4, industrialists: 0.3, financiers: 0.1, unions: -0.5 },
-  labor_rights: { industrialists: 0.9, landowners: 0.7, financiers: 0.4, unions: -1 },
-  courts: { landowners: 0.2, industrialists: -0.3, financiers: -0.6, unions: -0.2 },
-  repression: { unions: 0.9, landowners: -0.5, industrialists: -0.2, financiers: -0.1 },
-}
 
 /** Reform windows: revolutionary pressure is the only thing that prises
  * open reforms elites would otherwise veto. */
@@ -237,8 +196,8 @@ const spend = (key: 'transfers' | 'procurement' | 'investment' | 'research'): Di
   }),
   min: 0,
   // you can announce a UBI your tax base can't support — the game never says no
-  max: (s) => s.flows.nominalGdp * 1.0,
-  scale: (s) => 0.1 * s.flows.nominalGdp,
+  max: (s) => s.flows.nominalGdp * SPENDING_DIAL_MAX_GDP_SHARE,
+  scale: (s) => SPENDING_DIAL_SCALE_GDP_SHARE * s.flows.nominalGdp,
 })
 
 const subsidy = (sid: SectorId): DialSpec => ({
@@ -248,15 +207,15 @@ const subsidy = (sid: SectorId): DialSpec => ({
     gov: { ...s.gov, dials: { ...s.gov.dials, subsidies: { ...s.gov.dials.subsidies, [sid]: v } } },
   }),
   min: 0,
-  max: (s) => 0.2 * s.flows.nominalGdp,
-  scale: (s) => 0.1 * s.flows.nominalGdp,
+  max: (s) => SUBSIDY_DIAL_MAX_GDP_SHARE * s.flows.nominalGdp,
+  scale: (s) => SUBSIDY_DIAL_SCALE_GDP_SHARE * s.flows.nominalGdp,
 })
 
 const DIALS: Record<DialPath, DialSpec> = {
-  'taxRates.income': rate('income', 0.8),
-  'taxRates.corporate': rate('corporate', 0.8),
-  'taxRates.tariff': rate('tariff', 1.0),
-  'taxRates.fuel': rate('fuel', 2.0),
+  'taxRates.income': rate('income', TAX_RATE_INCOME_MAX),
+  'taxRates.corporate': rate('corporate', TAX_RATE_CORPORATE_MAX),
+  'taxRates.tariff': rate('tariff', TAX_RATE_TARIFF_MAX),
+  'taxRates.fuel': rate('fuel', TAX_RATE_FUEL_MAX),
   'spending.transfers': spend('transfers'),
   'spending.procurement': spend('procurement'),
   'spending.investment': spend('investment'),
@@ -269,14 +228,14 @@ const DIALS: Record<DialPath, DialSpec> = {
     }),
     min: 0,
     max: () => IMMIGRATION_LIMIT_MAX,
-    scale: () => 0.01,
+    scale: () => IMMIGRATION_LIMIT_DIAL_SCALE,
   },
   policyRate: {
     get: (s) => s.gov.dials.policyRate,
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, policyRate: v } } }),
     min: 0,
-    max: () => 0.5,
-    scale: () => 0.1,
+    max: () => POLICY_RATE_DIAL_MAX,
+    scale: () => POLICY_RATE_DIAL_SCALE,
   },
   assetPurchaseRate: {
     get: (s) => s.gov.dials.assetPurchaseRate,
@@ -286,7 +245,7 @@ const DIALS: Record<DialPath, DialSpec> = {
     }),
     min: 0,
     max: () => ASSET_PURCHASE_RATE_MAX,
-    scale: () => 0.1,
+    scale: () => ASSET_PURCHASE_RATE_DIAL_SCALE,
   },
   fxIntervention: {
     get: (s) => s.gov.dials.fxIntervention,
@@ -295,22 +254,14 @@ const DIALS: Record<DialPath, DialSpec> = {
     // currency down, or sell reserves to hold it up.
     min: -FX_INTERVENTION_MAX,
     max: () => FX_INTERVENTION_MAX,
-    // A tenth of the rail, so that crossing the whole range costs about what
-    // crossing the whole range of the bank-capital floor does. At 0.02 — the
-    // first draft — a moderate order priced at 64 PC against the 20 a new
-    // cabinet holds, and the runner skipped it silently: every arm of the
-    // paired study came out identical to the last decimal.
-    scale: () => 0.05,
+    scale: () => FX_INTERVENTION_DIAL_SCALE,
   },
   surplusPayout: {
     get: (s) => s.gov.dials.surplusPayout,
     set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, surplusPayout: v } } }),
     min: 0,
     max: () => 1,
-    // A quarter of the rail, so that moving from banking everything to handing
-    // everything back costs about what crossing the policy rate does. The dial
-    // is a doctrine rather than a setting: nobody nudges it by a point.
-    scale: () => 0.25,
+    scale: () => SURPLUS_PAYOUT_DIAL_SCALE,
   },
   capitalRequirement: {
     get: (s) => s.gov.dials.capitalRequirement,
@@ -320,7 +271,7 @@ const DIALS: Record<DialPath, DialSpec> = {
     }),
     min: CAPITAL_REQUIREMENT_MIN,
     max: () => CAPITAL_REQUIREMENT_MAX,
-    scale: () => 0.1,
+    scale: () => CAPITAL_REQUIREMENT_DIAL_SCALE,
   },
   ...(Object.fromEntries(SECTOR_IDS.map((sid) => [`subsidies.${sid}`, subsidy(sid)])) as Record<
     `subsidies.${SectorId}`,
@@ -572,14 +523,14 @@ export function politicalCostOfAction(state: TrueState, action: Action): number 
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new IllegalActionError(`bad capacity investment amount: ${amount}`)
       }
-      if (amount > 0.4 * state.flows.nominalGdp) {
+      if (amount > CAPACITY_INVESTMENT_MAX_GDP_SHARE * state.flows.nominalGdp) {
         throw new IllegalActionError('capacity program too large to administer at once')
       }
       // a ministry at (or building toward) full strength can't absorb more
       const inFlight = state.gov.pipeline
         .filter((b) => b.target === target)
         .reduce((s, b) => s + b.perQtr * b.remaining, 0)
-      if (state.gov.capacity[target] + inFlight >= 0.95) {
+      if (state.gov.capacity[target] + inFlight >= CAPACITY_MINISTRY_FULL_STRENGTH_GATE) {
         throw new IllegalActionError(`the ${target} ministry is already at full strength`)
       }
       return PC_COST_CAPACITY
@@ -743,6 +694,9 @@ export function applyAction(state: TrueState, action: Action): TrueState {
         case 'coalition': {
           const b = bloc as BlocId
           const machine = s.institutions.blocs[b]
+          // structural remap of signed favor (-1..1) to a positive weight
+          // (0..1) — a matched pair, not an independent tunable
+          // eslint-disable-next-line @typescript-eslint/no-magic-numbers
           swing += COALITION_SWING_GAIN * machine.power * (0.5 + 0.5 * machine.favor)
           s = shiftFavor(s, {
             ...(Object.fromEntries(

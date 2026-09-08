@@ -24,9 +24,12 @@
 import {
   COUP_AT,
   COUP_P,
+  ELECTION_OUTCOME_NOISE_SD,
   ELECTION_WIN_THRESHOLD,
+  ELECTION_WIN_THRESHOLD_FLOOR,
   PC_HEADLINE_CAP,
   PC_HEADLINE_SALIENCE,
+  PC_INCOME_APPROVAL_NEUTRAL,
   PC_INCOME_FLOOR,
   PC_INCOME_SCALE,
   PC_MAX,
@@ -69,7 +72,7 @@ function headlineGdp(prints: StatPrint[] | undefined): StatPrint | null {
  * the opposition from the count, which is the same thing on the night and a
  * different thing entirely on the report card. */
 export function electionThreshold(repression: number): number {
-  return Math.max(0.05, ELECTION_WIN_THRESHOLD - REPRESSION_VOTE_EDGE * repression)
+  return Math.max(ELECTION_WIN_THRESHOLD_FLOOR, ELECTION_WIN_THRESHOLD - REPRESSION_VOTE_EDGE * repression)
 }
 
 export const politics: PipelineStep = {
@@ -100,7 +103,10 @@ export const politics: PipelineStep = {
     // accrual is centered (approval 0.5 ≈ break-even) but floored: even a
     // despised government can eventually scrape together one act of policy —
     // without the floor a slump locks every dial exactly when action is needed
-    const pcBase = Math.max(PC_INCOME_SCALE * (approval - 0.35) + salience, PC_INCOME_FLOOR)
+    const pcBase = Math.max(
+      PC_INCOME_SCALE * (approval - PC_INCOME_APPROVAL_NEUTRAL) + salience,
+      PC_INCOME_FLOOR,
+    )
     // a state that does not have to ask can act; a country in ferment eats
     // the government's whole week
     const pcIncome =
@@ -128,7 +134,7 @@ export const politics: PipelineStep = {
       const platform = pol.campaign?.platform ?? 'record'
       const swing = pol.campaign?.swing ?? 0
       const threshold = electionThreshold(inst.stocks.repression)
-      const won = approval + swing + rng.normal(0, 0.03) >= threshold
+      const won = approval + swing + rng.normal(0, ELECTION_OUTCOME_NOISE_SD) >= threshold
       const suppressed = won && platform === 'suppression'
       const retainsOffice = won || protectedTenure
       const result: ElectionResult = {

@@ -38,7 +38,11 @@ const MODULE_LINE_BASELINE = {
   // Executable hotspot: action legality, political pricing, and application share one seam.
   'packages/engine/src/actions/apply.ts': 800,
   // Cohesive ledger: the total, lint-enforced home for every behavioral constant.
-  'packages/engine/src/constants.ts': 1609,
+  // Ratcheted from 1609 by #179: a lint-enforced no-magic-numbers pass moved
+  // ~100 previously-scattered coefficients here, which is this file doing its
+  // one job, not scope creep — the split that would relieve it (domain tuning
+  // modules) stays blocked on a superseding ADR, per this file's own note.
+  'packages/engine/src/constants.ts': 1997,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -48,16 +52,22 @@ const MODULE_LINE_BASELINE = {
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   'packages/engine/src/index.ts': 421,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
-  'packages/engine/src/pipeline/derive.ts': 1080,
+  // Ratcheted from 1080 by #179: named constants replacing bare literals.
+  'packages/engine/src/pipeline/derive.ts': 1090,
   // Executable hotspot: institution power, compliance, and appointment updates.
-  'packages/engine/src/pipeline/institutions.ts': 435,
+  // Ratcheted from 435 by #179: the bloc-favor formulas' ~30 coefficients
+  // are now named constants instead of bare literals.
+  'packages/engine/src/pipeline/institutions.ts': 467,
   // Executable hotspot: funding, lag, noise, revision, and vector-publication machinery.
   // Ratcheted from 900 when #205 lifted the declarative catalogue into
   // `indicatorSpecs.ts`; what is left is the machinery, and it should not
   // reabsorb the half that grows every time an instrument ships.
   'packages/engine/src/pipeline/statistics.ts': 581,
   // Executable hotspot: deterministic construction of the complete opening state.
-  'packages/engine/src/state/init.ts': 655,
+  // Ratcheted from 655 by #179: named constants replacing bare literals,
+  // including two spots that had silently re-typed INCOME_TAX_1946 /
+  // CORPORATE_TAX_1946 / POLICY_RATE_1946 as fresh numbers.
+  'packages/engine/src/state/init.ts': 669,
   // Cohesive schema: total state contracts and canonical id lists.
   'packages/engine/src/state/schema.ts': 1386,
   // Analysis tool: whole-validator country sampling and stability reporting.
