@@ -12,6 +12,12 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // `x == null` stays legal: it is the deliberate both-nullish check, and
+      // the codebase leans on the null/undefined/0 distinction where it is
+      // load-bearing (ui/src/finance.ts returns null, never 0, for an unfunded
+      // survey). Spelling that out as `=== null || === undefined` at those
+      // sites would be noise, not clarity.
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
       // type-only imports stay marked as such (reinforces verbatimModuleSyntax)
       '@typescript-eslint/consistent-type-imports': [
         'error',
