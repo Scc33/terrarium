@@ -51,11 +51,10 @@ export default defineConfig([
       'no-console': 'error',
       // Engine-scoped: reading a clock is legitimate elsewhere — runner,
       // worker/trial.ts and every tools/measure-*.ts time themselves.
-      'no-restricted-properties': [
-        'error',
-        ...DETERMINISM_PROPERTIES,
-        { object: 'performance', property: 'now', message: NO_CLOCK },
-      ],
+      'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
+      // The whole global, not `now` and `timeOrigin` and the next one: every
+      // member of it is clock-derived and the engine has no use for any.
+      'no-restricted-globals': ['error', { name: 'performance', message: NO_CLOCK }],
       // The constructor forms no-restricted-properties cannot see. `Date()`
       // called as a function ignores its arguments and returns the current
       // time, so every call is the clock; only `new Date(value)` is arithmetic.
