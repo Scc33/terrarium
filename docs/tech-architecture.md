@@ -436,6 +436,10 @@ The single biggest determinism footgun. Rules:
 - One root seed. Every consumer derives a **named substream**: `rngFor(seed, stepName, tick)`.
 - A step's draws are therefore isolated: adding a new step, or a draw inside an existing one,
   never shifts another step's sequence — golden tests for untouched systems keep passing.
+- `normal()` is a centred, scaled sum of six ten-bit uniform components packed in two SFC32
+  words, not a Box–Muller transform. It keeps the mean and variance its callers expect without
+  `log` or `cos`, whose last bit can vary by CPU; its bounded ±4.24σ tail is the explicit trade
+  recorded in ADR-0040.
 - The fog draws from its own `obs:*` substream family, orthogonal to the economic RNG, so
   measurement noise is reproducible without perturbing the economy (ADR-0002).
 - `Math.random` and `Date.now` are lint-banned repo-wide.

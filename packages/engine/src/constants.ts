@@ -17,29 +17,29 @@ import type {
   StatuteId,
 } from './state/schema'
 import type { DialPath } from './actions/types'
-
+// ---------- deterministic randomness ----------
+/** Six packed U(0, 1) components, centred and scaled to unit variance (ADR-0040). */
+export const NORMAL_UNIFORM_DRAWS = 6
+/** Each component takes this many high bits from an SFC32 output word. */
+export const NORMAL_UNIFORM_BITS = 10
+export const NORMAL_UNIFORM_SCALE = 1.4142135623730951
 // ---------- production ----------
 export const CAPITAL_ELASTICITY = 0.35
 export const LABOR_ELASTICITY = 0.65
 export const DEPRECIATION_Q = 0.015 // capital, per quarter (war-worn stock)
 export const UTILIZATION_AT_INIT = 0.85
-/** economies run with headroom; demand at this share of potential is "neutral"
- * for prices and hiring — above it markets tighten, below it they slacken */
+/** Neutral demand share: above it markets tighten; below it they slacken. */
 export const NORMAL_UTILIZATION = 0.85
-/** Government procurement buys mostly durable manufactures and skilled
- * services — share of the procurement dial that becomes real demand for
- * each (the rest of the sectors get none). */
+/** Procurement's real demand is durable manufactures and skilled services. */
 export const GOV_PROCUREMENT_MANUF_SHARE = 0.4
 export const GOV_PROCUREMENT_SERVICES_SHARE = 0.6
 /** Public research spends mostly on skilled services and some equipment. */
 export const GOV_RESEARCH_MANUF_SHARE = 0.2
 export const GOV_RESEARCH_SERVICES_SHARE = 0.8
-/** Investment demand — private, public and foreign combined — buys mostly
- * plant and equipment, the rest structures and services. */
+/** Investment buys mostly plant and equipment; the rest is structures/services. */
 export const INVESTMENT_DEMAND_MANUF_SHARE = 0.6
 export const INVESTMENT_DEMAND_SERVICES_SHARE = 0.4
-/** A quarter's nominal GDP cannot print below this share of its real GDP —
- * guards downstream ratios against a pathological price collapse. */
+/** Nominal GDP floor, guarding ratios against a pathological price collapse. */
 export const NOMINAL_GDP_FLOOR_SHARE = 0.05
 /** This quarter's investment is allocated across sectors by utilization
  * pressure above this neutral point — distinct from `NORMAL_UTILIZATION`,

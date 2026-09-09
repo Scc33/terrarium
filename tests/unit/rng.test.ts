@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { rngFor } from '@terrarium/engine'
 
 describe('rng substreams', () => {
-  it('keeps the established stream byte-for-byte', () => {
+  it('keeps the uniform and portable-normal streams byte-for-byte', () => {
     const uniform = rngFor('fixture-seed', 'fixture-label', 42)
     expect(Array.from({ length: 6 }, () => uniform.next())).toEqual([
       0.03975929971784353,
@@ -15,11 +15,20 @@ describe('rng substreams', () => {
 
     const normal = rngFor('fixture-seed', 'fixture-normal', 42)
     expect(Array.from({ length: 4 }, () => normal.normal())).toEqual([
-      -0.495965781938985,
-      -2.1056046534312096,
-      -1.7763713090540143,
-      0.277673751138802,
+      -0.7471577512146919,
+      -0.5344732896859256,
+      -0.1602038801125772,
+      0.36736406991332354,
     ])
+  })
+
+  it('uses two SFC32 words for every packed six-uniform normal draw', () => {
+    const normal = rngFor('fixture-seed', 'normal-block', 42)
+    normal.normal()
+
+    const uniform = rngFor('fixture-seed', 'normal-block', 42)
+    for (let i = 0; i < 2; i++) uniform.next()
+    expect(normal.next()).toBe(uniform.next())
   })
 
   it('is deterministic for the same (seed, label, tick)', () => {
@@ -59,6 +68,7 @@ describe('rng substreams', () => {
     let sumSq = 0
     for (let i = 0; i < n; i++) {
       const v = rng.normal(0, 1)
+      expect(Math.abs(v)).toBeLessThanOrEqual(4.25)
       sum += v
       sumSq += v * v
     }

@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "46a0a56",
+  "revision": "9f98caf",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 49,
-      "lines": 16343
+      "lines": 16362
     },
     {
       "id": "fixtures",
@@ -153,70 +153,88 @@ export const architecture = {
       "lines": 1999,
       "exports": [
         {
-          "name": "CAPITAL_ELASTICITY",
+          "name": "NORMAL_UNIFORM_DRAWS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 22
         },
         {
-          "name": "LABOR_ELASTICITY",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 23
-        },
-        {
-          "name": "DEPRECIATION_Q",
+          "name": "NORMAL_UNIFORM_BITS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 24
         },
         {
-          "name": "UTILIZATION_AT_INIT",
+          "name": "NORMAL_UNIFORM_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 25
         },
         {
-          "name": "NORMAL_UTILIZATION",
+          "name": "CAPITAL_ELASTICITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 27
+        },
+        {
+          "name": "LABOR_ELASTICITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 28
         },
         {
-          "name": "GOV_PROCUREMENT_MANUF_SHARE",
+          "name": "DEPRECIATION_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 29
+        },
+        {
+          "name": "UTILIZATION_AT_INIT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 30
+        },
+        {
+          "name": "NORMAL_UTILIZATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 32
         },
         {
-          "name": "GOV_PROCUREMENT_SERVICES_SHARE",
+          "name": "GOV_PROCUREMENT_MANUF_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 33
+          "line": 34
         },
         {
-          "name": "GOV_RESEARCH_MANUF_SHARE",
+          "name": "GOV_PROCUREMENT_SERVICES_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 35
         },
         {
+          "name": "GOV_RESEARCH_MANUF_SHARE",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 37
+        },
+        {
           "name": "GOV_RESEARCH_SERVICES_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 36
+          "line": 38
         },
         {
           "name": "INVESTMENT_DEMAND_MANUF_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 39
+          "line": 40
         },
         {
           "name": "INVESTMENT_DEMAND_SERVICES_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 40
+          "line": 41
         },
         {
           "name": "NOMINAL_GDP_FLOOR_SHARE",
@@ -3166,6 +3184,7 @@ export const architecture = {
         "packages/engine/src/pipeline/technology.ts",
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/world.ts",
+        "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/finance.ts",
         "packages/engine/src/state/init.ts",
         "packages/engine/src/state/validate.ts"
@@ -5378,28 +5397,30 @@ export const architecture = {
       "packageId": "engine",
       "category": "Randomness",
       "summary": "RNG discipline (§6 of the architecture doc): one root seed; every consumer derives a named substream keyed by (seed, label, tick). A step's draws are isolated — adding a draw in one step never shifts another step's sequence.",
-      "lines": 84,
+      "lines": 103,
       "exports": [
         {
           "name": "Seed",
           "kind": "type",
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 11
+          "line": 13
         },
         {
           "name": "Rng",
           "kind": "interface",
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 13
+          "line": 15
         },
         {
           "name": "rngFor",
           "kind": "function",
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 77
+          "line": 96
         }
       ],
-      "imports": [],
+      "imports": [
+        "packages/engine/src/constants.ts"
+      ],
       "importedBy": [
         "packages/engine/src/countries.ts",
         "packages/engine/src/events/conditions.ts",
@@ -13711,6 +13732,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/engine/src/rng/rng.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/engine/src/state/accounts.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": true
@@ -16745,7 +16771,7 @@ export const architecture = {
         },
         {
           "path": "packages/engine/src/rng/rng.ts",
-          "line": 77
+          "line": 96
         }
       ]
     }

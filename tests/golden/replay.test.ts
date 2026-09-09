@@ -19,6 +19,12 @@ describe('golden replays', () => {
     it(`${c.name} matches its blessed hash`, () => {
       const s = replay(createSave(c.params, c.seed, c.script, c.ticks))
       const expected = blessed[c.name]
+      if (process.env.CI && c.name === 'fuel-tax-40q') {
+        const save = createSave(c.params, c.seed, c.script, c.ticks)
+        console.info(
+          `fuel-tax trace: ${Array.from({ length: c.ticks }, (_, tick) => hashState(replay(save, tick + 1))).join(',')}`,
+        )
+      }
       expect(expected, `no blessed snapshot for ${c.name} — run pnpm bless`).toBeDefined()
       expect(s.meta.tick).toBe(expected.tick)
       expect(s.flows.realGdp).toBeCloseTo(expected.realGdp, 6)
