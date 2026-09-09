@@ -1926,12 +1926,9 @@ export const CARETAKER_CAPACITY_SPEND = 2 // money per programme, per ministry
  * only warning they get. So the desk is rate-limited, and the limit falls on
  * CONDITION reports only: a fact that happened is always filed.
  */
-/** how often a condition the desk noticed actually reaches the page. Held at
- * the rumour mill's historic value: unreliability is the point, and a wire
- * that reports every true thing is an instrument rather than a rumour. */
+/** How often a condition reaches the page; a wire reporting every true thing is an instrument. */
 export const NEWS_REPORT_P = 0.6
-/** most condition reports one quarter can carry, before colour. Two is a
- * front page with a story and a second story; three read as a list. */
+/** Most condition reports one quarter can carry before colour. */
 export const NEWS_REPORTS_PER_QTR = 2
 /** quarters before the same event may be filed again. Long, and deliberately
  * longer than a business cycle's slack phase: the identical unemployment
@@ -1969,16 +1966,18 @@ export const NEWS_COOLDOWN_MAX_Q = 160
  * slumps nobody could act on. A partner's cycle phase lasts years; the wire
  * should say so once. */
 export const WORLD_PHASE_COOLDOWN_Q = 24
-/** a quarter carrying fewer dispatches than this is a thin page, and the desk
- * reaches for colour to fill it */
+/** A quarter below this dispatch count is a thin page, so the desk uses colour. */
 export const NEWS_THIN_PAGE_AT = 1
-/** chance a thin page gets a colour piece rather than running short. Not 1:
- * an occasional genuinely empty quarter is what makes a busy one read as
- * busy. */
+/** Chance a thin page gets colour; an occasional empty quarter makes busy ones read as busy. */
 export const NEWS_COLOUR_P = 0.55
-/** quarters before the same colour piece may run again — much longer than a
- * report's cooldown, because colour has no news value to renew it */
+/** Quarters before the same colour piece may run again. */
 export const NEWS_COLOUR_COOLDOWN_Q = 48
+/** Labour-desk thresholds measured across all curated countries and policy arms. */
+export const NEWS_PROFESSIONAL_UNDERUSE_AT = 0.15
+export const NEWS_URBAN_JOBLESS_AT = 0.2
+export const NEWS_UNEMPLOYMENT_IMPROVEMENT_AT = 0.02
+export const NEWS_URBAN_TRANSITION_WINDOW_Q = 40
+export const NEWS_PROFESSIONAL_TIGHTNESS_AT = 1.4
 /**
  * Press-freedom stock below which the independent titles stop appearing and
  * the state's own wire service files instead. The dispatch is unchanged: a

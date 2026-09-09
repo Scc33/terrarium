@@ -50,7 +50,7 @@ import {
   NEWS_REPORTS_PER_QTR,
   NEWS_THIN_PAGE_AT,
 } from '../constants'
-import { realExchangeRate } from '../pipeline/derive'
+import { realExchangeRate, skillTightness } from '../pipeline/derive'
 import { rngFor } from '../rng/rng'
 import type {
   InstitutionId,
@@ -62,6 +62,7 @@ import type {
 import { fileDispatch } from './file'
 import { eraAtTick, type PressEraId } from './eras'
 import type { EventId } from './ids'
+import { occupationalLabourConditionRules } from './occupationalLabourRules'
 
 // ---------- what a rule gets to look at ----------
 
@@ -81,6 +82,8 @@ export interface EventContext {
   stocks: Record<InstitutionId, number>
   /** live flows the worksheet does not keep */
   satisfiedEnergy: number
+  /** Private desk reading: desired professional posts ÷ professional labour force. */
+  professionalTightness: number
   exchangeRate: number
   /** Competitiveness against the country's own 1946 settlement, not the
    * nominal rate. The nominal rate on its own says nothing about whether
@@ -90,16 +93,9 @@ export interface EventContext {
   realExchangeRate: number
 }
 
-/**
- * The worksheet `n` quarters ago, or the opening one if the run is younger
- * than that.
- *
- * Indexed BY TICK rather than by position, for the reason `ui/src/census.ts`
- * carries the same warning: the engine writes one record per quarter today,
- * so a positional `k − n` agrees exactly — right up until something filters
- * the record on the way here, after which every trend rule silently measures
- * a different span and prints a plausible wrong story.
- */
+/** The worksheet `n` quarters ago, or the opening one if the run is younger.
+ * It is keyed by tick, not position, so filtering the record cannot silently
+ * change a trend rule's period. */
 export function back(ctx: EventContext, n: number): StatRecord {
   const want = ctx.tick - n
   if (want <= ctx.first.tick) return ctx.first
@@ -308,6 +304,7 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     salience: 5,
     when: (c) => c.now.unemployment > 0.1 && c.now.utilization < 0.85 && c.stocks.labor_rights > 0.3,
   },
+  ...occupationalLabourConditionRules(back),
   {
     event: 'hands_are_scarce',
     cls: 'report',
@@ -681,6 +678,7 @@ export function buildContext(state: TrueState, record: readonly StatRecord[]): E
     record,
     stocks: state.institutions.stocks,
     satisfiedEnergy: state.flows.satisfied.energy,
+    professionalTightness: skillTightness(state).professionals,
     exchangeRate: state.external.exchangeRate,
     realExchangeRate: realExchangeRate(state),
   }

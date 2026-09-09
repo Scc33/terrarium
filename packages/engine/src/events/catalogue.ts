@@ -52,14 +52,13 @@
 import type { NewsKind, NewsTone } from '../state/schema'
 import type { DeskId, EventId, Prominence } from './ids'
 import type { PressEraId } from './eras'
+import { OCCUPATIONAL_LABOUR_EVENT_CATALOGUE } from './occupationalLabourCatalogue'
 
-/** One filed story: the headline the ticker carries and the standfirst the
- * front page prints under it. */
+/** One filed story: the ticker headline and the front-page standfirst. */
 export interface Dispatch {
   headline: string
   body: string
 }
-
 export interface EventDef {
   /** the machine-readable category. Coarse on purpose: readers that FILTER
    * the wire (the finance overlay's crisis markers) match on `kind`, so it has
@@ -1084,6 +1083,7 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
       },
     ],
   },
+  ...OCCUPATIONAL_LABOUR_EVENT_CATALOGUE,
   hands_are_scarce: {
     kind: 'rumor',
     desk: 'labour',
