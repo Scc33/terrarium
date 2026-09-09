@@ -105,7 +105,18 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               title="Surpluses banked once the national debt was gone. It earns a return that shows up as its own revenue line, and it is spent before the government borrows again."
             />
           )}
-          <Metric label="R&D / QTR" value={money(t.outlaysByProgramme.research)} title="Research grants paid this quarter." />
+          {/* The two exact lines inside the pie's one compound band. Research
+              had a readout here and the ministries half had none anywhere in
+              the game, which is the wrong half to publish: measured over a
+              capacity-building century the band is purely ministries in 99% of
+              quarters and carries no research at all, and it runs a sixth of
+              the budget at the median (#168). Both, or the summary contradicts
+              the chart beside it. */}
+          <Metric
+            label="R&D · MINISTRIES / QTR"
+            value={`${money(t.outlaysByProgramme.research)} · ${money(t.outlaysByProgramme.capacity)}`}
+            title="The two exact lines inside the pie's RESEARCH & MINISTRIES band. R&D is the grant appropriation you voted. Ministries is what the state-capacity programmes still building cost this quarter — each order is spread over eight quarters and then stops. Having a ministry costs nothing; building one does."
+          />
           <Metric
             label="PRINTED"
             value={t.printed.toFixed(1)}
