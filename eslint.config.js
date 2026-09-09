@@ -5,6 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
+
 const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
 
 // Determinism (§1.1, §6). Hoisted because the engine block extends this list,
@@ -54,7 +56,16 @@ export default defineConfig([
       'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
       // The whole global, not `now` and `timeOrigin` and the next one: every
       // member of it is clock-derived and the engine has no use for any.
-      'no-restricted-globals': ['error', { name: 'performance', message: NO_CLOCK }],
+      'no-restricted-globals': [
+        'error',
+        { name: 'performance', message: NO_CLOCK },
+        // Node's ambient surface. The engine runs in a worker as well as in
+        // node, and reads no environment in either.
+        ...['process', 'Buffer', 'global', '__dirname', '__filename', 'require'].map((name) => ({
+          name,
+          message: NO_IO,
+        })),
+      ],
       // The constructor forms no-restricted-properties cannot see. `Date()`
       // called as a function ignores its arguments and returns the current
       // time, so every call is the clock; only `new Date(value)` is arithmetic.
@@ -63,14 +74,12 @@ export default defineConfig([
         { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
         { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
       ],
+      // "Depends on nothing" enforced literally: relative imports only, which
+      // is what all 269 of the engine's imports already are. Subsumes React,
+      // the workspace siblings, node builtins and any npm package at once.
       'no-restricted-imports': [
         'error',
-        {
-          patterns: [
-            { group: ['react', 'react-dom', 'react/*'], message: 'engine must stay free of React.' },
-            { group: ['@terrarium/*'], message: 'engine depends on nothing.' },
-          ],
-        },
+        { patterns: [{ group: ['*', '@*/**', '*/**', '!.*', '!.*/**'], message: NO_IO }] },
       ],
     },
   },
