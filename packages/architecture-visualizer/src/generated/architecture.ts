@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "d57a867",
+  "revision": "46a0a56",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 114,
-      "lines": 19490
+      "lines": 19516
     }
   ],
   "modules": [
@@ -7719,7 +7719,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The treasury now has seven exact outlay lines, but a seven-colour pie is not readable in the dossier register. Preserve every book entry in PublishedState and combine the two state-building programmes only for chart geometry.",
-      "lines": 68,
+      "lines": 83,
       "exports": [
         {
           "name": "OUTLAY_CHART_IDS",
@@ -7749,13 +7749,13 @@ export const architecture = {
           "name": "OUTLAY_FACE",
           "kind": "constant",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 43
+          "line": 51
         },
         {
           "name": "OUTLAY_CHART_FACE",
           "kind": "constant",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 56
+          "line": 71
         }
       ],
       "imports": [
@@ -11129,7 +11129,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The treasury ledger, opened out. Everything here is EXACT — these are the government's books on itself, the one corner of the world that arrives on time, unrevised and true — so it is drawn flat in ink, with no error band and no revision stamp anywhere.",
-      "lines": 201,
+      "lines": 212,
       "exports": [
         {
           "name": "LedgerOverlay",
