@@ -5,12 +5,12 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-// Determinism (§1.1, §6): replay must reproduce a century from (params, seed,
-// log) alone, so nothing may read entropy or a clock. Hoisted because the
-// engine block below EXTENDS this list — flat config replaces a rule's options
-// wholesale rather than merging them, so a second `no-restricted-properties`
-// that did not restate these would silently un-ban Math.random in the one
-// package that most needs it banned.
+const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
+
+// Determinism (§1.1, §6). Hoisted because the engine block extends this list,
+// and flat config REPLACES a rule's options rather than merging them — an
+// engine-only `no-restricted-properties` that did not restate these would
+// silently un-ban them in the package that most needs them banned.
 const DETERMINISM_PROPERTIES = [
   {
     object: 'Math',
@@ -20,7 +20,7 @@ const DETERMINISM_PROPERTIES = [
   {
     object: 'Date',
     property: 'now',
-    message: 'The sim must be pure — no wall-clock reads.',
+    message: NO_CLOCK,
   },
 ]
 
@@ -31,11 +31,8 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      // `x == null` stays legal: it is the deliberate both-nullish check, and
-      // the codebase leans on the null/undefined/0 distinction where it is
-      // load-bearing (ui/src/finance.ts returns null, never 0, for an unfunded
-      // survey). Spelling that out as `=== null || === undefined` at those
-      // sites would be noise, not clarity.
+      // `x == null` stays legal: the null/undefined/0 distinction is
+      // load-bearing (ui/src/finance.ts returns null, never 0, when unfunded).
       eqeqeq: ['error', 'always', { null: 'ignore' }],
       // type-only imports stay marked as such (reinforces verbatimModuleSyntax)
       '@typescript-eslint/consistent-type-imports': [
@@ -52,36 +49,20 @@ export default defineConfig([
     rules: {
       // a pure deterministic core has nothing to say to the console
       'no-console': 'error',
-      // `Date.now` is one of several ways to read the clock and the repo-wide
-      // list only covers that one. These three are engine-scoped rather than
-      // repo-wide because reading a clock is legitimate everywhere else:
-      // packages/runner, ui/src/worker/trial.ts and every tools/measure-*.ts
-      // time their own wall duration and report it.
+      // Engine-scoped: reading a clock is legitimate elsewhere — runner,
+      // worker/trial.ts and every tools/measure-*.ts time themselves.
       'no-restricted-properties': [
         'error',
         ...DETERMINISM_PROPERTIES,
-        {
-          object: 'Date',
-          property: 'parse',
-          message: 'The sim must be pure — no wall-clock reads.',
-        },
-        {
-          object: 'performance',
-          property: 'now',
-          message: 'The sim must be pure — no wall-clock reads.',
-        },
+        { object: 'performance', property: 'now', message: NO_CLOCK },
       ],
-      // `new Date()` with no argument is the clock; `new Date(value)` is
-      // arithmetic on a value the caller already had, and stays legal.
-      // no-restricted-properties cannot see a constructor call, so this half
-      // of the same rule has to be a syntax selector.
+      // The constructor forms no-restricted-properties cannot see. `Date()`
+      // called as a function ignores its arguments and returns the current
+      // time, so every call is the clock; only `new Date(value)` is arithmetic.
       'no-restricted-syntax': [
         'error',
-        {
-          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
-          message:
-            'The sim must be pure — no wall-clock reads. `new Date(value)` is fine; `new Date()` is the clock.',
-        },
+        { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
+        { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
       ],
       'no-restricted-imports': [
         'error',
