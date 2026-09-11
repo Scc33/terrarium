@@ -7,7 +7,7 @@
 
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { createSave, hashState, replay } from '@terrarium/engine'
+import { createSave, hashState, replay, rngFor, TICK_ORDER } from '@terrarium/engine'
 import { GOLDEN_CASES } from '../../tools/golden-cases'
 
 const blessed = JSON.parse(
@@ -24,6 +24,12 @@ describe('golden replays', () => {
         console.info(
           `fuel-tax trace: ${Array.from({ length: c.ticks }, (_, tick) => hashState(replay(save, tick + 1))).join(',')}`,
         )
+        let traced = replay(save, 35)
+        console.info(`fuel-tax q35 start: ${hashState(traced)}`)
+        for (const step of TICK_ORDER) {
+          traced = step.run(traced, rngFor(traced.meta.seed, step.name, traced.meta.tick))
+          console.info(`fuel-tax q35 ${step.name}: ${hashState(traced)}`)
+        }
       }
       expect(expected, `no blessed snapshot for ${c.name} — run pnpm bless`).toBeDefined()
       expect(s.meta.tick).toBe(expected.tick)
