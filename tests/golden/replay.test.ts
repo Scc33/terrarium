@@ -39,6 +39,10 @@ describe('golden replays', () => {
         for (const [key, value] of Object.entries(traced)) {
           console.info(`fuel-tax q36 resolved ${key}: ${hashState(value)}`)
         }
+        console.info(`fuel-tax q36 record: ${hashState(traced.stats.record)}`)
+        for (const [id, points] of Object.entries(traced.stats.series)) {
+          console.info(`fuel-tax q36 series ${id}: ${hashState(points)}`)
+        }
       }
       expect(expected, `no blessed snapshot for ${c.name} — run pnpm bless`).toBeDefined()
       expect(s.meta.tick).toBe(expected.tick)
