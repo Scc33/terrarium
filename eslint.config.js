@@ -4,8 +4,42 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
+
+const ENGINE_SRC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'packages/engine/src')
+
+// "Depends on nothing" enforced literally: an import is legal iff it is a
+// relative specifier AND resolves inside packages/engine/src. The first half
+// subsumes React, the workspace siblings, node builtins and any npm package
+// at once. The second exists because a relative path can still leave —
+// `../../observation/src` from src/index.ts resolves, and the root tsconfig
+// typechecks it — and no pattern over `../` runs can tell `./a/../../b`
+// (stays) from `./../..` (leaves); resolving against the importing file can.
+// Dynamic `import()` is not here because the engine block bans it outright.
+const RELATIVE_SPECIFIER = /^\.\.?(\/|$)/
+
+const importsStayWithin = {
+  meta: {
+    type: 'problem',
+    schema: [{ type: 'object', properties: { root: { type: 'string' } }, required: ['root'] }],
+  },
+  create(context) {
+    const { root } = context.options[0]
+    const dir = path.dirname(context.filename)
+    const check = (node) => {
+      const spec = node.source?.value
+      if (typeof spec !== 'string') return
+      const inside =
+        RELATIVE_SPECIFIER.test(spec) &&
+        !path.relative(root, path.resolve(dir, spec)).startsWith('..')
+      if (!inside) context.report({ node: node.source, message: NO_IO })
+    }
+    return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check }
+  },
+}
 
 const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
 
@@ -48,24 +82,27 @@ export default defineConfig([
   {
     // engine is pure: no DOM, no React, no other packages, no I/O (§1.1)
     files: ['packages/engine/**/*.ts'],
+    plugins: { boundary: { rules: { 'imports-stay-within': importsStayWithin } } },
     rules: {
       // a pure deterministic core has nothing to say to the console
       'no-console': 'error',
       // Engine-scoped: reading a clock is legitimate elsewhere — runner,
       // worker/trial.ts and every tools/measure-*.ts time themselves.
       'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
-      // The whole global, not `now` and `timeOrigin` and the next one: every
-      // member of it is clock-derived and the engine has no use for any.
-      'no-restricted-globals': [
-        'error',
-        { name: 'performance', message: NO_CLOCK },
-        // Node's ambient surface. The engine runs in a worker as well as in
-        // node, and reads no environment in either.
-        ...['process', 'Buffer', 'global', '__dirname', '__filename', 'require'].map((name) => ({
-          name,
-          message: NO_IO,
-        })),
-      ],
+      // "Reads no environment" as an allowlist rather than a list of names:
+      // this block declares no `globals`, so the only identifiers the engine
+      // may reach for are the language's own builtins. Node's ambient surface
+      // (`process`, `Buffer`, `require`, `__dirname`), the web's (`fetch`,
+      // `crypto`, `setTimeout`, `structuredClone`) and the clock
+      // (`performance`, #249) are all simply undefined here, and the next
+      // host API to ship is too. typescript-eslint turns this rule off
+      // because the typechecker covers it — but the root tsconfig checks the
+      // engine with node types, so here it does not. Never give this block
+      // `globals`: flat config MERGES them, so one `globals.node` upstream
+      // would quietly reopen the whole surface.
+      'no-undef': ['error', { typeof: true }],
+      // The one language builtin that is a door to all of the above.
+      'no-restricted-globals': ['error', { name: 'globalThis', message: NO_IO }],
       // The constructor forms no-restricted-properties cannot see. `Date()`
       // called as a function ignores its arguments and returns the current
       // time, so every call is the clock; only `new Date(value)` is arithmetic.
@@ -73,14 +110,11 @@ export default defineConfig([
         'error',
         { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
         { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+        // A dynamic import is a Promise a synchronous engine cannot await,
+        // and it is invisible to the static-import rule below.
+        { selector: 'ImportExpression', message: NO_IO },
       ],
-      // "Depends on nothing" enforced literally: relative imports only, which
-      // is what all 269 of the engine's imports already are. Subsumes React,
-      // the workspace siblings, node builtins and any npm package at once.
-      'no-restricted-imports': [
-        'error',
-        { patterns: [{ group: ['*', '@*/**', '*/**', '!.*', '!.*/**'], message: NO_IO }] },
-      ],
+      'boundary/imports-stay-within': ['error', { root: ENGINE_SRC }],
     },
   },
   {
