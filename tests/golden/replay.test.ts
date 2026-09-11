@@ -25,17 +25,19 @@ describe('golden replays', () => {
         console.info(
           `fuel-tax trace: ${Array.from({ length: c.ticks }, (_, tick) => hashState(replay(save, tick + 1))).join(',')}`,
         )
-        let traced = replay(save, 35)
-        console.info(`fuel-tax q35 start: ${hashState(traced)}`)
+        let traced = replay(save, 36)
+        console.info(`fuel-tax q36 start: ${hashState(traced)}`)
         for (const step of TICK_ORDER) {
           traced = step.run(traced, rngFor(traced.meta.seed, step.name, traced.meta.tick))
-          console.info(`fuel-tax q35 ${step.name}: ${hashState(traced)}`)
+          console.info(`fuel-tax q36 ${step.name}: ${hashState(traced)}`)
         }
         traced = resolveSpendingRules(traced)
-        console.info(`fuel-tax q35 resolved: ${hashState(traced)}`)
-        console.info(`fuel-tax q35 spending: ${JSON.stringify(traced.gov.dials.spending)}`)
+        console.info(`fuel-tax q36 resolved: ${hashState(traced)}`)
+        const incremented = { ...traced, meta: { ...traced.meta, tick: traced.meta.tick + 1 } }
+        console.info(`fuel-tax q36 incremented: ${hashState(incremented)}`)
+        console.info(`fuel-tax q36 spending: ${JSON.stringify(traced.gov.dials.spending)}`)
         for (const [key, value] of Object.entries(traced)) {
-          console.info(`fuel-tax q35 resolved ${key}: ${hashState(value)}`)
+          console.info(`fuel-tax q36 resolved ${key}: ${hashState(value)}`)
         }
       }
       expect(expected, `no blessed snapshot for ${c.name} — run pnpm bless`).toBeDefined()
