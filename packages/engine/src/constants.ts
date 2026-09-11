@@ -1926,9 +1926,12 @@ export const CARETAKER_CAPACITY_SPEND = 2 // money per programme, per ministry
  * only warning they get. So the desk is rate-limited, and the limit falls on
  * CONDITION reports only: a fact that happened is always filed.
  */
-/** How often a condition reaches the page; a wire reporting every true thing is an instrument. */
+/** how often a condition the desk noticed actually reaches the page. Held at
+ * the rumour mill's historic value: unreliability is the point, and a wire
+ * that reports every true thing is an instrument rather than a rumour. */
 export const NEWS_REPORT_P = 0.6
-/** Most condition reports one quarter can carry before colour. */
+/** most condition reports one quarter can carry, before colour. Two is a
+ * front page with a story and a second story; three read as a list. */
 export const NEWS_REPORTS_PER_QTR = 2
 /** quarters before the same event may be filed again. Long, and deliberately
  * longer than a business cycle's slack phase: the identical unemployment
@@ -1966,17 +1969,41 @@ export const NEWS_COOLDOWN_MAX_Q = 160
  * slumps nobody could act on. A partner's cycle phase lasts years; the wire
  * should say so once. */
 export const WORLD_PHASE_COOLDOWN_Q = 24
-/** A quarter below this dispatch count is a thin page, so the desk uses colour. */
+/** a quarter carrying fewer dispatches than this is a thin page, and the desk
+ * reaches for colour to fill it */
 export const NEWS_THIN_PAGE_AT = 1
-/** Chance a thin page gets colour; an occasional empty quarter makes busy ones read as busy. */
+/** chance a thin page gets a colour piece rather than running short. Not 1:
+ * an occasional genuinely empty quarter is what makes a busy one read as
+ * busy. */
 export const NEWS_COLOUR_P = 0.55
-/** Quarters before the same colour piece may run again. */
+/** quarters before the same colour piece may run again — much longer than a
+ * report's cooldown, because colour has no news value to renew it */
 export const NEWS_COLOUR_COOLDOWN_Q = 48
-/** Labour-desk thresholds measured across all curated countries and policy arms. */
+/**
+ * The labour desk's occupational thresholds (#198), read off the distributions
+ * `pnpm labour-market` measures under passive, education-only, developmental
+ * and random play — never guessed, because three of the first thresholds the
+ * wire ever shipped were outside the measured range (`add-an-event` skill).
+ * `pnpm events` is the reachability check.
+ */
+/** professional jobless + underemployed above which trained workers are
+ * reported underused. A LEVEL, not a trend: Veltravia and Kestrel clear it
+ * on their opening worksheet and Oranga a quarter later, which is why the
+ * copy describes a standing condition rather than a worsening one. */
 export const NEWS_PROFESSIONAL_UNDERUSE_AT = 0.15
+/** urban jobless rate above which the city is reported as not having caught
+ * up with the rural exodus — read together with the headline IMPROVING */
 export const NEWS_URBAN_JOBLESS_AT = 0.2
+/** how far the headline unemployment rate must have fallen over the window
+ * for the urban queue to count as lagging rather than merely long */
 export const NEWS_UNEMPLOYMENT_IMPROVEMENT_AT = 0.02
+/** the window that improvement is read over — a decade, so a cyclical dip
+ * cannot pass for the structural transition */
 export const NEWS_URBAN_TRANSITION_WINDOW_Q = 40
+/** `skillTightness.professionals` above which the trades are reported short
+ * of trained hands. Above one the posts want more professionals than exist;
+ * `allocateStaffing` fills them anyway, so this is a mismatch, never a
+ * vacancy count. */
 export const NEWS_PROFESSIONAL_TIGHTNESS_AT = 1.4
 /**
  * Press-freedom stock below which the independent titles stop appearing and

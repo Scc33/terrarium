@@ -47,8 +47,13 @@ import {
   NEWS_COOLDOWN_MAX_Q,
   NEWS_COOLDOWN_Q,
   NEWS_REPORT_P,
+  NEWS_PROFESSIONAL_TIGHTNESS_AT,
+  NEWS_PROFESSIONAL_UNDERUSE_AT,
   NEWS_REPORTS_PER_QTR,
   NEWS_THIN_PAGE_AT,
+  NEWS_UNEMPLOYMENT_IMPROVEMENT_AT,
+  NEWS_URBAN_JOBLESS_AT,
+  NEWS_URBAN_TRANSITION_WINDOW_Q,
 } from '../constants'
 import { realExchangeRate, skillTightness } from '../pipeline/derive'
 import { rngFor } from '../rng/rng'
@@ -62,7 +67,6 @@ import type {
 import { fileDispatch } from './file'
 import { eraAtTick, type PressEraId } from './eras'
 import type { EventId } from './ids'
-import { occupationalLabourConditionRules } from './occupationalLabourRules'
 
 // ---------- what a rule gets to look at ----------
 
@@ -82,7 +86,10 @@ export interface EventContext {
   stocks: Record<InstitutionId, number>
   /** live flows the worksheet does not keep */
   satisfiedEnergy: number
-  /** Private desk reading: desired professional posts ÷ professional labour force. */
+  /** posts `LABOR_SOURCE` asks of professionals ÷ the professionals who exist
+   * (`skillTightness`). Above one the trades want more trained hands than there
+   * are; `allocateStaffing` still fills every post, so this is a mismatch
+   * reading and never a vacancy count. */
   professionalTightness: number
   exchangeRate: number
   /** Competitiveness against the country's own 1946 settlement, not the
@@ -93,9 +100,16 @@ export interface EventContext {
   realExchangeRate: number
 }
 
-/** The worksheet `n` quarters ago, or the opening one if the run is younger.
- * It is keyed by tick, not position, so filtering the record cannot silently
- * change a trend rule's period. */
+/**
+ * The worksheet `n` quarters ago, or the opening one if the run is younger
+ * than that.
+ *
+ * Indexed BY TICK rather than by position, for the reason `ui/src/census.ts`
+ * carries the same warning: the engine writes one record per quarter today,
+ * so a positional `k − n` agrees exactly — right up until something filters
+ * the record on the way here, after which every trend rule silently measures
+ * a different span and prints a plausible wrong story.
+ */
 export function back(ctx: EventContext, n: number): StatRecord {
   const want = ctx.tick - n
   if (want <= ctx.first.tick) return ctx.first
@@ -304,7 +318,38 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     salience: 5,
     when: (c) => c.now.unemployment > 0.1 && c.now.utilization < 0.85 && c.stocks.labor_rights > 0.3,
   },
-  ...occupationalLabourConditionRules(back),
+  // The three labour markets the headline hides (investigation 0020, #198).
+  // A worker with a lesser job is not jobless, so the first reads jobless
+  // AND underemployed together: it catches the school-to-work mismatch
+  // whether it left professionals idle or bumped them down a rung (ADR-0036).
+  {
+    event: 'trained_workers_underused',
+    cls: 'report',
+    salience: 6,
+    when: (c) =>
+      c.now.labourMarket.professionals.jobless + c.now.labourMarket.professionals.underemployed >
+      NEWS_PROFESSIONAL_UNDERUSE_AT,
+  },
+  {
+    // The national headline can improve while the urban queue stays long:
+    // rural work is absorbing the residual, not the cities having caught up.
+    event: 'city_jobs_lag_transition',
+    cls: 'report',
+    salience: 6,
+    when: (c) =>
+      c.now.labourMarket.urban_workers.jobless > NEWS_URBAN_JOBLESS_AT &&
+      back(c, NEWS_URBAN_TRANSITION_WINDOW_Q).unemployment - c.now.unemployment >
+        NEWS_UNEMPLOYMENT_IMPROVEMENT_AT,
+  },
+  {
+    // `jobless === 0` only says every trained worker found SOME job. The
+    // staffing demand is the second reading: posts still asking for trained
+    // hands are a shortage, not merely high employment.
+    event: 'trained_hands_short',
+    cls: 'report',
+    salience: 4,
+    when: (c) => c.professionalTightness > NEWS_PROFESSIONAL_TIGHTNESS_AT,
+  },
   {
     event: 'hands_are_scarce',
     cls: 'report',

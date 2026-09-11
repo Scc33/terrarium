@@ -46,13 +46,25 @@ const MODULE_LINE_BASELINE = {
   // on a superseding ADR, per this file's own note. Ratcheted from 1996 by
   // the labour-market survey (#230): a schema-adding change declaring
   // LABOUR_SURVEY_FUNDED_AT, LABOUR_JOBLESS_SD and LABOUR_UNDEREMPLOYED_SD.
-  'packages/engine/src/constants.ts': 1999,
+  // Ratcheted from 1999 by the labour desk (#198): five measured wire
+  // thresholds, which the hard rule says may live nowhere else.
+  'packages/engine/src/constants.ts': 2025,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
-  'packages/engine/src/events/catalogue.ts': 2157,
+  // `EVENT_CATALOGUE` is a total `Record<EventId, EventDef>`, so a new id
+  // cannot compile without a row here — the schema-adding case above, in the
+  // wire's register (ADR-0031). Ratcheted from 2157 by the labour desk's
+  // three dispatches (#198).
+  'packages/engine/src/events/catalogue.ts': 2203,
   // Executable hotspot: condition eligibility, page budgets, and escalating cooldowns.
-  'packages/engine/src/events/conditions.ts': 828,
+  // Ratcheted from 828 by the labour desk's three rules (#198), because
+  // `CONDITION_RULES` is where ADR-0031 says a condition rule goes and a
+  // second rule table beside it was refused in review. The table is more
+  // than half the file and grows with every event; the relief is the #205
+  // shape — lift the declarative table out and leave the machinery — not a
+  // side registry per desk.
+  'packages/engine/src/events/conditions.ts': 871,
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   'packages/engine/src/index.ts': 421,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.

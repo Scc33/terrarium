@@ -139,7 +139,7 @@ export const EVENT_IDS = [
   'jobless_generation',
   'trained_workers_underused',
   'city_jobs_lag_transition',
-  'skilled_posts_unfilled',
+  'trained_hands_short',
   'hands_are_scarce',
   'wage_packets_thin',
   'wage_packets_fat',
