@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "7019360",
+  "revision": "46a0a56",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 51,
-      "lines": 16439
+      "moduleCount": 49,
+      "lines": 16343
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 114,
-      "lines": 19490
+      "lines": 19516
     }
   ],
   "modules": [
@@ -150,7 +150,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
-      "lines": 1998,
+      "lines": 1999,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -3072,91 +3072,61 @@ export const architecture = {
           "name": "NEWS_REPORT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1930
+          "line": 1932
         },
         {
           "name": "NEWS_REPORTS_PER_QTR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1932
+          "line": 1935
         },
         {
           "name": "NEWS_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1936
+          "line": 1939
         },
         {
           "name": "NEWS_COOLDOWN_GROWTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1954
+          "line": 1957
         },
         {
           "name": "NEWS_COOLDOWN_MAX_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1956
+          "line": 1959
         },
         {
           "name": "WORLD_PHASE_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1968
+          "line": 1971
         },
         {
           "name": "NEWS_THIN_PAGE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1970
+          "line": 1974
         },
         {
           "name": "NEWS_COLOUR_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1972
+          "line": 1978
         },
         {
           "name": "NEWS_COLOUR_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1974
-        },
-        {
-          "name": "NEWS_PROFESSIONAL_UNDERUSE_AT",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 1976
-        },
-        {
-          "name": "NEWS_URBAN_JOBLESS_AT",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 1977
-        },
-        {
-          "name": "NEWS_UNEMPLOYMENT_IMPROVEMENT_AT",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 1978
-        },
-        {
-          "name": "NEWS_URBAN_TRANSITION_WINDOW_Q",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 1979
-        },
-        {
-          "name": "NEWS_PROFESSIONAL_TIGHTNESS_AT",
-          "kind": "constant",
-          "path": "packages/engine/src/constants.ts",
-          "line": 1980
+          "line": 1981
         },
         {
           "name": "PRESS_CAPTURED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1997
+          "line": 1998
         }
       ],
       "imports": [
@@ -3169,7 +3139,6 @@ export const architecture = {
         "packages/engine/src/countries.ts",
         "packages/engine/src/events/conditions.ts",
         "packages/engine/src/events/file.ts",
-        "packages/engine/src/events/occupationalLabourRules.ts",
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
@@ -3428,26 +3397,24 @@ export const architecture = {
           "name": "EventDef",
           "kind": "interface",
           "path": "packages/engine/src/events/catalogue.ts",
-          "line": 62
+          "line": 63
         },
         {
           "name": "EVENT_CATALOGUE",
           "kind": "constant",
           "path": "packages/engine/src/events/catalogue.ts",
-          "line": 76
+          "line": 77
         }
       ],
       "imports": [
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/ids.ts",
-        "packages/engine/src/events/occupationalLabourCatalogue.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/index.ts",
         "packages/engine/src/events/index.ts",
-        "packages/engine/src/events/occupationalLabourCatalogue.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts"
       ],
@@ -3460,67 +3427,67 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The news desk: which of the country's conditions get reported this quarter.",
-      "lines": 826,
+      "lines": 828,
       "exports": [
         {
           "name": "EventContext",
           "kind": "interface",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 69
+          "line": 68
         },
         {
           "name": "back",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 99
+          "line": 103
         },
         {
           "name": "medianAge",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 112
+          "line": 116
         },
         {
           "name": "RuleClass",
           "kind": "type",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 149
+          "line": 153
         },
         {
           "name": "ConditionRule",
           "kind": "interface",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 151
+          "line": 155
         },
         {
           "name": "CONDITION_RULES",
           "kind": "constant",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 163
+          "line": 167
         },
         {
           "name": "cooldownFor",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 631
+          "line": 634
         },
         {
           "name": "reportBudget",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 658
+          "line": 661
         },
         {
           "name": "buildContext",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 670
+          "line": 673
         },
         {
           "name": "conditionDispatches",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 715
+          "line": 717
         }
       ],
       "imports": [
@@ -3528,7 +3495,6 @@ export const architecture = {
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/ids.ts",
-        "packages/engine/src/events/occupationalLabourRules.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/schema.ts"
@@ -3536,7 +3502,6 @@ export const architecture = {
       "importedBy": [
         "packages/engine/src/events/index.ts",
         "packages/engine/src/events/index.ts",
-        "packages/engine/src/events/occupationalLabourRules.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/statistics.ts"
@@ -3704,7 +3669,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The event register: every dispatch the wire can ever carry, named once.",
-      "lines": 246,
+      "lines": 243,
       "exports": [
         {
           "name": "DESK_IDS",
@@ -3740,13 +3705,13 @@ export const architecture = {
           "name": "EventId",
           "kind": "type",
           "path": "packages/engine/src/events/ids.ts",
-          "line": 238
+          "line": 235
         },
         {
           "name": "isEventId",
           "kind": "function",
           "path": "packages/engine/src/events/ids.ts",
-          "line": 243
+          "line": 240
         }
       ],
       "imports": [],
@@ -3758,7 +3723,6 @@ export const architecture = {
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/index.ts",
         "packages/engine/src/events/index.ts",
-        "packages/engine/src/events/occupationalLabourCatalogue.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/world.ts",
@@ -3788,56 +3752,6 @@ export const architecture = {
       ],
       "importedBy": [],
       "path": "packages/engine/src/events/index.ts",
-      "line": 1
-    },
-    {
-      "id": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-      "label": "occupationalLabourCatalogue",
-      "packageId": "engine",
-      "category": "Engine core",
-      "summary": "Copy for the labour desk's occupational-market reports.",
-      "lines": 44,
-      "exports": [
-        {
-          "name": "OCCUPATIONAL_LABOUR_EVENT_CATALOGUE",
-          "kind": "constant",
-          "path": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-          "line": 6
-        }
-      ],
-      "imports": [
-        "packages/engine/src/events/catalogue.ts",
-        "packages/engine/src/events/ids.ts"
-      ],
-      "importedBy": [
-        "packages/engine/src/events/catalogue.ts"
-      ],
-      "path": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-      "line": 1
-    },
-    {
-      "id": "packages/engine/src/events/occupationalLabourRules.ts",
-      "label": "occupationalLabourRules",
-      "packageId": "engine",
-      "category": "Engine core",
-      "summary": "The three labour-market readings the headline unemployment rate hides.",
-      "lines": 52,
-      "exports": [
-        {
-          "name": "occupationalLabourConditionRules",
-          "kind": "function",
-          "path": "packages/engine/src/events/occupationalLabourRules.ts",
-          "line": 16
-        }
-      ],
-      "imports": [
-        "packages/engine/src/constants.ts",
-        "packages/engine/src/events/conditions.ts"
-      ],
-      "importedBy": [
-        "packages/engine/src/events/conditions.ts"
-      ],
-      "path": "packages/engine/src/events/occupationalLabourRules.ts",
       "line": 1
     },
     {
@@ -7805,7 +7719,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The treasury now has seven exact outlay lines, but a seven-colour pie is not readable in the dossier register. Preserve every book entry in PublishedState and combine the two state-building programmes only for chart geometry.",
-      "lines": 68,
+      "lines": 83,
       "exports": [
         {
           "name": "OUTLAY_CHART_IDS",
@@ -7835,13 +7749,13 @@ export const architecture = {
           "name": "OUTLAY_FACE",
           "kind": "constant",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 43
+          "line": 51
         },
         {
           "name": "OUTLAY_CHART_FACE",
           "kind": "constant",
           "path": "packages/ui/src/budgetChart.ts",
-          "line": 56
+          "line": 71
         }
       ],
       "imports": [
@@ -11215,7 +11129,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The treasury ledger, opened out. Everything here is EXACT — these are the government's books on itself, the one corner of the world that arrives on time, unrevised and true — so it is drawn flat in ink, with no error band and no revision stamp anywhere.",
-      "lines": 201,
+      "lines": 212,
       "exports": [
         {
           "name": "LedgerOverlay",
@@ -12723,11 +12637,6 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/events/catalogue.ts",
-      "target": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/engine/src/events/catalogue.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": true
     },
@@ -12750,11 +12659,6 @@ export const architecture = {
       "source": "packages/engine/src/events/conditions.ts",
       "target": "packages/engine/src/events/ids.ts",
       "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/events/conditions.ts",
-      "target": "packages/engine/src/events/occupationalLabourRules.ts",
-      "typeOnly": false
     },
     {
       "source": "packages/engine/src/events/conditions.ts",
@@ -12854,26 +12758,6 @@ export const architecture = {
     {
       "source": "packages/engine/src/events/index.ts",
       "target": "packages/engine/src/events/ids.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-      "target": "packages/engine/src/events/catalogue.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/events/occupationalLabourCatalogue.ts",
-      "target": "packages/engine/src/events/ids.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/events/occupationalLabourRules.ts",
-      "target": "packages/engine/src/constants.ts",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/engine/src/events/occupationalLabourRules.ts",
-      "target": "packages/engine/src/events/conditions.ts",
       "typeOnly": true
     },
     {

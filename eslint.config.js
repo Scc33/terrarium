@@ -5,6 +5,25 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
+const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
+
+// Determinism (§1.1, §6). Hoisted because the engine block extends this list,
+// and flat config REPLACES a rule's options rather than merging them — an
+// engine-only `no-restricted-properties` that did not restate these would
+// silently un-ban them in the package that most needs them banned.
+const DETERMINISM_PROPERTIES = [
+  {
+    object: 'Math',
+    property: 'random',
+    message: 'Use the seeded RNG (packages/engine/src/rng) — Math.random breaks replay determinism.',
+  },
+  {
+    object: 'Date',
+    property: 'now',
+    message: NO_CLOCK,
+  },
+]
+
 export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
   {
@@ -12,11 +31,8 @@ export default defineConfig([
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      // `x == null` stays legal: it is the deliberate both-nullish check, and
-      // the codebase leans on the null/undefined/0 distinction where it is
-      // load-bearing (ui/src/finance.ts returns null, never 0, for an unfunded
-      // survey). Spelling that out as `=== null || === undefined` at those
-      // sites would be noise, not clarity.
+      // `x == null` stays legal: the null/undefined/0 distinction is
+      // load-bearing (ui/src/finance.ts returns null, never 0, when unfunded).
       eqeqeq: ['error', 'always', { null: 'ignore' }],
       // type-only imports stay marked as such (reinforces verbatimModuleSyntax)
       '@typescript-eslint/consistent-type-imports': [
@@ -24,19 +40,7 @@ export default defineConfig([
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
       // Determinism: all randomness must come from the seeded RNG (§6).
-      'no-restricted-properties': [
-        'error',
-        {
-          object: 'Math',
-          property: 'random',
-          message: 'Use the seeded RNG (packages/engine/src/rng) — Math.random breaks replay determinism.',
-        },
-        {
-          object: 'Date',
-          property: 'now',
-          message: 'The sim must be pure — no wall-clock reads.',
-        },
-      ],
+      'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
     },
   },
   {
@@ -45,6 +49,20 @@ export default defineConfig([
     rules: {
       // a pure deterministic core has nothing to say to the console
       'no-console': 'error',
+      // Engine-scoped: reading a clock is legitimate elsewhere — runner,
+      // worker/trial.ts and every tools/measure-*.ts time themselves.
+      'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
+      // The whole global, not `now` and `timeOrigin` and the next one: every
+      // member of it is clock-derived and the engine has no use for any.
+      'no-restricted-globals': ['error', { name: 'performance', message: NO_CLOCK }],
+      // The constructor forms no-restricted-properties cannot see. `Date()`
+      // called as a function ignores its arguments and returns the current
+      // time, so every call is the clock; only `new Date(value)` is arithmetic.
+      'no-restricted-syntax': [
+        'error',
+        { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
+        { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+      ],
       'no-restricted-imports': [
         'error',
         {
