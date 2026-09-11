@@ -40,6 +40,14 @@ describe('golden replays', () => {
           console.info(`fuel-tax q36 resolved ${key}: ${hashState(value)}`)
         }
         console.info(`fuel-tax q36 record: ${hashState(traced.stats.record)}`)
+        const latestRecord = traced.stats.record.at(-1)
+        if (latestRecord) {
+          for (const [key, value] of Object.entries(latestRecord)) {
+            console.info(
+              `fuel-tax q36 record ${key}: ${hashState(value)}${typeof value === 'number' ? ` ${value.toPrecision(17)}` : ''}`,
+            )
+          }
+        }
         for (const [id, points] of Object.entries(traced.stats.series)) {
           console.info(`fuel-tax q36 series ${id}: ${hashState(points)}`)
         }
