@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "254a197",
+  "revision": "368e0f1",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 49,
-      "lines": 16461
+      "lines": 16472
     },
     {
       "id": "fixtures",
@@ -150,7 +150,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
-      "lines": 2025,
+      "lines": 2027,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -3138,25 +3138,25 @@ export const architecture = {
           "name": "NEWS_UNEMPLOYMENT_IMPROVEMENT_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1999
+          "line": 2001
         },
         {
           "name": "NEWS_URBAN_TRANSITION_WINDOW_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2002
+          "line": 2004
         },
         {
           "name": "NEWS_PROFESSIONAL_TIGHTNESS_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2007
+          "line": 2009
         },
         {
           "name": "PRESS_CAPTURED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2024
+          "line": 2026
         }
       ],
       "imports": [
@@ -3457,7 +3457,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The news desk: which of the country's conditions get reported this quarter.",
-      "lines": 871,
+      "lines": 880,
       "exports": [
         {
           "name": "EventContext",
@@ -3499,25 +3499,25 @@ export const architecture = {
           "name": "cooldownFor",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 676
+          "line": 685
         },
         {
           "name": "reportBudget",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 703
+          "line": 712
         },
         {
           "name": "buildContext",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 715
+          "line": 724
         },
         {
           "name": "conditionDispatches",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 760
+          "line": 769
         }
       ],
       "imports": [
