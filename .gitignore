@@ -27,6 +27,8 @@ dist-ssr
 
 # generated test and research output
 coverage
+# vitest 5 writes its own artifacts (json/junit/html reporter output) here
+.vitest
 country-fuzz-artifacts
 country-fuzz-failures
 
