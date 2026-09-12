@@ -67,7 +67,7 @@ async function main(): Promise<void> {
   }
   if (failures.length > 0) {
     for (const outcome of failures) {
-      const failure = outcome.failure!.failure
+      const failure = outcome.failure.failure
       console.log(
         `  failure ${outcome.sample.caseId}: ${failure.kind} at q${failure.tick} (${failure.phase})`,
       )

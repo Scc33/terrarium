@@ -19,7 +19,6 @@ import {
   init,
   parseCountryDocument,
   replay,
-  type CuratedCountryId,
 } from '@terrarium/engine'
 import {
   AGE_SHAPE_LABELS,
@@ -127,7 +126,7 @@ describe('opening a curated country as a draft', () => {
     // if a drafted copy were not the original, the change would not be the
     // only difference, and nothing an author learned would be attributable
     for (const id of CURATED_COUNTRY_IDS) {
-      const original = createCountryParams(id as CuratedCountryId, 'draft')
+      const original = createCountryParams(id, 'draft')
       const drafted = countryFromDocument(draftFrom(id))
       // the vector itself is part of hashed state and is meant to differ
       // (a draft is stamped `authored`), so only the economy is compared

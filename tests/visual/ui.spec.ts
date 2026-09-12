@@ -127,7 +127,7 @@ test('no fitted instrument shears inside its board slot', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
   await page.evaluate('document.fonts.ready')
 
-  const overflowing = (await page.evaluate(SHEAR_PROBE)) as ShearReport[]
+  const overflowing = await page.evaluate<ShearReport[]>(SHEAR_PROBE)
 
   // guard against the assertion passing vacuously: the gallery must actually
   // be rendering fitted instruments for the probe to have looked at anything
@@ -205,7 +205,7 @@ test('a font utility on a button or input is not silently inert', async ({ page 
   await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
   await page.evaluate('document.fonts.ready')
 
-  const dead = (await page.evaluate(DEAD_UTILITY_PROBE)) as DeadUtility[]
+  const dead = await page.evaluate<DeadUtility[]>(DEAD_UTILITY_PROBE)
 
   // guard against passing vacuously: the gallery must be rendering controls
   // that actually carry font utilities for the probe to have judged anything
@@ -234,7 +234,7 @@ test('rolling chart mode remains legible inside a fitted board slot', async ({ p
 
   const rollingChart = page.getByRole('img', { name: /Rolling 12-month mean/ }).first()
   await expect(rollingChart).toBeVisible()
-  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+  expect(await page.evaluate<ShearReport[]>(SHEAR_PROBE)).toEqual([])
 
   const gdpTicker = page
     .locator('figure')
@@ -263,9 +263,9 @@ test('time-series charts compare a dragged or keyboard-selected range', async ({
     end: { x: meetX + 292 * scale, y: meetY + 150 * scale },
   }
 
-  await page.mouse.move(endpoints!.start.x, endpoints!.start.y)
+  await page.mouse.move(endpoints.start.x, endpoints.start.y)
   await page.mouse.down()
-  await page.mouse.move(endpoints!.end.x, endpoints!.end.y, { steps: 8 })
+  await page.mouse.move(endpoints.end.x, endpoints.end.y, { steps: 8 })
   await page.mouse.up()
 
   const chartBox = chart.locator('..')
@@ -287,7 +287,7 @@ test('time-series charts compare a dragged or keyboard-selected range', async ({
     .filter({ hasText: 'TERMINAL · REAL GDP GROWTH' })
     .locator('> div')
   await expect(gdpTicker).toHaveScreenshot('chart-range-selection.png')
-  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+  expect(await page.evaluate<ShearReport[]>(SHEAR_PROBE)).toEqual([])
 })
 
 test('compact charts keep the range readout clear of most of the trace', async ({ page }) => {
@@ -424,7 +424,12 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
   // This project typechecks Playwright under the Node libs, so keep browser
   // globals inside the evaluated source string rather than adding DOM types to
   // the entire test suite.
-  const fit = (await page.evaluate(`(() => {
+  const fit = await page.evaluate<{
+    horizontalScroll: boolean
+    pageScroll: boolean
+    clippedLabels: Array<{ text: string | null; scrollWidth: number; clientWidth: number }>
+    rackBelowFold: boolean
+  }>(`(() => {
     const doc = document.scrollingElement;
     const labels = [...document.querySelectorAll('.instrument-rack > button > span:nth-child(2)')];
     return {
@@ -441,12 +446,7 @@ test('dense desktop rack fits every instrument name on one screen', async ({ pag
         (document.querySelector('.instrument-rack')?.getBoundingClientRect().bottom ?? 0) >
         window.innerHeight,
     };
-  })()`)) as {
-    horizontalScroll: boolean
-    pageScroll: boolean
-    clippedLabels: Array<{ text: string | null; scrollWidth: number; clientWidth: number }>
-    rackBelowFold: boolean
-  }
+  })()`)
   expect(fit).toEqual({
     horizontalScroll: false,
     pageScroll: false,
@@ -479,7 +479,7 @@ test('human development shows its three published components on the wall', async
   )
   await page.keyboard.press('Escape')
   await expect(page.getByRole('tooltip')).toBeHidden()
-  expect((await page.evaluate(SHEAR_PROBE)) as ShearReport[]).toEqual([])
+  expect(await page.evaluate<ShearReport[]>(SHEAR_PROBE)).toEqual([])
   await expect(instrument).toHaveScreenshot('human-development-terminal.png')
 })
 
@@ -738,7 +738,7 @@ test('the paper sets a front page and files a searchable archive', async ({ page
   // two thirds of the page beside an empty third, which is the broken-page
   // look the promotion exists to remove. `pageBands` is unit-tested; only a
   // real browser can say what the grid did with what it returned.
-  const bands = (await page.evaluate(BAND_TRACK_PROBE)) as BandSample[]
+  const bands = await page.evaluate<BandSample[]>(BAND_TRACK_PROBE)
   // Both cases must actually have been sampled. An `if (found)` guard here
   // would turn "the probe never found a briefs-only edition" into a pass,
   // which is the shape of an assertion that quietly stops asserting.
@@ -776,7 +776,12 @@ test('household office shows poverty and both quintile views once surveyed', asy
   await expect(households.getByText('POVERTY RATE', { exact: true })).toBeVisible()
   await expect(households.getByText('THE FIVE FIFTHS', { exact: true })).toBeVisible()
 
-  const fit = (await page.evaluate(`(() => {
+  const fit = await page.evaluate<{
+    horizontalPageScroll: boolean
+    verticalPageScroll: boolean
+    horizontalDialogScroll: boolean
+    insideViewport: boolean
+  }>(`(() => {
     const doc = document.scrollingElement;
     const dialog = document.querySelector('[role="dialog"]');
     const box = dialog?.getBoundingClientRect();
@@ -787,12 +792,7 @@ test('household office shows poverty and both quintile views once surveyed', asy
       insideViewport:
         box != null && box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight,
     };
-  })()`)) as {
-    horizontalPageScroll: boolean
-    verticalPageScroll: boolean
-    horizontalDialogScroll: boolean
-    insideViewport: boolean
-  }
+  })()`)
   expect(fit).toEqual({
     horizontalPageScroll: false,
     verticalPageScroll: false,
@@ -973,13 +973,13 @@ test('the opening walkthrough introduces the room without covering it', async ({
   // happens to be under it. That is a screenshot that changes with the mouse.
   await expect(page.getByRole('button', { name: 'NEXT' })).toBeFocused()
   await page.keyboard.press('Enter')
-  const overlap = (await page.evaluate(`(() => {
+  const overlap = await page.evaluate<{ ring: string; coveredPx: number; ringed: string }>(`(() => {
     const card = document.querySelector('[aria-label="Introduction to the war room"]').getBoundingClientRect()
     const wallEl = document.querySelector('main[data-tour="wall"]')
     const wall = wallEl.getBoundingClientRect()
     const covered = Math.max(0, Math.min(card.right, wall.right) - Math.max(card.left, wall.left))
     return { ring: document.body.getAttribute('data-tour-active'), coveredPx: Math.round(covered), ringed: getComputedStyle(wallEl).outlineStyle }
-  })()`)) as { ring: string; coveredPx: number; ringed: string }
+  })()`)
   expect(overlap.ring).toBe('wall')
   expect(overlap.coveredPx).toBe(0)
   // and the region it names is actually ringed — the highlight is a stylesheet

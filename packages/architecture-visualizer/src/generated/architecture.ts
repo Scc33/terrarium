@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "0f893f9",
+  "revision": "0e4baee",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 49,
-      "lines": 16495
+      "lines": 16487
     },
     {
       "id": "fixtures",
@@ -4178,43 +4178,43 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1.5 — demography. The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort size…",
-      "lines": 376,
+      "lines": 375,
       "exports": [
         {
           "name": "vitalRates",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 73
+          "line": 72
         },
         {
           "name": "classSizesFrom",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 94
+          "line": 93
         },
         {
           "name": "professionalCeiling",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 127
+          "line": 126
         },
         {
           "name": "MigrationFlow",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 146
+          "line": 145
         },
         {
           "name": "migrationFlow",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 168
+          "line": 167
         },
         {
           "name": "demography",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 197
+          "line": 196
         }
       ],
       "imports": [
@@ -5537,19 +5537,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (ADR-0011); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 669,
+      "lines": 662,
       "exports": [
         {
           "name": "synthPyramid",
           "kind": "function",
           "path": "packages/engine/src/state/init.ts",
-          "line": 123
+          "line": 122
         },
         {
           "name": "init",
           "kind": "function",
           "path": "packages/engine/src/state/init.ts",
-          "line": 200
+          "line": 197
         }
       ],
       "imports": [
@@ -16134,41 +16134,41 @@ export const architecture = {
           "name": "vitalRates",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 73
+          "line": 72
         },
         {
           "name": "classSizesFrom",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 94
+          "line": 93
         },
         {
           "name": "professionalCeiling",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 127
+          "line": 126
         },
         {
           "name": "MigrationFlow",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 146
+          "line": 145
         },
         {
           "name": "migrationFlow",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 168
+          "line": 167
         },
         {
           "name": "demography",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 197
+          "line": 196
         }
       ],
       "path": "packages/engine/src/pipeline/demography.ts",
-      "line": 197
+      "line": 196
     },
     {
       "order": 3,

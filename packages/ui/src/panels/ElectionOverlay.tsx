@@ -80,7 +80,7 @@ function Record({ pub }: { pub: PublishedState }) {
     const last = series?.points[series.points.length - 1]
     rows.push({
       label: series?.label ?? id.replace('_', ' '),
-      value: last ? `${last.value.toFixed(1)} ${series!.unit}` : 'not measured',
+      value: last ? `${last.value.toFixed(1)} ${series.unit}` : 'not measured',
     })
   }
   return (
