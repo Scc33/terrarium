@@ -1980,6 +1980,34 @@ export const NEWS_COLOUR_P = 0.55
  * report's cooldown, because colour has no news value to renew it */
 export const NEWS_COLOUR_COOLDOWN_Q = 48
 /**
+ * The labour desk's occupational thresholds (#198), read off the distributions
+ * `pnpm labour-market` measures under passive, education-only, developmental
+ * and random play — never guessed, because three of the first thresholds the
+ * wire ever shipped were outside the measured range (`add-an-event` skill).
+ * `pnpm events` is the reachability check.
+ */
+/** professional jobless + underemployed above which trained workers are
+ * reported underused. A LEVEL, not a trend: Veltravia and Kestrel clear it
+ * on their opening worksheet and Oranga a quarter later, which is why the
+ * copy describes a standing condition rather than a worsening one. */
+export const NEWS_PROFESSIONAL_UNDERUSE_AT = 0.15
+/** urban jobless rate above which the city is reported as not having caught
+ * up with the rural exodus — read together with the headline IMPROVING */
+export const NEWS_URBAN_JOBLESS_AT = 0.2
+/** how far the headline unemployment rate must have fallen over the window
+ * for the urban queue to count as lagging rather than merely long — and the
+ * most the urban class reading may have fallen over the same window, or
+ * the city is catching up and the dispatch would say otherwise */
+export const NEWS_UNEMPLOYMENT_IMPROVEMENT_AT = 0.02
+/** the window that improvement is read over — a decade, so a cyclical dip
+ * cannot pass for the structural transition */
+export const NEWS_URBAN_TRANSITION_WINDOW_Q = 40
+/** `skillTightness.professionals` above which the trades are reported short
+ * of trained hands. Above one the posts want more professionals than exist;
+ * `allocateStaffing` fills them anyway, so this is a mismatch, never a
+ * vacancy count. */
+export const NEWS_PROFESSIONAL_TIGHTNESS_AT = 1.4
+/**
  * Press-freedom stock below which the independent titles stop appearing and
  * the state's own wire service files instead. The dispatch is unchanged: a
  * captured press changes the masthead, never the story (see `events/eras.ts`

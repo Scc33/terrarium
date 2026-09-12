@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "46a0a56",
+  "revision": "368e0f1",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 49,
-      "lines": 16343
+      "lines": 16472
     },
     {
       "id": "fixtures",
@@ -150,7 +150,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
-      "lines": 1999,
+      "lines": 2027,
       "exports": [
         {
           "name": "CAPITAL_ELASTICITY",
@@ -3123,10 +3123,40 @@ export const architecture = {
           "line": 1981
         },
         {
+          "name": "NEWS_PROFESSIONAL_UNDERUSE_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 1993
+        },
+        {
+          "name": "NEWS_URBAN_JOBLESS_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 1996
+        },
+        {
+          "name": "NEWS_UNEMPLOYMENT_IMPROVEMENT_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 2001
+        },
+        {
+          "name": "NEWS_URBAN_TRANSITION_WINDOW_Q",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 2004
+        },
+        {
+          "name": "NEWS_PROFESSIONAL_TIGHTNESS_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 2009
+        },
+        {
           "name": "PRESS_CAPTURED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1998
+          "line": 2026
         }
       ],
       "imports": [
@@ -3385,7 +3415,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The catalogue: what every event is CALLED and how it READS. One entry per `EventId`, compile-enforced total, and the only place in the game where the wire's prose is authored.",
-      "lines": 2157,
+      "lines": 2203,
       "exports": [
         {
           "name": "Dispatch",
@@ -3427,67 +3457,67 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The news desk: which of the country's conditions get reported this quarter.",
-      "lines": 828,
+      "lines": 880,
       "exports": [
         {
           "name": "EventContext",
           "kind": "interface",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 68
+          "line": 73
         },
         {
           "name": "back",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 103
+          "line": 113
         },
         {
           "name": "medianAge",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 116
+          "line": 126
         },
         {
           "name": "RuleClass",
           "kind": "type",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 153
+          "line": 163
         },
         {
           "name": "ConditionRule",
           "kind": "interface",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 155
+          "line": 165
         },
         {
           "name": "CONDITION_RULES",
           "kind": "constant",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 167
+          "line": 177
         },
         {
           "name": "cooldownFor",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 634
+          "line": 685
         },
         {
           "name": "reportBudget",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 661
+          "line": 712
         },
         {
           "name": "buildContext",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 673
+          "line": 724
         },
         {
           "name": "conditionDispatches",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 717
+          "line": 769
         }
       ],
       "imports": [
@@ -3669,7 +3699,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The event register: every dispatch the wire can ever carry, named once.",
-      "lines": 243,
+      "lines": 246,
       "exports": [
         {
           "name": "DESK_IDS",
@@ -3705,13 +3735,13 @@ export const architecture = {
           "name": "EventId",
           "kind": "type",
           "path": "packages/engine/src/events/ids.ts",
-          "line": 235
+          "line": 238
         },
         {
           "name": "isEventId",
           "kind": "function",
           "path": "packages/engine/src/events/ids.ts",
-          "line": 240
+          "line": 243
         }
       ],
       "imports": [],
