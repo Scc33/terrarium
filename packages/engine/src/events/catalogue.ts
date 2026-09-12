@@ -1084,6 +1084,52 @@ export const EVENT_CATALOGUE: Record<EventId, EventDef> = {
       },
     ],
   },
+  // The three labour markets the headline unemployment rate hides
+  // (investigation 0020). None of them prints a figure, and none claims a
+  // trend its rule does not measure: `trained_workers_underused` fires on a
+  // LEVEL, which two curated countries already clear on their opening
+  // worksheet, so the copy describes a standing condition rather than a
+  // worsening one.
+  trained_workers_underused: {
+    kind: 'rumor',
+    desk: 'labour',
+    tone: 'bad',
+    prominence: 'column',
+    dispatches: [
+      {
+        headline: 'Training finds no fitting work',
+        body: 'Qualified workers are taking whatever positions they can get while the work for which they trained remains scarce. The applicant queue outnumbers the posts meant for it.',
+      },
+    ],
+  },
+  city_jobs_lag_transition: {
+    kind: 'rumor',
+    desk: 'labour',
+    tone: 'bad',
+    prominence: 'column',
+    dispatches: [
+      {
+        headline: 'The city has not caught up',
+        body: 'Families leaving the land find the hiring lines in town as long as ever, even as the national picture improves. Lodging houses are full of people who made the journey before the work arrived.',
+      },
+    ],
+  },
+  // A skills MISMATCH, not a vacancy: `allocateStaffing` fills every post, so
+  // when the trades want more trained hands than exist the posts are held by
+  // whoever could be found (ADR-0035). The copy says so rather than claiming
+  // positions the model never leaves open.
+  trained_hands_short: {
+    kind: 'rumor',
+    desk: 'labour',
+    tone: 'neutral',
+    prominence: 'brief',
+    dispatches: [
+      {
+        headline: 'The trades cannot find their people',
+        body: 'Employers say the posts that want a trained hand are being filled with whoever will take them and learn on the floor. Poaching between firms has become the usual way to staff a workshop.',
+      },
+    ],
+  },
   hands_are_scarce: {
     kind: 'rumor',
     desk: 'labour',

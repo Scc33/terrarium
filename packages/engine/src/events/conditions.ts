@@ -47,10 +47,15 @@ import {
   NEWS_COOLDOWN_MAX_Q,
   NEWS_COOLDOWN_Q,
   NEWS_REPORT_P,
+  NEWS_PROFESSIONAL_TIGHTNESS_AT,
+  NEWS_PROFESSIONAL_UNDERUSE_AT,
   NEWS_REPORTS_PER_QTR,
   NEWS_THIN_PAGE_AT,
+  NEWS_UNEMPLOYMENT_IMPROVEMENT_AT,
+  NEWS_URBAN_JOBLESS_AT,
+  NEWS_URBAN_TRANSITION_WINDOW_Q,
 } from '../constants'
-import { realExchangeRate } from '../pipeline/derive'
+import { realExchangeRate, skillTightness } from '../pipeline/derive'
 import { rngFor } from '../rng/rng'
 import type {
   InstitutionId,
@@ -81,6 +86,11 @@ export interface EventContext {
   stocks: Record<InstitutionId, number>
   /** live flows the worksheet does not keep */
   satisfiedEnergy: number
+  /** posts `LABOR_SOURCE` asks of professionals ÷ the professionals who exist
+   * (`skillTightness`). Above one the trades want more trained hands than there
+   * are; `allocateStaffing` still fills every post, so this is a mismatch
+   * reading and never a vacancy count. */
+  professionalTightness: number
   exchangeRate: number
   /** Competitiveness against the country's own 1946 settlement, not the
    * nominal rate. The nominal rate on its own says nothing about whether
@@ -307,6 +317,47 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
     cls: 'report',
     salience: 5,
     when: (c) => c.now.unemployment > 0.1 && c.now.utilization < 0.85 && c.stocks.labor_rights > 0.3,
+  },
+  // The three labour markets the headline hides (investigation 0020, #198).
+  // A worker with a lesser job is not jobless, so the first reads jobless
+  // AND underemployed together: it catches the school-to-work mismatch
+  // whether it left professionals idle or bumped them down a rung (ADR-0036).
+  {
+    event: 'trained_workers_underused',
+    cls: 'report',
+    salience: 6,
+    when: (c) =>
+      c.now.labourMarket.professionals.jobless + c.now.labourMarket.professionals.underemployed >
+      NEWS_PROFESSIONAL_UNDERUSE_AT,
+  },
+  {
+    // The national headline can improve while the urban queue stays long:
+    // rural work is absorbing the residual, not the cities having caught up.
+    // Both halves are read over the same window: the headline must have
+    // fallen by more than the improvement threshold AND the urban class
+    // reading by less, or the copy's "as long as ever" is false of a city
+    // whose queue is shortening but still long.
+    event: 'city_jobs_lag_transition',
+    cls: 'report',
+    salience: 6,
+    when: (c) => {
+      const then = back(c, NEWS_URBAN_TRANSITION_WINDOW_Q)
+      const urbanNow = c.now.labourMarket.urban_workers.jobless
+      return (
+        urbanNow > NEWS_URBAN_JOBLESS_AT &&
+        then.unemployment - c.now.unemployment > NEWS_UNEMPLOYMENT_IMPROVEMENT_AT &&
+        then.labourMarket.urban_workers.jobless - urbanNow <= NEWS_UNEMPLOYMENT_IMPROVEMENT_AT
+      )
+    },
+  },
+  {
+    // `jobless === 0` only says every trained worker found SOME job. The
+    // staffing demand is the second reading: posts still asking for trained
+    // hands are a shortage, not merely high employment.
+    event: 'trained_hands_short',
+    cls: 'report',
+    salience: 4,
+    when: (c) => c.professionalTightness > NEWS_PROFESSIONAL_TIGHTNESS_AT,
   },
   {
     event: 'hands_are_scarce',
@@ -681,6 +732,7 @@ export function buildContext(state: TrueState, record: readonly StatRecord[]): E
     record,
     stocks: state.institutions.stocks,
     satisfiedEnergy: state.flows.satisfied.energy,
+    professionalTightness: skillTightness(state).professionals,
     exchangeRate: state.external.exchangeRate,
     realExchangeRate: realExchangeRate(state),
   }
