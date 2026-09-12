@@ -205,7 +205,7 @@ describe('an unfunded survey is not a safe reading', () => {
           { forQtr: 1, value: 105 },
           { forQtr: 2, value: 115 },
         ]),
-      } as PublishedState['indicators'],
+      },
     })
     expect(fragilityTrail(pub).map((p) => p.tick)).toEqual([1, 2])
     expect(fragilityTrail(pub)[1]).toEqual({ tick: 2, x: 60, y: 115 })
@@ -222,7 +222,7 @@ describe('the capital floor', () => {
             { forQtr: 0, value: held },
             { forQtr: 1, value: held },
           ]),
-        } as PublishedState['indicators'],
+        },
       }),
     )
 

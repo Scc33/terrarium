@@ -408,7 +408,7 @@ for (const country of CURATED_COUNTRY_IDS) {
       const result = runOne({
         seed,
         ticks: TICKS,
-        country: country as CountryScenarioId,
+        country,
         policy,
         includeStateHash: false,
         observer: {

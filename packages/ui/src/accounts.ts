@@ -118,7 +118,7 @@ export function accountRows(pub: PublishedState): StackRow[] {
   return [...byQtr.entries()]
     .filter(([, values]) => ACCOUNT_IDS.every((id) => values[id] !== undefined))
     .sort((a, b) => a[0] - b[0])
-    .map(([tick, values]) => ({ tick, values: values as Record<string, number> }))
+    .map(([tick, values]) => ({ tick, values }))
 }
 
 /**

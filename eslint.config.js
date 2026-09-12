@@ -14,7 +14,8 @@ const TS = '**/*.{ts,tsx,mts,cts}'
 
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
 
-const ENGINE_SRC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'packages/engine/src')
+const ROOT = path.dirname(fileURLToPath(import.meta.url))
+const ENGINE_SRC = path.join(ROOT, 'packages/engine/src')
 
 // "Depends on nothing" enforced literally: an import is legal iff it is a
 // relative specifier AND resolves inside packages/engine/src. The first half
@@ -69,9 +70,43 @@ export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
   {
     files: [TS],
-    extends: [js.configs.recommended, tseslint.configs.recommended],
+    // The type-checked set, not `recommended` (#237): the store talks to the
+    // worker over postMessage, and every rule that can see a dropped or
+    // mis-awaited Promise needs the type checker. `projectService` hands each
+    // file to the tsconfig that owns it, which is why every linted file has
+    // to be in one — a file no project includes is a parse error here, not
+    // a skipped file. The checker it resolves is the TS 6 API pinned as
+    // `typescript` (ADR-0009), not the TS 7 `tsc` alias.
+    extends: [js.configs.recommended, tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: ROOT,
+      },
+    },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      // What the type checker was wired in for. All four reported zero when
+      // switched on — the async code was already right — so these hold a
+      // line rather than clear a backlog, and they are spelled out so a
+      // preset change cannot quietly drop one.
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/require-await': 'error',
+      // The residue the switch-on found, left at `warn` so the gate could go
+      // in without the mechanical diff. Clearing each and promoting it to
+      // `error` is #238, which also records what every one of them is — the
+      // 28 `unbound-method` are zustand actions destructured from the store,
+      // the `no-unsafe-*` are mostly JSON fixtures landing as `any` in tests.
+      '@typescript-eslint/no-base-to-string': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/prefer-promise-reject-errors': 'warn',
+      '@typescript-eslint/unbound-method': 'warn',
       // `x == null` stays legal: the null/undefined/0 distinction is
       // load-bearing (ui/src/finance.ts returns null, never 0, when unfunded).
       eqeqeq: ['error', 'always', { null: 'ignore' }],

@@ -77,7 +77,6 @@ import {
   totalLaborForce,
   type Action,
   type ActionLog,
-  type GameRules,
   type Qtr,
   type SaveFile,
   type TrueState,
@@ -338,7 +337,7 @@ export function runArm(id: ArmId, save: SaveFile, plan: ReplayPlan): Arm {
     ticks: plan.ticks,
     params: save.params,
     script,
-    rules: (save.rules ?? save.mode ?? 'standard') as GameRules,
+    rules: save.rules ?? save.mode ?? 'standard',
     appointedAt: plan.appointedAt,
     // The loader's semantics, not the policy-scoring ones — see the header.
     lenient: 'turn',
@@ -541,7 +540,7 @@ function main(argv: readonly string[]): void {
     if (reading.tick % args.every !== 0 && reading !== lastReading) continue
     console.log(
       String(reading.year).padEnd(6) +
-      COLUMNS.map(([key, , dp]) => (reading[key] as number).toFixed(dp).padStart(9)).join(''),
+      COLUMNS.map(([key, , dp]) => reading[key].toFixed(dp).padStart(9)).join(''),
     )
   }
 
@@ -554,7 +553,7 @@ function main(argv: readonly string[]): void {
       const deposed = arm.deposedAt === null ? '' : ` (deposed ${1946 + Math.floor(arm.deposedAt / 4)})`
       console.log(
         arm.id.padEnd(15) +
-        COLUMNS.map(([key, , dp]) => (last[key] as number).toFixed(dp).padStart(9)).join('') +
+        COLUMNS.map(([key, , dp]) => last[key].toFixed(dp).padStart(9)).join('') +
         `   ${String(arm.illegalActionsSkipped).padStart(5)}${deposed}`,
       )
     }

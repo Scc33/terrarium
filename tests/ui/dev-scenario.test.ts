@@ -78,7 +78,7 @@ describe('applyScenario', () => {
     const totalAfter = Object.values(out.cohortSizes).reduce((a, b) => a + b, 0)
     expect(totalAfter).toBeCloseTo(totalBefore * 3, 9)
     expect(out.pyramid!.reduce((a, b) => a + b, 0)).toBeCloseTo(
-      withPyramid.pyramid!.reduce((a, b) => a + b, 0) * 3,
+      withPyramid.pyramid.reduce((a, b) => a + b, 0) * 3,
       9,
     )
   })

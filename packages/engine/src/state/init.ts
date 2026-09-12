@@ -80,7 +80,6 @@ import {
 } from './schema'
 import {
   BASE_WORKER_SHARE,
-  EDUCATION_1946,
   IMMIGRATION_LIMIT_DEFAULT,
   FERT_MAX,
   FDI_OPENING_OWNERSHIP_BASE,
@@ -160,8 +159,7 @@ function initialDemography(params: CountryParams): DemographyState {
     // The opening workforce inherits the schooling system encoded by the
     // country recipe. From quarter one the people and the institution become
     // separate stocks: schools can be built quickly; skills cannot.
-    humanCapital:
-      (params.capacities.education as number | undefined) ?? EDUCATION_1946,
+    humanCapital: params.capacities.education,
     classShares,
     // The pair the professional ceiling is a ratio to. Read off the recipe
     // rather than a constant, so opening a country gives back that country:
@@ -169,8 +167,7 @@ function initialDemography(params: CountryParams): DemographyState {
     // second leg of the class transition contributes nothing until the
     // government schools somebody.
     professionalBaseline: classShares.professionals,
-    schoolingBaseline:
-      (params.capacities.education as number | undefined) ?? EDUCATION_1946,
+    schoolingBaseline: params.capacities.education,
   }
 }
 
@@ -560,11 +557,7 @@ export function init(
       statutes: Object.fromEntries(
         STATUTE_IDS.map((id) => [id, { level: 0, enactedAt: 0 }]),
       ) as StatuteBook,
-      // Older saves carry no education capacity — backfill the 1946 default.
-      capacity: {
-        ...params.capacities,
-        education: (params.capacities.education as number | undefined) ?? EDUCATION_1946,
-      },
+      capacity: { ...params.capacities },
       pipeline: [],
       budget: { revenue: 0, outlays: 0, balance: 0 },
       debt: debt0,

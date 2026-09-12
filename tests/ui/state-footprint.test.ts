@@ -43,7 +43,7 @@ function pubWith(
       errorBand: 1,
       levels: { real: l.nominal, nominal: l.nominal },
     })),
-  } as IndicatorSeries
+  }
   return { tick, books, indicators: { gdp_growth: gdp } } as unknown as PublishedState
 }
 
