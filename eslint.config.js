@@ -7,6 +7,11 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// Every extension TypeScript compiles. A matcher spelled `*.ts` skips an
+// `.mts` beside it, and a file no block matches is not linted at all — so
+// the engine gate below would simply not run on one.
+const TS = '**/*.{ts,tsx,mts,cts}'
+
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
 
 const ENGINE_SRC = path.join(path.dirname(fileURLToPath(import.meta.url)), 'packages/engine/src')
@@ -63,7 +68,7 @@ const DETERMINISM_PROPERTIES = [
 export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
   {
-    files: ['**/*.{ts,tsx}'],
+    files: [TS],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
@@ -81,7 +86,7 @@ export default defineConfig([
   },
   {
     // engine is pure: no DOM, no React, no other packages, no I/O (§1.1)
-    files: ['packages/engine/**/*.ts'],
+    files: [`packages/engine/${TS}`],
     plugins: { boundary: { rules: { 'imports-stay-within': importsStayWithin } } },
     rules: {
       // a pure deterministic core has nothing to say to the console
@@ -113,6 +118,13 @@ export default defineConfig([
         // A dynamic import is a Promise a synchronous engine cannot await,
         // and it is invisible to the static-import rule below.
         { selector: 'ImportExpression', message: NO_IO },
+        // `import.meta` is where the host tells a module where it lives —
+        // url, dirname, resolve — and it is a MetaProperty, not an
+        // identifier, so no-undef never sees it.
+        { selector: "MetaProperty[meta.name='import']", message: NO_IO },
+        // JSX compiles to an import of a runtime the file never writes down,
+        // so the import rule cannot see it either.
+        { selector: 'JSXElement, JSXFragment', message: NO_IO },
       ],
       'boundary/imports-stay-within': ['error', { root: ENGINE_SRC }],
     },
@@ -123,7 +135,7 @@ export default defineConfig([
     // named `const` — that IS the fix — only one used bare inside an
     // expression. `ignore` covers structural uses ADR-0007 itself carves
     // out: array indices, unit identities, and the odd sign flip.
-    files: ['packages/engine/src/**/*.ts'],
+    files: [`packages/engine/src/${TS}`],
     plugins: { '@typescript-eslint': tseslint.plugin },
     rules: {
       '@typescript-eslint/no-magic-numbers': [
@@ -172,7 +184,7 @@ export default defineConfig([
   },
   {
     // ui may only see PublishedState — never true state internals (§1.1)
-    files: ['packages/ui/**/*.{ts,tsx}'],
+    files: [`packages/ui/${TS}`],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
     languageOptions: {
       globals: globals.browser,
@@ -205,7 +217,7 @@ export default defineConfig([
   {
     // the sim worker is the one place in the UI that may run the engine — it
     // holds TrueState privately and posts only PublishedState across the wire
-    files: ['packages/ui/src/worker/**/*.ts'],
+    files: [`packages/ui/src/worker/${TS}`],
     rules: {
       'no-restricted-imports': [
         'error',
