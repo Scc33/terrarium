@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "9f98caf",
+  "revision": "6c73ff2",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 49,
-      "lines": 16362
+      "lines": 16366
     },
     {
       "id": "fixtures",
@@ -4819,7 +4819,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Exact worksheet behind the occupational labour survey.",
-      "lines": 45,
+      "lines": 49,
       "exports": [
         {
           "name": "LabourMarketReading",

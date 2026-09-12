@@ -1,8 +1,7 @@
 # 0022 — Golden replays are not reproducible across CPU architecture
 
-**Status:** Open — root cause confirmed and localized to the exact operations; no fix has
-shipped. Per the tracking issue, this needs its own economics review before any change lands
-(#246): "Likely needs researching first before implementation."
+**Status:** Open — the normal sampler's known transcendental leak has a proposed fix in #254,
+but a full-engine replay still diverges across architectures at longer horizons.
 
 **Raised by:** while fixing #230 (labour-market survey), `fuel-tax-40q` and `competition-act-40q`
 passed on every local run but failed in CI (`ubuntu-latest`, x86_64). `d57a867` re-blessed
@@ -106,6 +105,9 @@ branch point like this one.
 
 ## Options considered (none implemented)
 
+These were the options as measured on 2026-09-08. The follow-up below overturns option 2's
+claim that changing `normal()` alone closes the *entire* save-portability hole.
+
 1. **Round `hashState` to fewer significant digits.** Rejected above: the divergence is not
    bounded in magnitude, so no fixed rounding threshold is safe for an arbitrarily long replay,
    and it does nothing for the real bug (save non-portability) — only for the golden test's hash
@@ -146,3 +148,29 @@ branch point like this one.
 
 Re-measure the divergence rate if `rng.ts` changes for any reason before acting on the numbers
 above — they are stamped to `46a0a56` and will drift the moment the RNG does.
+
+## Follow-up while reviewing #254
+
+**Measured at:** `6c73ff2` (PR #254 with the worksheet-dust fix and current master merged),
+2026-09-12. Bundled the engine and the `fuel-tax-40q` script into one JavaScript file and ran
+that *same file* under official Node 24.20.0 arm64 and x64 builds on the same macOS machine.
+The x64 build reproduced Linux CI's failing hash before the worksheet fix, so this was not a
+Node-version discrepancy.
+
+- The new `normal()` fixture and every step of the 36th quarter matched at the existing
+  10-significant-digit `hashState` precision. The first failing 40-quarter state came from
+  `stats.record[36].labourMarket.rural_workers.jobless`: arm64 calculated zero, x64 calculated
+  about `1.36e-16` from subtracting an exactly filled class's allocated heads from its supply.
+  The staffing allocator already closes remainders below `1e-12`; applying that same threshold
+  to the worksheet makes all three 40-quarter golden hashes match across arm64 and x64.
+- The *unrounded* state JSON first differs at quarter 15. After the worksheet fix, the
+  10-digit state hashes still first differ at quarter 93 in a 400-quarter fuel-tax replay;
+  the two quarter-400 hashes were `c061dd98` (arm64) and `7e3cfb87` (x64). Thus a portable
+  normal draw is necessary but not sufficient for the save-portability guarantee. The source
+  of the remaining raw drift has not been isolated and must not be attributed to a specific
+  engine operation without another trace.
+
+The 40-quarter CI failure was a real reporting defect, now covered by a regression test, but
+green 40-quarter goldens are not evidence that #246 is fully resolved. Keep the issue open
+until a century-scale cross-architecture replay agrees, including state that can affect
+political threshold decisions. Further hash rounding would only postpone discovery.

@@ -45,4 +45,4 @@ drift. Re-measure before acting on one.
 | [0019](0019-what-a-played-century-hits-its-head-on.md) | What does a well-played century hit its head on? Five ceilings, and 15 of 33 dials that do not fit it | Open — the dials are spun off as #190 |
 | [0020](0020-the-headline-hides-three-labour-markets.md) | The headline hides three labour markets, and the reachable one is skill mismatch | Open — the spike for #27 |
 | [0021](0021-the-opening-vector-asks-for-more-jobs-than-hands.md) | The opening vector asks for more jobs than the country has hands, on 2 of 5 curated countries and 39% of procedural seeds | Open — pre-existing; the fix recalibrates the catalogue |
-| [0022](0022-golden-replays-are-not-reproducible-across-cpu-architecture.md) | Golden replays are not bit-reproducible across CPU architecture — `Math.log`/`Math.cos` inside `Sfc32Rng.normal()` diverge by ±1 ULP in ~1-2% of draws | Open — needs research before implementation (#246) |
+| [0022](0022-golden-replays-are-not-reproducible-across-cpu-architecture.md) | Golden replays differ across CPU architectures | Open — portable normal sampler proposed; longer replay still diverges |

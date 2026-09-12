@@ -36,9 +36,10 @@ simulation behaviour change. It is reviewed through goldens, the passive/develop
 baselines, all-country stability, and the load-bearing fuel-tax and subsidy properties before
 the new golden states are blessed.
 
-No state shape or pipeline order changes, so this needs no schema migration. Existing saves now
-replay to the same corrected result on every supported architecture rather than to one of two
-platform-defined histories.
+No state shape or pipeline order changes, so this needs no schema migration. This removes a
+confirmed platform-dependent source of replay drift, but is not a proof that every engine
+calculation is portable; [investigation 0022](../investigations/0022-golden-replays-are-not-reproducible-across-cpu-architecture.md)
+tracks residual cross-architecture differences.
 
 ## Alternatives
 
@@ -57,7 +58,9 @@ more do not improve portability.
 
 ## Consequences
 
-- Replays, golden hashes and election outcomes are portable across CPU architectures again.
+- `normal()` draws are portable across CPU architectures. The reviewed 40-quarter goldens agree
+  on arm64 and x64 after closing a separate sub-ULP labour-worksheet remainder; longer engine
+  replays are not yet proven portable.
 - Every normal-noise consumer receives a new, deterministic sequence. Substreams still prevent
   that sequence change from shifting an unrelated pipeline step.
 - The sampler cannot emit a shock beyond ±4.24 standard deviations. If a future mechanic relies on
