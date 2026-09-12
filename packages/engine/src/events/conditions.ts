@@ -333,13 +333,22 @@ export const CONDITION_RULES: readonly ConditionRule[] = [
   {
     // The national headline can improve while the urban queue stays long:
     // rural work is absorbing the residual, not the cities having caught up.
+    // Both halves are read over the same window: the headline must have
+    // fallen by more than the improvement threshold AND the urban class
+    // reading by less, or the copy's "as long as ever" is false of a city
+    // whose queue is shortening but still long.
     event: 'city_jobs_lag_transition',
     cls: 'report',
     salience: 6,
-    when: (c) =>
-      c.now.labourMarket.urban_workers.jobless > NEWS_URBAN_JOBLESS_AT &&
-      back(c, NEWS_URBAN_TRANSITION_WINDOW_Q).unemployment - c.now.unemployment >
-        NEWS_UNEMPLOYMENT_IMPROVEMENT_AT,
+    when: (c) => {
+      const then = back(c, NEWS_URBAN_TRANSITION_WINDOW_Q)
+      const urbanNow = c.now.labourMarket.urban_workers.jobless
+      return (
+        urbanNow > NEWS_URBAN_JOBLESS_AT &&
+        then.unemployment - c.now.unemployment > NEWS_UNEMPLOYMENT_IMPROVEMENT_AT &&
+        then.labourMarket.urban_workers.jobless - urbanNow <= NEWS_UNEMPLOYMENT_IMPROVEMENT_AT
+      )
+    },
   },
   {
     // `jobless === 0` only says every trained worker found SOME job. The

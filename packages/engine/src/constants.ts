@@ -1995,7 +1995,9 @@ export const NEWS_PROFESSIONAL_UNDERUSE_AT = 0.15
  * up with the rural exodus — read together with the headline IMPROVING */
 export const NEWS_URBAN_JOBLESS_AT = 0.2
 /** how far the headline unemployment rate must have fallen over the window
- * for the urban queue to count as lagging rather than merely long */
+ * for the urban queue to count as lagging rather than merely long — and the
+ * most the urban class reading may have fallen over the same window, or
+ * the city is catching up and the dispatch would say otherwise */
 export const NEWS_UNEMPLOYMENT_IMPROVEMENT_AT = 0.02
 /** the window that improvement is read over — a decade, so a cyclical dip
  * cannot pass for the structural transition */

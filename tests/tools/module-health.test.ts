@@ -48,7 +48,7 @@ const MODULE_LINE_BASELINE = {
   // LABOUR_SURVEY_FUNDED_AT, LABOUR_JOBLESS_SD and LABOUR_UNDEREMPLOYED_SD.
   // Ratcheted from 1999 by the labour desk (#198): five measured wire
   // thresholds, which the hard rule says may live nowhere else.
-  'packages/engine/src/constants.ts': 2025,
+  'packages/engine/src/constants.ts': 2027,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -64,7 +64,7 @@ const MODULE_LINE_BASELINE = {
   // than half the file and grows with every event; the relief is the #205
   // shape — lift the declarative table out and leave the machinery — not a
   // side registry per desk.
-  'packages/engine/src/events/conditions.ts': 871,
+  'packages/engine/src/events/conditions.ts': 880,
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   'packages/engine/src/index.ts': 421,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
