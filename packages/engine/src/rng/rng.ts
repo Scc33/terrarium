@@ -8,6 +8,8 @@
  * deterministic across platforms (all 32-bit integer math).
  */
 
+import { NORMAL_UNIFORM_BITS, NORMAL_UNIFORM_DRAWS, NORMAL_UNIFORM_SCALE } from '../constants'
+
 export type Seed = string
 
 export interface Rng {
@@ -15,7 +17,7 @@ export interface Rng {
   next(): number
   /** uniform in [lo, hi) */
   range(lo: number, hi: number): number
-  /** standard normal (Box–Muller; two draws per call) */
+  /** standard-normal approximation from six packed uniform components */
   normal(mean?: number, sd?: number): number
 }
 
@@ -47,7 +49,7 @@ class Sfc32Rng implements Rng {
     private d: number,
   ) {}
 
-  next(): number {
+  private nextWord(): number {
     this.a >>>= 0
     this.b >>>= 0
     this.c >>>= 0
@@ -59,7 +61,11 @@ class Sfc32Rng implements Rng {
     this.d = (this.d + 1) | 0
     const out = (t + this.d) | 0
     this.c = (this.c + out) | 0
-    return (out >>> 0) / 4294967296
+    return out >>> 0
+  }
+
+  next(): number {
+    return this.nextWord() / 4294967296
   }
 
   range(lo: number, hi: number): number {
@@ -67,9 +73,22 @@ class Sfc32Rng implements Rng {
   }
 
   normal(mean = 0, sd = 1): number {
-    const u1 = Math.max(this.next(), 1e-12)
-    const u2 = this.next()
-    return mean + sd * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
+    const chunksPerWord = NORMAL_UNIFORM_DRAWS / 2
+    const unusedBits = 32 - NORMAL_UNIFORM_BITS * chunksPerWord
+    const mask = (1 << NORMAL_UNIFORM_BITS) - 1
+    // Keep the high thirty bits of each word, split into three exact uniforms.
+    const a = this.nextWord() >>> unusedBits
+    const b = this.nextWord() >>> unusedBits
+    const sum =
+      (a & mask) +
+      ((a >>> NORMAL_UNIFORM_BITS) & mask) +
+      ((a >>> (NORMAL_UNIFORM_BITS * 2)) & mask) +
+      (b & mask) +
+      ((b >>> NORMAL_UNIFORM_BITS) & mask) +
+      ((b >>> (NORMAL_UNIFORM_BITS * 2)) & mask)
+    const midpoint = NORMAL_UNIFORM_DRAWS / 2
+    const centred = (sum + midpoint) / (1 << NORMAL_UNIFORM_BITS) - midpoint
+    return mean + sd * centred * NORMAL_UNIFORM_SCALE
   }
 }
 

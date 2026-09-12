@@ -52,3 +52,4 @@ the old one and update the Status line of both.
 | [0037](0037-a-surplus-has-a-destination.md) | Every quarter's balance has a destination, and the cabinet chooses between two | Accepted |
 | [0038](0038-central-bank-holdings-are-an-exact-book.md) | Central-bank holdings and transactions are exact books, separate from the sovereign fund | Accepted |
 | [0039](0039-the-atlas-is-a-scan-the-game-reads.md) | The atlas is a scan of the repository, and the game is the only thing that draws it | Accepted |
+| [0040](0040-portable-normal-noise.md) | Normal noise is a portable sum of uniforms | Accepted |
