@@ -6,6 +6,9 @@ import { runOne } from '../../packages/runner/src/run'
 import { analyzeStability } from '../../packages/runner/src/stability'
 
 describe('the playable economy through 2050', () => {
+  // This is a long-horizon simulation guard, not an interaction budget. Under
+  // coverage its worker competes with the other integration suites, so retain
+  // the semantic checks with a timeout that covers that fixed concurrent load.
   it('keeps post-2000 macro tails bounded across countries and plausible play', () => {
     const runsFor = (name: string, policy?: RunnerPolicy) =>
       COUNTRY_CATALOG.flatMap((country) =>
@@ -192,18 +195,24 @@ describe('the playable economy through 2050', () => {
     // onto the lower rungs; this seed loses through that intended political
     // redistribution, while the 200x400q developmental batch improves from
     // 2% deposed to 1% and the other three policies hold within one point.
+    //
+    // ADR-0040 replaces platform-variable Box–Muller draws with portable
+    // six-uniform noise. The passive cohort remains at twenty-seven and
+    // developmental falls by one to twenty-four. That change is
+    // the corrected noise sequence, not a new political channel; its 1000-run
+    // passive/developmental baselines and all-country tails remain in band.
     expect(passiveTrend.survivors).toBe(27)
-    expect(developmentalTrend.survivors).toBe(25)
+    expect(developmentalTrend.survivors).toBe(24)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay;
-    // staffing allocation and bumping lift this fixed passive sample to 2.85%
+    // staffing allocation and bumping lift this fixed passive sample to 2.86%
     // without changing its per-head, survival, or tail-safety bands.
-    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.86)
+    expect(passiveTrend.aggregateCagr.p50).toBeLessThan(2.87)
     expect(developmentalTrend.aggregateCagr.p50).toBeGreaterThan(2.5)
     expect(developmentalTrend.aggregateCagr.p50).toBeLessThan(3.1)
     expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(1.4)
     expect(passiveTrend.realGdpPerCapitaCagr.p50).toBeLessThan(2.0)
     expect(developmentalTrend.realGdpPerCapitaCagr.p50).toBeGreaterThan(2.0)
     expect(developmentalTrend.realGdpPerCapitaCagr.p50).toBeLessThan(2.5)
-  })
+  }, 240_000)
 })

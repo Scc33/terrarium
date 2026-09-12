@@ -125,9 +125,10 @@ describe('the study as an instrument', () => {
     const started = performance.now()
     runTrial(meridia, { baseSeed: 'budget' })
     const elapsed = performance.now() - started
-    // generous: CI machines are slower than a laptop, and this is a guard
-    // against an accidental order-of-magnitude regression, not a benchmark
-    expect(elapsed).toBeLessThan(20_000)
+    // Generous: coverage workers contend with this browser-equivalent study.
+    // This is a guard against an accidental order-of-magnitude regression, not
+    // a benchmark; the standalone study is considerably shorter.
+    expect(elapsed).toBeLessThan(35_000)
     expect(TRIAL_SEEDS).toBeLessThanOrEqual(12)
   })
 })

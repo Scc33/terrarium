@@ -6,13 +6,16 @@ import {
   LABOUR_MARKET_TABLE_IDS,
   LABOUR_SURVEY_FUNDED_AT,
   createCountryParams,
+  createSave,
   init,
   laborForce,
   labourMarket,
+  replay,
   step,
   type TrueState,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
+import { fuelTaxAtQ8, standardCountry } from '@terrarium/fixtures'
 
 function play(seed: string, ticks: number, statistical: number, fitted = false): TrueState {
   const base = createCountryParams('meridia', seed)
@@ -26,6 +29,11 @@ function play(seed: string, ticks: number, statistical: number, fitted = false):
 }
 
 describe('the labour-market worksheet', () => {
+  it('closes an exactly filled class instead of publishing allocation dust', () => {
+    const state = replay(createSave(standardCountry, 'golden-1', fuelTaxAtQ8, 37))
+    expect(state.stats.record.at(-1)?.labourMarket.rural_workers.jobless).toBe(0)
+  })
+
   it('counts joblessness and lower-rung work without changing the allocation', () => {
     const state = play('labour-worksheet', 80, 1)
     const reading = labourMarket(state)
