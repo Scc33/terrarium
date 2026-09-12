@@ -65,6 +65,27 @@ const DETERMINISM_PROPERTIES = [
   },
 ]
 
+// Every spelling of a path into the engine from the UI: the workspace alias
+// (with or without a subpath) and any relative route into packages/engine.
+// Gitignore-style groups do match a leading `../`, which is what the
+// true-state ban has always relied on. Both engine bans below are stated
+// over paths, never over a literal specifier, because `no-restricted-imports`
+// `paths` matches the specifier text and any other route to the same module
+// walks straight past it (#236).
+const ENGINE_PATHS = ['@terrarium/engine', '@terrarium/engine/**', '**/engine', '**/engine/**']
+
+// The functions that build or advance TrueState. Only the sim worker may
+// call them (§1.1); everything else in the UI sees PublishedState.
+const ENGINE_RUNNERS = ['init', 'step', 'replay', 'applyActions', 'runTick', 'runInterregnum']
+
+// The true-state internals no UI file may see, worker included. A function
+// so the two blocks that state it cannot drift apart while carrying
+// different messages.
+const TRUE_STATE_BAN = (message) => ({
+  group: ['@terrarium/engine/src/state/*', '**/engine/src/state/*'],
+  message,
+})
+
 export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
   {
@@ -194,18 +215,19 @@ export default defineConfig([
         'error',
         {
           patterns: [
-            {
-              group: ['@terrarium/engine/src/state/*', '**/engine/src/state/*'],
-              message: 'ui must not import true-state types; use @terrarium/observation.',
-            },
-          ],
-          paths: [
+            TRUE_STATE_BAN('ui must not import true-state types; use @terrarium/observation.'),
             {
               // components may import constants and action/save TYPES from the
               // engine, but never the functions that build or advance TrueState
-              // — only the sim worker runs the engine (§1.1)
-              name: '@terrarium/engine',
-              importNames: ['init', 'step', 'replay', 'applyActions', 'runTick', 'runInterregnum'],
+              // — only the sim worker runs the engine (§1.1). Bound to every
+              // PATH into the engine, not to the alias: a `paths` entry
+              // matches the literal specifier, so `../../engine/src/index`
+              // reached the same `init` and linted clean (#236). And the
+              // module is not always index — `runTick` lives in
+              // pipeline/pipeline.ts and `runInterregnum` in interregnum.ts,
+              // so the group covers the whole tree, not just its entry.
+              group: ENGINE_PATHS,
+              importNames: ENGINE_RUNNERS,
               message:
                 'Only packages/ui/src/worker may run the engine; components see PublishedState via @terrarium/observation.',
             },
@@ -216,17 +238,18 @@ export default defineConfig([
   },
   {
     // the sim worker is the one place in the UI that may run the engine — it
-    // holds TrueState privately and posts only PublishedState across the wire
+    // holds TrueState privately and posts only PublishedState across the wire.
+    // Flat config REPLACES a rule's options, so restating only the state ban
+    // here is what lifts the function ban above — by every spelling, not just
+    // the alias. Adding the function group back to this block would lock the
+    // worker out of the engine it exists to run.
     files: [`packages/ui/src/worker/${TS}`],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
-            {
-              group: ['@terrarium/engine/src/state/*', '**/engine/src/state/*'],
-              message: 'even the worker uses the public engine API, not its state internals.',
-            },
+            TRUE_STATE_BAN('even the worker uses the public engine API, not its state internals.'),
           ],
         },
       ],
