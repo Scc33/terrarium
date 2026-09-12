@@ -31,7 +31,11 @@ export function labourMarket(state: TrueState): LabourMarketReading {
   for (const id of LABOUR_CLASS_IDS) {
     const labourForce = supply[id]
     const employed = state.sectors.reduce((sum, sector) => sum + heads[sector.id][id], 0)
-    const jobless = Math.max(0, labourForce - employed)
+    // Staffing closes sector wage-bill dust at 1e-12. Close the same dust
+    // before reporting class joblessness: an exactly filled class must not
+    // acquire a positive survey reading from a one-ULP allocation remainder.
+    const gap = labourForce - employed
+    const jobless = gap <= 1e-12 ? 0 : gap
     const mismatched = Math.min(employed, Math.max(0, underemployed[id]))
     byClass[id] = {
       jobless: labourForce > 1e-9 ? jobless / labourForce : 0,
