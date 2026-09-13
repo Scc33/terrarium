@@ -33,7 +33,7 @@ import {
   type DeskId,
   type EventId,
 } from '../packages/engine/src/index'
-import { POLICY_IDS, policyFor, type PolicyId } from '../packages/runner/src/policies'
+import { POLICY_IDS, policyFor } from '../packages/runner/src/policies'
 import { runOne } from '../packages/runner/src/run'
 import type { Action, TrueState } from '../packages/engine/src/index'
 import { INSTITUTION_IDS } from '../packages/engine/src/index'
@@ -69,8 +69,8 @@ const constitutionalPolicy = (state: TrueState, _rng: unknown, tick: number): Ac
 }
 
 const ARMS: Array<{ id: string; policy: ReturnType<typeof policyFor> }> = [
-  ...POLICY_IDS.map((id) => ({ id, policy: policyFor(id as PolicyId) })),
-  { id: 'constitutional', policy: constitutionalPolicy as ReturnType<typeof policyFor> },
+  ...POLICY_IDS.map((id) => ({ id, policy: policyFor(id) })),
+  { id: 'constitutional', policy: constitutionalPolicy },
 ]
 
 function arg(name: string, fallback: string): string {

@@ -317,7 +317,7 @@ export function rangeBetween<T extends PlotPoint>(
   anchorTick: number,
   focusTick: number,
 ): PlotRange<T> | null {
-  const finitePoints = points.filter(finite) as T[]
+  const finitePoints = points.filter(finite)
   const anchor = nearestPoint(finitePoints, anchorTick)
   const focus = nearestPoint(finitePoints, focusTick)
   if (!anchor || !focus) return null

@@ -799,7 +799,7 @@ export const BREAKTHROUGH_HAZARD_MAX = 0.5
 /** schooling suppresses fertility beyond the income channel (female
  * education) — TFR drop per unit of human capital above the 1946 base */
 export const FERT_EDU_GAIN = 1.2
-export const EDUCATION_1946 = 0.2 // default education capacity for old saves
+export const EDUCATION_1946 = 0.2 // the 1946 schooling base the fertility term reads against
 /** Workforce skills close one percent of the remaining gap to the school
  * system each quarter: roughly a seventeen-year half-life. A ministry can be
  * built in two years; the taught workforce cannot. */

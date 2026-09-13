@@ -56,7 +56,6 @@ import {
   type Cohort,
   type DemographyState,
   type TrueState,
-  type WorkingClassId,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { livingStandard, meanLogConsumption, skillTightness, statuteForce } from './derive'
@@ -101,7 +100,7 @@ export function classSizesFrom(
   return cohorts.map((c) =>
     c.id === 'retirees'
       ? { ...c, size: retired }
-      : { ...c, size: nonRetired * classShares[c.id as WorkingClassId] },
+      : { ...c, size: nonRetired * classShares[c.id] },
   )
 }
 

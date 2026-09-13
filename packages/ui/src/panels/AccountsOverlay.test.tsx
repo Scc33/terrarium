@@ -38,7 +38,7 @@ const gdpSeries = (): IndicatorSeries =>
       errorBand: 1,
       levels: { real: 100, nominal: 100 },
     })),
-  }) as IndicatorSeries
+  })
 
 const book = (tick: number) => ({
   tick,

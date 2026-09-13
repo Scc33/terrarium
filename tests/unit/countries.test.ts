@@ -89,7 +89,7 @@ describe('procedural country recipes', () => {
   })
 
   it('rejects contradictory demographic inputs before simulation', () => {
-    const broken = createCountryParams('meridia', 'x') as CountryParams
+    const broken = createCountryParams('meridia', 'x')
     broken.pyramid = [...broken.pyramid!]
     broken.pyramid[0] += 1
     expect(() => validateCountryParams(broken)).toThrow(InvalidCountryError)

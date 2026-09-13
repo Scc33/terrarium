@@ -129,7 +129,7 @@ describe('the appointment changes who is scored, never what happened', () => {
     'gives %s the same century the same orders give a 1946 posting',
     (country) => {
       const appointedAt = tickForYear(1973)
-      const params = createCountryParams(country as never, 'same-century')
+      const params = createCountryParams(country, 'same-century')
       const { state, actionLog } = runInterregnum(params, 'same-century', 'standard', appointedAt)
 
       // the caretaker's own orders, replayed from a 1946 appointment
