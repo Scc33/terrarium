@@ -32,8 +32,8 @@ ui → observation → engine        (never the reverse; lint-enforced)
   at the import boundary (lint) and the data boundary (`tests/contract/published-state.test.ts`).
 - The fog is MADE in the engine (`pipeline/statistics.ts`), because politics reads the published
   headline, not the truth (ADR-0003). `packages/observation` is presentation only — never grow
-  measurement back into it. Lint holds that line: no bare coefficient, no `rngFor`, no path
-  past `@terrarium/engine`, nothing from `ui`.
+  measurement back into it. Lint holds that line: no bare coefficient, no draw, no path past
+  `@terrarium/engine`, nothing from `ui`.
 - Every behavioural constant lives in `engine/src/constants.ts` (ADR-0007). Pipeline step order
   is versioned; reordering is a schema event (ADR-0005).
 - The **economy** and the **politics** are separate machines meeting in two places:

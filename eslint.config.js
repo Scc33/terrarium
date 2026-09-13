@@ -16,32 +16,46 @@ const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — re
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
 const ENGINE_SRC = path.join(ROOT, 'packages/engine/src')
+const OBSERVATION_SRC = path.join(ROOT, 'packages/observation/src')
 
-// "Depends on nothing" enforced literally: an import is legal iff it is a
-// relative specifier AND resolves inside packages/engine/src. The first half
-// subsumes React, the workspace siblings, node builtins and any npm package
-// at once. The second exists because a relative path can still leave —
+// A package's dependencies enforced literally: an import is legal iff it is a
+// relative specifier that resolves inside `root`, or a bare specifier on the
+// `allow` list. For the engine that list is empty — "depends on nothing" —
+// which subsumes React, the workspace siblings, node builtins and any npm
+// package at once; observation allows exactly its one declared dependency.
+// Resolution is the point: a relative path can still leave —
 // `../../observation/src` from src/index.ts resolves, and the root tsconfig
-// typechecks it — and no pattern over `../` runs can tell `./a/../../b`
-// (stays) from `./../..` (leaves); resolving against the importing file can.
-// Dynamic `import()` is not here because the engine block bans it outright.
+// typechecks it — and no pattern over specifier TEXT can tell `./a/../../b`
+// (stays) from `./../..` (leaves) or see through `../engine/./src`;
+// resolving against the importing file can. Dynamic `import()` is not here
+// because both blocks ban it outright.
 const RELATIVE_SPECIFIER = /^\.\.?(\/|$)/
 
 const importsStayWithin = {
   meta: {
     type: 'problem',
-    schema: [{ type: 'object', properties: { root: { type: 'string' } }, required: ['root'] }],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          root: { type: 'string' },
+          allow: { type: 'array', items: { type: 'string' } },
+          message: { type: 'string' },
+        },
+        required: ['root'],
+      },
+    ],
   },
   create(context) {
-    const { root } = context.options[0]
+    const { root, allow = [], message = NO_IO } = context.options[0]
     const dir = path.dirname(context.filename)
     const check = (node) => {
       const spec = node.source?.value
       if (typeof spec !== 'string') return
-      const inside =
-        RELATIVE_SPECIFIER.test(spec) &&
-        !path.relative(root, path.resolve(dir, spec)).startsWith('..')
-      if (!inside) context.report({ node: node.source, message: NO_IO })
+      const inside = RELATIVE_SPECIFIER.test(spec)
+        ? !path.relative(root, path.resolve(dir, spec)).startsWith('..')
+        : allow.includes(spec)
+      if (!inside) context.report({ node: node.source, message })
     }
     return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check }
   },
@@ -86,8 +100,32 @@ const DETERMINISM_PROPERTIES = [
 const ENGINE_PATHS = ['@terrarium/engine', '@terrarium/engine/**', '**/engine', '**/engine/**']
 
 // The functions that build or advance TrueState. Only the sim worker may
-// call them (§1.1); everything else in the UI sees PublishedState.
-const ENGINE_RUNNERS = ['init', 'step', 'replay', 'applyActions', 'runTick', 'runInterregnum']
+// call them (§1.1); everything else in the UI sees PublishedState. The
+// singular `applyAction` is one order's worth of `applyActions` and returns
+// the same altered state, so it is on the list.
+const ENGINE_RUNNERS = [
+  'init',
+  'step',
+  'replay',
+  'applyAction',
+  'applyActions',
+  'runTick',
+  'runInterregnum',
+]
+
+// The engine's RNG primitive and every exported function that calls it on
+// the caller's behalf. `fileDispatch` is the one that matters — it draws
+// on `obs:news:*` to word a dispatch, i.e. it MAKES wire — and the three
+// country generators draw on the country seed to author a recipe. A
+// projection has no reason to do either. Re-derive with
+// `grep -l 'rngFor(' packages/engine/src` against what index.ts exports.
+const ENGINE_DRAWERS = [
+  'rngFor',
+  'fileDispatch',
+  'generateParams',
+  'generateCountryParams',
+  'createCountryParams',
+]
 
 // The true-state internals no UI file may see, worker included. A function
 // so the two blocks that state it cannot drift apart while carrying
@@ -252,7 +290,10 @@ export default defineConfig([
     // a lag — would be a second statistical office the electorate never sees.
     // Nothing mechanical defended that before this block (#239).
     files: [`packages/observation/${TS}`],
-    plugins: { '@typescript-eslint': tseslint.plugin },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      boundary: { rules: { 'imports-stay-within': importsStayWithin } },
+    },
     rules: {
       // A bare coefficient in a projection is close to the definition of
       // measurement logic. Same ignore list as the engine; the one hit when
@@ -261,36 +302,48 @@ export default defineConfig([
       // A projection of one state at one tick has no clock to read, and the
       // data export promises the same run at the same tick files the same
       // artifact.
-      'no-restricted-syntax': ['error', ...CLOCK_SYNTAX],
+      'no-restricted-syntax': [
+        'error',
+        ...CLOCK_SYNTAX,
+        // `no-restricted-imports` and the boundary rule below both see only
+        // static declarations; a dynamic `import()` walks past every ban.
+        {
+          selector: 'ImportExpression',
+          message: 'observation is a synchronous projection — no dynamic imports.',
+        },
+      ],
+      // `ui → observation → engine`, never the reverse (§1.1), stated as
+      // the package.json reads: the engine is the one dependency, and the
+      // only spelling of it is the alias. Resolved, not pattern-matched, so
+      // `../../engine/./src/x` is refused like `../../engine/src/x`. This
+      // is what closes the UI direction too — `@terrarium/ui` is not on the
+      // list and a relative route into packages/ui leaves this root.
+      // The UI's true-state ban does not apply here in its own terms:
+      // observation is the one package that legitimately projects FROM
+      // TrueState, and the type comes from `@terrarium/engine`. What it may
+      // not do is path past the engine's index — a relative route into
+      // engine/src imports a module the engine never published, which is
+      // how `treasuryFinancing` was being read straight out of
+      // state/accounts before #239.
+      'boundary/imports-stay-within': [
+        'error',
+        {
+          root: OBSERVATION_SRC,
+          allow: ['@terrarium/engine'],
+          message:
+            'observation depends on @terrarium/engine and nothing else, and reads it only through that alias — a path into engine/src imports a module the engine never published; export it from engine/src/index.ts (§1.1).',
+        },
+      ],
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              // `ui → observation → engine`, never the reverse (§1.1). The
-              // alias is not in the root tsconfig's `paths`, but a relative
-              // route into packages/ui resolves, so the ban is over paths.
-              group: ['@terrarium/ui', '@terrarium/ui/**', '**/ui', '**/ui/**'],
-              message: 'observation sits below the UI in the spine and cannot read it (§1.1).',
-            },
-            {
-              // The UI's true-state ban does not apply here in its own terms:
-              // observation is the one package that legitimately projects
-              // FROM TrueState, and the type comes from `@terrarium/engine`.
-              // What it may not do is path past the engine's index — a
-              // relative route into engine/src imports a module the engine
-              // never published, which is how `treasuryFinancing` was being
-              // read straight out of state/accounts before #239. `paths` are
-              // matched on specifier text, so this is over every spelling.
-              group: ['**/engine/src', '**/engine/src/**'],
-              message:
-                'observation reads the engine through @terrarium/engine only; export it from engine/src/index.ts.',
-            },
-            {
-              // A projection that draws is measurement: a second noise draw
-              // over the truth is a back door around the fog (ADR-0033).
+              // A projection that draws is measurement: a second draw over
+              // the truth is a back door around the fog (ADR-0033). A
+              // namespace import or `export *` is refused by the same rule.
               group: ENGINE_PATHS,
-              importNames: ['rngFor'],
+              importNames: ENGINE_DRAWERS,
               message: 'observation projects the prints the office already made; it never draws (ADR-0003).',
             },
             {
