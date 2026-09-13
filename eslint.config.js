@@ -17,38 +17,72 @@ const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — re
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url))
 const ENGINE_SRC = path.join(ROOT, 'packages/engine/src')
+const OBSERVATION_SRC = path.join(ROOT, 'packages/observation/src')
 
-// "Depends on nothing" enforced literally: an import is legal iff it is a
-// relative specifier AND resolves inside packages/engine/src. The first half
-// subsumes React, the workspace siblings, node builtins and any npm package
-// at once. The second exists because a relative path can still leave —
+// A package's dependencies enforced literally: an import is legal iff it is a
+// relative specifier that resolves inside `root`, or a bare specifier on the
+// `allow` list. For the engine that list is empty — "depends on nothing" —
+// which subsumes React, the workspace siblings, node builtins and any npm
+// package at once; observation allows exactly its one declared dependency.
+// Resolution is the point: a relative path can still leave —
 // `../../observation/src` from src/index.ts resolves, and the root tsconfig
-// typechecks it — and no pattern over `../` runs can tell `./a/../../b`
-// (stays) from `./../..` (leaves); resolving against the importing file can.
-// Dynamic `import()` is not here because the engine block bans it outright.
+// typechecks it — and no pattern over specifier TEXT can tell `./a/../../b`
+// (stays) from `./../..` (leaves) or see through `../engine/./src`;
+// resolving against the importing file can. Dynamic `import()` is not here
+// because both blocks ban it outright — but `typeof import('x').y` in a
+// TYPE position is a `TSImportType`, not an `ImportExpression`, and a
+// type-only dependency on an unpublished module is still a dependency.
+// `consistent-type-imports` already forbids that syntax repo-wide; the
+// boundary checks it anyway so it does not hang off a style preference.
 const RELATIVE_SPECIFIER = /^\.\.?(\/|$)/
 
 const importsStayWithin = {
   meta: {
     type: 'problem',
-    schema: [{ type: 'object', properties: { root: { type: 'string' } }, required: ['root'] }],
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          root: { type: 'string' },
+          allow: { type: 'array', items: { type: 'string' } },
+          message: { type: 'string' },
+        },
+        required: ['root'],
+      },
+    ],
   },
   create(context) {
-    const { root } = context.options[0]
+    const { root, allow = [], message = NO_IO } = context.options[0]
     const dir = path.dirname(context.filename)
-    const check = (node) => {
-      const spec = node.source?.value
+    const check = (source) => {
+      const spec = source?.value
       if (typeof spec !== 'string') return
-      const inside =
-        RELATIVE_SPECIFIER.test(spec) &&
-        !path.relative(root, path.resolve(dir, spec)).startsWith('..')
-      if (!inside) context.report({ node: node.source, message: NO_IO })
+      const inside = RELATIVE_SPECIFIER.test(spec)
+        ? !path.relative(root, path.resolve(dir, spec)).startsWith('..')
+        : allow.includes(spec)
+      if (!inside) context.report({ node: source, message })
     }
-    return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check }
+    const declaration = (node) => check(node.source)
+    return {
+      ImportDeclaration: declaration,
+      ExportNamedDeclaration: declaration,
+      ExportAllDeclaration: declaration,
+      TSImportType: (node) => check(node.argument?.literal),
+    }
   },
 }
 
 const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
+
+// The constructor forms no-restricted-properties cannot see. `Date()` called
+// as a function ignores its arguments and returns the current time, so every
+// call is the clock; only `new Date(value)` is arithmetic. Hoisted because the
+// engine and observation both ban them, and flat config REPLACES a rule's
+// options — a block that restated one selector would drop the other.
+const CLOCK_SYNTAX = [
+  { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
+  { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+]
 
 // Determinism (§1.1, §6). Hoisted because the engine block extends this list,
 // and flat config REPLACES a rule's options rather than merging them — an
@@ -77,8 +111,37 @@ const DETERMINISM_PROPERTIES = [
 const ENGINE_PATHS = ['@terrarium/engine', '@terrarium/engine/**', '**/engine', '**/engine/**']
 
 // The functions that build or advance TrueState. Only the sim worker may
-// call them (§1.1); everything else in the UI sees PublishedState.
-const ENGINE_RUNNERS = ['init', 'step', 'replay', 'applyActions', 'runTick', 'runInterregnum']
+// call them (§1.1); everything else in the UI sees PublishedState. The
+// singular `applyAction` is one order's worth of `applyActions` and returns
+// the same altered state, so it is on the list — and so are the two
+// exported `PipelineStep` objects, because a step's `.run(state, rng)` is
+// one tick's worth of `step`. The manual hand-copies the tick order rather
+// than import it for exactly this reason (ADR-0024).
+const ENGINE_RUNNERS = [
+  'init',
+  'step',
+  'replay',
+  'applyAction',
+  'applyActions',
+  'runTick',
+  'runInterregnum',
+  'TICK_ORDER',
+  'institutions',
+]
+
+// The engine's RNG primitive and every exported function that calls it on
+// the caller's behalf. `fileDispatch` is the one that matters — it draws
+// on `obs:news:*` to word a dispatch, i.e. it MAKES wire — and the three
+// country generators draw on the country seed to author a recipe. A
+// projection has no reason to do either. Re-derive with
+// `grep -l 'rngFor(' packages/engine/src` against what index.ts exports.
+const ENGINE_DRAWERS = [
+  'rngFor',
+  'fileDispatch',
+  'generateParams',
+  'generateCountryParams',
+  'createCountryParams',
+]
 
 // The true-state internals no UI file may see, worker included. A function
 // so the two blocks that state it cannot drift apart while carrying
@@ -87,6 +150,23 @@ const TRUE_STATE_BAN = (message) => ({
   group: ['@terrarium/engine/src/state/*', '**/engine/src/state/*'],
   message,
 })
+
+// Every behavioral constant lives in constants.ts, tune there, nowhere else
+// (ADR-0007, #179). This does not flag a literal assigned to a named `const`
+// — that IS the fix — only one used bare inside an expression. `ignore`
+// covers structural uses ADR-0007 itself carves out: array indices, unit
+// identities, and the odd sign flip. One object for the engine and the
+// observation package, so the two lists cannot drift.
+const MAGIC_NUMBER_OPTIONS = {
+  // structural: identities, divide-by-zero epsilons, and the
+  // calendar/rate unit conversions ADR-0007 names outright (quarters
+  // per year, per-cent, per-mille)
+  ignore: [0, 1, -1, 2, 1e-12, 1e-9, 1e-6, 4, 100, 400, 1000, 4000],
+  ignoreArrayIndexes: true,
+  ignoreEnums: true,
+  ignoreReadonlyClassProperties: true,
+  ignoreTypeIndexes: true,
+}
 
 export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
@@ -165,13 +245,9 @@ export default defineConfig([
       'no-undef': ['error', { typeof: true }],
       // The one language builtin that is a door to all of the above.
       'no-restricted-globals': ['error', { name: 'globalThis', message: NO_IO }],
-      // The constructor forms no-restricted-properties cannot see. `Date()`
-      // called as a function ignores its arguments and returns the current
-      // time, so every call is the clock; only `new Date(value)` is arithmetic.
       'no-restricted-syntax': [
         'error',
-        { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
-        { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+        ...CLOCK_SYNTAX,
         // A dynamic import is a Promise a synchronous engine cannot await,
         // and it is invisible to the static-import rule below.
         { selector: 'ImportExpression', message: NO_IO },
@@ -187,27 +263,10 @@ export default defineConfig([
     },
   },
   {
-    // Every behavioral constant lives in constants.ts, tune there, nowhere
-    // else (ADR-0007, #179). This does not flag a literal assigned to a
-    // named `const` — that IS the fix — only one used bare inside an
-    // expression. `ignore` covers structural uses ADR-0007 itself carves
-    // out: array indices, unit identities, and the odd sign flip.
     files: [`packages/engine/src/${TS}`],
     plugins: { '@typescript-eslint': tseslint.plugin },
     rules: {
-      '@typescript-eslint/no-magic-numbers': [
-        'error',
-        {
-          // structural: identities, divide-by-zero epsilons, and the
-          // calendar/rate unit conversions ADR-0007 names outright (quarters
-          // per year, per-cent, per-mille)
-          ignore: [0, 1, -1, 2, 1e-12, 1e-9, 1e-6, 4, 100, 400, 1000, 4000],
-          ignoreArrayIndexes: true,
-          ignoreEnums: true,
-          ignoreReadonlyClassProperties: true,
-          ignoreTypeIndexes: true,
-        },
-      ],
+      '@typescript-eslint/no-magic-numbers': ['error', MAGIC_NUMBER_OPTIONS],
     },
   },
   {
@@ -240,6 +299,92 @@ export default defineConfig([
     },
   },
   {
+    // observation is presentation-only (ADR-0003): it projects TrueState into
+    // PublishedState and owns the prints' labels and units. The fog is MADE in
+    // the engine's statistics step because politics reads the published
+    // headline, so measurement growing back in here — a coefficient, a draw,
+    // a lag — would be a second statistical office the electorate never sees.
+    // Nothing mechanical defended that before this block (#239).
+    files: [`packages/observation/${TS}`],
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      boundary: { rules: { 'imports-stay-within': importsStayWithin } },
+    },
+    languageOptions: {
+      // The engine's "reads no environment" allowlist (see its block) with
+      // ONE host API let through: `structuredClone` is how the projection
+      // hands the desk copies rather than the office's own archive, and it
+      // is deterministic. Every other host surface — `process`, `performance`,
+      // `console`, `fetch`, the next one to ship — stays undefined here, so a
+      // clock that is not `Date` is refused by name without a list of clocks.
+      globals: { structuredClone: 'readonly' },
+    },
+    rules: {
+      'no-undef': ['error', { typeof: true }],
+      'no-restricted-globals': ['error', { name: 'globalThis', message: 'observation reads no environment (§1.1).' }],
+      // A bare coefficient in a projection is close to the definition of
+      // measurement logic. Same ignore list as the engine; the one hit when
+      // this landed was a legitimacy grade cut, now in constants.ts.
+      '@typescript-eslint/no-magic-numbers': ['error', MAGIC_NUMBER_OPTIONS],
+      // A projection of one state at one tick has no clock to read, and the
+      // data export promises the same run at the same tick files the same
+      // artifact.
+      'no-restricted-syntax': [
+        'error',
+        ...CLOCK_SYNTAX,
+        // `no-restricted-imports` and the boundary rule below both see only
+        // static declarations; a dynamic `import()` walks past every ban.
+        {
+          selector: 'ImportExpression',
+          message: 'observation is a synchronous projection — no dynamic imports.',
+        },
+      ],
+      // `ui → observation → engine`, never the reverse (§1.1), stated as
+      // the package.json reads: the engine is the one dependency, and the
+      // only spelling of it is the alias. Resolved, not pattern-matched, so
+      // `../../engine/./src/x` is refused like `../../engine/src/x`. This
+      // is what closes the UI direction too — `@terrarium/ui` is not on the
+      // list and a relative route into packages/ui leaves this root.
+      // The UI's true-state ban does not apply here in its own terms:
+      // observation is the one package that legitimately projects FROM
+      // TrueState, and the type comes from `@terrarium/engine`. What it may
+      // not do is path past the engine's index — a relative route into
+      // engine/src imports a module the engine never published, which is
+      // how `treasuryFinancing` was being read straight out of
+      // state/accounts before #239.
+      'boundary/imports-stay-within': [
+        'error',
+        {
+          root: OBSERVATION_SRC,
+          allow: ['@terrarium/engine'],
+          message:
+            'observation depends on @terrarium/engine and nothing else, and reads it only through that alias — a path into engine/src imports a module the engine never published; export it from engine/src/index.ts (§1.1).',
+        },
+      ],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              // A projection that draws is measurement: a second draw over
+              // the truth is a back door around the fog (ADR-0033). A
+              // namespace import or `export *` is refused by the same rule.
+              group: ENGINE_PATHS,
+              importNames: ENGINE_DRAWERS,
+              message: 'observation projects the prints the office already made; it never draws (ADR-0003).',
+            },
+            {
+              // The projection is handed a state; it never advances one.
+              group: ENGINE_PATHS,
+              importNames: ENGINE_RUNNERS,
+              message: 'Only packages/ui/src/worker may run the engine (ADR-0004).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // `import.meta.env.DEV` follows ambient NODE_ENV, so even `vite build`
     // can include dev-only UI code. Vite's command-based define is the safe
     // gate for code that must disappear from every shipped bundle (ADR-0010).
@@ -254,6 +399,19 @@ export default defineConfig([
         {
           selector: "MemberExpression[computed=true][property.value='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
           message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        // `const { DEV } = import.meta.env` reads the same ambient flag
+        // through destructuring, invisible to the MemberExpression selectors
+        // above. Aliasing the whole object (`const env = import.meta.env`)
+        // is banned too, since a later `env.DEV` off that alias is equally
+        // invisible and unbounded to chase through reference tracking.
+        {
+          selector: "VariableDeclarator[init.property.name='env'][init.object.meta.name='import'][init.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
+        },
+        {
+          selector: "AssignmentExpression[right.property.name='env'][right.object.meta.name='import'][right.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
         },
       ],
     },

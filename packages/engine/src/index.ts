@@ -160,6 +160,7 @@ export {
 export { rngFor, type Rng, type Seed } from './rng/rng'
 export { hashState, stableStringify } from './hash'
 export { validate, InvariantError } from './state/validate'
+export { treasuryFinancing } from './state/accounts'
 export { applyAction, politicalCostOfAction, IllegalActionError } from './actions/apply'
 export type { Action, ActionLog, DialPath, TurnActions } from './actions/types'
 export {
@@ -346,6 +347,7 @@ export {
   IMMIGRATION_LIMIT_DEFAULT,
   IMMIGRATION_LIMIT_MAX,
   LEGITIMACY_GRADE_ELECTIONS,
+  LEGITIMACY_SUPPRESSION_CAPS,
   NATURAL_UNEMPLOYMENT,
   PROFESSIONAL_SHARE_MAX,
   PC_COST_CAMPAIGN,

@@ -47,8 +47,11 @@ const MODULE_LINE_BASELINE = {
   // the labour-market survey (#230): a schema-adding change declaring
   // LABOUR_SURVEY_FUNDED_AT, LABOUR_JOBLESS_SD and LABOUR_UNDEREMPLOYED_SD.
   // Ratcheted from 1999 by the labour desk (#198): five measured wire
-  // thresholds, which the hard rule says may live nowhere else.
-  'packages/engine/src/constants.ts': 2027,
+  // thresholds, which the hard rule says may live nowhere else. Ratcheted
+  // from 2027 by #239, the same no-magic-numbers pass as #179 run over
+  // packages/observation: the one bare coefficient it found was a
+  // legitimacy grade cut, which likewise may live nowhere else.
+  'packages/engine/src/constants.ts': 2033,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -66,7 +69,11 @@ const MODULE_LINE_BASELINE = {
   // side registry per desk.
   'packages/engine/src/events/conditions.ts': 880,
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
-  'packages/engine/src/index.ts': 421,
+  // Ratcheted from 421 by #239: observation may now reach the engine only
+  // through this file, so `treasuryFinancing` — which it had been reading
+  // straight out of state/accounts — and the grade cut the same lint block
+  // lifted out of observe.ts both have to be published here.
+  'packages/engine/src/index.ts': 423,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
   // Ratcheted from 1080 by #179: named constants replacing bare literals.
   'packages/engine/src/pipeline/derive.ts': 1090,
