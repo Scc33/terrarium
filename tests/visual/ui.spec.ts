@@ -209,11 +209,9 @@ test('a font utility on a button or input is not silently inert', async ({ page 
 
   // guard against passing vacuously: the gallery must be rendering controls
   // that actually carry font utilities for the probe to have judged anything
-  const carriers = await page
-    .locator('button, input')
-    .evaluateAll((els) =>
-      els.filter((el) => /\b(font-mono|font-dossier|text-\[|font-semibold|font-medium)/.test(el.getAttribute('class') ?? '')).length,
-    )
+  const carriers = await page.evaluate<number>(`[...document.querySelectorAll('button, input')]
+    .filter((el) => /\\b(font-mono|font-dossier|text-\\[|font-semibold|font-medium)/.test(el.getAttribute('class') ?? ''))
+    .length`)
   expect(carriers).toBeGreaterThan(10)
   expect(dead).toEqual([])
 })
@@ -564,9 +562,7 @@ test('spending desk drafts CPI and official-GDP rules', async ({ page }) => {
   )
   await expect(page.getByText('2 ORDERS DRAFTED')).toBeVisible()
   await expect(page.getByRole('tabpanel')).not.toContainText('WHO IT REACHES')
-  await page.getByRole('tabpanel').evaluate((panel) => {
-    panel.scrollTop = 0
-  })
+  await page.evaluate(`document.querySelector('[role="tabpanel"]').scrollTop = 0`)
   await expect(page).toHaveScreenshot('spending-rule-draft.png')
 })
 

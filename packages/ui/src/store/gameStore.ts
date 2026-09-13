@@ -77,31 +77,35 @@ interface GameState {
     forDraft: string | null
   }
 
+  // The actions are function-typed PROPERTIES, not method signatures: every
+  // one is a closure over `set`/`get` that never reads `this`, and a method
+  // signature would tell the type checker otherwise — which is what made
+  // destructuring them from the store read as an unbound method.
   /** `appointedAt` is the quarter the player takes office (ADR-0021) — zero,
    * the ordinary 1946 posting, unless the posting room asked for a later one */
-  newGame(country: CountryScenarioId, seed?: string, rules?: GameRules, appointedAt?: number): void
+  newGame: (country: CountryScenarioId, seed?: string, rules?: GameRules, appointedAt?: number) => void
   /** start a country a player wrote */
-  newDraftedGame(
+  newDraftedGame: (
     document: CountryDocument,
     seed?: string,
     rules?: GameRules,
     appointedAt?: number,
-  ): void
-  loadSave(save: SaveFile): void
-  loadAutosave(): Promise<boolean>
-  loadDrafts(): Promise<void>
-  saveDraft(document: CountryDocument): Promise<void>
-  deleteDraft(key: string): Promise<void>
-  runStudy(document: CountryDocument): void
-  clearStudy(): void
-  stage(key: string, action: Action | null): void
-  clearStaged(): void
-  advance(): void
-  togglePin(id: IndicatorId): void
+  ) => void
+  loadSave: (save: SaveFile) => void
+  loadAutosave: () => Promise<boolean>
+  loadDrafts: () => Promise<void>
+  saveDraft: (document: CountryDocument) => Promise<void>
+  deleteDraft: (key: string) => Promise<void>
+  runStudy: (document: CountryDocument) => void
+  clearStudy: () => void
+  stage: (key: string, action: Action | null) => void
+  clearStaged: () => void
+  advance: () => void
+  togglePin: (id: IndicatorId) => void
   /** dev only: build a country from overrides and run it to a year */
-  runScenario(scenario: DevScenario): void
+  runScenario: (scenario: DevScenario) => void
   /** dev only: ask the worker what's actually true right now */
-  inspectTruth(): void
+  inspectTruth: () => void
 }
 
 /** one staged change per dial, one staged program per capacity target, one

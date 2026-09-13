@@ -23,7 +23,10 @@
 
 import type { StatuteId } from '@terrarium/observation'
 
-export interface StatuteCopy {
+/** An object-literal `type` rather than an `interface`, so `Object.entries`
+ * and `Object.values` over a row yield strings: only a type literal carries the
+ * implicit index signature they need, and an interface falls to `any`. */
+export type StatuteCopy = {
   /** the statute book's own heading for the row */
   label: string
   /** what this law is, in plain words */
