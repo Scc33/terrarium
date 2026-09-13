@@ -7,7 +7,7 @@
  * that has three failure modes a page of catalogue cannot show you:
  *
  *  1. **dead copy** — an event nothing can reach. A dispatch nobody ever sees
- *     is not content, and AGENTS.md's rule ("a mechanic you cannot reach is
+ *     is not content, and the tuning lesson ("a mechanic you cannot reach is
  *     not a mechanic") applies to prose exactly as it applies to thresholds.
  *     The UNREACHED list at the bottom is the one to read.
  *  2. **a flood** — so many dispatches a quarter that none of them register,

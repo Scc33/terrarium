@@ -319,7 +319,7 @@ economy game and was not designed in.
 The competition act alone, against `developmental`, was +0.01–0.05 pp/yr per country with the
 right ordering (most captured gains most). That is **much smaller than the mechanism test
 suggests** — `tests/properties/statutes.test.ts` measures +16% of real GDP on Costona over 160
-quarters. Both are correct and the gap is methodological; see the tuning lesson in AGENTS.md
+quarters. Both are correct and the gap is methodological; see the tuning lesson in `docs/tuning-lessons.md`
 before concluding that either is wrong.
 
 The stability harness is the future-facing balance check. It compares fixed eras through
@@ -374,8 +374,8 @@ else. Before picking a number:
   tests re-measure rather than snapshot, so a retune that pushes an instrument off its dial
   fails by name.
 
-The load-bearing traps are catalogued in `AGENTS.md` under "Hard-won tuning lessons" — read
-that section beside the constant you are about to touch. Highlights: unit costs computed at
+The load-bearing traps are catalogued in `docs/tuning-lessons.md` — read it beside the constant
+you are about to touch. Highlights: unit costs computed at
 `NORMAL_UTILIZATION` (not realized output, or you get a stagflation spiral); wages need all
 three legs; `ASSET_REVERT` must out-muscle the collateral feedback or a passive economy
 spontaneously bubbles.

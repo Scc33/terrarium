@@ -120,7 +120,7 @@ interface Arm {
    * political capital has its `setDial` refused too, and the run then carries
    * on and gets tabulated under a label like `tariff 60%` having never set a
    * tariff. In a results table that reads as "the lever does nothing" rather
-   * than "the lever was never pulled" — the trap AGENTS.md records against
+   * than "the lever was never pulled" — the trap docs/tuning-lessons.md records against
    * lenient experiments, and the one `isolated()` avoids by charging no
    * capital. Table 3 has to check instead, because refusal is the point of it.
    */

@@ -17,7 +17,7 @@
  *
  *    Sections 2 and 3 run under `unlimitedCapital`, which makes them CHANNEL
  *    measurements rather than readings of ordinary play — the distinction
- *    AGENTS.md draws between a mechanism test and a baseline sweep. Without it
+ *    docs/tuning-lessons.md draws between a mechanism test and a baseline sweep. Without it
  *    the study measures two things at once: posting the order costs political
  *    capital, `runOne` leniently skips whatever capacity bid that leaves
  *    unaffordable, and the arms quietly develop different states. Measured

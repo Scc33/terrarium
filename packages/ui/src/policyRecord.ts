@@ -11,7 +11,7 @@
  * So the change log never diffs a resolved appropriation. It reads the
  * engine's `votedAt` stamp, which moves only when a rule is actually written
  * decision. Diffing the money instead would file four hundred entries for a
- * cabinet that met once — the failure mode AGENTS.md calls a warning that
+ * cabinet that met once — the failure mode the tuning lessons call a warning that
  * never turns off, and here it would be the whole feature.
  *
  * Rates carry no such machinery: nothing but an order moves a tax rate, so

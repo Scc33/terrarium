@@ -437,7 +437,7 @@ export function householdSavingRate(state: TrueState): number {
  *
  * That bootstrap reads the TICK and must never read `score.baselineWelfare`,
  * even though the two agreed exactly while every run began in 1946. They are
- * the two anchors AGENTS.md warns not to conflate: this one is an income
+ * the two anchors docs/tuning-lessons.md warns not to conflate: this one is an income
  * LEVEL the vital rates respond to, that one is the yardstick a player is
  * graded against, and ADR-0021 moved the second to the appointment quarter.
  * Sharing the sentinel meant a 1973 posting spent its whole interregnum at

@@ -38,6 +38,10 @@ never disappears by itself.
 - [Country scenarios](docs/country-scenarios.md) — authored and procedural countries, later
   appointments, and calibration evidence.
 - [Architecture decisions](docs/adr/README.md) — accepted decisions, alternatives, and costs.
+- [Investigations](docs/investigations/README.md) — open questions about the model, with the
+  measurements that raised them.
+- [Tuning lessons](docs/tuning-lessons.md) — calibration knowledge: the failure each constant's
+  value prevents.
 - [Metrics changelog](docs/metrics-changelog.md) — the versioned engine input/output contract.
 - [GitHub issues](https://github.com/Scc33/terrarium/issues) — proposed features and the
   prioritizable product backlog.
@@ -49,12 +53,12 @@ Superseded planning documents are retained for provenance in
 
 | Package | What it is |
 | --- | --- |
-| `packages/engine` | Pure, deterministic simulation: country recipes, actions, state, and the quarterly pipeline. |
-| `packages/observation` | Presentation-only projection of engine-made releases into `PublishedState`, the only state the UI may see. |
-| `packages/ui` | React instrument wall and cabinet. A Web Worker is the only host that runs the engine. |
-| `packages/runner` | Headless batch and long-horizon stability tools for model calibration. |
-| `packages/fixtures` | Shared country inputs and named policy scripts used by tests and runners. |
-| `packages/architecture-visualizer` | The TypeScript-AST scan behind the in-game engine atlas: pipeline order, package seams, and module relationships. |
+| [`packages/engine`](packages/engine/README.md) | Pure, deterministic simulation: country recipes, actions, state, and the quarterly pipeline. |
+| [`packages/observation`](packages/observation/README.md) | Presentation-only projection of engine-made releases into `PublishedState`, the only state the UI may see. |
+| [`packages/ui`](packages/ui/README.md) | React instrument wall and cabinet. A Web Worker is the only host that runs the engine. |
+| [`packages/runner`](packages/runner/README.md) | Headless batch and long-horizon stability tools for model calibration. |
+| [`packages/fixtures`](packages/fixtures/README.md) | Shared country inputs and named policy scripts used by tests and runners. |
+| [`packages/architecture-visualizer`](packages/architecture-visualizer/README.md) | The TypeScript-AST scan behind the in-game engine atlas: pipeline order, package seams, and module relationships. |
 
 The dependency direction is lint-enforced:
 
