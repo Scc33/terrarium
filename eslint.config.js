@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 // `.mts` beside it, and a file no block matches is not linted at all — so
 // the engine gate below would simply not run on one.
 const TS = '**/*.{ts,tsx,mts,cts}'
+const UI_CODE = 'packages/ui/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'
 
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
 
@@ -236,6 +237,25 @@ export default defineConfig([
     ],
     rules: {
       '@typescript-eslint/no-magic-numbers': 'off',
+    },
+  },
+  {
+    // `import.meta.env.DEV` follows ambient NODE_ENV, so even `vite build`
+    // can include dev-only UI code. Vite's command-based define is the safe
+    // gate for code that must disappear from every shipped bundle (ADR-0010).
+    files: [UI_CODE],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[property.name='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        {
+          selector: "MemberExpression[computed=true][property.value='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+      ],
     },
   },
   {

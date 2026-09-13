@@ -4,7 +4,7 @@
  * This is not tidiness. The true-state inspector serializes `TrueState` and
  * posts it to the UI — the one thing ADR-0004 exists to prevent. That is
  * acceptable in a dev build and unacceptable in a shipped one, and the entire
- * difference is a handful of `import.meta.env.DEV` guards that a well-meaning
+ * difference is a handful of `__DEV_TOOLS__` guards that a well-meaning
  * refactor could rearrange without any other test noticing.
  *
  * So: build the app for production and read the bundle. This is the only test
