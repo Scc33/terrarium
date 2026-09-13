@@ -564,6 +564,11 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   TS 7 support yet and hard-errors on it, so it gets the TS 6 API side-by-side: `typescript`
   is aliased to `@typescript/typescript6` and TS 7 rides as `@typescript/native` — which is
   what provides `tsc`. See ADR-0009; revisit when typescript-eslint ships TS 7 support.
+- **Engine source has its own TypeScript project** with no ambient Node types. `pnpm typecheck`
+  runs it before the root project, which still includes Node-using runner, tools and tests.
+  Typed linting also selects the engine project. The lint import allowlist remains the boundary
+  against cross-package imports; `types: []` only limits automatically included globals
+  (ADR-0041).
 - Worker built as a module worker via Vite (`worker.format: 'es'`); `protocol.ts` is the
   single shared contract.
 - **`__DEV_TOOLS__`** (defined in `vite.config.ts` from the vite command) gates anything that
