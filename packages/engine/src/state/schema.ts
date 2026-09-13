@@ -741,7 +741,7 @@ export interface TechState {
   researchStock: number
 }
 
-export type { FinanceState } from './finance'
+export type { FinanceState }
 
 // ---------- institutions and the Narrow Corridor ----------
 /** One veto player. `power` is DERIVED from the economy each quarter — the

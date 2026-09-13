@@ -120,6 +120,9 @@ The dependency direction is enforced at two independent levels, because either a
 - `@terrarium/architecture-visualizer` is the one workspace package `ui` may import that is not
   on the `ui → observation → engine` spine. It is a data package — a scan of the repository —
   so it carries no engine types and no state; see ADR-0039.
+- **No value-level import cycles**, anywhere in the repository (`import-x/no-cycle`). Type-only
+  edges are exempt — a step reading its `StepFn` from `pipeline.ts` is fine. A type re-export
+  on a cycle must be a bare `export type { X }`, not `export type { X } from`; see ADR-0042.
 
 **At the data boundary** (`tests/contract/published-state.test.ts`): a lint rule stops you
 importing a true-state *type*, but not from posting a true-state *value* through a

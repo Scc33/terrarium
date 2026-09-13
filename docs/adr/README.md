@@ -54,3 +54,4 @@ the old one and update the Status line of both.
 | [0039](0039-the-atlas-is-a-scan-the-game-reads.md) | The atlas is a scan of the repository, and the game is the only thing that draws it | Accepted |
 | [0040](0040-portable-normal-noise.md) | Normal noise is a portable sum of uniforms | Accepted |
 | [0041](0041-engine-has-a-host-free-typecheck.md) | The engine has its own host-free typecheck | Accepted |
+| [0042](0042-import-cycles-are-a-lint-rule.md) | Import cycles are a lint rule, not a scanner assertion | Accepted |
