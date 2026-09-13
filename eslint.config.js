@@ -183,8 +183,9 @@ export default defineConfig([
       // `crypto`, `setTimeout`, `structuredClone`) and the clock
       // (`performance`, #249) are all simply undefined here, and the next
       // host API to ship is too. typescript-eslint turns this rule off
-      // because the typechecker covers it — but the root tsconfig checks the
-      // engine with node types, so here it does not. Never give this block
+      // because the typechecker covers it. The engine's own tsconfig removes
+      // ambient Node types; this lint gate also protects consumer projects
+      // that check engine source with Node types. Never give this block
       // `globals`: flat config MERGES them, so one `globals.node` upstream
       // would quietly reopen the whole surface.
       'no-undef': ['error', { typeof: true }],
