@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 // `.mts` beside it, and a file no block matches is not linted at all — so
 // the engine gate below would simply not run on one.
 const TS = '**/*.{ts,tsx,mts,cts}'
+const UI_CODE = 'packages/ui/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'
 
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
 
@@ -410,6 +411,38 @@ export default defineConfig([
               message: 'Only packages/ui/src/worker may run the engine (ADR-0004).',
             },
           ],
+        },
+      ],
+    },
+  },
+  {
+    // `import.meta.env.DEV` follows ambient NODE_ENV, so even `vite build`
+    // can include dev-only UI code. Vite's command-based define is the safe
+    // gate for code that must disappear from every shipped bundle (ADR-0010).
+    files: [UI_CODE],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[property.name='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        {
+          selector: "MemberExpression[computed=true][property.value='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        // `const { DEV } = import.meta.env` reads the same ambient flag
+        // through destructuring, invisible to the MemberExpression selectors
+        // above. Aliasing the whole object (`const env = import.meta.env`)
+        // is banned too, since a later `env.DEV` off that alias is equally
+        // invisible and unbounded to chase through reference tracking.
+        {
+          selector: "VariableDeclarator[init.property.name='env'][init.object.meta.name='import'][init.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
+        },
+        {
+          selector: "AssignmentExpression[right.property.name='env'][right.object.meta.name='import'][right.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
         },
       ],
     },

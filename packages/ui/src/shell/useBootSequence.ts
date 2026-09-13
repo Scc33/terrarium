@@ -16,7 +16,7 @@ export function useBootSequence() {
   const [startup, setStartup] = useState<'loading' | 'selecting'>('loading')
 
   useEffect(() => {
-    const visualSeed = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('seed') : null
+    const visualSeed = __DEV_TOOLS__ ? new URLSearchParams(window.location.search).get('seed') : null
     if (visualSeed) {
       newGame('procedural', visualSeed)
       return
