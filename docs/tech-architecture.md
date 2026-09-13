@@ -122,8 +122,11 @@ The dependency direction is enforced at two independent levels, because either a
   is the only dependency and the only spelling of it, so a relative path into `engine/src` (an
   import of a module the engine never published) or into `ui` is refused however it is spelt,
   and so is a dynamic `import()`. It never draws — `rngFor` and every exported helper that
-  calls it, `fileDispatch` above all — and never runs the engine, and a bare numeric
-  coefficient is refused by the engine's own `no-magic-numbers` list. The UI's
+  calls it, `fileDispatch` above all — and never runs the engine (the runner functions and the
+  exported `PipelineStep` objects alike). It reads no environment: the engine's `no-undef`
+  allowlist, with `structuredClone` as the one host API let through, so a clock is refused by
+  name without a list of clocks. A bare numeric coefficient is refused by the engine's own
+  `no-magic-numbers` list. The UI's
   `engine/src/state/*` ban does not apply here in its own terms — observation is the one
   package that legitimately projects *from* `TrueState` — but the public-entry rule bars the
   same paths for a different reason.

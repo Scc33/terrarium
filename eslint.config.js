@@ -28,7 +28,11 @@ const OBSERVATION_SRC = path.join(ROOT, 'packages/observation/src')
 // typechecks it — and no pattern over specifier TEXT can tell `./a/../../b`
 // (stays) from `./../..` (leaves) or see through `../engine/./src`;
 // resolving against the importing file can. Dynamic `import()` is not here
-// because both blocks ban it outright.
+// because both blocks ban it outright — but `typeof import('x').y` in a
+// TYPE position is a `TSImportType`, not an `ImportExpression`, and a
+// type-only dependency on an unpublished module is still a dependency.
+// `consistent-type-imports` already forbids that syntax repo-wide; the
+// boundary checks it anyway so it does not hang off a style preference.
 const RELATIVE_SPECIFIER = /^\.\.?(\/|$)/
 
 const importsStayWithin = {
@@ -49,15 +53,21 @@ const importsStayWithin = {
   create(context) {
     const { root, allow = [], message = NO_IO } = context.options[0]
     const dir = path.dirname(context.filename)
-    const check = (node) => {
-      const spec = node.source?.value
+    const check = (source) => {
+      const spec = source?.value
       if (typeof spec !== 'string') return
       const inside = RELATIVE_SPECIFIER.test(spec)
         ? !path.relative(root, path.resolve(dir, spec)).startsWith('..')
         : allow.includes(spec)
-      if (!inside) context.report({ node: node.source, message })
+      if (!inside) context.report({ node: source, message })
     }
-    return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check }
+    const declaration = (node) => check(node.source)
+    return {
+      ImportDeclaration: declaration,
+      ExportNamedDeclaration: declaration,
+      ExportAllDeclaration: declaration,
+      TSImportType: (node) => check(node.argument?.literal),
+    }
   },
 }
 
@@ -102,7 +112,10 @@ const ENGINE_PATHS = ['@terrarium/engine', '@terrarium/engine/**', '**/engine', 
 // The functions that build or advance TrueState. Only the sim worker may
 // call them (§1.1); everything else in the UI sees PublishedState. The
 // singular `applyAction` is one order's worth of `applyActions` and returns
-// the same altered state, so it is on the list.
+// the same altered state, so it is on the list — and so are the two
+// exported `PipelineStep` objects, because a step's `.run(state, rng)` is
+// one tick's worth of `step`. The manual hand-copies the tick order rather
+// than import it for exactly this reason (ADR-0024).
 const ENGINE_RUNNERS = [
   'init',
   'step',
@@ -111,6 +124,8 @@ const ENGINE_RUNNERS = [
   'applyActions',
   'runTick',
   'runInterregnum',
+  'TICK_ORDER',
+  'institutions',
 ]
 
 // The engine's RNG primitive and every exported function that calls it on
@@ -294,7 +309,18 @@ export default defineConfig([
       '@typescript-eslint': tseslint.plugin,
       boundary: { rules: { 'imports-stay-within': importsStayWithin } },
     },
+    languageOptions: {
+      // The engine's "reads no environment" allowlist (see its block) with
+      // ONE host API let through: `structuredClone` is how the projection
+      // hands the desk copies rather than the office's own archive, and it
+      // is deterministic. Every other host surface — `process`, `performance`,
+      // `console`, `fetch`, the next one to ship — stays undefined here, so a
+      // clock that is not `Date` is refused by name without a list of clocks.
+      globals: { structuredClone: 'readonly' },
+    },
     rules: {
+      'no-undef': ['error', { typeof: true }],
+      'no-restricted-globals': ['error', { name: 'globalThis', message: 'observation reads no environment (§1.1).' }],
       // A bare coefficient in a projection is close to the definition of
       // measurement logic. Same ignore list as the engine; the one hit when
       // this landed was a legitimacy grade cut, now in constants.ts.
