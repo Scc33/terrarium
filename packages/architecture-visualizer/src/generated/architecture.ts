@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "0e4baee",
+  "revision": "7a1aa45",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 114,
-      "lines": 19516
+      "lines": 19532
     }
   ],
   "modules": [
@@ -12098,31 +12098,31 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "What every statute on the books actually does, in one place — the statute book's answer to `levers.ts`, and written for the same reason.",
-      "lines": 93,
+      "lines": 96,
       "exports": [
         {
           "name": "StatuteCopy",
-          "kind": "interface",
+          "kind": "type",
           "path": "packages/ui/src/statutes.ts",
-          "line": 26
+          "line": 29
         },
         {
           "name": "STATUTE_COPY",
           "kind": "constant",
           "path": "packages/ui/src/statutes.ts",
-          "line": 38
+          "line": 41
         },
         {
           "name": "STATUTE_DRAWER",
           "kind": "constant",
           "path": "packages/ui/src/statutes.ts",
-          "line": 76
+          "line": 79
         },
         {
           "name": "complianceNote",
           "kind": "function",
           "path": "packages/ui/src/statutes.ts",
-          "line": 87
+          "line": 90
         }
       ],
       "imports": [
@@ -12142,19 +12142,19 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "Minimal IndexedDB key-value wrapper for autosaves (§8).",
-      "lines": 33,
+      "lines": 39,
       "exports": [
         {
           "name": "dbPut",
           "kind": "function",
           "path": "packages/ui/src/store/db.ts",
-          "line": 15
+          "line": 21
         },
         {
           "name": "dbGet",
           "kind": "function",
           "path": "packages/ui/src/store/db.ts",
-          "line": 25
+          "line": 31
         }
       ],
       "imports": [],
@@ -12170,13 +12170,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "",
-      "lines": 371,
+      "lines": 375,
       "exports": [
         {
           "name": "useGame",
           "kind": "constant",
           "path": "packages/ui/src/store/gameStore.ts",
-          "line": 127
+          "line": 131
         }
       ],
       "imports": [
@@ -12476,7 +12476,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (ADR-0003 and ADR-0004).",
-      "lines": 344,
+      "lines": 347,
       "exports": [],
       "imports": [
         "packages/engine/src/index.ts",

@@ -7,7 +7,17 @@ import { describe, expect, it } from 'vitest'
  * player-reachable quarters; downside values are marginal medians within the
  * worst 5% of quiet aggregate growth and therefore need not add exactly.
  */
-const QUIET_GROWTH = {
+interface QuietGrowth {
+  aggregate: number
+  perCapita: number
+  population: number
+  productivity: number
+  employmentRate: number
+  laborForceShare: number
+  laborForce: number
+}
+
+const QUIET_GROWTH: Record<'passive' | 'developmental', Record<'lateCentury' | 'future', QuietGrowth>> = {
   passive: {
     lateCentury: {
       aggregate: 2.72,
@@ -48,7 +58,7 @@ const QUIET_GROWTH = {
       laborForce: -0.78,
     },
   },
-} as const
+}
 
 const FUTURE_LABOR_CONTRACTION = {
   passive: {

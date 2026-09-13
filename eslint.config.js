@@ -115,19 +115,18 @@ export default defineConfig([
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/require-await': 'error',
-      // The residue the switch-on found, left at `warn` so the gate could go
-      // in without the mechanical diff. Clearing each and promoting it to
-      // `error` is #238, which also records what every one of them is — the
-      // 28 `unbound-method` are zustand actions destructured from the store,
-      // the `no-unsafe-*` are mostly JSON fixtures landing as `any` in tests.
-      '@typescript-eslint/no-base-to-string': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unsafe-call': 'warn',
-      '@typescript-eslint/no-unsafe-member-access': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
-      '@typescript-eslint/prefer-promise-reject-errors': 'warn',
-      '@typescript-eslint/unbound-method': 'warn',
+      // The rest of the type-checked set, cleared in code rather than
+      // exempted (#238). `unbound-method` in particular is not disabled for
+      // the store: its actions are typed as function properties, not method
+      // signatures, which is what a zustand closure actually is.
+      '@typescript-eslint/no-base-to-string': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
+      '@typescript-eslint/prefer-promise-reject-errors': 'error',
+      '@typescript-eslint/unbound-method': 'error',
       // `x == null` stays legal: the null/undefined/0 distinction is
       // load-bearing (ui/src/finance.ts returns null, never 0, when unfunded).
       eqeqeq: ['error', 'always', { null: 'ignore' }],

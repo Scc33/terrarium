@@ -91,17 +91,17 @@ export interface TimePlot {
   x0: number
   x1: number
   y: Axis
-  sx(tick: number): number
-  sy(value: number): number
+  sx: (tick: number) => number
+  sy: (value: number) => number
   /** a polyline; `null` when fewer than two points can be drawn */
-  line(points: readonly PlotPoint[]): string | null
+  line: (points: readonly PlotPoint[]) => string | null
   /** a line closed down to a baseline value — an area fill */
-  area(points: readonly PlotPoint[], baseline: number): string | null
+  area: (points: readonly PlotPoint[], baseline: number) => string | null
   /** a closed ribbon between value+band and value−band */
-  ribbon(points: readonly BandPoint[]): string | null
+  ribbon: (points: readonly BandPoint[]) => string | null
   /** the region between two series: births over deaths, revenue over outlays.
    * Only the ticks the two have in common are enclosed. */
-  wedge(over: readonly PlotPoint[], under: readonly PlotPoint[]): string | null
+  wedge: (over: readonly PlotPoint[], under: readonly PlotPoint[]) => string | null
 }
 
 const n1 = (x: number) => x.toFixed(1)
@@ -360,13 +360,13 @@ export interface PhasePoint {
 export interface PhasePlot {
   x: Axis
   y: Axis
-  sx(value: number): number
-  sy(value: number): number
+  sx: (value: number) => number
+  sy: (value: number) => number
   /** the trail through the points in tick order; `null` under two points */
-  path(points: readonly PhasePoint[]): string | null
+  path: (points: readonly PhasePoint[]) => string | null
   /** the rectangle above and right of both thresholds, clipped to the axes —
    * `null` when the danger corner is entirely off the drawn face */
-  corner(xAt: number, yAt: number): { x: number; y: number; w: number; h: number } | null
+  corner: (xAt: number, yAt: number) => { x: number; y: number; w: number; h: number } | null
 }
 
 const finitePhase = (p: PhasePoint) =>

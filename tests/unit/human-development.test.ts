@@ -174,7 +174,7 @@ describe('human-development publication', () => {
       )
       points.push(print(value, { forQtr: currentQtr, publishedAt }))
       return new Proxy(points, {
-        get(target, property, receiver) {
+        get(target, property, receiver): unknown {
           if (typeof property === 'string' && /^\d+$/.test(property)) indexedReads++
           return Reflect.get(target, property, receiver)
         },

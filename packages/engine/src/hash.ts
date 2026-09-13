@@ -6,7 +6,7 @@
  */
 
 export function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_k, v) =>
+  return JSON.stringify(value, (_k, v: unknown): unknown =>
     typeof v === 'number' && Number.isFinite(v) ? Number(v.toPrecision(10)) : v,
   )
 }

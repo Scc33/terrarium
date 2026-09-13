@@ -144,7 +144,7 @@ describe('the demographic transition', () => {
     // At the mathematical best case the advertised 2% ceiling is exactly
     // reachable: every resident is working age, unemployment is zero, and
     // domestic performance is at the capped lead over the outside option.
-    const allWorking = Array(AGE_BANDS).fill(0)
+    const allWorking = new Array<number>(AGE_BANDS).fill(0)
     allWorking[WORKING_BANDS[0]] = pop(base)
     const bestCase: TrueState = {
       ...withPolicy(IMMIGRATION_LIMIT_MAX, 0, 2),

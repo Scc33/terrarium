@@ -46,21 +46,13 @@ describe('published historical data export', () => {
     expect(record.records.news).toEqual(pub.news)
     expect(record.records.corridor).toEqual(pub.corridor.trail)
 
-    const expectedReleases = INDICATOR_IDS.reduce(
-      (count, id) => count + (pub.indicators[id]?.points.length ?? 0),
-      0,
-    )
-    expect(record.records.indicatorReleases).toHaveLength(expectedReleases)
-    expect(record.records.indicatorReleases[0]).toEqual(
-      expect.objectContaining({
-        indicator: expect.any(String),
-        label: expect.any(String),
-        unit: expect.any(String),
-        forQtr: expect.any(Number),
-        publishedAt: expect.any(Number),
-        revision: expect.any(Number),
-        value: expect.any(Number),
-        errorBand: expect.any(Number),
+    // one row per release in catalogue order, each carrying its series' label
+    // and unit beside the print
+    expect(record.records.indicatorReleases).toEqual(
+      INDICATOR_IDS.flatMap((indicator) => {
+        const series = pub.indicators[indicator]
+        if (!series) return []
+        return series.points.map((point) => ({ indicator, label: series.label, unit: series.unit, ...point }))
       }),
     )
   })

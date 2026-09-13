@@ -269,7 +269,10 @@ function toTree(value: unknown, key: string): DevNode {
   if (typeof value === 'object') {
     return { key, children: Object.entries(value).map(([k, v]) => toTree(v, k)) }
   }
-  return { key, value: String(value) }
+  // what is left is a bigint, a symbol or a function — TrueState holds none of
+  // them, and only the first two have a value worth printing
+  if (typeof value === 'bigint' || typeof value === 'symbol') return { key, value: String(value) }
+  return { key, value: typeof value }
 }
 
 function devInspect(): void {
