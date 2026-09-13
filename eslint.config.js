@@ -49,6 +49,16 @@ const importsStayWithin = {
 
 const NO_CLOCK = 'The sim must be pure — no wall-clock reads. `new Date(value)` is arithmetic and is fine.'
 
+// The constructor forms no-restricted-properties cannot see. `Date()` called
+// as a function ignores its arguments and returns the current time, so every
+// call is the clock; only `new Date(value)` is arithmetic. Hoisted because the
+// engine and observation both ban them, and flat config REPLACES a rule's
+// options — a block that restated one selector would drop the other.
+const CLOCK_SYNTAX = [
+  { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
+  { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+]
+
 // Determinism (§1.1, §6). Hoisted because the engine block extends this list,
 // and flat config REPLACES a rule's options rather than merging them — an
 // engine-only `no-restricted-properties` that did not restate these would
@@ -86,6 +96,23 @@ const TRUE_STATE_BAN = (message) => ({
   group: ['@terrarium/engine/src/state/*', '**/engine/src/state/*'],
   message,
 })
+
+// Every behavioral constant lives in constants.ts, tune there, nowhere else
+// (ADR-0007, #179). This does not flag a literal assigned to a named `const`
+// — that IS the fix — only one used bare inside an expression. `ignore`
+// covers structural uses ADR-0007 itself carves out: array indices, unit
+// identities, and the odd sign flip. One object for the engine and the
+// observation package, so the two lists cannot drift.
+const MAGIC_NUMBER_OPTIONS = {
+  // structural: identities, divide-by-zero epsilons, and the
+  // calendar/rate unit conversions ADR-0007 names outright (quarters
+  // per year, per-cent, per-mille)
+  ignore: [0, 1, -1, 2, 1e-12, 1e-9, 1e-6, 4, 100, 400, 1000, 4000],
+  ignoreArrayIndexes: true,
+  ignoreEnums: true,
+  ignoreReadonlyClassProperties: true,
+  ignoreTypeIndexes: true,
+}
 
 export default defineConfig([
   globalIgnores(['**/dist', '**/node_modules', '**/coverage']),
@@ -163,13 +190,9 @@ export default defineConfig([
       'no-undef': ['error', { typeof: true }],
       // The one language builtin that is a door to all of the above.
       'no-restricted-globals': ['error', { name: 'globalThis', message: NO_IO }],
-      // The constructor forms no-restricted-properties cannot see. `Date()`
-      // called as a function ignores its arguments and returns the current
-      // time, so every call is the clock; only `new Date(value)` is arithmetic.
       'no-restricted-syntax': [
         'error',
-        { selector: "NewExpression[callee.name='Date'][arguments.length=0]", message: NO_CLOCK },
-        { selector: "CallExpression[callee.name='Date']", message: NO_CLOCK },
+        ...CLOCK_SYNTAX,
         // A dynamic import is a Promise a synchronous engine cannot await,
         // and it is invisible to the static-import rule below.
         { selector: 'ImportExpression', message: NO_IO },
@@ -185,27 +208,10 @@ export default defineConfig([
     },
   },
   {
-    // Every behavioral constant lives in constants.ts, tune there, nowhere
-    // else (ADR-0007, #179). This does not flag a literal assigned to a
-    // named `const` — that IS the fix — only one used bare inside an
-    // expression. `ignore` covers structural uses ADR-0007 itself carves
-    // out: array indices, unit identities, and the odd sign flip.
     files: [`packages/engine/src/${TS}`],
     plugins: { '@typescript-eslint': tseslint.plugin },
     rules: {
-      '@typescript-eslint/no-magic-numbers': [
-        'error',
-        {
-          // structural: identities, divide-by-zero epsilons, and the
-          // calendar/rate unit conversions ADR-0007 names outright (quarters
-          // per year, per-cent, per-mille)
-          ignore: [0, 1, -1, 2, 1e-12, 1e-9, 1e-6, 4, 100, 400, 1000, 4000],
-          ignoreArrayIndexes: true,
-          ignoreEnums: true,
-          ignoreReadonlyClassProperties: true,
-          ignoreTypeIndexes: true,
-        },
-      ],
+      '@typescript-eslint/no-magic-numbers': ['error', MAGIC_NUMBER_OPTIONS],
     },
   },
   {
@@ -235,6 +241,66 @@ export default defineConfig([
     ],
     rules: {
       '@typescript-eslint/no-magic-numbers': 'off',
+    },
+  },
+  {
+    // observation is presentation-only (ADR-0003): it projects TrueState into
+    // PublishedState and owns the prints' labels and units. The fog is MADE in
+    // the engine's statistics step because politics reads the published
+    // headline, so measurement growing back in here — a coefficient, a draw,
+    // a lag — would be a second statistical office the electorate never sees.
+    // Nothing mechanical defended that before this block (#239).
+    files: [`packages/observation/${TS}`],
+    plugins: { '@typescript-eslint': tseslint.plugin },
+    rules: {
+      // A bare coefficient in a projection is close to the definition of
+      // measurement logic. Same ignore list as the engine; the one hit when
+      // this landed was a legitimacy grade cut, now in constants.ts.
+      '@typescript-eslint/no-magic-numbers': ['error', MAGIC_NUMBER_OPTIONS],
+      // A projection of one state at one tick has no clock to read, and the
+      // data export promises the same run at the same tick files the same
+      // artifact.
+      'no-restricted-syntax': ['error', ...CLOCK_SYNTAX],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              // `ui → observation → engine`, never the reverse (§1.1). The
+              // alias is not in the root tsconfig's `paths`, but a relative
+              // route into packages/ui resolves, so the ban is over paths.
+              group: ['@terrarium/ui', '@terrarium/ui/**', '**/ui', '**/ui/**'],
+              message: 'observation sits below the UI in the spine and cannot read it (§1.1).',
+            },
+            {
+              // The UI's true-state ban does not apply here in its own terms:
+              // observation is the one package that legitimately projects
+              // FROM TrueState, and the type comes from `@terrarium/engine`.
+              // What it may not do is path past the engine's index — a
+              // relative route into engine/src imports a module the engine
+              // never published, which is how `treasuryFinancing` was being
+              // read straight out of state/accounts before #239. `paths` are
+              // matched on specifier text, so this is over every spelling.
+              group: ['**/engine/src', '**/engine/src/**'],
+              message:
+                'observation reads the engine through @terrarium/engine only; export it from engine/src/index.ts.',
+            },
+            {
+              // A projection that draws is measurement: a second noise draw
+              // over the truth is a back door around the fog (ADR-0033).
+              group: ENGINE_PATHS,
+              importNames: ['rngFor'],
+              message: 'observation projects the prints the office already made; it never draws (ADR-0003).',
+            },
+            {
+              // The projection is handed a state; it never advances one.
+              group: ENGINE_PATHS,
+              importNames: ENGINE_RUNNERS,
+              message: 'Only packages/ui/src/worker may run the engine (ADR-0004).',
+            },
+          ],
+        },
+      ],
     },
   },
   {

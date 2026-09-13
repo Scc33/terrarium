@@ -977,6 +977,12 @@ export const LEGITIMACY_GRADE_ELECTIONS: Array<{ atLeast: number; grade: 'B' | '
   { atLeast: 2, grade: 'C' },
   { atLeast: 1, grade: 'D' },
 ] // deposed without ever winning one: F
+/** A mandate taken by force cannot buy consent, so suppressed elections are
+ * never netted against won ones — they cap the grade instead. */
+export const LEGITIMACY_SUPPRESSION_CAPS: Array<{ atLeast: number; grade: 'D' | 'F' }> = [
+  { atLeast: 3, grade: 'F' }, // enough of them and how many you "won" is beside the point
+  { atLeast: 1, grade: 'D' },
+] // none taken: no cap
 
 // ---------- trade ----------
 export const TRADE_ELASTICITY = 1.5

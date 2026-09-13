@@ -112,6 +112,24 @@ describe('the report card', () => {
     expect(observe(survived).reportCard!.legitimacyGrade).toBe('A')
   })
 
+  it('mandates taken cap the legitimacy grade; they are never netted against mandates won', () => {
+    const closed = { ...live.meta, tick: 416 }
+    const taken = (electionsSuppressed: number, electionsWon = 5): TrueState => ({
+      ...live,
+      meta: closed,
+      politics: { ...live.politics, electionsSuppressed, electionsWon },
+    })
+    // still governing in 2050 with five mandates would be an A on consent alone
+    expect(observe(taken(0)).reportCard!.legitimacyGrade).toBe('A')
+    expect(observe(taken(1)).reportCard!.legitimacyGrade).toBe('D')
+    expect(observe(taken(2)).reportCard!.legitimacyGrade).toBe('D')
+    expect(observe(taken(3)).reportCard!.legitimacyGrade).toBe('F')
+    // both counts stay on the card as they were
+    const card = observe(taken(3)).reportCard!
+    expect(card.electionsWon).toBe(5)
+    expect(card.electionsSuppressed).toBe(3)
+  })
+
   it('the verdict freezes at deposition — the record does not drift afterwards', () => {
     const deposed: TrueState = {
       ...live,

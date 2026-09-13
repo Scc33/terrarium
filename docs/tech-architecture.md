@@ -117,6 +117,13 @@ The dependency direction is enforced at two independent levels, because either a
   state-running functions (`init` / `step` / `replay` / `applyActions` / `runTick`) outside
   `ui/src/worker/**`. Components may import constants and action/save *types*.
 - Even the worker uses the engine's public API, not its state internals.
+- `observation` is presentation-only (ADR-0003), and the block says so mechanically: it may not
+  import `ui` by any spelling, reads the engine only through `@terrarium/engine` (a relative
+  path into `engine/src` is an import of a module the engine never published), never draws
+  (`rngFor`) or runs it, and a bare numeric coefficient is refused by the engine's own
+  `no-magic-numbers` list. The UI's `engine/src/state/*` ban does not apply here in its own
+  terms — observation is the one package that legitimately projects *from* `TrueState` — but
+  the public-entry rule bars the same paths for a different reason.
 - `@terrarium/architecture-visualizer` is the one workspace package `ui` may import that is not
   on the `ui → observation → engine` spine. It is a data package — a scan of the repository —
   so it carries no engine types and no state; see ADR-0039.

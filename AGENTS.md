@@ -45,7 +45,8 @@ before starting one of these tasks** rather than working from this file's summar
 - The fog is MADE in the engine (`pipeline/statistics.ts`: prints, revisions, rumor news, via
   `obs:*` substreams orthogonal to the economic RNG) because politics reads the published
   headline, not the truth (ADR-0003). `packages/observation` is presentation-only — never grow
-  measurement logic back into it.
+  measurement logic back into it. Lint holds the line: no bare coefficient, no `rngFor`, no
+  path past `@terrarium/engine`, nothing from `ui`.
 - Every behavioral constant lives in `engine/src/constants.ts` — tune there, nowhere else.
 
 ## UI
