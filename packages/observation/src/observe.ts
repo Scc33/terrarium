@@ -1,4 +1,3 @@
-import { treasuryFinancing } from '../../engine/src/state/accounts'
 /**
  * observe() — a pure projection of what the government can see (ADR-0003). The
  * fog itself (lag, noise, revisions, funding gates) lives in the engine's
@@ -22,6 +21,7 @@ import {
   INDICATOR_IDS,
   INSTITUTION_IDS,
   LEGITIMACY_GRADE_ELECTIONS,
+  LEGITIMACY_SUPPRESSION_CAPS,
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
   reformWindowOpen,
@@ -32,6 +32,7 @@ import {
   STATUTE_LEVELS,
   STATUTE_STANCE,
   totalLaborForce,
+  treasuryFinancing,
   WELFARE_DISCOUNT_Q,
   type TrueState,
 } from '@terrarium/engine'
@@ -117,14 +118,14 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
 
   // Legitimacy is CONSENT, so a mandate taken by force cannot buy it.
   // Suppressed elections are never netted against won ones — both numbers go
-  // on the card — but they do cap the grade, and enough of them make the
-  // question of how many elections you "won" beside the point.
+  // on the card — but they do cap the grade.
   const suppressed = politics.electionsSuppressed
   const earned: Grade = politics.inPower
     ? 'A'
     : (LEGITIMACY_GRADE_ELECTIONS.find((c) => politics.electionsWon >= c.atLeast)?.grade ?? 'F')
   const ORDER: Grade[] = ['A', 'B', 'C', 'D', 'F']
-  const cap: Grade = suppressed === 0 ? 'A' : suppressed >= 3 ? 'F' : 'D'
+  const cap: Grade =
+    LEGITIMACY_SUPPRESSION_CAPS.find((c) => suppressed >= c.atLeast)?.grade ?? 'A'
   const legitimacyGrade: Grade =
     ORDER.indexOf(earned) >= ORDER.indexOf(cap) ? earned : cap
 
