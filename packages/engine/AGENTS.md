@@ -9,8 +9,9 @@ Any behaviour change goes through the `economics-review` skill before `pnpm bles
 - Return a new state; never mutate. Steps communicate only through state.
 - `TICK_ORDER` in `pipeline/pipeline.ts` is versioned; reordering is a schema event (ADR-0005).
   `statistics` runs before `politics` on purpose — politics reads the published headline.
-- `state/schema.ts` owns the shapes and the id tuples. Downstream tables are total `Record`s so
-  a new id fails the build until handled. **Append new indicators at the end of
+- Id lists are exported `const` tuples — in `state/` (mostly `schema.ts`), with the wire's in
+  `events/ids.ts`, a leaf so `schema.ts` can type `NewsItem`. Downstream tables are total
+  `Record`s over them, so a new id fails the build until handled. **Append new indicators at the end of
   `INDICATOR_SPECS`**: the step inserts into `stats.series` in record order and the state hash
   does not sort keys, so reordering moves every long-run hash while every published value stays
   bit-identical (`tests/unit/indicator-specs.test.ts` pins the prefix).
@@ -38,8 +39,9 @@ Any behaviour change goes through the `economics-review` skill before `pnpm bles
 - The goldens see forty quarters. A stock with a long half-life, or a regime reached only after
   debt hits zero, is invisible to them; the ADR names the tool that is the evidence instead
   (`pnpm surplus`, `pnpm currency`, `pnpm events`, `pnpm inheritance`, the 400-quarter batches).
-- The goldens and the default batch both run Meridia — the reference country, and twice the one
-  country where a bug could not show. Use `--country all` for anything the catalogue varies.
+- The goldens run Meridia and the default batch (`--country baseline`) runs `generateParams`,
+  a jitter around Meridia's frame — the reference country, and twice the one country where a bug
+  could not show. Use `--country all` for anything the catalogue varies.
 - A mechanic you cannot reach is not a mechanic. Measure what a threshold gates under passive,
   random *and* deliberately bad play before shipping it.
 - Political responses are reference-dependent (an EMA, the 1946 settlement, experienced

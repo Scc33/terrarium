@@ -189,8 +189,9 @@ interface TrueState {
 }
 ```
 
-Id lists in `schema.ts` are the single source of truth and are exported as `const` tuples, so
-downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
+Id lists are exported as `const` tuples — in `state/` (mostly `schema.ts`; the labour survey's
+in `state/labour.ts`) and, for the wire, in `events/ids.ts` — so downstream tables typed as total
+`Record<Id, …>` **fail the build** until a new id is handled:
 
 `SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
 `INDICATOR_IDS` · `INDUSTRY_TABLE_IDS` · `LABOUR_CLASS_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` ·

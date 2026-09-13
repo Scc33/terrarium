@@ -213,8 +213,8 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   the whole change moved passive growth 2.82 to 2.84 %/yr and left `realGdp` out of the top 400
   moved values entirely. What moved was distribution — urban workers' approval up 7%, because they
   had been scored against an accounting artifact, and deposition fell on all four policies for it.
-- **The goldens and the default batch both run Meridia, so neither can see a bug that needs a
-  different country.** `tools/golden-cases.ts` is `standardCountry` three times and `pnpm batch`
+- **The goldens run Meridia and the default batch runs the generated frame around it, so
+  neither can see a bug that needs a different country.** `tools/golden-cases.ts` is `standardCountry` three times and `pnpm batch`
   defaults to `--country baseline`. Meridia opens at 0.929 jobs per person, which is the one
   curated country where the ADR-0035 opening overdraft cannot appear — so a blessed diff and a
   clean four-policy baseline were both entirely consistent with Costona reading 1.113x at q0.

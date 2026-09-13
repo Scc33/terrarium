@@ -80,7 +80,7 @@ ui → observation → engine        (never the reverse; lint-enforced)
 | `pnpm dev` · `pnpm test` · `pnpm typecheck` · `pnpm lint` · `pnpm coverage` | the ordinary gates |
 | `pnpm test:visual` | Playwright at 1280×720 — the only thing that sees layout |
 | `pnpm diff-state --moved-only` → `pnpm bless` | the golden review, in that order |
-| `pnpm batch -- --runs 1000 --ticks 400 --policy passive --country all` | a baseline; the default country is Meridia alone |
+| `pnpm batch -- --runs 1000 --ticks 400 --policy passive --country all` | a baseline; the default is the generated frame around Meridia, not the catalogue |
 | `pnpm ranges` | measure a surveyed century for dial faces |
 | `pnpm architecture:check` | the in-game atlas still describes this repository |
 
