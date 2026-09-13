@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import { createNodeResolver, importX } from 'eslint-plugin-import-x'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -217,6 +218,36 @@ export default defineConfig([
       ],
       // Determinism: all randomness must come from the seeded RNG (§6).
       'no-restricted-properties': ['error', ...DETERMINISM_PROPERTIES],
+    },
+  },
+  {
+    // No value-level import cycles (ADR-0042). Type-only edges are skipped by
+    // the rule itself. Every setting here is load-bearing: the plugin's
+    // defaults are JavaScript's, and with any one missing the rule does not
+    // fail, it stops looking — each was proved by removing it against a
+    // planted cycle. Known upstream bug: `export type { X } from './y'` is
+    // read as a value edge (the export map checks `importKind`; the AST says
+    // `exportKind`), so a type re-export on a cycle must be a bare
+    // `export type { X }` beside an `import type`.
+    files: [TS],
+    plugins: { 'import-x': importX },
+    settings: {
+      // the export map refuses any extension it has not been told about
+      'import-x/extensions': ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs'],
+      // `ignoreExternal` calls anything outside the LINTED file's package
+      // external — which @terrarium/engine is, seen from packages/ui, once
+      // the pnpm symlink is realpathed. This is consulted first.
+      'import-x/internal-regex': '^@terrarium/',
+      // the resolver's extension list is also JavaScript's; the workspace
+      // aliases go through each package's `exports`, symlinks followed, so
+      // both spellings of a module land on the one path the walk compares
+      'import-x/resolver-next': [
+        createNodeResolver({ extensions: ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json'] }),
+      ],
+    },
+    rules: {
+      // `ignoreExternal` keeps the walk out of node_modules
+      'import-x/no-cycle': ['error', { ignoreExternal: true }],
     },
   },
   {
