@@ -32,22 +32,25 @@ pnpm batch -- --country all --runs 600 --ticks 400 --policy passive
 Omit `--country` to retain the historical generated-baseline check. `--country all` assigns runs
 round-robin and includes both every curated opening and the procedural generator.
 
-Calibration snapshot, 2026-08-08. Both matrices had **zero NaN runs and zero price explosions**.
-Values are per-country medians except deposition, which is a share of runs.
+Calibration snapshot, 2026-09-13, schema 46. Both matrices had **zero NaN runs and zero price
+explosions**. Values are per-country medians except deposition, which is a share of runs.
 
 | scenario | random 120q deposed | growth | inflation | unemployment | passive 400q deposed | growth | unemployment |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Meridia | 30% | 3.69% | 0.31% | 12.53% | 9% | 2.57% | 12.91% |
-| Costona | 42% | 3.53% | 0.94% | 12.71% | 1% | 3.01% | 16.15% |
-| Veltravia | 44% | 3.74% | 1.09% | 9.90% | 44% | 1.83% | 8.32% |
-| Oranga | 28% | 3.95% | 0.52% | 11.33% | 47% | 2.05% | 9.04% |
-| Kestrel | 23% | 3.85% | 0.78% | 12.97% | 20% | 2.76% | 13.35% |
-| Procedural | 36% | 3.86% | 0.88% | 11.90% | 21% | 2.64% | 13.10% |
+| Meridia | 23% | 4.01% | 0.45% | 12.09% | 0% | 2.95% | 12.82% |
+| Costona | 35% | 3.20% | 1.22% | 11.58% | 0% | 2.98% | 14.78% |
+| Veltravia | 27% | 4.42% | 0.52% | 11.58% | 0% | 2.31% | 9.16% |
+| Oranga | 14% | 4.91% | 0.51% | 11.73% | 0% | 2.74% | 9.53% |
+| Kestrel | 16% | 4.26% | 0.82% | 12.97% | 6% | 3.28% | 13.55% |
+| Procedural | 17% | 4.34% | 0.76% | 12.19% | 1% | 2.93% | 13.16% |
 
 The random matrix is 1,000 total runs (166–167 per row); the passive matrix is 600 total runs
-(100 per row). Survival is not the difficulty score by itself: Kestrel's inherited repression
-lowers its electoral bar while beginning outside the corridor with revolutionary pressure already
-above the reform-window line. The position and legitimacy grades price that apparent durability.
+(100 per row). Passive survival is no longer a difficulty score at all: a floating currency
+absorbs the shocks that used to depose do-nothing governments (ADR-0034), so every curated
+country but Kestrel now survives a passive century, and Kestrel falls for political rather than
+macroeconomic reasons — its inherited repression lowers its electoral bar while it begins outside
+the corridor with revolutionary pressure already above the reform-window line. The random column
+is where the countries still separate.
 
 `pnpm ranges` now surveys every catalogue scenario by default. The food-price, payroll, asset,
 inequality, and unrest faces were widened to the measured cross-country envelope; the browser
@@ -70,27 +73,27 @@ loop, and its orders are written into the save's action log, so a later posting 
 replayable save. The caretaker holds the opening appropriations at their share of the economy
 and builds the four state capacities; it touches no other lever.
 
-What that produces is measured, not authored. Median over 48 seeds per cell, schema 29,
-2026-08-21 — re-measure with `pnpm inheritance` rather than trusting this, exactly as with the
-matrices above.
+What that produces is measured, not authored. Median over 48 seeds per cell, schema 46,
+2026-09-13 — re-measure with `pnpm inheritance -- --runs 48` rather than trusting this, exactly
+as with the matrices above.
 
 | appointment | country | GDP × | GDP/head × | pop × | statistical | reporting | unemployment | debt/GDP |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| 1973 | Meridia | 3.26 | 2.13 | 1.53 | 0.48 | 28/30 | 15.4 % | 0 % |
-| 1973 | Costona | 2.18 | 1.38 | 1.58 | 0.42 | 22/30 | 16.2 % | 0 % |
-| 1973 | Veltravia | 3.14 | 2.81 | 1.12 | 0.65 | 30/30 | 10.4 % | 32 % |
-| 1973 | Oranga | 3.88 | 3.08 | 1.26 | 0.70 | 30/30 | 10.6 % | 33 % |
-| 1973 | Kestrel | 3.40 | 2.15 | 1.58 | 0.47 | 28/30 | 14.8 % | 23 % |
-| 1995 | Meridia | 9.79 | 4.86 | 2.01 | 0.65 | 30/30 | 12.8 % | 0 % |
-| 1995 | Costona | 6.75 | 2.97 | 2.27 | 0.61 | 30/30 | 17.1 % | 0 % |
-| 1995 | Veltravia | 7.35 | 5.16 | 1.42 | 0.77 | 30/30 | 8.5 % | 0 % |
-| 1995 | Oranga | 9.66 | 5.77 | 1.67 | 0.80 | 30/30 | 8.4 % | 0 % |
-| 1995 | Kestrel | 11.88 | 5.32 | 2.23 | 0.64 | 30/30 | 12.8 % | 0 % |
-| 2005 | Meridia | 14.62 | 6.37 | 2.29 | 0.70 | 30/30 | 10.9 % | 0 % |
-| 2005 | Costona | 11.64 | 4.43 | 2.63 | 0.67 | 30/30 | 16.2 % | 0 % |
-| 2005 | Veltravia | 9.95 | 6.31 | 1.58 | 0.81 | 30/30 | 7.3 % | 0 % |
-| 2005 | Oranga | 13.16 | 7.05 | 1.87 | 0.84 | 30/30 | 6.8 % | 0 % |
-| 2005 | Kestrel | 18.66 | 7.22 | 2.57 | 0.70 | 30/30 | 10.4 % | 0 % |
+| 1973 | Meridia | 2.89 | 1.82 | 1.58 | 0.48 | 33/38 | 15.9 % | 0 % |
+| 1973 | Costona | 1.99 | 1.24 | 1.60 | 0.42 | 26/38 | 16.5 % | 0 % |
+| 1973 | Veltravia | 3.02 | 2.56 | 1.17 | 0.65 | 38/38 | 10.9 % | 42 % |
+| 1973 | Oranga | 3.73 | 2.76 | 1.35 | 0.70 | 38/38 | 11.2 % | 35 % |
+| 1973 | Kestrel | 3.04 | 1.83 | 1.66 | 0.47 | 33/38 | 15.6 % | 27 % |
+| 1995 | Meridia | 8.54 | 4.02 | 2.13 | 0.65 | 38/38 | 14.6 % | 0 % |
+| 1995 | Costona | 5.39 | 2.31 | 2.32 | 0.61 | 38/38 | 17.4 % | 0 % |
+| 1995 | Veltravia | 7.08 | 4.78 | 1.48 | 0.77 | 38/38 | 10.1 % | 0 % |
+| 1995 | Oranga | 9.52 | 5.38 | 1.78 | 0.80 | 38/38 | 9.6 % | 0 % |
+| 1995 | Kestrel | 10.32 | 4.21 | 2.45 | 0.64 | 38/38 | 15.0 % | 0 % |
+| 2005 | Meridia | 13.14 | 5.60 | 2.35 | 0.70 | 38/38 | 12.9 % | 0 % |
+| 2005 | Costona | 9.20 | 3.37 | 2.73 | 0.67 | 38/38 | 16.7 % | 0 % |
+| 2005 | Veltravia | 9.61 | 5.90 | 1.63 | 0.81 | 38/38 | 8.5 % | 0 % |
+| 2005 | Oranga | 13.04 | 6.62 | 1.97 | 0.84 | 38/38 | 8.4 % | 0 % |
+| 2005 | Kestrel | 17.08 | 6.06 | 2.81 | 0.70 | 38/38 | 13.2 % | 0 % |
 
 Four things to read out of it, none of them tuned for:
 
@@ -100,13 +103,13 @@ Four things to read out of it, none of them tuned for:
   later posting should hand over a balance sheet, that is a debt-model question, not an
   appointment one.
 - **The countries split on the demographic transition, while migration keeps the split from
-  becoming a population target.** Costona stays poor and young enough to reach 2.63× its 1946
-  population with 16.2 % unemployed. Richer Veltravia and Oranga complete more of the fertility
+  becoming a population target.** Costona stays poor and young enough to reach 2.73× its 1946
+  population with 16.7 % unemployed. Richer Veltravia and Oranga complete more of the fertility
   transition, but their relative performance attracts young adults, so neither now shrinks.
   Both channels are systemic; neither country has an authored population path.
-- **Aggregate growth is partly demography and migration.** Costona's output is 11.64× by 2005
-  on 2.63× the people, which is 4.43× per head; Meridia reaches 14.62× aggregate output but
-  6.37× per head. Read the per-head column beside every aggregate
+- **Aggregate growth is partly demography and migration.** Costona's output is 9.20× by 2005
+  on 2.73× the people, which is 3.37× per head; Meridia reaches 13.14× aggregate output but
+  5.60× per head. Read the per-head column beside every aggregate
   (investigation 0007).
 - **These numbers are load-bearing evidence, not decoration.** An earlier revision of ADR-0021
   gated `livingStandard` on the scoring baseline, which left the whole interregnum at a constant
@@ -161,8 +164,9 @@ two measured reasons:
   quarters gave **zero NaN** and nine slow relative-price drifts past the tripwire, clustered
   around quarter 95 and later. A gate would reject ~2% of legal countries, and those are late
   drifts rather than broken economies.
-- Passive deposition does not track the curated difficulty labels at all — Veltravia is
-  `standard` and falls in 44% of passive centuries, Costona is `hard` and falls in none. A live
+- Passive deposition does not track the curated difficulty labels at all — before the floating
+  currency, Veltravia was `standard` and fell in 44% of passive centuries while Costona was `hard`
+  and fell in none; now every curated country but Kestrel survives a passive century. A live
   reference country says more and claims less than a derived stamp.
 
 The study's metric definitions are copied from `packages/runner` because `packages/ui` must not

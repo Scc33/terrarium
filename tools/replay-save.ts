@@ -208,7 +208,7 @@ export function planReplay(save: SaveFile, requestedTicks: number | null): Repla
  * It is not lenient about the thing under test: statutes are re-attempted
  * every year until the book actually reads the top rung, because an enactment
  * that a deposed or broke cabinet silently refused looks exactly like a
- * statute that does nothing (see the tuning lessons in AGENTS.md). */
+ * statute that does nothing (see docs/tuning-lessons.md). */
 export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
   const actions: Action[] = []
   const gdp = Math.max(state.flows.nominalGdp, 1e-9)

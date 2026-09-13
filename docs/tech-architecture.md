@@ -40,7 +40,7 @@ terrarium/
 │   │   │   ├── pipeline/         # one file per step, in TICK_ORDER (§4)
 │   │   │   │   ├── pipeline.ts   # the ordered fold; TICK_ORDER lives here
 │   │   │   │   ├── shocks.ts demography.ts technology.ts world.ts finance.ts
-│   │   │   │   ├── foreignInvestment.ts production.ts trade.ts fiscal.ts
+│   │   │   │   ├── foreignInvestment.ts production.ts environment.ts trade.ts fiscal.ts
 │   │   │   │   ├── monetary.ts prices.ts
 │   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
 │   │   │   │   └── derive.ts     # pure read-models over state (no step owns them)
@@ -189,8 +189,9 @@ interface TrueState {
 }
 ```
 
-Id lists in `schema.ts` are the single source of truth and are exported as `const` tuples, so
-downstream tables typed as total `Record<Id, …>` **fail the build** until a new id is handled:
+Id lists are exported as `const` tuples — in `state/` (mostly `schema.ts`; the labour survey's
+in `state/labour.ts`) and, for the wire, in `events/ids.ts` — so downstream tables typed as total
+`Record<Id, …>` **fail the build** until a new id is handled:
 
 `SECTOR_IDS` · `COHORT_IDS` · `CAPACITY_IDS` (tax, statistical, administrative, education) ·
 `INDICATOR_IDS` · `INDUSTRY_TABLE_IDS` · `LABOUR_CLASS_IDS` · `REVENUE_SOURCE_IDS` · `OUTLAY_IDS` ·
@@ -294,15 +295,16 @@ introduced it:
 | 5 | `finance` | credit, asset prices, banking crises — the fragility clock |
 | 6 | `foreignInvestment` | attracts inward productive capital; prices foreign ownership |
 | 7 | `production` | output given prices, capital, labor, I/O table |
-| 8 | `trade` | books the balance of payments; the FX market clears it at a price |
-| 9 | `fiscal` | capacity-gated collection; spending with leakage; every balance leaves with a destination |
-| 10 | `monetary` | expectations adapt; printing feeds them |
-| 11 | `prices` | tâtonnement with cost anchor |
-| 12 | `labor` | employment, wages, capital and foreign-owned stock accumulation |
-| 13 | `cohorts` | domestic incomes, savings, approval drifts toward experienced truth |
-| 14 | `institutions` | societal power, veto players, and revolutionary pressure |
-| 15 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
-| 16 | `politics` | PC accrual from PUBLISHED numbers, elections, revolt, and coup |
+| 8 | `environment` | emissions from that output; the burden damages elsewhere, through mortality and drought (ADR-0028) |
+| 9 | `trade` | books the balance of payments; the FX market clears it at a price |
+| 10 | `fiscal` | capacity-gated collection; spending with leakage; every balance leaves with a destination |
+| 11 | `monetary` | expectations adapt; printing feeds them |
+| 12 | `prices` | tâtonnement with cost anchor |
+| 13 | `labor` | employment, wages, capital and foreign-owned stock accumulation |
+| 14 | `cohorts` | domestic incomes, savings, approval drifts toward experienced truth |
+| 15 | `institutions` | societal power, veto players, and revolutionary pressure |
+| 16 | `statistics` | the office measures, publishes, revises — **the fog is made here** |
+| 17 | `politics` | PC accrual from PUBLISHED numbers, elections, revolt, and coup |
 
 **Rules:**
 
@@ -531,9 +533,8 @@ cabinet and overlay states and checks the tablet and smaller-laptop layouts. Run
 
 ### 7.5 Coverage
 
-`pnpm coverage` enforces an **80% floor** over the pure core (`engine` + `observation`) —
-currently ~99% statements. It is a floor to prevent regression; raise it, never lower it to
-green a build. The UI is deliberately excluded: it's verified in the browser, not here.
+`pnpm coverage` enforces an **80% floor** over the pure core (`engine` + `observation`). It is
+a floor to prevent regression; raise it, never lower it to green a build. The UI is deliberately excluded: it's verified in the browser, not here.
 
 ---
 
@@ -616,6 +617,6 @@ green a build. The UI is deliberately excluded: it's verified in the browser, no
   them. Evidence, not decisions.
 - GitHub issues — proposed features and prioritizable future work.
 - `docs/archive/` — superseded documents, kept for provenance. Do not cite them as current.
-- `AGENTS.md` — the operating notes: hard rules, workflows, and hard-won tuning lessons.
-- The `terrarium-ui` and `verify-the-wall` skills — the implementation and browser-verification
-  procedures for `packages/ui` work.
+- `tuning-lessons.md` — calibration knowledge: the failure each constant's value prevents.
+- `AGENTS.md` (root, `packages/engine/`, `packages/ui/`) — the always-true rules for agents, and
+  `.agents/skills/` — the procedures. Each `CLAUDE.md` is an import of the `AGENTS.md` beside it.

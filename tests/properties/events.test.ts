@@ -5,7 +5,7 @@
  * as a thing a player reads, which is a different subject with different
  * failure modes:
  *
- *  • **dead copy.** An event nothing can raise is not content. AGENTS.md's
+ *  • **dead copy.** An event nothing can raise is not content. The tuning lessons'
  *    rule — a mechanic you cannot reach is not a mechanic — applies to a
  *    dispatch exactly as it applies to a threshold, and two of the original
  *    condition thresholds were dead on arrival at numbers that looked
