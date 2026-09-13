@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import { createNodeResolver, importX } from 'eslint-plugin-import-x'
 import { defineConfig, globalIgnores } from 'eslint/config'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -11,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 // `.mts` beside it, and a file no block matches is not linted at all — so
 // the engine gate below would simply not run on one.
 const TS = '**/*.{ts,tsx,mts,cts}'
+const UI_CODE = 'packages/ui/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'
 
 const NO_IO = 'engine depends on nothing and reads no environment (§1.1) — relative imports only.'
 
@@ -220,6 +222,36 @@ export default defineConfig([
     },
   },
   {
+    // No value-level import cycles (ADR-0042). Type-only edges are skipped by
+    // the rule itself. Every setting here is load-bearing: the plugin's
+    // defaults are JavaScript's, and with any one missing the rule does not
+    // fail, it stops looking — each was proved by removing it against a
+    // planted cycle. Known upstream bug: `export type { X } from './y'` is
+    // read as a value edge (the export map checks `importKind`; the AST says
+    // `exportKind`), so a type re-export on a cycle must be a bare
+    // `export type { X }` beside an `import type`.
+    files: [TS],
+    plugins: { 'import-x': importX },
+    settings: {
+      // the export map refuses any extension it has not been told about
+      'import-x/extensions': ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs'],
+      // `ignoreExternal` calls anything outside the LINTED file's package
+      // external — which @terrarium/engine is, seen from packages/ui, once
+      // the pnpm symlink is realpathed. This is consulted first.
+      'import-x/internal-regex': '^@terrarium/',
+      // the resolver's extension list is also JavaScript's; the workspace
+      // aliases go through each package's `exports`, symlinks followed, so
+      // both spellings of a module land on the one path the walk compares
+      'import-x/resolver-next': [
+        createNodeResolver({ extensions: ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs', '.json'] }),
+      ],
+    },
+    rules: {
+      // `ignoreExternal` keeps the walk out of node_modules
+      'import-x/no-cycle': ['error', { ignoreExternal: true }],
+    },
+  },
+  {
     // engine is pure: no DOM, no React, no other packages, no I/O (§1.1)
     files: [`packages/engine/${TS}`],
     plugins: { boundary: { rules: { 'imports-stay-within': importsStayWithin } } },
@@ -379,6 +411,38 @@ export default defineConfig([
               message: 'Only packages/ui/src/worker may run the engine (ADR-0004).',
             },
           ],
+        },
+      ],
+    },
+  },
+  {
+    // `import.meta.env.DEV` follows ambient NODE_ENV, so even `vite build`
+    // can include dev-only UI code. Vite's command-based define is the safe
+    // gate for code that must disappear from every shipped bundle (ADR-0010).
+    files: [UI_CODE],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[property.name='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        {
+          selector: "MemberExpression[computed=true][property.value='DEV'][object.property.name='env'][object.object.meta.name='import'][object.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of import.meta.env.DEV (ADR-0010).',
+        },
+        // `const { DEV } = import.meta.env` reads the same ambient flag
+        // through destructuring, invisible to the MemberExpression selectors
+        // above. Aliasing the whole object (`const env = import.meta.env`)
+        // is banned too, since a later `env.DEV` off that alias is equally
+        // invisible and unbounded to chase through reference tracking.
+        {
+          selector: "VariableDeclarator[init.property.name='env'][init.object.meta.name='import'][init.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
+        },
+        {
+          selector: "AssignmentExpression[right.property.name='env'][right.object.meta.name='import'][right.object.property.name='meta']",
+          message: 'Use __DEV_TOOLS__ instead of destructuring or aliasing import.meta.env (ADR-0010).',
         },
       ],
     },
