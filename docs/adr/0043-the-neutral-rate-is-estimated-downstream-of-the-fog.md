@@ -22,7 +22,9 @@ and the drivers — produced by `ui/src/monetaryStance.ts` from `PublishedState`
   desk runs it on the prints. The desk's inputs are: the office's inflation prints filtered
   through that rule from the 1946 prior, the published debt ratio, the treasury's exact bond
   issue, printing and `domesticBondShare`, the latest official output level, the whip count's
-  exact reading of the money interest, and the dials.
+  exact reading of the money interest, and the dials. An exact figure is read against its own
+  quarter's release, never a carried-forward one: the auction priced is the latest quarter the
+  office has put a level on, and printing in a quarter not yet priced waits for its level.
 - **The range is the office's confessed error band, propagated, and nothing else.** Every print
   still carrying weight in the filter — its last sixteen quarters — has to carry a band before
   the desk stands behind a range. Below the band gate the office confesses nothing; for sixteen

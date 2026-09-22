@@ -95,8 +95,11 @@ export interface FundingEstimate {
   /** the whole spread the desk expects the state's own borrowing to add to
    * private funding costs, a fraction */
   value: number
-  /** the flow term: last quarter's auction against official output */
+  /** the flow term: the bond issue of the latest quarter the office has put a
+   * level on, against that level */
   auction: number
+  /** the quarter that auction and level are both for */
+  auctionQtr: number
   /** the stock term: the private share of the sovereign premium */
   premium: number
   /** the spread at the low and high ends of the debt ratio's confessed band */
@@ -146,9 +149,12 @@ const latestPrints = (pub: PublishedState, id: 'inflation' | 'debt_to_gdp'): Sha
  * the office's latest level for the nearest quarter at or before it that it
  * has priced. A quarter with no print carries the estimate forward unadapted —
  * the desk did not see that quarter, and pretending it did would draw
- * certainty through a period the state never measured. Printing is applied
- * for every booked quarter, priced or not, because the treasury knows what it
- * printed whether or not the office has yet said what it did to prices.
+ * certainty through a period the state never measured. Printing enters only
+ * for a quarter the office has put a level on: the treasury knows what it
+ * printed, but dividing it by a level carried forward from an earlier quarter
+ * would invent pressure out of whatever output did in between, so a quarter
+ * not yet priced is dropped, and the filter — re-run from the record every
+ * quarter — picks it up when its level arrives.
  *
  * The band is the root-sum-square of the prints' bands through the same
  * weights. Each print's error is its own independent draw — that is how the
@@ -167,17 +173,15 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
 
   let value = INIT_INFLATION_EXPECTATIONS
   let bandSq = 0
-  let denominator: number | null = null
   // The recurrence is indexed the engine's way: the step at quarter t reads
   // the inflation of t − 1 and the printing of t itself. Nothing was booked
   // before the posting, so the step at the posting reads that quarter as zero
   // inflation — the same convention the public's own expectations start from.
   // A quarter the office never priced adapts toward the estimate itself,
-  // which is to say not at all; printing with no denominator on the desk is
-  // fed through as nothing rather than divided by a guess.
+  // which is to say not at all; printing in a quarter with no level of its
+  // own is fed through as nothing rather than divided by another quarter's.
   for (let t = 0; t < pub.tick; t++) {
     const level = official.get(t)
-    if (level !== undefined) denominator = level
     const print = t === 0 ? { value: 0, errorBand: 0 } : priced.get(t - 1)
     if (print) {
       const keep = 1 - EXPECTATION_ADAPT
@@ -186,8 +190,8 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
     value = adaptExpectations(
       value,
       print ? print.value / 100 : value,
-      denominator === null ? 0 : (printing.get(t) ?? 0),
-      denominator ?? 1,
+      level === undefined ? 0 : (printing.get(t) ?? 0),
+      level ?? 1,
     )
   }
 
@@ -200,30 +204,36 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
 
 /**
  * The state's own claim on private funding, priced from the desk's side of
- * the counter: last quarter's bond issue (exact) over the latest official
- * output level, the share of it domestic balance sheets carry (the debt office
- * knows its buyers), and the sovereign premium run on the office's published
- * debt ratio and the whip count's exact reading of the money interest.
+ * the counter: the bond issue (exact) of the latest quarter the office has put
+ * a level on, over that level; the share of it domestic balance sheets carry
+ * (the debt office knows its buyers); and the sovereign premium run on the
+ * office's published debt ratio and the whip count's exact reading of the
+ * money interest. The auction is a share, and a share is taken against its
+ * own release's total — the treasury has newer auctions than the office has
+ * levels, and pairing this quarter's issue with an older quarter's output
+ * would move the spread with whatever output did in between.
  */
 export function fundingFromBooks(pub: PublishedState): FundingEstimate | null {
   const ratios = latestPrints(pub, 'debt_to_gdp')
   const output = latestOfficialNominalGdp(pub)
-  if (ratios.length === 0 || output === null) return null
+  const auction = output === null ? undefined : pub.books.find((b) => b.tick === output.forQtr)
+  if (ratios.length === 0 || output === null || auction === undefined) return null
   const latest = ratios[ratios.length - 1]
   const ratio = latest.value / 100
   const band = latest.errorBand / 100
   const financiers = pub.blocs.find((b) => b.id === 'financiers')
   const anger = financiers ? Math.max(0, -financiers.favor) * financiers.effectivePower : 0
-  const auctionShare = Math.max(0, pub.treasury.bondsIssued) / output.value
+  const auctionShare = Math.max(0, auction.bondsIssued) / output.value
   const domestic = pub.treasury.domesticBondShare
   const spreadAt = (debtToGdp: number) =>
     privateFundingSpreadOf(auctionShare, domestic, sovereignRiskPremiumOf(Math.max(0, debtToGdp), anger))
   const value = spreadAt(ratio)
-  const auction = privateFundingSpreadOf(auctionShare, domestic, 0)
+  const flow = privateFundingSpreadOf(auctionShare, domestic, 0)
   return {
     value,
-    auction,
-    premium: value - auction,
+    auction: flow,
+    auctionQtr: output.forQtr,
+    premium: value - flow,
     low: spreadAt(ratio - band),
     high: spreadAt(ratio + band),
     debtRatioQtr: latest.forQtr,

@@ -57,7 +57,7 @@ function Estimate({ stance }: { stance: MonetaryStance }) {
         />
         <Driver
           label="Sovereign funding"
-          content={`What the state's own borrowing adds to private funding costs, so it LOWERS neutral: last quarter's bond issue against official output (${points(-funding.auction).toLowerCase()}) and the private share of the sovereign premium the office's debt ratio for ${qtrLabel(funding.debtRatioQtr)} implies (${points(-funding.premium).toLowerCase()}).`}
+          content={`What the state's own borrowing adds to private funding costs, so it LOWERS neutral: the ${qtrLabel(funding.auctionQtr)} bond issue against the office's output level for the same quarter (${points(-funding.auction).toLowerCase()}), and the private share of the sovereign premium the office's debt ratio for ${qtrLabel(funding.debtRatioQtr)} implies (${points(-funding.premium).toLowerCase()}).`}
           value={-funding.value}
         />
         <Driver

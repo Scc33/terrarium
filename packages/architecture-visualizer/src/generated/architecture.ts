@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "7ae490e",
+  "revision": "a52a47c",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 51,
-      "lines": 16577
+      "lines": 16583
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 19995
+      "lines": 20005
     }
   ],
   "modules": [
@@ -4707,66 +4707,67 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "The state's claim on private funding, and the one rate it moves.",
-      "lines": 132,
+      "lines": 138,
       "exports": [
         {
           "name": "sovereignRiskPremiumOf",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 39
+          "line": 40
         },
         {
           "name": "sovereignRiskPremium",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 46
+          "line": 47
         },
         {
           "name": "bondIssuanceShare",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 53
+          "line": 61
         },
         {
           "name": "privateFundingSpreadOf",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 61
+          "line": 67
         },
         {
           "name": "privateFundingSpread",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 76
+          "line": 82
         },
         {
           "name": "privateRealRateOf",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 85
+          "line": 91
         },
         {
           "name": "neutralPolicyRateOf",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 103
+          "line": 109
         },
         {
           "name": "privateRealRate",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 117
+          "line": 123
         },
         {
           "name": "assetPurchaseRateEquivalent",
           "kind": "function",
           "path": "packages/engine/src/pipeline/funding.ts",
-          "line": 129
+          "line": 135
         }
       ],
       "imports": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/accounts.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
@@ -5596,6 +5597,7 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/statistics.ts"
       ],
       "path": "packages/engine/src/state/accounts.ts",
@@ -10442,7 +10444,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The central-bank desk's reading of its own stance — below, near or above the neutral rate, and a range for where neutral is (ADR-0043).",
-      "lines": 288,
+      "lines": 298,
       "exports": [
         {
           "name": "StanceReading",
@@ -10484,25 +10486,25 @@ export const architecture = {
           "name": "MonetaryStance",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 109
+          "line": 112
         },
         {
           "name": "expectationsFromPrints",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 160
+          "line": 166
         },
         {
           "name": "fundingFromBooks",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 208
+          "line": 216
         },
         {
           "name": "monetaryStance",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 240
+          "line": 250
         }
       ],
       "imports": [
@@ -13554,6 +13556,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/funding.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/funding.ts",
+      "target": "packages/engine/src/state/accounts.ts",
       "typeOnly": false
     },
     {

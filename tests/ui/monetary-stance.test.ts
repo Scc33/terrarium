@@ -41,6 +41,7 @@ import {
   monetaryStance,
   type MonetaryStance,
 } from '../../packages/ui/src/monetaryStance'
+import { latestOfficialNominalGdp, officialNominalGdpByQuarter } from '../../packages/ui/src/spendingRules'
 
 const trueNeutral = (s: TrueState) => s.gov.dials.policyRate - (privateRealRate(s) - NATURAL_REAL_RATE)
 const sideOf = (gap: number) =>
@@ -274,6 +275,49 @@ describe('the arithmetic', () => {
     expect(stance.expectations.throughQtr + 1).toBeLessThan(EXPECTATIONS_MEMORY_QTRS)
     expect(stance.expectations.bandedRun).toBe(stance.expectations.throughQtr + 1)
     expect(stance.confidence).toBe('fair')
+  })
+})
+
+describe('every exact figure is read against its own quarter’s release', () => {
+  const pub = (() => {
+    let state = init(standardCountry, 'stance-own-quarter')
+    for (let t = 0; t < 30; t++) state = step(state)
+    return observe(state)
+  })()
+  const priced = latestOfficialNominalGdp(pub)!
+
+  it('the auction is the priced quarter’s bond issue over its own level, not the newest auction', () => {
+    // the treasury books an auction every quarter; the office prices output a
+    // quarter or two behind. The desk waits for the level rather than divide
+    // this quarter's issue by last quarter's output.
+    const stance = monetaryStance(pub)!
+    expect(stance.funding.auctionQtr).toBe(priced.forQtr)
+    expect(priced.forQtr).toBeLessThan(pub.tick - 1)
+    // the newest, unpriced auction moves nothing…
+    const newest = monetaryStance({ ...pub, treasury: { ...pub.treasury, bondsIssued: pub.treasury.bondsIssued + 5 } })!
+    expect(newest.funding).toEqual(stance.funding)
+    // …and the priced quarter's own auction moves the flow term alone
+    const books = pub.books.map((b) => (b.tick === priced.forQtr ? { ...b, bondsIssued: b.bondsIssued + priced.value * 0.02 } : b))
+    const bigger = monetaryStance({ ...pub, books })!
+    expect(bigger.funding.auction).toBeGreaterThan(stance.funding.auction)
+    expect(bigger.funding.premium).toBeCloseTo(stance.funding.premium, 12)
+  })
+
+  it('printing in a quarter the office has not yet priced is deferred, not divided by an older level', () => {
+    const unpriced = pub.tick - 1
+    expect(officialNominalGdpByQuarter(pub).has(unpriced)).toBe(false)
+    const printedNow = {
+      ...pub,
+      books: pub.books.map((b) => (b.tick === unpriced ? { ...b, deficitPrinting: b.deficitPrinting + priced.value * 0.05 } : b)),
+    }
+    expect(expectationsFromPrints(printedNow)!.value).toBe(expectationsFromPrints(pub)!.value)
+    // once the office puts a level on that quarter, the same printing counts
+    const level: StatPrint = { forQtr: unpriced, publishedAt: pub.tick, value: 0, revision: 0, errorBand: 0, levels: { real: priced.value, nominal: priced.value } }
+    const withLevel = (p: PublishedState): PublishedState => ({
+      ...p,
+      indicators: { ...p.indicators, gdp_growth: { ...p.indicators.gdp_growth!, points: [...p.indicators.gdp_growth!.points, level] } },
+    })
+    expect(expectationsFromPrints(withLevel(printedNow))!.value).toBeGreaterThan(expectationsFromPrints(withLevel(pub))!.value)
   })
 })
 
