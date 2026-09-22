@@ -51,8 +51,8 @@ import {
   effectiveConsumptionWeights,
   effectivePrice,
   potentialOutput,
-  privateRealRate,
 } from './derive'
+import { privateRealRate } from './funding'
 
 export const production: PipelineStep = {
   name: 'production',

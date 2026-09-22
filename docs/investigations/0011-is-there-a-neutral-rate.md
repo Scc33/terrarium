@@ -1,8 +1,9 @@
 # 0011 — Is there a neutral rate?
 
-**Status:** Resolved as a state-dependent rate channel, not a fixed growth target; a
-player-facing estimate is tracked by [issue #135](https://github.com/Scc33/terrarium/issues/135),
-while bond maturities and the yield curve remain [issue #31](https://github.com/Scc33/terrarium/issues/31)
+**Status:** Resolved as a state-dependent rate channel, not a fixed growth target. The
+player-facing estimate raised as [issue #135](https://github.com/Scc33/terrarium/issues/135)
+shipped as the central-bank drawer's stance briefing ([ADR-0043](../adr/0043-the-neutral-rate-is-estimated-downstream-of-the-fog.md));
+bond maturities and the yield curve remain [issue #31](https://github.com/Scc33/terrarium/issues/31)
 
 **Raised by:** [issue #126](https://github.com/Scc33/terrarium/issues/126), asking whether a
 central-bank setting can be neither accelerating nor slowing growth, and whether the absent yield
@@ -55,9 +56,9 @@ So the useful answer is:
 - **in the calm late game:** about 2% nominal in the median current calibration;
 - **in any particular quarter:** use the formula, not one permanent number.
 
-That exact formula is engine truth. The player cannot currently calculate it because neither
-adaptive inflation expectations nor the private funding spread is published. Issue #135 tracks a
-fog-respecting central-bank estimate rather than exposing those true fields.
+That exact formula is engine truth. The player cannot calculate it because neither adaptive
+inflation expectations nor the private funding spread is published. ADR-0043 answers #135 with a
+central-bank estimate run downstream of the fog rather than by exposing those true fields.
 
 ## What the engine calls neutral
 
@@ -186,9 +187,9 @@ No engine bug was found, so this investigation does not change behavior and need
 - The extreme 10% nonlinearity is accompanied by the documented current-yield debt-service and
   coupon channel, not a stuck dial or a second contradictory private rate.
 
-The product gap is legibility. An exact neutral-rate instrument would violate the fog boundary,
-because its inputs are engine truth. Issue #135 should instead make the central bank estimate a
-range or stance from released inflation and government-known funding evidence, and should say
-plainly that “near neutral” describes the direct monetary impulse rather than promising steady
-GDP growth. Issue #31 remains the place to decide whether investment and debt service should read
-different maturities at all.
+The product gap was legibility. An exact neutral-rate instrument would violate the fog boundary,
+because its inputs are engine truth. ADR-0043 instead has the central-bank desk estimate a range
+and a stance from released inflation and government-known funding evidence, and the briefing
+says plainly that “near neutral” describes the direct monetary impulse rather than promising
+steady GDP growth. Issue #31 remains the place to decide whether investment and debt service
+should read different maturities at all.

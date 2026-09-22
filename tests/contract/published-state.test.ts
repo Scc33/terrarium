@@ -76,6 +76,10 @@ describe('the published-state contract (§1.1)', () => {
     ]
     for (const key of required) expect(pub[key], `missing ${key}`).not.toBeUndefined()
     expect(typeof pub.country).toBe('string')
+    // the debt office's one structural fact (ADR-0043): a share, never the
+    // openness parameter it is derived from
+    expect(pub.treasury.domesticBondShare).toBeGreaterThan(0)
+    expect(pub.treasury.domesticBondShare).toBeLessThanOrEqual(1)
     expect(pub.population.pyramid.length).toBeGreaterThan(0)
     expect(Array.isArray(pub.news)).toBe(true)
   })
