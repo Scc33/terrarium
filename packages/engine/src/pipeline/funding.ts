@@ -27,6 +27,7 @@ import {
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   domesticBondFundingShare,
 } from '../constants'
+import { treasuryFinancing } from '../state/accounts'
 import type { TrueState } from '../state/schema'
 import { financierAnger } from './derive'
 
@@ -49,11 +50,16 @@ export function sovereignRiskPremium(state: TrueState): number {
 }
 
 /** Bonds sold in the most recently booked quarter, as a share of that
- * quarter's GDP. The fiscal identity is deficit = bonds + printing. */
+ * quarter's GDP — the treasury's own `bondsIssued`, so the auction that
+ * crowds private funding is the auction the books record. The financing
+ * identity is deficit = fund draw + bonds + printing (ADR-0037), and a deficit
+ * met from the sovereign fund sells no bonds. Until this read the books, it
+ * took the whole deficit less printing and priced a fund draw as a phantom
+ * auction: unreachable under passive or developmental play, which never run
+ * a deficit while holding a fund, but 3.8 % of random-policy quarters, at a
+ * median 1.7 % of quarterly GDP. */
 export function bondIssuanceShare(state: TrueState): number {
-  const deficit = Math.max(0, -state.gov.budget.balance)
-  const bonds = Math.max(0, deficit - state.flows.printedThisQtr)
-  return bonds / Math.max(state.flows.nominalGdp, 1e-9)
+  return treasuryFinancing(state).bondsIssued / Math.max(state.flows.nominalGdp, 1e-9)
 }
 
 /** The spread on scalars: the auction as a share of quarterly GDP, the share

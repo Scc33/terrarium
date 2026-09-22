@@ -131,6 +131,26 @@ describe('sovereign funding pressure', () => {
     expect(privateFundingSpread(moneyFunded)).toBe(0)
   })
 
+  it('a deficit met from the sovereign fund sells no bonds and crowds nothing', () => {
+    // ADR-0037: the fund is spent before the treasury borrows again, so the
+    // financing identity is deficit = fund draw + bonds + printing. The
+    // crowding term reads the books' own bond issue; before it did, a fund
+    // draw was priced as a phantom auction the size of the deficit.
+    const drawn = fundedState({ bondIssuance: 0.04 })
+    const fundFinanced: TrueState = {
+      ...drawn,
+      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance },
+    }
+    expect(bondIssuanceShare(fundFinanced)).toBe(0)
+    expect(privateFundingSpread(fundFinanced)).toBe(0)
+    // …and a draw that covers half the deficit leaves half an auction
+    const half: TrueState = {
+      ...drawn,
+      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance / 2 },
+    }
+    expect(bondIssuanceShare(half)).toBeCloseTo(0.02, 12)
+  })
+
   it('openness lets foreign balance sheets absorb more of the auction', () => {
     const closed = fundedState({ bondIssuance: 0.04, openness: 0.25 })
     const open = fundedState({ bondIssuance: 0.04, openness: 2 })
