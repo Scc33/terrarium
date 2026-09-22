@@ -86,7 +86,7 @@ export const cohorts: PipelineStep = {
       let grossWage = 0
       let employed = 0
       for (const s of state.sectors) {
-        const workers = posts[s.id][c.id] ?? 0
+        const workers = posts[s.id][c.id]
         if (workers > 0) {
           employedIn[s.id] = workers
           employed += workers

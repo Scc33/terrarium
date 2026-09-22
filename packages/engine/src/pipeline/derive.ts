@@ -224,7 +224,7 @@ export function laborForce(state: TrueState): Record<CohortId, number> {
 }
 
 export function totalLaborForce(state: TrueState): number {
-  return COHORT_IDS.reduce((s, id) => s + (laborForce(state)[id] ?? 0), 0)
+  return COHORT_IDS.reduce((s, id) => s + laborForce(state)[id], 0)
 }
 
 /**
