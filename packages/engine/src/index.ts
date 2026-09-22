@@ -397,8 +397,8 @@ export { OUTLETS, PRESS_ERAS, PRESS_ERA_IDS, eraAtTick, eraAtYear, eraOrdinal } 
 export type { PressEra, PressEraId } from './events/eras'
 export { EVENT_CATALOGUE } from './events/catalogue'
 export type { Dispatch, EventDef } from './events/catalogue'
-export { CONDITION_RULES, cooldownFor, medianAge, reportBudget } from './events/conditions'
-export type { ConditionRule, EventContext, RuleClass } from './events/conditions'
+export { cooldownFor, reportBudget } from './events/conditions'
+export { CONDITION_RULES, medianAge, type ConditionRule, type EventContext, type RuleClass } from './events/rules'
 export { dispatchesFor, fileDispatch, outletFor } from './events/file'
 export { AGE_BANDS, PARTNER_IDS, RETIREMENT_BAND, WORKING_BANDS } from './state/schema'
 export type {

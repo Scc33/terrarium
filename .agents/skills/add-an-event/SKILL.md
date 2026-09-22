@@ -20,8 +20,8 @@ news.push(fileDispatch(state, 'drought_onset'))
 ```
 
 **A condition report is a reading of the country.** Nothing "happens" when unemployment has
-been high for two years — somebody has to look. Declared in `CONDITION_RULES`, budgeted and
-cooled by the desk in `events/conditions.ts`.
+been high for two years — somebody has to look. Declared in `CONDITION_RULES` in
+`events/rules.ts`, then budgeted and cooled by the desk in `events/conditions.ts`.
 
 ```ts
 { event: 'factory_gates_idle', cls: 'report', salience: 7, when: (c) => c.now.unemployment > 0.13 }
