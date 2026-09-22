@@ -504,6 +504,36 @@ test('central bank exposes conventional, QE, macroprudential and currency contro
   await expect(page).toHaveScreenshot('central-bank-controls.png')
 })
 
+test('central bank briefs the desk on its stance from the prints, and says when it cannot', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  const briefing = page.getByRole('region', { name: 'Monetary stance briefing' })
+  // at the posting nothing has been released, and the desk says so rather
+  // than reading a stance off nothing (ADR-0043)
+  await expect(briefing).toContainText('NO BRIEFING')
+  await expect(briefing).toContainText('cannot place neutral yet')
+  // a well-funded office confesses bands, so the desk can stand behind a range
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+  for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'ADVANCE QUARTER' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  await expect(briefing).toContainText(/(BELOW|NEAR|ABOVE) NEUTRAL/)
+  await expect(briefing).toContainText('The desk puts neutral between')
+  await expect(briefing).toContainText('FAIR CONFIDENCE')
+  for (const driver of ['Real-rate anchor', 'Expected inflation', 'Sovereign funding', 'Asset purchases']) {
+    await expect(briefing.getByRole('button', { name: `Explain ${driver}` })).toBeVisible()
+  }
+  // the briefing sits above the sliders inside the scrolling drawer, and the
+  // rail it lives in still fits the screen it was pinned against
+  const cabinet = page.getByRole('complementary', { name: 'Cabinet controls' })
+  const box = await cabinet.boundingBox()
+  expect(box!.y + box!.height).toBeLessThanOrEqual(720 + 1)
+  expect(await page.evaluate('document.documentElement.scrollHeight > innerHeight + 1')).toBe(false)
+  await expect(page).toHaveScreenshot('central-bank-stance.png')
+})
+
 test('migration desk exposes the annual immigration ceiling', async ({ page }) => {
   await openGame(page)
   await page.getByRole('tab', { name: 'BORDERS 1 CONTROL' }).click()

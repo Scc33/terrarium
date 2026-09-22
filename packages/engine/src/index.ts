@@ -278,10 +278,6 @@ export {
   effectiveConsumptionWeights,
   effectivePrice,
   financierAnger,
-  sovereignRiskPremium,
-  bondIssuanceShare,
-  privateFundingSpread,
-  privateRealRate,
   periodLifeExpectancy,
   eliteCapture,
   eliteHostility,
@@ -302,6 +298,8 @@ export {
 } from './pipeline/derive'
 export { labourMarket, type LabourMarketReading } from './pipeline/labourMarket'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
+export { assetPurchaseRateEquivalent, bondIssuanceShare, domesticBondFundingShare, neutralPolicyRateOf, privateFundingSpread, privateFundingSpreadOf, privateRealRate, privateRealRateOf, sovereignRiskPremium, sovereignRiskPremiumOf } from './pipeline/funding'
+export { adaptExpectations, clampExpectations } from './pipeline/monetary'
 export { migrationFlow, professionalCeiling, vitalRates } from './pipeline/demography'
 export { droughtHazardMultiplier } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'
@@ -328,6 +326,8 @@ export {
   // what the fund is paying the treasury without a second copy of the rate.
   FUND_YIELD,
   NATURAL_REAL_RATE,
+  EXPECTATION_ADAPT,
+  INIT_INFLATION_EXPECTATIONS,
   // the household basket's own tables (ADR-0030). Exported so the mechanism
   // test can assert the inert-when-off identity against the CONSTANTS rather
   // than against a snapshot of them.
