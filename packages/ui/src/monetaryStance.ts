@@ -82,7 +82,10 @@ export interface ExpectationsEstimate {
   value: number
   /** half-width, a fraction; 0 when the office confessed no band */
   band: number
-  /** the latest quarter the office has priced — the reading is "through" it */
+  /** the latest priced quarter the recurrence has consumed — the reading is
+   * "through" it. Under a one-quarter lag the office's newest print is on the
+   * desk but has not yet moved the public's expectations, so it is not in the
+   * estimate either, and it is not counted toward the runs below. */
   throughQtr: number
   /** consecutive priced quarters ending at `throughQtr` */
   run: number
@@ -169,10 +172,10 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
   const priced = new Map(prints.map((p) => [p.forQtr, p]))
   const official = officialNominalGdpByQuarter(pub)
   const printing = new Map(pub.books.map((b) => [b.tick, b.deficitPrinting]))
-  const throughQtr = prints[prints.length - 1].forQtr
 
   let value = INIT_INFLATION_EXPECTATIONS
   let bandSq = 0
+  let throughQtr: number | null = null
   // The recurrence is indexed the engine's way: the step at quarter t reads
   // the inflation of t − 1 and the printing of t itself. Nothing was booked
   // before the posting, so the step at the posting reads that quarter as zero
@@ -184,6 +187,7 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
     const level = official.get(t)
     const print = t === 0 ? { value: 0, errorBand: 0 } : priced.get(t - 1)
     if (print) {
+      if (t > 0) throughQtr = t - 1
       const keep = 1 - EXPECTATION_ADAPT
       bandSq = keep * keep * bandSq + EXPECTATION_ADAPT * EXPECTATION_ADAPT * (print.errorBand / 100) ** 2
     }
@@ -195,6 +199,8 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
     )
   }
 
+  // a release the public has not yet reacted to is not yet evidence
+  if (throughQtr === null) return null
   let run = 0
   while (priced.has(throughQtr - run)) run += 1
   let bandedRun = 0
@@ -243,9 +249,10 @@ export function fundingFromBooks(pub: PublishedState): FundingEstimate | null {
 /**
  * The briefing, or `null` when the desk has nothing to work from — no price
  * index has been published (the survey is unfunded, or the first release has
- * not arrived), or the debt return and the first output estimate are not yet
- * on the desk. Null, never a stance at zero: an "unavailable" that rendered
- * as "near neutral" would be the most confident thing on the rail.
+ * not arrived), no release has yet had a quarter to move expectations, or the
+ * debt return and the first output estimate are not yet on the desk. Null,
+ * never a stance at zero: an "unavailable" that rendered as "near neutral"
+ * would be the most confident thing on the rail.
  */
 export function monetaryStance(pub: PublishedState): MonetaryStance | null {
   const expectations = expectationsFromPrints(pub)

@@ -263,6 +263,40 @@ describe('the arithmetic', () => {
     expect(aged.expectations.band).toBeGreaterThan(0.9 * always.expectations.band)
   })
 
+  it('counts only the prints the recurrence has consumed, so a fast office is not one quarter early', () => {
+    // Under a one-quarter lag the newest print (for pub.tick − 1) is on the
+    // desk, but the public — and so the recurrence — has only reacted to
+    // inflation through pub.tick − 2. A run counted from the newest print
+    // would grant "fair" with fifteen banded prints consumed and the unbanded
+    // one before them still at an eighth of the weight.
+    const fast = { ...standardCountry, capacities: { ...standardCountry.capacities, statistical: 0.9 } }
+    let state = init(fast, 'stance-fast-lag')
+    for (let t = 0; t < 40; t++) state = step(state)
+    const pub = observe(state)
+    const newest = Math.max(...pub.indicators.inflation!.points.map((p) => p.forQtr))
+    expect(newest).toBe(pub.tick - 1)
+    const stance = monetaryStance(pub)!
+    expect(stance.expectations.throughQtr).toBe(pub.tick - 2)
+    // banding from the sixteenth-newest print: sixteen on the desk, fifteen
+    // consumed — low; one quarter later, sixteen consumed — fair
+    const bandedFrom = (first: number) => ({
+      ...pub,
+      indicators: {
+        ...pub.indicators,
+        inflation: {
+          ...pub.indicators.inflation!,
+          points: pub.indicators.inflation!.points.map((p) => ({ ...p, errorBand: p.forQtr >= first ? 2 : 0 })),
+        },
+      },
+    })
+    const early = monetaryStance(bandedFrom(newest - EXPECTATIONS_MEMORY_QTRS + 1))!
+    expect(early.expectations.bandedRun).toBe(EXPECTATIONS_MEMORY_QTRS - 1)
+    expect(early.confidence).toBe('low')
+    const consumed = monetaryStance(bandedFrom(newest - EXPECTATIONS_MEMORY_QTRS))!
+    expect(consumed.expectations.bandedRun).toBe(EXPECTATIONS_MEMORY_QTRS)
+    expect(consumed.confidence).toBe('fair')
+  })
+
   it('at the posting the memory is the whole record, so a young desk can stand behind a range', () => {
     // the quarters before 1946 are the exact prior, not unbanded prints; a
     // fully banded record of any length is a clean memory
@@ -378,8 +412,15 @@ describe('the recurrence is the public’s own', () => {
     let s = init(standardCountry, 'stance-exact')
     for (let t = 0; t < 60; t++) {
       s = step(s)
-      const desk = expectationsFromPrints(exactDesk(s))!
-      expect(desk.value).toBeCloseTo(s.ledger.inflationExpectations, 12)
+      const desk = expectationsFromPrints(exactDesk(s))
+      // after one tick the first print is on the desk but the public has
+      // not yet reacted to it, so there is nothing to estimate from
+      if (t === 0) {
+        expect(desk).toBeNull()
+        continue
+      }
+      expect(desk!.throughQtr).toBe(s.meta.tick - 2)
+      expect(desk!.value).toBeCloseTo(s.ledger.inflationExpectations, 12)
     }
   })
 
@@ -394,6 +435,7 @@ describe('the recurrence is the public’s own', () => {
     for (let t = 0; t < 40; t++) {
       s = step(s)
       printed += s.flows.printedThisQtr
+      if (t === 0) continue
       expect(expectationsFromPrints(exactDesk(s))!.value).toBeCloseTo(s.ledger.inflationExpectations, 12)
     }
     expect(printed).toBeGreaterThan(0)

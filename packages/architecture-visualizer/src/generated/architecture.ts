@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a52a47c",
+  "revision": "8b9ae18",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20005
+      "lines": 20012
     }
   ],
   "modules": [
@@ -10444,7 +10444,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The central-bank desk's reading of its own stance — below, near or above the neutral rate, and a range for where neutral is (ADR-0043).",
-      "lines": 298,
+      "lines": 305,
       "exports": [
         {
           "name": "StanceReading",
@@ -10480,31 +10480,31 @@ export const architecture = {
           "name": "FundingEstimate",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 94
+          "line": 97
         },
         {
           "name": "MonetaryStance",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 112
+          "line": 115
         },
         {
           "name": "expectationsFromPrints",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 166
+          "line": 169
         },
         {
           "name": "fundingFromBooks",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 216
+          "line": 222
         },
         {
           "name": "monetaryStance",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 250
+          "line": 257
         }
       ],
       "imports": [
