@@ -49,7 +49,8 @@ terrarium/
 │   │   │   │   ├── catalogue.ts  # every dispatch's copy, per press era. The only authored prose
 │   │   │   │   ├── eras.ts       # the century's six presses and their mastheads
 │   │   │   │   ├── file.ts       # an id → the NewsItem, drawn on obs:news:* substreams
-│   │   │   │   └── conditions.ts # the desk: what gets reported, budgeted and cooled
+│   │   │   │   ├── rules.ts      # declarative condition and milestone catalogue
+│   │   │   │   └── conditions.ts # desk machinery: budget, cooldown and filing
 │   │   │   ├── actions/          # Action union + apply/legality
 │   │   │   └── rng/rng.ts        # seeded PRNG + substream derivation (§6)
 │   │   └── package.json          # no dependencies, by rule

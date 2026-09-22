@@ -321,8 +321,8 @@ export default defineConfig([
       'packages/engine/src/interregnum.ts',
       'packages/engine/src/pipeline/indicatorSpecs.ts',
       'packages/engine/src/events/catalogue.ts',
-      'packages/engine/src/events/conditions.ts',
       'packages/engine/src/events/eras.ts',
+      'packages/engine/src/events/rules.ts',
       // xmur3/mulberry32: named, standard bit-mixing constants for a specific
       // published PRNG algorithm, not a tunable behavior of the simulation.
       'packages/engine/src/rng/rng.ts',
