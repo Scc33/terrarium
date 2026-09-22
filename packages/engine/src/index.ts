@@ -299,7 +299,7 @@ export {
 export { labourMarket, type LabourMarketReading } from './pipeline/labourMarket'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
 export { assetPurchaseRateEquivalent, bondIssuanceShare, domesticBondFundingShare, neutralPolicyRateOf, privateFundingSpread, privateFundingSpreadOf, privateRealRate, privateRealRateOf, sovereignRiskPremium, sovereignRiskPremiumOf } from './pipeline/funding'
-export { adaptExpectations } from './pipeline/monetary'
+export { adaptExpectations, clampExpectations } from './pipeline/monetary'
 export { migrationFlow, professionalCeiling, vitalRates } from './pipeline/demography'
 export { droughtHazardMultiplier } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'

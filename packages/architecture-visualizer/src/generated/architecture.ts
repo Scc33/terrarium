@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "8b9ae18",
+  "revision": "e5a7b00",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 51,
-      "lines": 16583
+      "lines": 16585
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20012
+      "lines": 20026
     }
   ],
   "modules": [
@@ -5063,7 +5063,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
-      "lines": 54,
+      "lines": 56,
       "exports": [
         {
           "name": "adaptExpectations",
@@ -5072,10 +5072,16 @@ export const architecture = {
           "line": 25
         },
         {
+          "name": "clampExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 37
+        },
+        {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 39
+          "line": 41
         }
       ],
       "imports": [
@@ -10444,67 +10450,67 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The central-bank desk's reading of its own stance — below, near or above the neutral rate, and a range for where neutral is (ADR-0043).",
-      "lines": 305,
+      "lines": 319,
       "exports": [
         {
           "name": "StanceReading",
           "kind": "type",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 54
+          "line": 55
         },
         {
           "name": "StanceConfidence",
           "kind": "type",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 55
+          "line": 56
         },
         {
           "name": "NEAR_NEUTRAL_TOLERANCE",
           "kind": "constant",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 65
+          "line": 66
         },
         {
           "name": "EXPECTATIONS_MEMORY_QTRS",
           "kind": "constant",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 78
+          "line": 79
         },
         {
           "name": "ExpectationsEstimate",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 80
+          "line": 81
         },
         {
           "name": "FundingEstimate",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 97
+          "line": 103
         },
         {
           "name": "MonetaryStance",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 115
+          "line": 121
         },
         {
           "name": "expectationsFromPrints",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 169
+          "line": 175
         },
         {
           "name": "fundingFromBooks",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 222
+          "line": 237
         },
         {
           "name": "monetaryStance",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 257
+          "line": 272
         }
       ],
       "imports": [
@@ -16911,14 +16917,20 @@ export const architecture = {
           "line": 25
         },
         {
+          "name": "clampExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 37
+        },
+        {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 39
+          "line": 41
         }
       ],
       "path": "packages/engine/src/pipeline/monetary.ts",
-      "line": 39
+      "line": 41
     },
     {
       "order": 12,

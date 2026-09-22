@@ -43,6 +43,7 @@ import {
   NATURAL_REAL_RATE,
   adaptExpectations,
   assetPurchaseRateEquivalent,
+  clampExpectations,
   neutralPolicyRateOf,
   privateFundingSpreadOf,
   sovereignRiskPremiumOf,
@@ -82,6 +83,11 @@ export interface ExpectationsEstimate {
   value: number
   /** half-width, a fraction; 0 when the office confessed no band */
   band: number
+  /** `value ± band`, cut to the rails the public's rule can reach at all —
+   * in the early deflation expectations sit on the engine's floor, and an
+   * interval reaching below it would include a reading the rule cannot give */
+  low: number
+  high: number
   /** the latest priced quarter the recurrence has consumed — the reading is
    * "through" it. Under a one-quarter lag the office's newest print is on the
    * desk but has not yet moved the public's expectations, so it is not in the
@@ -205,7 +211,16 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
   while (priced.has(throughQtr - run)) run += 1
   let bandedRun = 0
   while ((priced.get(throughQtr - bandedRun)?.errorBand ?? 0) > 0) bandedRun += 1
-  return { value, band: Math.sqrt(bandSq), throughQtr, run, bandedRun }
+  const band = Math.sqrt(bandSq)
+  return {
+    value,
+    band,
+    low: clampExpectations(value - band),
+    high: clampExpectations(value + band),
+    throughQtr,
+    run,
+    bandedRun,
+  }
 }
 
 /**
@@ -275,14 +290,13 @@ export function monetaryStance(pub: PublishedState): MonetaryStance | null {
   const memory = Math.min(EXPECTATIONS_MEMORY_QTRS, expectations.throughQtr + 1)
   const confidence: StanceConfidence =
     expectations.bandedRun >= memory && expectations.band > 0 ? 'fair' : 'low'
-  const band = confidence === 'fair' ? expectations.band : 0
   // a wider spread lowers neutral, so the low end pairs the low inflation
   // reading with the high spread, and the high end the reverse
   const low = confidence === 'fair'
-    ? neutralPolicyRateOf(expectations.value - band, funding.high, pub.dials.assetPurchaseRate)
+    ? neutralPolicyRateOf(expectations.low, funding.high, pub.dials.assetPurchaseRate)
     : neutral
   const high = confidence === 'fair'
-    ? neutralPolicyRateOf(expectations.value + band, funding.low, pub.dials.assetPurchaseRate)
+    ? neutralPolicyRateOf(expectations.high, funding.low, pub.dials.assetPurchaseRate)
     : neutral
 
   const reading: StanceReading =

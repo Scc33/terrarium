@@ -29,11 +29,13 @@ export function adaptExpectations(
   nominalGdp: number,
 ): number {
   const printPressure = PRINT_PRICE_PRESSURE * (printed / Math.max(nominalGdp, 1e-9))
-  return clamp(
-    previous + EXPECTATION_ADAPT * (realizedAnnual - previous) + printPressure,
-    INFLATION_EXPECTATIONS_MIN,
-    INFLATION_EXPECTATIONS_MAX,
-  )
+  return clampExpectations(previous + EXPECTATION_ADAPT * (realizedAnnual - previous) + printPressure)
+}
+
+/** The range the rule can produce at all. Exported so the desk's interval
+ * around its estimate is cut to the same rails the truth is (ADR-0043). */
+export function clampExpectations(annual: number): number {
+  return clamp(annual, INFLATION_EXPECTATIONS_MIN, INFLATION_EXPECTATIONS_MAX)
 }
 
 export const monetary: PipelineStep = {

@@ -23,6 +23,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyActions,
+  clampExpectations,
+  createCountryParams,
   init,
   NATURAL_REAL_RATE,
   privateFundingSpread,
@@ -32,6 +34,7 @@ import {
   type StatPrint,
   type TrueState,
 } from '@terrarium/engine'
+import { INFLATION_EXPECTATIONS_MIN } from '../../packages/engine/src/constants'
 import { observe, type IndicatorSeries, type PublishedState } from '@terrarium/observation'
 import { standardCountry } from '@terrarium/fixtures'
 import {
@@ -209,14 +212,42 @@ describe('the arithmetic', () => {
     }
     const stance = monetaryStance({ ...pub, indicators: { ...pub.indicators, inflation: banded } })!
     expect(stance.confidence).toBe('fair')
+    expect(stance.expectations.low).toBeCloseTo(stance.expectations.value - stance.expectations.band, 12)
+    expect(stance.expectations.high).toBeCloseTo(stance.expectations.value + stance.expectations.band, 12)
     expect(stance.low).toBeCloseTo(
-      NATURAL_REAL_RATE + (stance.expectations.value - stance.expectations.band) - stance.funding.high + stance.assetPurchases,
+      NATURAL_REAL_RATE + stance.expectations.low - stance.funding.high + stance.assetPurchases,
       12,
     )
     expect(stance.high).toBeCloseTo(
-      NATURAL_REAL_RATE + (stance.expectations.value + stance.expectations.band) - stance.funding.low + stance.assetPurchases,
+      NATURAL_REAL_RATE + stance.expectations.high - stance.funding.low + stance.assetPurchases,
       12,
     )
+  })
+
+  it('the interval is cut to the rails the public’s rule can reach', () => {
+    // Oranga's early deflation drives expectations onto the engine's floor;
+    // the centre is clamped there by the rule itself, and an interval that
+    // kept going below it would include a reading the public cannot hold and
+    // a neutral rate the economy cannot be at.
+    let state = init(createCountryParams('oranga', 'stance-floor-clamp'), 'stance-floor-clamp')
+    let saturated: ReturnType<typeof monetaryStance> = null
+    for (let t = 0; t < 24 && saturated === null; t++) {
+      state = step(state)
+      const p = observe(state)
+      const inflation = p.indicators.inflation
+      if (!inflation) continue
+      const banded: IndicatorSeries = { ...inflation, points: inflation.points.map((x) => ({ ...x, errorBand: 2 })) }
+      const stance = monetaryStance({ ...p, indicators: { ...p.indicators, inflation: banded } })
+      if (stance && stance.expectations.value - stance.expectations.band < INFLATION_EXPECTATIONS_MIN) saturated = stance
+    }
+    expect(saturated).not.toBeNull()
+    expect(saturated!.expectations.low).toBe(INFLATION_EXPECTATIONS_MIN)
+    expect(saturated!.expectations.high).toBeGreaterThan(INFLATION_EXPECTATIONS_MIN)
+    expect(saturated!.low).toBeCloseTo(
+      NATURAL_REAL_RATE + INFLATION_EXPECTATIONS_MIN - saturated!.funding.high + saturated!.assetPurchases,
+      12,
+    )
+    expect(saturated!.expectations.low).toBe(clampExpectations(saturated!.expectations.value - saturated!.expectations.band))
   })
 
   it('a print run too short behind an unpriced stretch is low confidence even with bands', () => {
