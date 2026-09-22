@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "964c2c3",
+  "revision": "8392671",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 114,
-      "lines": 19532
+      "lines": 19571
     }
   ],
   "modules": [
@@ -12176,7 +12176,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Persistence & store",
       "summary": "",
-      "lines": 375,
+      "lines": 385,
       "exports": [
         {
           "name": "useGame",
@@ -12441,7 +12441,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The single shared contract between UI and sim worker (§1.1). Payloads are typed exclusively with PublishedState, action types, and save files — the true state never crosses this boundary.",
-      "lines": 72,
+      "lines": 92,
       "exports": [
         {
           "name": "ClientMessage",
@@ -12456,10 +12456,22 @@ export const architecture = {
           "line": 35
         },
         {
+          "name": "DevMessage",
+          "kind": "type",
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 67
+        },
+        {
+          "name": "isDevMessage",
+          "kind": "function",
+          "path": "packages/ui/src/worker/protocol.ts",
+          "line": 69
+        },
+        {
           "name": "DevNode",
           "kind": "interface",
           "path": "packages/ui/src/worker/protocol.ts",
-          "line": 66
+          "line": 86
         }
       ],
       "imports": [
@@ -12482,7 +12494,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Worker boundary",
       "summary": "The engine host. Owns trueState; emits PublishedState only — the fog is architecturally mandatory, not a UI courtesy (ADR-0003 and ADR-0004).",
-      "lines": 347,
+      "lines": 356,
       "exports": [],
       "imports": [
         "packages/engine/src/index.ts",
@@ -15980,7 +15992,7 @@ export const architecture = {
     {
       "source": "packages/ui/src/store/gameStore.ts",
       "target": "packages/ui/src/worker/protocol.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/store/gameStore.ts",
@@ -16035,7 +16047,7 @@ export const architecture = {
     {
       "source": "packages/ui/src/worker/sim.worker.ts",
       "target": "packages/ui/src/worker/protocol.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/worker/sim.worker.ts",

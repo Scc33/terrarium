@@ -3,7 +3,7 @@ import type { Action, CountryDocument, CountryScenarioId, GameRules, SaveFile } 
 import { parseCountryDocument, STANDARD_RULES } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
-import type { ClientMessage, DevNode, WorkerMessage } from '../worker/protocol'
+import { type ClientMessage, type DevMessage, type DevNode, isDevMessage, type WorkerMessage } from '../worker/protocol'
 import type { TrialProgress, TrialReport } from '../worker/trial'
 import SimWorker from '../worker/sim.worker?worker'
 import { dbGet, dbPut } from './db'
@@ -136,8 +136,22 @@ export const useGame = create<GameState>((set, get) => {
   // (built from the statistics office's own worksheets), so it survives a
   // save/reload instead of restarting empty the way a store-local trail did.
 
+  /** the dev console's replies. Stripped from a production build with the
+   * panel that reads them; see the worker's `handleDev` for the other half. */
+  const handleDev = (msg: DevMessage<WorkerMessage>) => {
+    switch (msg.type) {
+      case 'dev:truth':
+        set({ devTruth: { tick: msg.tick, tree: msg.tree } })
+        break
+    }
+  }
+
   worker.onmessage = (ev: MessageEvent<WorkerMessage>) => {
     const msg = ev.data
+    if (isDevMessage(msg)) {
+      if (__DEV_TOOLS__) handleDev(msg)
+      return
+    }
     switch (msg.type) {
       case 'published': {
         set({ published: msg.published, save: msg.save, advancing: false, rejection: null })
@@ -183,10 +197,6 @@ export const useGame = create<GameState>((set, get) => {
       case 'trialFailed':
         set((s) => ({ study: { ...s.study, running: false, progress: null, error: msg.message } }))
         break
-      default:
-        if (__DEV_TOOLS__ && msg.type === 'dev:truth') {
-          set({ devTruth: { tick: msg.tick, tree: msg.tree } })
-        }
     }
   }
 

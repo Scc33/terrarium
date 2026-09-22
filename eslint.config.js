@@ -209,6 +209,12 @@ export default defineConfig([
       '@typescript-eslint/no-unsafe-return': 'error',
       '@typescript-eslint/prefer-promise-reject-errors': 'error',
       '@typescript-eslint/unbound-method': 'error',
+      // A `switch` over a protocol union gets the same check a total `Record`
+      // over an id list already gets from the compiler (#244). Defaults on
+      // purpose: a `default` arm does NOT count as covering a union, so the
+      // next message id added to protocol.ts fails here rather than falling
+      // through it.
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
       // `x == null` stays legal: the null/undefined/0 distinction is
       // load-bearing (ui/src/finance.ts returns null, never 0, when unfunded).
       eqeqeq: ['error', 'always', { null: 'ignore' }],

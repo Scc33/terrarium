@@ -51,6 +51,26 @@ export type WorkerMessage =
   | { type: 'dev:truth'; tick: number; tree: DevNode[] }
 
 /**
+ * The dev-console subset of either protocol, derived from the `dev:` prefix
+ * rather than listed a second time. `isDevMessage` is the same test at
+ * runtime, so the two cannot disagree: a message named `dev:anything` is a
+ * dev message to both, and a message the type calls dev is one the guard
+ * routes as dev. Each side's main `switch` is over the rest, and each side's
+ * dev handler is its own `switch` over this — both exhaustive
+ * (`switch-exhaustiveness-check`), so a new id fails lint wherever it lands.
+ *
+ * Splitting it this way is what keeps the dev ids out of a shipped bundle: a
+ * `case 'dev:truth'` arm in the main switch survives minification as a string
+ * literal even when its body is stripped, and `tests/ui/shipped-strings.ts`
+ * treats that literal as evidence the handler shipped.
+ */
+export type DevMessage<M extends { type: string }> = Extract<M, { type: `dev:${string}` }>
+
+export function isDevMessage<M extends { type: string }>(msg: M): msg is DevMessage<M> {
+  return msg.type.startsWith('dev:')
+}
+
+/**
  * A node in the true-state inspector's tree.
  *
  * Deliberately **opaque**. The inspector exists to show what the fog is hiding,
