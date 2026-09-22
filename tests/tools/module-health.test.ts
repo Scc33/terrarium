@@ -60,14 +60,11 @@ const MODULE_LINE_BASELINE = {
   // wire's register (ADR-0031). Ratcheted from 2157 by the labour desk's
   // three dispatches (#198).
   'packages/engine/src/events/catalogue.ts': 2203,
-  // Executable hotspot: condition eligibility, page budgets, and escalating cooldowns.
-  // Ratcheted from 828 by the labour desk's three rules (#198), because
-  // `CONDITION_RULES` is where ADR-0031 says a condition rule goes and a
-  // second rule table beside it was refused in review. The table is more
-  // than half the file and grows with every event; the relief is the #205
-  // shape — lift the declarative table out and leave the machinery — not a
-  // side registry per desk.
-  'packages/engine/src/events/conditions.ts': 880,
+  // Desk machinery: context construction, page budgets, cooldowns and filing.
+  // Issue #206 lifted the declarative `CONDITION_RULES` table into `rules.ts`
+  // when this file reached 879/880 lines. Keep the post-split row so the desk
+  // cannot quietly reabsorb the rulebook it applies.
+  'packages/engine/src/events/conditions.ts': 260,
   // Public facade: engine exports plus save/replay orchestration at the package boundary.
   // Ratcheted from 421 by #239: observation may now reach the engine only
   // through this file, so `treasuryFinancing` — which it had been reading

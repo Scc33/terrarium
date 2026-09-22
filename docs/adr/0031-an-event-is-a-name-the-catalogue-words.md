@@ -51,14 +51,15 @@ finished.
 news.push(fileDispatch(state, 'drought_onset'))
 ```
 
-`packages/engine/src/events/` holds four modules with one job each:
+`packages/engine/src/events/` holds five modules with one job each:
 
 | module | holds | why it is separate |
 |---|---|---|
 | `ids.ts` | `EVENT_IDS`, `DESK_IDS`, prominence | a leaf with no imports, so `state/schema.ts` can type `NewsItem.event` against it without a cycle |
 | `catalogue.ts` | every event's copy, per era | the only authored prose in the system |
 | `eras.ts` | the six presses of the century, and their mastheads | selects copy and nothing else |
-| `conditions.ts` | the desk: which conditions get reported, and how many | reads the country; chooses only from authored prose |
+| `rules.ts` | the declarative condition, milestone and period-colour rules | reads the country; chooses only from authored prose |
+| `conditions.ts` | the desk machinery: budgets, cooldowns and filing | keeps page selection separate from the catalogue it applies |
 
 `NewsItem` grows from four fields to nine: `event` (the stable name), `desk` (which section
 filed it), `prominence` (`lead` / `column` / `brief`), `outlet` (the masthead), and `body` (the

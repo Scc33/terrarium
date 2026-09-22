@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "8392671",
+  "revision": "a9622cc",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 49,
-      "lines": 16495
+      "moduleCount": 50,
+      "lines": 16473
     },
     {
       "id": "fixtures",
@@ -3193,6 +3193,7 @@ export const architecture = {
         "packages/engine/src/countries.ts",
         "packages/engine/src/events/conditions.ts",
         "packages/engine/src/events/file.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
@@ -3481,68 +3482,32 @@ export const architecture = {
       "label": "conditions",
       "packageId": "engine",
       "category": "Engine core",
-      "summary": "The news desk: which of the country's conditions get reported this quarter.",
-      "lines": 880,
+      "summary": "The news desk: applies the declarative condition rules to this quarter.",
+      "lines": 260,
       "exports": [
-        {
-          "name": "EventContext",
-          "kind": "interface",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 73
-        },
-        {
-          "name": "back",
-          "kind": "function",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 113
-        },
-        {
-          "name": "medianAge",
-          "kind": "function",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 126
-        },
-        {
-          "name": "RuleClass",
-          "kind": "type",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 163
-        },
-        {
-          "name": "ConditionRule",
-          "kind": "interface",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 165
-        },
-        {
-          "name": "CONDITION_RULES",
-          "kind": "constant",
-          "path": "packages/engine/src/events/conditions.ts",
-          "line": 177
-        },
         {
           "name": "cooldownFor",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 685
+          "line": 61
         },
         {
           "name": "reportBudget",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 712
+          "line": 91
         },
         {
           "name": "buildContext",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 724
+          "line": 103
         },
         {
           "name": "conditionDispatches",
           "kind": "function",
           "path": "packages/engine/src/events/conditions.ts",
-          "line": 769
+          "line": 148
         }
       ],
       "imports": [
@@ -3550,14 +3515,13 @@ export const architecture = {
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/ids.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
         "packages/engine/src/events/index.ts",
-        "packages/engine/src/events/index.ts",
-        "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/statistics.ts"
       ],
@@ -3637,6 +3601,7 @@ export const architecture = {
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/index.ts",
         "packages/engine/src/events/index.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts"
       ],
@@ -3778,6 +3743,7 @@ export const architecture = {
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/index.ts",
         "packages/engine/src/events/index.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/world.ts",
@@ -3792,21 +3758,82 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The event system (#160): what the wire can carry, how it is worded, and who decides that it runs.",
-      "lines": 45,
+      "lines": 43,
       "exports": [],
       "imports": [
         "packages/engine/src/events/catalogue.ts",
         "packages/engine/src/events/catalogue.ts",
         "packages/engine/src/events/conditions.ts",
-        "packages/engine/src/events/conditions.ts",
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/ids.ts",
-        "packages/engine/src/events/ids.ts"
+        "packages/engine/src/events/ids.ts",
+        "packages/engine/src/events/rules.ts",
+        "packages/engine/src/events/rules.ts"
       ],
       "importedBy": [],
       "path": "packages/engine/src/events/index.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/events/rules.ts",
+      "label": "rules",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "The news desk's declarative rulebook: which conditions are worth reporting.",
+      "lines": 600,
+      "exports": [
+        {
+          "name": "EventContext",
+          "kind": "interface",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 26
+        },
+        {
+          "name": "back",
+          "kind": "function",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 61
+        },
+        {
+          "name": "medianAge",
+          "kind": "function",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 74
+        },
+        {
+          "name": "RuleClass",
+          "kind": "type",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 109
+        },
+        {
+          "name": "ConditionRule",
+          "kind": "interface",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 111
+        },
+        {
+          "name": "CONDITION_RULES",
+          "kind": "constant",
+          "path": "packages/engine/src/events/rules.ts",
+          "line": 123
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/events/eras.ts",
+        "packages/engine/src/events/ids.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/events/conditions.ts",
+        "packages/engine/src/events/index.ts",
+        "packages/engine/src/events/index.ts",
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/events/rules.ts",
       "line": 1
     },
     {
@@ -3939,12 +3966,12 @@ export const architecture = {
         "packages/engine/src/events/catalogue.ts",
         "packages/engine/src/events/catalogue.ts",
         "packages/engine/src/events/conditions.ts",
-        "packages/engine/src/events/conditions.ts",
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/events/ids.ts",
         "packages/engine/src/events/ids.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/hash.ts",
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/interregnum.ts",
@@ -6235,6 +6262,7 @@ export const architecture = {
         "packages/engine/src/events/conditions.ts",
         "packages/engine/src/events/eras.ts",
         "packages/engine/src/events/file.ts",
+        "packages/engine/src/events/rules.ts",
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
@@ -12731,6 +12759,11 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/events/conditions.ts",
+      "target": "packages/engine/src/events/rules.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/events/conditions.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
       "typeOnly": false
     },
@@ -12801,11 +12834,6 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/events/index.ts",
-      "target": "packages/engine/src/events/conditions.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/events/index.ts",
       "target": "packages/engine/src/events/eras.ts",
       "typeOnly": false
     },
@@ -12827,6 +12855,36 @@ export const architecture = {
     {
       "source": "packages/engine/src/events/index.ts",
       "target": "packages/engine/src/events/ids.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/events/index.ts",
+      "target": "packages/engine/src/events/rules.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/events/index.ts",
+      "target": "packages/engine/src/events/rules.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/events/rules.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/events/rules.ts",
+      "target": "packages/engine/src/events/eras.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/events/rules.ts",
+      "target": "packages/engine/src/events/ids.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/events/rules.ts",
+      "target": "packages/engine/src/state/schema.ts",
       "typeOnly": true
     },
     {
@@ -12901,11 +12959,6 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/index.ts",
-      "target": "packages/engine/src/events/conditions.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/events/eras.ts",
       "typeOnly": false
     },
@@ -12928,6 +12981,11 @@ export const architecture = {
       "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/events/ids.ts",
       "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/events/rules.ts",
+      "typeOnly": false
     },
     {
       "source": "packages/engine/src/index.ts",
