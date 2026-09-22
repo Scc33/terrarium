@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a2526bb",
+  "revision": "7ae490e",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 19996
+      "lines": 19995
     }
   ],
   "modules": [
@@ -10442,7 +10442,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The central-bank desk's reading of its own stance — below, near or above the neutral rate, and a range for where neutral is (ADR-0043).",
-      "lines": 289,
+      "lines": 288,
       "exports": [
         {
           "name": "StanceReading",
@@ -10466,43 +10466,43 @@ export const architecture = {
           "name": "EXPECTATIONS_MEMORY_QTRS",
           "kind": "constant",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 73
+          "line": 78
         },
         {
           "name": "ExpectationsEstimate",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 75
+          "line": 80
         },
         {
           "name": "FundingEstimate",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 88
+          "line": 94
         },
         {
           "name": "MonetaryStance",
           "kind": "interface",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 103
+          "line": 109
         },
         {
           "name": "expectationsFromPrints",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 154
+          "line": 160
         },
         {
           "name": "fundingFromBooks",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 206
+          "line": 208
         },
         {
           "name": "monetaryStance",
           "kind": "function",
           "path": "packages/ui/src/monetaryStance.ts",
-          "line": 238
+          "line": 240
         }
       ],
       "imports": [
