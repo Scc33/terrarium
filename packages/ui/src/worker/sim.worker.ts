@@ -30,7 +30,7 @@ import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
 import { replayWindow, unreadableSaveMessage } from '../saveFile'
 import { runTrial } from './trial'
-import type { ClientMessage, DevNode, WorkerMessage } from './protocol'
+import { type ClientMessage, type DevMessage, type DevNode, isDevMessage, type WorkerMessage } from './protocol'
 
 let state: TrueState | null = null
 let params: CountryParams | null = null
@@ -282,9 +282,15 @@ function devInspect(): void {
 
 /** Single entry point for every `dev:*` message, so one guard covers them all
  * and a production build drops this function and everything it reaches. */
-function handleDev(msg: ClientMessage): void {
-  if (msg.type === 'dev:scenario') devScenario(msg.scenario)
-  else if (msg.type === 'dev:inspect') devInspect()
+function handleDev(msg: DevMessage<ClientMessage>): void {
+  switch (msg.type) {
+    case 'dev:scenario':
+      devScenario(msg.scenario)
+      break
+    case 'dev:inspect':
+      devInspect()
+      break
+  }
 }
 
 /**
@@ -310,11 +316,14 @@ function devScenario(sc: DevScenario): void {
 onmessage = (ev: MessageEvent<ClientMessage>) => {
   const msg = ev.data
   try {
-    // Vite substitutes a literal `false` here in production, so this branch —
-    // and `handleDev`, `devScenario`, `devInspect`, `toTree` with it — is dead
-    // code the bundler removes. Verified by `tests/ui/dev-build-strip.test.ts`.
-    if (__DEV_TOOLS__ && msg.type.startsWith('dev:')) {
-      handleDev(msg)
+    if (isDevMessage(msg)) {
+      // Vite substitutes a literal `false` here in production, so this call —
+      // and `handleDev`, `devScenario`, `devInspect`, `toTree` with it — is
+      // dead code the bundler removes; a dev message a shipped build somehow
+      // receives is dropped here. Verified by `tests/ui/dev-build-strip.test.ts`.
+      // The gate is inside the guard, not `&&`-ed with it, because only the
+      // guard alone narrows `msg` for the switch below.
+      if (__DEV_TOOLS__) handleDev(msg)
       return
     }
     switch (msg.type) {
