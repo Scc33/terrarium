@@ -65,10 +65,15 @@ export type StanceConfidence = 'low' | 'fair'
 export const NEAR_NEUTRAL_TOLERANCE = 0.005
 
 /**
- * The prior fades at `1 − EXPECTATION_ADAPT` a quarter, so a run of prints
- * this long has cut its weight to about an eighth. Shorter than that AND
- * preceded by quarters the office never priced, the filter is still mostly
- * repeating the 1946 inheritance while the public has moved on.
+ * How far back the filter still remembers. Weight fades at
+ * `1 − EXPECTATION_ADAPT` a quarter, so anything this many prints old carries
+ * about an eighth of the estimate between it. Every print inside that window
+ * has to be one the office put a band on before the desk can put a range on
+ * the result: a print the office never made, or made without a band, sits in
+ * the filter at full weight and zero declared width, and the range that
+ * leaves out its error is narrower than anything the office actually said.
+ * Crossing the band gate therefore buys a range sixteen quarters later, not
+ * on the first banded release.
  */
 export const EXPECTATIONS_MEMORY_QTRS = 16
 
@@ -81,8 +86,9 @@ export interface ExpectationsEstimate {
   throughQtr: number
   /** consecutive priced quarters ending at `throughQtr` */
   run: number
-  /** whether the office confessed a band on that latest print at all */
-  banded: boolean
+  /** consecutive priced quarters ending at `throughQtr` that carry a band —
+   * the part of the filter's memory the office has actually bounded */
+  bandedRun: number
 }
 
 export interface FundingEstimate {
@@ -187,13 +193,9 @@ export function expectationsFromPrints(pub: PublishedState): ExpectationsEstimat
 
   let run = 0
   while (priced.has(throughQtr - run)) run += 1
-  return {
-    value,
-    band: Math.sqrt(bandSq),
-    throughQtr,
-    run,
-    banded: prints[prints.length - 1].errorBand > 0,
-  }
+  let bandedRun = 0
+  while ((priced.get(throughQtr - bandedRun)?.errorBand ?? 0) > 0) bandedRun += 1
+  return { value, band: Math.sqrt(bandSq), throughQtr, run, bandedRun }
 }
 
 /**
@@ -244,21 +246,18 @@ export function monetaryStance(pub: PublishedState): MonetaryStance | null {
   const assetPurchases = assetPurchaseRateEquivalent(pub.dials.assetPurchaseRate)
   const neutral = neutralPolicyRateOf(expectations.value, funding.value, pub.dials.assetPurchaseRate)
 
-  // The filter is only as good as what it has seen. An office that confesses
-  // no band on its latest print (below the gate, or decayed back under it)
-  // leaves the desk nothing to bound the estimate with — the filtered band
-  // would only be the fading memory of bands confessed years ago. And a
-  // short run of prints behind quarters the office never priced is a filter
-  // still mostly repeating the 1946 inheritance. Either way the range is not
-  // one the desk can stand behind, and it collapses to the point rather than
-  // print a width nobody confessed.
-  const gapped = expectations.run < expectations.throughQtr + 1
+  // The filter is only as good as what it has seen. The range is built from
+  // confessed bands, so every print still carrying weight has to have one:
+  // an office below the gate (or decayed back under it) confesses nothing,
+  // an office that has just crossed it has bounded one print while fifteen
+  // unbounded ones still steer the estimate, and a quarter never priced sits
+  // in the memory the same way. Only the quarters before the posting are
+  // exempt — the prior is exact, not an unbanded print — which is what the
+  // `throughQtr + 1` is for. Until the memory is clean the range collapses to
+  // the point rather than print a width nobody confessed.
+  const memory = Math.min(EXPECTATIONS_MEMORY_QTRS, expectations.throughQtr + 1)
   const confidence: StanceConfidence =
-    !expectations.banded ||
-    expectations.band <= 0 ||
-    (gapped && expectations.run < EXPECTATIONS_MEMORY_QTRS)
-      ? 'low'
-      : 'fair'
+    expectations.bandedRun >= memory && expectations.band > 0 ? 'fair' : 'low'
   const band = confidence === 'fair' ? expectations.band : 0
   // a wider spread lowers neutral, so the low end pairs the low inflation
   // reading with the high spread, and the high end the reverse

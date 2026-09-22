@@ -23,9 +23,12 @@ and the drivers — produced by `ui/src/monetaryStance.ts` from `PublishedState`
   through that rule from the 1946 prior, the published debt ratio, the treasury's exact bond
   issue, printing and `domesticBondShare`, the latest official output level, the whip count's
   exact reading of the money interest, and the dials.
-- **The range is the office's confessed error band, propagated, and nothing else.** Below the
-  band gate the office confesses nothing and the desk reports low confidence with a point,
-  never a width reconstructed from the noise model.
+- **The range is the office's confessed error band, propagated, and nothing else.** Every print
+  still carrying weight in the filter — its last sixteen quarters — has to carry a band before
+  the desk stands behind a range. Below the band gate the office confesses nothing; for sixteen
+  quarters after it crosses, the unbanded prints it made before still steer the estimate at zero
+  declared width. In both cases the desk reports low confidence with a point, never a width
+  reconstructed from the noise model or narrower than anything the office said.
 - **Nothing new is published from true state.** `PublishedState` gains only
   `treasury.domesticBondShare`, a fact the debt office has about its own auctions.
   `inflationExpectations`, the funding spread and the true neutral rate stay behind the fog;
@@ -63,5 +66,6 @@ and the drivers — produced by `ui/src/monetaryStance.ts` from `PublishedState`
   separately: there is one formula.
 - The one-rate model is assumed. If issue #31 gives investment and debt service different
   maturities, the transmission target this briefing reads must be revisited with it.
-- `NEAR_NEUTRAL_TOLERANCE` (half a point) and `EXPECTATIONS_MEMORY_QTRS` are presentation
+- `NEAR_NEUTRAL_TOLERANCE` (half a point) and `EXPECTATIONS_MEMORY_QTRS` (sixteen quarters,
+  where the filter's weight on a print has fallen to about an eighth) are presentation
   constants in the UI module, not engine behaviour; they decide a word, not a number.

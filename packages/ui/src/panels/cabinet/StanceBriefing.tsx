@@ -69,8 +69,8 @@ function Estimate({ stance }: { stance: MonetaryStance }) {
       <div className="mt-1.5 font-mono text-[8px] leading-snug tracking-[0.08em] text-dossier-paper/45">
         {stance.confidence === 'fair'
           ? `FAIR CONFIDENCE · RANGE FROM THE OFFICE'S OWN ERROR BANDS`
-          : expectations.banded
-            ? 'LOW CONFIDENCE · TOO SHORT A RUN OF PRINTS TO STAND BEHIND A RANGE'
+          : expectations.bandedRun > 0
+            ? 'LOW CONFIDENCE · TOO SHORT A RUN OF BANDED PRINTS TO STAND BEHIND A RANGE'
             : 'LOW CONFIDENCE · THE OFFICE CONFESSES NO ERROR BAND'}
       </div>
     </>

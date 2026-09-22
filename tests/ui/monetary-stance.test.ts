@@ -147,7 +147,7 @@ describe('the range is the office’s own', () => {
     for (const r of passive) {
       expect(r.stance.low).toBe(r.stance.neutral)
       expect(r.stance.high).toBe(r.stance.neutral)
-      expect(r.stance.expectations.banded).toBe(false)
+      expect(r.stance.expectations.bandedRun).toBe(0)
     }
   })
 
@@ -229,6 +229,51 @@ describe('the arithmetic', () => {
     expect(stance.expectations.run).toBeLessThan(EXPECTATIONS_MEMORY_QTRS)
     expect(stance.confidence).toBe('low')
     expect(stance.low).toBe(stance.neutral)
+  })
+
+  it('crossing the band gate does not buy a range until the unbanded prints have aged out', () => {
+    // The price index is funded far below the band gate, so when the office
+    // crosses it the series is already continuous and only the LATEST print
+    // carries a band. The earlier, unbanded prints still hold most of the
+    // filter's weight and contributed nothing to the band, so a range built
+    // on that one print would be narrower than anything the office said.
+    const inflation = pub.indicators.inflation!
+    const latest = Math.max(...inflation.points.map((p) => p.forQtr))
+    expect(latest + 1).toBeGreaterThan(EXPECTATIONS_MEMORY_QTRS)
+    const bandedFrom = (first: number): IndicatorSeries => ({
+      ...inflation,
+      points: inflation.points.map((p) => ({ ...p, errorBand: p.forQtr >= first ? 2 : 0 })),
+    })
+    const at = (first: number) =>
+      monetaryStance({ ...pub, indicators: { ...pub.indicators, inflation: bandedFrom(first) } })!
+    const justCrossed = at(latest)
+    expect(justCrossed.expectations.bandedRun).toBe(1)
+    expect(justCrossed.confidence).toBe('low')
+    expect(justCrossed.low).toBe(justCrossed.neutral)
+    const nearly = at(latest - EXPECTATIONS_MEMORY_QTRS + 2)
+    expect(nearly.expectations.bandedRun).toBe(EXPECTATIONS_MEMORY_QTRS - 1)
+    expect(nearly.confidence).toBe('low')
+    const aged = at(latest - EXPECTATIONS_MEMORY_QTRS + 1)
+    expect(aged.expectations.bandedRun).toBe(EXPECTATIONS_MEMORY_QTRS)
+    expect(aged.confidence).toBe('fair')
+    // …and the range it then stands behind is the steady-state one, not the
+    // sliver a single banded print would have produced
+    const always = at(0)
+    expect(aged.expectations.band).toBeGreaterThan(0.9 * always.expectations.band)
+  })
+
+  it('at the posting the memory is the whole record, so a young desk can stand behind a range', () => {
+    // the quarters before 1946 are the exact prior, not unbanded prints; a
+    // fully banded record of any length is a clean memory
+    let state = init(standardCountry, 'stance-young')
+    for (let t = 0; t < 6; t++) state = step(state)
+    const young = observe(state)
+    const inflation = young.indicators.inflation!
+    const banded: IndicatorSeries = { ...inflation, points: inflation.points.map((p) => ({ ...p, errorBand: 2 })) }
+    const stance = monetaryStance({ ...young, indicators: { ...young.indicators, inflation: banded } })!
+    expect(stance.expectations.throughQtr + 1).toBeLessThan(EXPECTATIONS_MEMORY_QTRS)
+    expect(stance.expectations.bandedRun).toBe(stance.expectations.throughQtr + 1)
+    expect(stance.confidence).toBe('fair')
   })
 })
 
