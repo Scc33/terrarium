@@ -351,7 +351,7 @@ export function init(
     const employedIn: Cohort['employedIn'] = {}
     let wageIncome = 0
     for (const sid of SECTOR_IDS) {
-      const workers = openingStaffing[sid][cid] ?? 0
+      const workers = openingStaffing[sid][cid]
       if (workers > 0) {
         employedIn[sid] = workers
         wageIncome += workers * wages[sid]
