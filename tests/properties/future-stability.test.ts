@@ -201,8 +201,13 @@ describe('the playable economy through 2050', () => {
     // developmental falls by one to twenty-four. That change is
     // the corrected noise sequence, not a new political channel; its 1000-run
     // passive/developmental baselines and all-country tails remain in band.
-    expect(passiveTrend.survivors).toBe(27)
-    expect(developmentalTrend.survivors).toBe(24)
+    // ADR-0044 passes adaptive expectations into the wage bargain instead of
+    // indexing every wage to the latest price spike. Passive Veltravia seed 3
+    // now survives its q400 election (27 -> 28); developmental gains Meridia
+    // seed 4 and Costona seed 2, loses Costona seed 4 (24 -> 25). All existing
+    // macro-tail and trend bounds above/below remain unchanged.
+    expect(passiveTrend.survivors).toBe(28)
+    expect(developmentalTrend.survivors).toBe(25)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay;
     // staffing allocation and bumping lift this fixed passive sample to 2.86%

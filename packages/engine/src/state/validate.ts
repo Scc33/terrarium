@@ -3,7 +3,13 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
-import { FX_INTERVENTION_MAX, IMMIGRATION_LIMIT_MAX, STATUTE_LEVELS } from '../constants'
+import {
+  FX_INTERVENTION_MAX,
+  IMMIGRATION_LIMIT_MAX,
+  INFLATION_EXPECTATIONS_MAX,
+  INFLATION_EXPECTATIONS_MIN,
+  STATUTE_LEVELS,
+} from '../constants'
 import { effectiveConsumptionWeights } from '../pipeline/derive'
 import {
   BLOC_IDS,
@@ -135,6 +141,13 @@ export function validate(state: TrueState): void {
     }
   }
   finite(state.ledger.inflationExpectations, 'inflationExpectations')
+  finite(state.ledger.consumerInflationExpectations, 'consumerInflationExpectations')
+  if (
+    state.ledger.consumerInflationExpectations < INFLATION_EXPECTATIONS_MIN ||
+    state.ledger.consumerInflationExpectations > INFLATION_EXPECTATIONS_MAX
+  ) {
+    throw new InvariantError('consumerInflationExpectations out of bounds')
+  }
   finite(state.flows.realGdp, 'realGdp')
   finite(state.flows.nominalGdp, 'nominalGdp')
   finite(state.flows.privateDomesticDemandReal, 'privateDomesticDemandReal')

@@ -137,6 +137,7 @@ describe('the published-state contract (§1.1)', () => {
       'netMigrationRate',
       'migrationBaselineWelfare',
       'inflationExpectations',
+      'consumerInflationExpectations',
       'debtToGdp',
       'confidence',
       'excessDemand',

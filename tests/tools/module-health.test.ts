@@ -87,9 +87,11 @@ const MODULE_LINE_BASELINE = {
   // Ratcheted from 655 by #179: named constants replacing bare literals,
   // including two spots that had silently re-typed INCOME_TAX_1946 /
   // CORPORATE_TAX_1946 / POLICY_RATE_1946 as fresh numbers.
-  'packages/engine/src/state/init.ts': 669,
+  // #221 seeds its new household expectation beside the nominal forecast.
+  'packages/engine/src/state/init.ts': 670,
   // Cohesive schema: total state contracts and canonical id lists.
-  'packages/engine/src/state/schema.ts': 1386,
+  // Schema 47 adds the hidden household expectation (#221).
+  'packages/engine/src/state/schema.ts': 1387,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,
   // Analysis tool: export-feedback measures, aggregation, and report formatting.

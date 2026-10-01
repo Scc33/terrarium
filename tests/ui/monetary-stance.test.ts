@@ -24,7 +24,6 @@ import { describe, expect, it } from 'vitest'
 import {
   applyActions,
   clampExpectations,
-  createCountryParams,
   init,
   NATURAL_REAL_RATE,
   privateFundingSpread,
@@ -225,22 +224,17 @@ describe('the arithmetic', () => {
   })
 
   it('the interval is cut to the rails the public’s rule can reach', () => {
-    // Oranga's early deflation drives expectations onto the engine's floor;
-    // the centre is clamped there by the rule itself, and an interval that
-    // kept going below it would include a reading the public cannot hold and
-    // a neutral rate the economy cannot be at.
-    let state = init(createCountryParams('oranga', 'stance-floor-clamp'), 'stance-floor-clamp')
-    let saturated: ReturnType<typeof monetaryStance> = null
-    for (let t = 0; t < 24 && saturated === null; t++) {
-      state = step(state)
-      const p = observe(state)
-      const inflation = p.indicators.inflation
-      if (!inflation) continue
-      const banded: IndicatorSeries = { ...inflation, points: inflation.points.map((x) => ({ ...x, errorBand: 2 })) }
-      const stance = monetaryStance({ ...p, indicators: { ...p.indicators, inflation: banded } })
-      if (stance && stance.expectations.value - stance.expectations.band < INFLATION_EXPECTATIONS_MIN) saturated = stance
+    // A sustained deflation print drives the estimate onto the engine's floor.
+    // Synthesize the releases so this arithmetic check does not require a
+    // particular country's wage/price path to hit the rail after a retune.
+    const inflation = pub.indicators.inflation!
+    const banded: IndicatorSeries = {
+      ...inflation,
+      points: inflation.points.map((p) => ({ ...p, value: -20, errorBand: 2 })),
     }
+    const saturated = monetaryStance({ ...pub, indicators: { ...pub.indicators, inflation: banded } })
     expect(saturated).not.toBeNull()
+    expect(saturated!.expectations.value).toBe(INFLATION_EXPECTATIONS_MIN)
     expect(saturated!.expectations.low).toBe(INFLATION_EXPECTATIONS_MIN)
     expect(saturated!.expectations.high).toBeGreaterThan(INFLATION_EXPECTATIONS_MIN)
     expect(saturated!.low).toBeCloseTo(

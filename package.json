@@ -26,6 +26,7 @@
     "export-feedback": "pnpm --filter @terrarium/runner export-feedback",
     "export-share": "tsx tools/measure-export-share.ts",
     "neutral-rate": "tsx tools/measure-neutral-rate.ts",
+    "inflation-expectations": "tsx tools/measure-inflation-expectations.ts",
     "capital-returns": "tsx tools/measure-capital-returns.ts",
     "composition": "tsx tools/measure-composition.ts",
     "class-structure": "tsx tools/measure-class-structure.ts",

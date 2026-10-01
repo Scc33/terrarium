@@ -1,7 +1,7 @@
 /**
  * Step 6 — labor & capital. Employment chases demanded output with
- * friction; wages respond to labor-market tightness plus inflation
- * pass-through. Investment goods bought this tick become capital, allocated
+ * friction; wages respond to labor-market tightness plus expected inflation.
+ * Investment goods bought this tick become capital, allocated
  * where utilization is pressing against the ceiling.
  */
 
@@ -95,12 +95,18 @@ export const labor: PipelineStep = {
     // disemployment term, and adding one would be the effect arrow ADR-0027
     // forbids.
     const floor = minimumWageFloor(state)
+    // Bargains cover future purchasing power, not this quarter's price spike.
+    // Monetary has updated households' annualized expectation from last
+    // quarter's experienced CPI; prices runs after that update. A temporary
+    // shortage therefore does not immediately index every wage, while
+    // sustained inflation still reaches the cost anchor (ADR-0044).
+    const expectedInflationQ = state.ledger.consumerInflationExpectations / 4
     const newWages = sectorRecord((sid, i) => {
       const s = state.sectors[i]
       const tightness = (targets[i] - s.employment) / Math.max(s.employment, 1e-9)
       const move = clamp(
         WAGE_DEMAND_GAIN * tightness +
-          WAGE_INFLATION_PASSTHROUGH * flows.inflationQ +
+          WAGE_INFLATION_PASSTHROUGH * expectedInflationQ +
           tfpTerm +
           slackTerm +
           wagePush,
