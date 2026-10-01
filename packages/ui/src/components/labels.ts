@@ -114,6 +114,15 @@ export function humanDevelopmentBreakdown(
     .join(', ')
 }
 
+/** The dossier name split at its ` · `: the name heads the card and the unit
+ * is printed on the dial, where a real gauge prints its scale. In the header
+ * the unit was the first thing the ellipsis took — `CAPITAL FORMATION · % …`
+ * named the instrument and dropped what its needle measured. */
+export function dossierParts(indicator: IndicatorId): { name: string; unit: string | null } {
+  const [name, ...unit] = NAMES[indicator].dossier.split(' · ')
+  return { name, unit: unit.length > 0 ? unit.join(' · ') : null }
+}
+
 /** Saving/consumption and government/private are two sides of one accounting
  * identity, not separate noisy instruments. Keep the complement derived from
  * the same print so the wall can never claim the pair sums to 99 or 103. */

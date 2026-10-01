@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "32b59ec",
+  "revision": "82d0fbe",
   "repoRoot": "../..",
   "packages": [
     {
@@ -31,15 +31,15 @@ export const architecture = {
       "id": "runner",
       "name": "@terrarium/runner",
       "description": "Headless execution and balance sweeps over the same public engine API.",
-      "moduleCount": 14,
-      "lines": 2863
+      "moduleCount": 15,
+      "lines": 3137
     },
     {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20026
+      "lines": 20130
     }
   ],
   "modules": [
@@ -4016,6 +4016,7 @@ export const architecture = {
         "packages/runner/src/run.ts",
         "packages/runner/src/stability-cli.ts",
         "packages/runner/src/stability.ts",
+        "packages/runner/src/survey.ts",
         "packages/ui/src/App.tsx",
         "packages/ui/src/census.ts",
         "packages/ui/src/components/labels.ts",
@@ -7270,7 +7271,7 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Named runner policies. These are sampling strategies, not engine rules.",
-      "lines": 152,
+      "lines": 193,
       "exports": [
         {
           "name": "POLICY_IDS",
@@ -7309,10 +7310,16 @@ export const architecture = {
           "line": 114
         },
         {
+          "name": "maximalPolicy",
+          "kind": "constant",
+          "path": "packages/runner/src/policies.ts",
+          "line": 150
+        },
+        {
           "name": "policyFor",
           "kind": "function",
           "path": "packages/runner/src/policies.ts",
-          "line": 149
+          "line": 190
         }
       ],
       "imports": [
@@ -7322,7 +7329,8 @@ export const architecture = {
         "packages/runner/src/batch.ts",
         "packages/runner/src/country-fuzz-cli.ts",
         "packages/runner/src/country-fuzz.ts",
-        "packages/runner/src/stability-cli.ts"
+        "packages/runner/src/stability-cli.ts",
+        "packages/runner/src/survey.ts"
       ],
       "path": "packages/runner/src/policies.ts",
       "line": 1
@@ -7618,6 +7626,71 @@ export const architecture = {
         "packages/runner/src/stability-report.ts"
       ],
       "path": "packages/runner/src/stability.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/survey.ts",
+      "label": "survey",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "The governments a dial-fit survey samples (#190).",
+      "lines": 233,
+      "exports": [
+        {
+          "name": "SURVEY_ARM_IDS",
+          "kind": "constant",
+          "path": "packages/runner/src/survey.ts",
+          "line": 46
+        },
+        {
+          "name": "SurveyArmId",
+          "kind": "type",
+          "path": "packages/runner/src/survey.ts",
+          "line": 47
+        },
+        {
+          "name": "SurveyArm",
+          "kind": "interface",
+          "path": "packages/runner/src/survey.ts",
+          "line": 49
+        },
+        {
+          "name": "welfarePolicy",
+          "kind": "constant",
+          "path": "packages/runner/src/survey.ts",
+          "line": 86
+        },
+        {
+          "name": "moneyPolicy",
+          "kind": "constant",
+          "path": "packages/runner/src/survey.ts",
+          "line": 131
+        },
+        {
+          "name": "extractivePolicy",
+          "kind": "constant",
+          "path": "packages/runner/src/survey.ts",
+          "line": 168
+        },
+        {
+          "name": "SURVEY_ARMS",
+          "kind": "constant",
+          "path": "packages/runner/src/survey.ts",
+          "line": 191
+        },
+        {
+          "name": "surveyQuarters",
+          "kind": "function",
+          "path": "packages/runner/src/survey.ts",
+          "line": 211
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/runner/src/policies.ts"
+      ],
+      "importedBy": [],
+      "path": "packages/runner/src/survey.ts",
       "line": 1
     },
     {
@@ -8095,13 +8168,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Dossier-era instrument: an analog gauge on manila, brass-rimmed, with the latest figure rubber-stamped beneath. The needle can only tell you so much — that vagueness is the statistical office's actual competence, not a styling choice.",
-      "lines": 270,
+      "lines": 311,
       "exports": [
         {
           "name": "AnalogGauge",
           "kind": "function",
           "path": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
-          "line": 61
+          "line": 62
         }
       ],
       "imports": [
@@ -8207,7 +8280,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Every name an instrument goes by, in one place.",
-      "lines": 261,
+      "lines": 270,
       "exports": [
         {
           "name": "IndicatorNames",
@@ -8246,64 +8319,70 @@ export const architecture = {
           "line": 108
         },
         {
+          "name": "dossierParts",
+          "kind": "function",
+          "path": "packages/ui/src/components/labels.ts",
+          "line": 121
+        },
+        {
           "name": "complementReading",
           "kind": "function",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 120
+          "line": 129
         },
         {
           "name": "SECTOR_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 130
+          "line": 139
         },
         {
           "name": "COHORT_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 141
+          "line": 150
         },
         {
           "name": "COHORT_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 158
+          "line": 167
         },
         {
           "name": "BLOC_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 173
+          "line": 182
         },
         {
           "name": "BLOC_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 181
+          "line": 190
         },
         {
           "name": "INSTITUTION_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 192
+          "line": 201
         },
         {
           "name": "PLATFORM_NAMES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 215
+          "line": 224
         },
         {
           "name": "PLATFORM_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 231
+          "line": 240
         },
         {
           "name": "COUNT_NOTES",
           "kind": "constant",
           "path": "packages/ui/src/components/labels.ts",
-          "line": 253
+          "line": 262
         }
       ],
       "imports": [
@@ -9483,7 +9562,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Development tools",
       "summary": "Deterministic published series for the component gallery.",
-      "lines": 309,
+      "lines": 329,
       "exports": [
         {
           "name": "BOARD_SLOT",
@@ -9501,7 +9580,7 @@ export const architecture = {
           "name": "GALLERY_INSTRUMENTS",
           "kind": "constant",
           "path": "packages/ui/src/dev/galleryFixtures.ts",
-          "line": 283
+          "line": 299
         }
       ],
       "imports": [
@@ -9589,49 +9668,55 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 266,
+      "lines": 300,
       "exports": [
         {
           "name": "Domain",
           "kind": "interface",
           "path": "packages/ui/src/domains.ts",
-          "line": 39
+          "line": 46
         },
         {
           "name": "Reading",
           "kind": "interface",
           "path": "packages/ui/src/domains.ts",
-          "line": 45
+          "line": 52
         },
         {
           "name": "INDICATOR_FACE",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 58
+          "line": 65
         },
         {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 194
+          "line": 219
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 235
+          "line": 260
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 249
+          "line": 274
+        },
+        {
+          "name": "faceScale",
+          "kind": "function",
+          "path": "packages/ui/src/domains.ts",
+          "line": 286
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 258
+          "line": 292
         }
       ],
       "imports": [
@@ -14460,6 +14545,16 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/runner/src/survey.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/runner/src/survey.ts",
+      "target": "packages/runner/src/policies.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/accounts.ts",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -16466,7 +16561,7 @@ export const architecture = {
     {
       "source": "runner",
       "target": "engine",
-      "count": 9,
+      "count": 10,
       "typeOnlyCount": 1
     },
     {

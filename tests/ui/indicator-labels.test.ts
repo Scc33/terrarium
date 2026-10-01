@@ -5,6 +5,7 @@ import {
   BLOC_NOTES,
   COHORT_NOTES,
   complementReading,
+  dossierParts,
   INSTITUTION_NAMES,
   NAMES,
   PLATFORM_NOTES,
@@ -13,6 +14,12 @@ import {
 describe('indicator labels', () => {
   it('keeps every rack mnemonic within its physical ten-character budget', () => {
     for (const id of INDICATOR_IDS) expect(NAMES[id].short.length, id).toBeLessThanOrEqual(10)
+  })
+
+  it('splits a dossier name into the card title and the unit the dial prints', () => {
+    expect(dossierParts('investment_share')).toEqual({ name: 'CAPITAL FORMATION', unit: '% FINAL EXPENDITURE' })
+    expect(dossierParts('conf_consumer')).toEqual({ name: 'CONSUMER CONFIDENCE', unit: null })
+    for (const id of INDICATOR_IDS) expect(dossierParts(id).name, id).not.toBe('')
   })
 
   it('derives complementary account shares from the same reading', () => {

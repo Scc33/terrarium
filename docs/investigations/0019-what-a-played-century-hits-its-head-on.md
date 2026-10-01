@@ -233,7 +233,11 @@ maximal builder, a money-dial government, an extractive one), re-run `pnpm range
 faces. One game, one country, one seed is not a population — but 98.2% against a 2% bar does not
 leave the direction in doubt, and re-running the widened sweep is what measures the rest.
 
-Carried as [issue #190](https://github.com/Scc33/terrarium/issues/190).
+Carried as [issue #190](https://github.com/Scc33/terrarium/issues/190), and resolved there: the
+survey now plays five governments (`packages/runner/src/survey.ts`), the faces were re-cut from
+that sweep, and the test fails by name against the old ones. The welfare-state arm reproduces this
+run's pegs — `life_expectancy` 48% of its prints, `investment_share` 65%, `consumption_share`
+58% on the old faces — and none of the five governments now spends more than 3.6% on any dial.
 
 ## What this implies (nobody has ruled on any of it)
 

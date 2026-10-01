@@ -43,11 +43,11 @@ import {
   TECH_EXPOSURE,
 } from '../../packages/engine/src/constants'
 
+import { maximalPolicy } from '../../packages/runner/src/policies'
 import { runOne } from '../../packages/runner/src/run'
 import {
   ARM_IDS,
   loadSave,
-  maximalPolicy,
   parseArgs,
   planReplay,
   technologyCeiling,

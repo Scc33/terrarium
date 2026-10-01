@@ -149,6 +149,14 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   capacity-building century pegged while the old 240-quarter test stayed green. The coverage
   test now runs 400 quarters with a policy that funds every survey; shortening it or using
   passive play makes late, high-capacity instruments disappear from the evidence.
+- **…and every kind of government, not one.** The faces and the test that checks them drew from
+  the same one-policy sample, so they agreed with each other and with nobody who plays: a real
+  game pegged `investment_share` for 98% of its century while the suite stayed green
+  (investigation 0019 §6, #190). The survey now plays the five governments in
+  `packages/runner/src/survey.ts`, and holds every country × government century to 10% on any
+  dial, because a pool hides one century pinned to a rail. A new arm must be a government a person could play: a
+  decade at 18% interest shrank credit to a sliver and put `credit_growth` at 18,587%, which no
+  face should be cut to fit.
 - **A ratio to a moving target saturates, and a saturated dial is a silent one.**
   `technology_attainment` is attainment ÷ frontier, and research pushes the frontier — so the
   better the programme, the harder its own dial is to move. Measured: a maximum research
