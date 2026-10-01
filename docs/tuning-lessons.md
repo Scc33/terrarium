@@ -65,6 +65,14 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   `SUBSISTENCE_ABSORPTION_Q = 0` moves passive growth 2.94 → 2.95%/yr and unemployment by 0.02pt.
   Farm employment is `SUBSISTENCE_CAP × rural labour force`, a demographic quantity, so do not
   tune the valve or `TECH_EXPOSURE.agri` to move it. `docs/investigations/0023`.
+- `URBANIZATION_GAIN` sets only the speed of the farm exodus: 4.7% of the rural class a year at
+  full pull. Where the exodus stops is ADR-0045's expected-income gap. At 0.004 no gap could
+  drain more than 1.6% a year, and Costona's countryside became a poverty trap that deposed 27%
+  of developmental governments. Raising the gain without the expected-income stop drains farms
+  to wage parity: Costona's farm value added per worker passes the economy's, and 1946–76
+  unemployment rises two points. Do not raise it past 0.012 to chase the 2046 farm share. At
+  ten times the old gain every country still rests at 16–17%, because the resting point is
+  what the farm sells (#289, #290).
 - Init self-calibrates spending to the tax base (`init.ts`) — an unbalanced opening budget
   compounds into a scripted depression.
 - Finance is a loop that WANTS to ratchet (assets↑ → collateral↑ → credit↑ → assets↑). Two

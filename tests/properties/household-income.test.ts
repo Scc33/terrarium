@@ -94,8 +94,12 @@ describe('the measure itself', () => {
       expect(incomes.every(Number.isFinite), seed).toBe(true)
       expect(shares.every((share) => share >= 0 && share <= 1), seed).toBe(true)
       expect(shares.reduce((sum, share) => sum + share, 0), seed).toBeCloseTo(1, 12)
+      // Two quintiles cut from one cohort tie exactly, and summation order can
+      // put the tie a rounding error out of order.
       for (let i = 1; i < incomes.length; i++) {
-        expect(incomes[i], `${seed}: quintile ${i} was poorer than ${i - 1}`).toBeGreaterThanOrEqual(incomes[i - 1])
+        expect(incomes[i], `${seed}: quintile ${i} was poorer than ${i - 1}`).toBeGreaterThanOrEqual(
+          incomes[i - 1] * (1 - 1e-12),
+        )
       }
     }
   })

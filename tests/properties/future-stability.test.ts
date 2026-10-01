@@ -206,8 +206,13 @@ describe('the playable economy through 2050', () => {
     // now survives its q400 election (27 -> 28); developmental gains Meridia
     // seed 4 and Costona seed 2, loses Costona seed 4 (24 -> 25). All existing
     // macro-tail and trend bounds above/below remain unchanged.
+    // ADR-0045 lets the countryside drain toward expected city income at up to
+    // three times the old speed. Developmental Costona seed 4 (deposed q245)
+    // and procedural seed 4 (q404) now survive (25 -> 27); passive is
+    // untouched. The 1000x400q batch agrees: developmental deposition 11% to
+    // 6%, Costona 27% to 3%, passive 1% on every country before and after.
     expect(passiveTrend.survivors).toBe(28)
-    expect(developmentalTrend.survivors).toBe(25)
+    expect(developmentalTrend.survivors).toBe(27)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay;
     // staffing allocation and bumping lift this fixed passive sample to 2.86%

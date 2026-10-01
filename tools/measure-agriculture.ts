@@ -19,8 +19,9 @@
  *    100%, farm employment has become demand-determined and tables 2 and 3
  *    stop being the whole story.
  * 2. **THE CLOCK.** `demography` drains the rural class at `URBANIZATION_GAIN ×
- *    clamp(wageGap, 0, 1) × jobsPull`, so no wage gap can move it faster than
- *    `urb max`. That is the SPEED of the transition.
+ *    clamp(expectedGap, 0, 1) × jobsPull`, where the expected gap is the city
+ *    wage times `job odds` over the farm wage (ADR-0045). No gap can move it
+ *    faster than `urb max`. That is the SPEED of the transition.
  * 3. **THE DESTINATION.** Where the demand for farm output comes from. Migration
  *    stops when the wage gap closes, and it closes at whatever headcount
  *    agriculture's share of demand can pay for — so this table, not table 2,
@@ -49,6 +50,7 @@ import {
   rngFor,
   SECTOR_IDS,
   sectorValueAdded,
+  staffing,
   step,
   TICK_ORDER,
   type CountryScenarioId,
@@ -110,10 +112,14 @@ interface Reading {
    * the farm wants hands it cannot get */
   targetRatio: number
   wageGap: number
+  /** urban workers in work over urban workers in the labour force */
+  jobOdds: number
+  /** the city wage times the job odds, over the farm wage, less one: the gap that moves people */
+  expectedGap: number
   jobsPull: number
   /** rural class actually lost this quarter, annualized, as a share of itself */
   urbanization: number
-  /** the most it could have lost at this `jobsPull`, had the wage gap been at its clamp */
+  /** the most it could have lost at this `jobsPull`, had the expected gap been at its clamp */
   urbanizationMax: number
   foodShare: number
   household: number
@@ -175,7 +181,12 @@ function read(q: Quarter): Reading {
 
   // demography's inputs, and what it actually did with them
   const w = q.migrating.market.wages
-  const wageGap = (w.manuf + w.services) / 2 / Math.max(w.agri, 1e-9) - 1
+  const urbanWage = (w.manuf + w.services) / 2
+  const wageGap = urbanWage / Math.max(w.agri, 1e-9) - 1
+  const posts = staffing(q.migrating)
+  const urbanLabourForce = laborForce(q.migrating).urban_workers
+  const urbanEmployed = SECTOR_IDS.reduce((sum, sid) => sum + posts[sid].urban_workers, 0)
+  const jobOdds = urbanLabourForce > 1e-9 ? clamp(urbanEmployed / urbanLabourForce, 0, 1) : 1
   const jobsPull = clamp(
     1 - JOBS_PULL_UNEMPLOYMENT_GAIN * (q.migrating.flows.unemployment - NATURAL_UNEMPLOYMENT),
     0,
@@ -200,6 +211,8 @@ function read(q: Quarter): Reading {
     capRatio: capRatio(q),
     targetRatio: target / farm.employment,
     wageGap,
+    jobOdds,
+    expectedGap: (urbanWage * jobOdds) / Math.max(w.agri, 1e-9) - 1,
     jobsPull,
     urbanization: (4 * (ruralBefore - ruralAfter)) / Math.max(ruralBefore, 1e-9),
     urbanizationMax: 4 * URBANIZATION_GAIN * jobsPull,
@@ -279,6 +292,8 @@ const TABLES: Array<{ title: string; columns: Column[] }> = [
     title: '2. THE CLOCK — how fast the rural class drains (% of itself per year)',
     columns: [
       ['wage gap', (r) => r.wageGap, ratio],
+      ['job odds', (r) => r.jobOdds, ratio],
+      ['exp. gap', (r) => r.expectedGap, ratio],
       ['jobsPull', (r) => r.jobsPull, ratio],
       ['urb %/yr', (r) => r.urbanization, (x) => (100 * x).toFixed(2)],
       ['urb max', (r) => r.urbanizationMax, (x) => (100 * x).toFixed(2)],

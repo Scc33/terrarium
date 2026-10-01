@@ -272,67 +272,77 @@ const LIVING_WAGE: Action = { kind: 'enact', statute: 'minimum_wage', level: 2 }
  * MINIMUM WAGE reaches the economy as a floor under `market.wages` and nothing
  * else. Everything after that is the machinery already there: the floor enters
  * unit labour cost, the price step's cost anchor carries it into every price in
- * the table, and employment responds only through the demand that survives.
+ * the table, employment responds only through the demand that survives, and the
+ * countryside drains on expected city income against the farm wage (ADR-0045).
  *
- * The claims below are the two halves of the argument about minimum wages,
- * and the point is that BOTH of them show up without either being written
- * down. Measured on Costona over six seeds, at the 1976 sample: agricultural
- * wages +42.6%, Gini 0.494 → 0.442, food dearer by 19.8% against services, and
- * unemployment 17.1% → 17.7%.
+ * So where the floor binds decides what it does, and neither answer is written
+ * down. On a city wage it is the disemployment argument. On a farm it is
+ * Harris–Todaro's: a dearer farm keeps people on the land and out of the queue
+ * for city jobs, and unemployment falls.
  *
- * That last number resolves the question this statute was planned around —
- * whether an engine with no scripted disemployment term could produce one at
- * all. It can: the cost → price → real demand → output → hiring chain moves
- * unemployment by up to 1.4 points at its peak. A redistribution lever with no
- * cost attached would have been a bad mechanic, and this is not one.
+ * Costona carried the farm claims until ADR-0045. Its farm wage sat under the
+ * floor while the countryside could not empty (at `9c71caf`, 1976, six seeds:
+ * farm wage +38%, Gini 0.484 → 0.444, food 18% dearer against services,
+ * unemployment +0.7pt). Once it can empty, the farm wage outruns the floor and
+ * the living wage reaches no curated farm. The farm claims run instead on the
+ * one procedural draft in two hundred whose farm it still reaches, where at
+ * 1976 it moves the farm wage +4.0%, the Gini −0.006, food 2.7% against
+ * services, the rural labour force +1.5pt and unemployment −0.38pt.
  */
 describe('minimum wage → the argument about minimum wages, unscripted', () => {
   const costona = createCountryParams('costona', 'minwage-costona')
+  // the one draft in proc-0 … proc-199 whose farm the living wage binds through
+  // most of 1957–76; if that stops being true, find the next one
+  const agrarian = createCountryParams('procedural', 'proc-160')
+  // binds on transport and manufacturing in about two quarters in three
+  const veltravia = createCountryParams('veltravia', 'minwage-veltravia')
 
-  it('puts a floor under the lowest-paid sector and lifts it', () => {
+  let farmRuns: Array<{ seed: string; off: TrueState; on: TrueState }> | undefined
+  const onTheFarm = () =>
+    (farmRuns ??= SEEDS.map((seed) => ({
+      seed,
+      off: govern(agrarian, seed, 120, null),
+      on: govern(agrarian, seed, 120, LIVING_WAGE),
+    })))
+
+  it('puts a floor under every sector', () => {
     const off = govern(costona, 'mw-a', 120, null)
     const on = govern(costona, 'mw-a', 120, LIVING_WAGE)
     expect(minimumWageFloor(off)).toBe(0)
     expect(minimumWageFloor(on)).toBeGreaterThan(0)
-    // agriculture is where the low wages and most of the workers are
-    expect(on.market.wages.agri).toBeGreaterThan(off.market.wages.agri)
-    // and no sector is left below the floor it wrote
     for (const sector of on.sectors) {
       expect(on.market.wages[sector.id]).toBeGreaterThanOrEqual(minimumWageFloor(on) * 0.999)
     }
   })
 
-  it('compresses the income distribution, in every seed', () => {
-    let fairer = 0
-    for (const seed of SEEDS) {
-      const off = govern(costona, seed, 120, null)
-      const on = govern(costona, seed, 120, LIVING_WAGE)
-      if (giniIndex(on) < giniIndex(off)) fairer++
-    }
-    expect(fairer).toBe(SEEDS.length)
-  })
-
-  it('makes food dearer against services — through the cost anchor, not a rule', () => {
+  it('where it reaches the farm, lifts the farm wage, compresses incomes and makes food dearer', () => {
     // Nothing connects a wage floor to the price of bread except agriculture
     // paying wages and the price step pulling prices toward unit cost.
-    let dearer = 0
-    for (const seed of SEEDS) {
-      const off = govern(costona, seed, 120, null)
-      const on = govern(costona, seed, 120, LIVING_WAGE)
-      const rel = (s: TrueState) => s.market.prices.agri / s.market.prices.services
-      if (rel(on) > rel(off)) dearer++
+    const rel = (s: TrueState) => s.market.prices.agri / s.market.prices.services
+    for (const { seed, off, on } of onTheFarm()) {
+      expect(on.market.wages.agri, seed).toBeGreaterThan(off.market.wages.agri)
+      expect(giniIndex(on), seed).toBeLessThan(giniIndex(off))
+      expect(rel(on), seed).toBeGreaterThan(rel(off))
     }
-    expect(dearer).toBeGreaterThanOrEqual(5)
   })
 
-  it('costs jobs, with no disemployment term anywhere in the engine', () => {
+  it('where it reaches the farm, keeps people on the land and out of the queue for city jobs', () => {
+    for (const { seed, off, on } of onTheFarm()) {
+      expect(on.demography.classShares.rural_workers, seed).toBeGreaterThan(
+        off.demography.classShares.rural_workers,
+      )
+      expect(on.flows.unemployment, seed).toBeLessThan(off.flows.unemployment)
+    }
+  })
+
+  it('where it binds on city wages, costs jobs with no disemployment term anywhere in the engine', () => {
     let costlier = 0
     for (const seed of SEEDS) {
-      const off = govern(costona, seed, 120, null)
-      const on = govern(costona, seed, 120, LIVING_WAGE)
+      const off = govern(veltravia, seed, 120, null)
+      const on = govern(veltravia, seed, 120, LIVING_WAGE)
       if (on.flows.unemployment > off.flows.unemployment) costlier++
     }
-    expect(costlier).toBeGreaterThanOrEqual(4)
+    expect(costlier).toBeGreaterThanOrEqual(5)
   })
 
   it('does not bind where wages are already compressed', () => {

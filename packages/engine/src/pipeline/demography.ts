@@ -52,13 +52,21 @@ import {
   AGE_BANDS,
   FERTILE_BANDS,
   RETIREMENT_BAND,
+  SECTOR_IDS,
   WORKING_BANDS,
   type Cohort,
   type DemographyState,
   type TrueState,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { livingStandard, meanLogConsumption, skillTightness, statuteForce } from './derive'
+import {
+  laborForce,
+  livingStandard,
+  meanLogConsumption,
+  skillTightness,
+  staffing,
+  statuteForce,
+} from './derive'
 
 const sumBands = (p: number[], from: number, to: number) => {
   let s = 0
@@ -291,8 +299,20 @@ export const demography: PipelineStep = {
 
     // --- class structure: the cities pull when city wages pull, and only
     // when the cities have work — a slump stops the buses ---
+    //
+    // A migrant weighs the city wage times the chance of getting one against
+    // the farm wage (Harris–Todaro), so the countryside stops emptying while
+    // the farm still pays less, by as much as urban joblessness costs (ADR-0045).
+    // Reaching parity instead drained farms past the point where their value
+    // added per worker exceeds the economy's.
     const w = state.market.wages
-    const wageGap = (w.manuf + w.services) / 2 / Math.max(w.agri, 1e-9) - 1
+    const urbanLabourForce = laborForce(state).urban_workers
+    const posts = staffing(state)
+    const urbanEmployed = SECTOR_IDS.reduce((s, sid) => s + posts[sid].urban_workers, 0)
+    const urbanJobOdds =
+      urbanLabourForce > 1e-9 ? clamp(urbanEmployed / urbanLabourForce, 0, 1) : 1
+    const expectedGap =
+      (((w.manuf + w.services) / 2) * urbanJobOdds) / Math.max(w.agri, 1e-9) - 1
     // Open unemployment answers whether the cities have jobs to pull people
     // into. Bumping only reallocates existing posts and is not a vacancy.
     const jobsPull = clamp(
@@ -301,7 +321,7 @@ export const demography: PipelineStep = {
       1,
     )
     const move =
-      URBANIZATION_GAIN * d.classShares.rural_workers * clamp(wageGap, 0, 1) * jobsPull
+      URBANIZATION_GAIN * d.classShares.rural_workers * clamp(expectedGap, 0, 1) * jobsPull
 
     // --- and the second boundary: the city makes professionals, but only out
     // of a schooled workforce (#169). Two separate facts, deliberately, and
