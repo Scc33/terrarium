@@ -3,7 +3,8 @@
 **Status:** Open — the valve finding stands. The question this document left open ("more than
 one *type* of unemployment... the reachable version of the idea lives" in the rural/urban split)
 was taken up and measured in
-[0020](0020-the-headline-hides-three-labour-markets.md).
+[0020](0020-the-headline-hides-three-labour-markets.md). [0023](0023-farm-employment-is-the-rural-class-on-a-slow-clock.md)
+re-measured the valve at schema 46: switched off, it moves neither growth nor the farm share.
 **Raised by:** an attempt to ship an `underemployment` indicator, which was measured, found
 unreachable, and abandoned before it reached a PR.
 **Measured at:** `a0cf497`, 6 seeds × 400 quarters, decade means.
