@@ -28,6 +28,10 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   valve (`SUBSISTENCE_ABSORPTION_Q`, capped by the rural labor force — uncapped it recreates
   the Malthusian trap). Vital rates read the income LEVEL (`LIVING_STANDARD_1946`), the report
   card reads income vs your own 1946 — don't conflate the two anchors.
+  **The subsistence half no longer holds (schema 46):** the cap binds from the 1950s on, and
+  `SUBSISTENCE_ABSORPTION_Q = 0` moves passive growth 2.94 → 2.95%/yr and unemployment by 0.02pt.
+  Farm employment is `SUBSISTENCE_CAP × rural labour force`, a demographic quantity, so do not
+  tune the valve or `TECH_EXPOSURE.agri` to move it. `docs/investigations/0023`.
 - Init self-calibrates spending to the tax base (`init.ts`) — an unbalanced opening budget
   compounds into a scripted depression.
 - Finance is a loop that WANTS to ratchet (assets↑ → collateral↑ → credit↑ → assets↑). Two
