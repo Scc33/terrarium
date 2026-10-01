@@ -34,7 +34,7 @@ drift. Re-measure before acting on one.
 | [0008](0008-developmental-baseline-retires-public-debt.md) | Why does the developmental baseline retire all public debt? | Resolved (baseline methodology) |
 | [0009](0009-engine-performance.md) | Why are goldens, research, shocks, and long simulations expensive? | Resolved (runner/tooling overhead) |
 | [0010](0010-how-to-grow-export-share.md) | How do you grow exports as a share of the economy? | Resolved (ratio behavior) |
-| [0011](0011-is-there-a-neutral-rate.md) | Is there a neutral policy rate? | Resolved (state-dependent rate channel) |
+| [0011](0011-is-there-a-neutral-rate.md) | Is there a neutral policy rate? | Resolved (state-dependent rate channel; the desk's estimate is ADR-0043) |
 | [0012](0012-compulsory-schooling-reverses-late-century.md) | Compulsory schooling pays for forty years and then stops paying | Open |
 | [0013](0013-policy-cannot-steer-sector-composition.md) | No lever steers sector composition, and the service share falls as the country gets rich | Resolved (ADR-0030, and 0016) |
 | [0014](0014-returns-to-capital-stock.md) | Why does a larger capital stock not permanently raise growth? | Resolved (level versus rate) |

@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a9622cc",
+  "revision": "e5a7b00",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 50,
-      "lines": 16473
+      "moduleCount": 51,
+      "lines": 16585
     },
     {
       "id": "fixtures",
@@ -25,7 +25,7 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 4,
-      "lines": 926
+      "lines": 933
     },
     {
       "id": "runner",
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 114,
-      "lines": 19571
+      "moduleCount": 117,
+      "lines": 20026
     }
   ],
   "modules": [
@@ -3205,6 +3205,7 @@ export const architecture = {
         "packages/engine/src/pipeline/finance.ts",
         "packages/engine/src/pipeline/fiscal.ts",
         "packages/engine/src/pipeline/foreignInvestment.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/industrySurvey.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/labor.ts",
@@ -3979,8 +3980,10 @@ export const architecture = {
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/pipeline/environment.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/labourMarket.ts",
+        "packages/engine/src/pipeline/monetary.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/pipeline/politics.ts",
         "packages/engine/src/pipeline/shocks.ts",
@@ -4029,6 +4032,7 @@ export const architecture = {
         "packages/ui/src/levers.ts",
         "packages/ui/src/manual.ts",
         "packages/ui/src/maturity.ts",
+        "packages/ui/src/monetaryStance.ts",
         "packages/ui/src/newspaper.ts",
         "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
@@ -4273,301 +4277,277 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Shared derived quantities used by several steps. Pure reads, no mutation.",
-      "lines": 1090,
+      "lines": 1041,
       "exports": [
         {
           "name": "periodLifeExpectancy",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 80
+          "line": 73
         },
         {
           "name": "lifeExpectancyAtBirth",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 112
+          "line": 105
         },
         {
           "name": "financierAnger",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 120
-        },
-        {
-          "name": "sovereignRiskPremium",
-          "kind": "function",
-          "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 130
-        },
-        {
-          "name": "bondIssuanceShare",
-          "kind": "function",
-          "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 140
-        },
-        {
-          "name": "privateFundingSpread",
-          "kind": "function",
-          "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 150
-        },
-        {
-          "name": "privateRealRate",
-          "kind": "function",
-          "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 160
+          "line": 113
         },
         {
           "name": "potentialOutput",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 169
+          "line": 120
         },
         {
           "name": "sectorValueAdded",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 188
+          "line": 139
         },
         {
           "name": "technologyAttainment",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 205
+          "line": 156
         },
         {
           "name": "laborForOutput",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 224
+          "line": 175
         },
         {
           "name": "effectivePrice",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 230
+          "line": 181
         },
         {
           "name": "schoolingWithdrawal",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 250
+          "line": 201
         },
         {
           "name": "laborForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 263
+          "line": 214
         },
         {
           "name": "totalLaborForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 275
+          "line": 226
         },
         {
           "name": "staffing",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 322
+          "line": 273
         },
         {
           "name": "skillTightness",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 350
+          "line": 301
         },
         {
           "name": "approvalIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 368
+          "line": 319
         },
         {
           "name": "meanLogConsumption",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 385
+          "line": 336
         },
         {
           "name": "realConsumptionPerCapita",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 401
+          "line": 352
         },
         {
           "name": "householdSavingRate",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 414
+          "line": 365
         },
         {
           "name": "livingStandard",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 447
+          "line": 398
         },
         {
           "name": "HouseholdIncomeGroup",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 452
+          "line": 403
         },
         {
           "name": "HouseholdIncomeDistribution",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 460
+          "line": 411
         },
         {
           "name": "householdIncomeGroups",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 494
+          "line": 445
         },
         {
           "name": "householdIncomeDistribution",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 524
+          "line": 475
         },
         {
           "name": "giniIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 600
+          "line": 551
         },
         {
           "name": "realIncomePerHead",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 630
+          "line": 581
         },
         {
           "name": "exchangeRateParity",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 669
+          "line": 620
         },
         {
           "name": "realExchangeRate",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 682
+          "line": 633
         },
         {
           "name": "termsOfTrade",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 691
+          "line": 642
         },
         {
           "name": "enfranchisementIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 713
+          "line": 664
         },
         {
           "name": "discontentIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 735
+          "line": 686
         },
         {
           "name": "urbanShare",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 751
+          "line": 702
         },
         {
           "name": "residence",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 779
+          "line": 730
         },
         {
           "name": "statePower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 790
+          "line": 741
         },
         {
           "name": "corridorOffset",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 802
+          "line": 753
         },
         {
           "name": "corridorStrain",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 808
+          "line": 759
         },
         {
           "name": "inCorridor",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 816
+          "line": 767
         },
         {
           "name": "effectiveBlocPower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 824
+          "line": 775
         },
         {
           "name": "eliteHostility",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 832
+          "line": 783
         },
         {
           "name": "eliteCapture",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 863
+          "line": 814
         },
         {
           "name": "creativeDestruction",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 876
+          "line": 827
         },
         {
           "name": "statutesInForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 888
+          "line": 839
         },
         {
           "name": "statuteCompliance",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 912
+          "line": 863
         },
         {
           "name": "statuteForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 953
+          "line": 904
         },
         {
           "name": "minimumWageFloor",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 988
+          "line": 939
         },
         {
           "name": "effectiveConsumptionWeights",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 1029
+          "line": 980
         },
         {
           "name": "cohortCpi",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 1084
+          "line": 1035
         }
       ],
       "imports": [
@@ -4583,8 +4563,8 @@ export const architecture = {
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/environment.ts",
-        "packages/engine/src/pipeline/finance.ts",
         "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/labor.ts",
         "packages/engine/src/pipeline/labourMarket.ts",
@@ -4654,7 +4634,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/math.ts",
-        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/schema.ts",
         "packages/engine/src/state/spending.ts"
@@ -4671,19 +4651,20 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 3 — fiscal. Tax collection is capacity-gated: the state taxes what it can see, not true GDP. Spending executes with leakage. Deficits the bond market won't absorb are monetized — the printing press is not a button the player pushes, it's what happens when the arithmetic f…",
-      "lines": 179,
+      "lines": 180,
       "exports": [
         {
           "name": "fiscal",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/fiscal.ts",
-          "line": 38
+          "line": 39
         }
       ],
       "imports": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -4718,6 +4699,85 @@ export const architecture = {
         "packages/engine/src/pipeline/pipeline.ts"
       ],
       "path": "packages/engine/src/pipeline/foreignInvestment.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/funding.ts",
+      "label": "funding",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "The state's claim on private funding, and the one rate it moves.",
+      "lines": 138,
+      "exports": [
+        {
+          "name": "sovereignRiskPremiumOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 40
+        },
+        {
+          "name": "sovereignRiskPremium",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 47
+        },
+        {
+          "name": "bondIssuanceShare",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 61
+        },
+        {
+          "name": "privateFundingSpreadOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 67
+        },
+        {
+          "name": "privateFundingSpread",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 82
+        },
+        {
+          "name": "privateRealRateOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 91
+        },
+        {
+          "name": "neutralPolicyRateOf",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 109
+        },
+        {
+          "name": "privateRealRate",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 123
+        },
+        {
+          "name": "assetPurchaseRateEquivalent",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/funding.ts",
+          "line": 135
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/state/accounts.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/finance.ts",
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/production.ts",
+        "packages/engine/src/pipeline/trade.ts"
+      ],
+      "path": "packages/engine/src/pipeline/funding.ts",
       "line": 1
     },
     {
@@ -5003,13 +5063,25 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
-      "lines": 35,
+      "lines": 56,
       "exports": [
+        {
+          "name": "adaptExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 25
+        },
+        {
+          "name": "clampExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 37
+        },
         {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 17
+          "line": 41
         }
       ],
       "imports": [
@@ -5018,6 +5090,7 @@ export const architecture = {
         "packages/engine/src/pipeline/pipeline.ts"
       ],
       "importedBy": [
+        "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/pipeline.ts"
       ],
       "path": "packages/engine/src/pipeline/monetary.ts",
@@ -5179,6 +5252,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -5377,37 +5451,37 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 4 — trade, and the foreign exchange market that settles it (ADR-0034).",
-      "lines": 313,
+      "lines": 314,
       "exports": [
         {
           "name": "carryYieldSpread",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 95
+          "line": 96
         },
         {
           "name": "fillableIntervention",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 134
+          "line": 135
         },
         {
           "name": "FxSettlement",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 156
+          "line": 157
         },
         {
           "name": "settleForeignExchange",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 169
+          "line": 170
         },
         {
           "name": "trade",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 253
+          "line": 254
         }
       ],
       "imports": [
@@ -5415,6 +5489,7 @@ export const architecture = {
         "packages/engine/src/events/file.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -5528,6 +5603,7 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/statistics.ts"
       ],
       "path": "packages/engine/src/state/accounts.ts",
@@ -6275,6 +6351,7 @@ export const architecture = {
         "packages/engine/src/pipeline/finance.ts",
         "packages/engine/src/pipeline/fiscal.ts",
         "packages/engine/src/pipeline/foreignInvestment.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/pipeline/indicatorSpecs.ts",
         "packages/engine/src/pipeline/industrySurvey.ts",
         "packages/engine/src/pipeline/institutions.ts",
@@ -6579,6 +6656,7 @@ export const architecture = {
         "packages/ui/src/manual.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/maturity.ts",
+        "packages/ui/src/monetaryStance.ts",
         "packages/ui/src/newspaper.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/CensusOverlay.tsx",
@@ -6604,8 +6682,10 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/BlocRow.tsx",
         "packages/ui/src/panels/cabinet/CapacityRow.tsx",
         "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
         "packages/ui/src/panels/cabinet/StatuteRow.tsx",
         "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/policyRecord.ts",
@@ -6629,13 +6709,13 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
-      "lines": 364,
+      "lines": 366,
       "exports": [
         {
           "name": "observe",
           "kind": "function",
           "path": "packages/observation/src/observe.ts",
-          "line": 222
+          "line": 223
         }
       ],
       "imports": [
@@ -6654,7 +6734,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 345,
+      "lines": 350,
       "exports": [
         {
           "name": "PolicyPoint",
@@ -8416,8 +8496,10 @@ export const architecture = {
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
         "packages/ui/src/components/ui/LineChart/LineChart.tsx",
         "packages/ui/src/finance.ts",
+        "packages/ui/src/monetaryStance.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
-        "packages/ui/src/panels/StudyOverlay.tsx"
+        "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx"
       ],
       "path": "packages/ui/src/components/series.ts",
       "line": 1
@@ -8678,6 +8760,7 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
         "packages/ui/src/panels/cabinet/StatuteRow.tsx",
         "packages/ui/src/shell/useCabinetChrome.ts"
       ],
@@ -10090,7 +10173,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "What every lever on the desk actually does, in one place.",
-      "lines": 315,
+      "lines": 321,
       "exports": [
         {
           "name": "LeverCopy",
@@ -10132,25 +10215,25 @@ export const architecture = {
           "name": "LeverGroup",
           "kind": "interface",
           "path": "packages/ui/src/levers.ts",
-          "line": 286
+          "line": 292
         },
         {
           "name": "LEVER_PATHS",
           "kind": "constant",
           "path": "packages/ui/src/levers.ts",
-          "line": 292
+          "line": 298
         },
         {
           "name": "LEVER_GROUPS",
           "kind": "constant",
           "path": "packages/ui/src/levers.ts",
-          "line": 303
+          "line": 309
         },
         {
           "name": "leverGroup",
           "kind": "function",
           "path": "packages/ui/src/levers.ts",
-          "line": 312
+          "line": 318
         }
       ],
       "imports": [
@@ -10359,6 +10442,87 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/CapacityRow.tsx"
       ],
       "path": "packages/ui/src/maturity.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/monetaryStance.ts",
+      "label": "monetaryStance",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The central-bank desk's reading of its own stance — below, near or above the neutral rate, and a range for where neutral is (ADR-0043).",
+      "lines": 319,
+      "exports": [
+        {
+          "name": "StanceReading",
+          "kind": "type",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 55
+        },
+        {
+          "name": "StanceConfidence",
+          "kind": "type",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 56
+        },
+        {
+          "name": "NEAR_NEUTRAL_TOLERANCE",
+          "kind": "constant",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 66
+        },
+        {
+          "name": "EXPECTATIONS_MEMORY_QTRS",
+          "kind": "constant",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 79
+        },
+        {
+          "name": "ExpectationsEstimate",
+          "kind": "interface",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 81
+        },
+        {
+          "name": "FundingEstimate",
+          "kind": "interface",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 103
+        },
+        {
+          "name": "MonetaryStance",
+          "kind": "interface",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 121
+        },
+        {
+          "name": "expectationsFromPrints",
+          "kind": "function",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 175
+        },
+        {
+          "name": "fundingFromBooks",
+          "kind": "function",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 237
+        },
+        {
+          "name": "monetaryStance",
+          "kind": "function",
+          "path": "packages/ui/src/monetaryStance.ts",
+          "line": 272
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/spendingRules.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx"
+      ],
+      "path": "packages/ui/src/monetaryStance.ts",
       "line": 1
     },
     {
@@ -10633,7 +10797,7 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts"
       ],
       "importedBy": [
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx"
       ],
       "path": "packages/ui/src/panels/cabinet/DialRow.tsx",
       "line": 1
@@ -10675,6 +10839,7 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx"
       ],
       "path": "packages/ui/src/panels/cabinet/dials.ts",
@@ -10716,6 +10881,7 @@ export const architecture = {
       "imports": [],
       "importedBy": [
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
         "packages/ui/src/panels/cabinet/dials.ts"
       ],
       "path": "packages/ui/src/panels/cabinet/format.ts",
@@ -10746,6 +10912,34 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx"
       ],
       "path": "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "label": "LeverDrawer",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "A drawer of levers: its question and brief, whatever the desk has to say before the sliders, then one row per dial. The spending drawer's rows carry a rule switch; the central bank's opens with the desk's own reading of its stance, above the rate it advises on (ADR-0043). Noth…",
+      "lines": 35,
+      "exports": [
+        {
+          "name": "LeverDrawer",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+          "line": 15
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+        "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+        "packages/ui/src/panels/cabinet/dials.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/ControlRail.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
       "line": 1
     },
     {
@@ -10803,9 +10997,37 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts"
       ],
       "importedBy": [
-        "packages/ui/src/panels/ControlRail.tsx"
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx"
       ],
       "path": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "label": "StanceBriefing",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "The central-bank desk's briefing on where the posted rate sits against neutral — painted from `../../monetaryStance`, which decides everything. Advice, not an order: it names a side and a range and leaves the dial alone. The words are deliberately the desk's (\"puts neutral nea…",
+      "lines": 110,
+      "exports": [
+        {
+          "name": "StanceBriefing",
+          "kind": "function",
+          "path": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+          "line": 80
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/monetaryStance.ts",
+        "packages/ui/src/panels/cabinet/format.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx"
+      ],
+      "path": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
       "line": 1
     },
     {
@@ -10870,13 +11092,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 372,
+      "lines": 357,
       "exports": [
         {
           "name": "ControlRail",
           "kind": "function",
           "path": "packages/ui/src/panels/ControlRail.tsx",
-          "line": 35
+          "line": 34
         }
       ],
       "imports": [
@@ -10888,9 +11110,8 @@ export const architecture = {
         "packages/ui/src/gameRules.ts",
         "packages/ui/src/panels/cabinet/BlocRow.tsx",
         "packages/ui/src/panels/cabinet/CapacityRow.tsx",
-        "packages/ui/src/panels/cabinet/DialRow.tsx",
+        "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
-        "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
         "packages/ui/src/panels/cabinet/StatuteRow.tsx",
         "packages/ui/src/panels/cabinet/dials.ts",
         "packages/ui/src/statutes.ts",
@@ -12070,6 +12291,7 @@ export const architecture = {
         "packages/observation/src/index.ts"
       ],
       "importedBy": [
+        "packages/ui/src/monetaryStance.ts",
         "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
         "packages/ui/src/stateFootprint.ts"
       ],
@@ -13024,12 +13246,22 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/funding.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/institutions.ts",
       "typeOnly": false
     },
     {
       "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/labourMarket.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/monetary.ts",
       "typeOnly": false
     },
     {
@@ -13254,7 +13486,7 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/pipeline/finance.ts",
-      "target": "packages/engine/src/pipeline/derive.ts",
+      "target": "packages/engine/src/pipeline/funding.ts",
       "typeOnly": false
     },
     {
@@ -13289,6 +13521,11 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/pipeline/funding.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
       "target": "packages/engine/src/pipeline/pipeline.ts",
       "typeOnly": true
     },
@@ -13316,6 +13553,26 @@ export const architecture = {
       "source": "packages/engine/src/pipeline/foreignInvestment.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/funding.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/funding.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/funding.ts",
+      "target": "packages/engine/src/state/accounts.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/funding.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/engine/src/pipeline/indicatorSpecs.ts",
@@ -13639,6 +13896,11 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/pipeline/production.ts",
+      "target": "packages/engine/src/pipeline/funding.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/production.ts",
       "target": "packages/engine/src/pipeline/pipeline.ts",
       "typeOnly": true
     },
@@ -13800,6 +14062,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/trade.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/trade.ts",
+      "target": "packages/engine/src/pipeline/funding.ts",
       "typeOnly": false
     },
     {
@@ -15028,6 +15295,26 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/monetaryStance.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/monetaryStance.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/monetaryStance.ts",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/monetaryStance.ts",
+      "target": "packages/ui/src/spendingRules.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/newspaper.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -15223,6 +15510,31 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "target": "packages/ui/src/panels/cabinet/DialRow.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "target": "packages/ui/src/panels/cabinet/dials.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "target": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
+      "target": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/cabinet/ReformRow.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -15290,6 +15602,31 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
       "target": "packages/ui/src/store/gameStore.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "target": "packages/ui/src/monetaryStance.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
+      "target": "packages/ui/src/panels/cabinet/format.ts",
       "typeOnly": false
     },
     {
@@ -15384,22 +15721,17 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/panels/cabinet/DialRow.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/panels/ControlRail.tsx",
       "target": "packages/ui/src/panels/cabinet/dials.ts",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/panels/cabinet/ReformRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/LeverDrawer.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ControlRail.tsx",
-      "target": "packages/ui/src/panels/cabinet/SpendingRuleRow.tsx",
+      "target": "packages/ui/src/panels/cabinet/ReformRow.tsx",
       "typeOnly": false
     },
     {
@@ -16140,14 +16472,14 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 43,
+      "count": 44,
       "typeOnlyCount": 8
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 62,
-      "typeOnlyCount": 49
+      "count": 65,
+      "typeOnlyCount": 52
     }
   ],
   "pipeline": [
@@ -16359,7 +16691,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/events/file.ts",
         "packages/engine/src/math.ts",
-        "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/state/schema.ts",
         "packages/engine/src/state/spending.ts"
       ],
@@ -16431,6 +16763,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "exports": [
@@ -16491,6 +16824,7 @@ export const architecture = {
         "packages/engine/src/events/file.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "exports": [
@@ -16498,35 +16832,35 @@ export const architecture = {
           "name": "carryYieldSpread",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 95
+          "line": 96
         },
         {
           "name": "fillableIntervention",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 134
+          "line": 135
         },
         {
           "name": "FxSettlement",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 156
+          "line": 157
         },
         {
           "name": "settleForeignExchange",
           "kind": "function",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 169
+          "line": 170
         },
         {
           "name": "trade",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/trade.ts",
-          "line": 253
+          "line": 254
         }
       ],
       "path": "packages/engine/src/pipeline/trade.ts",
-      "line": 253
+      "line": 254
     },
     {
       "order": 10,
@@ -16547,6 +16881,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/funding.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "exports": [
@@ -16554,11 +16889,11 @@ export const architecture = {
           "name": "fiscal",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/fiscal.ts",
-          "line": 38
+          "line": 39
         }
       ],
       "path": "packages/engine/src/pipeline/fiscal.ts",
-      "line": 38
+      "line": 39
     },
     {
       "order": 11,
@@ -16576,14 +16911,26 @@ export const architecture = {
       ],
       "exports": [
         {
+          "name": "adaptExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 25
+        },
+        {
+          "name": "clampExpectations",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/monetary.ts",
+          "line": 37
+        },
+        {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 17
+          "line": 41
         }
       ],
       "path": "packages/engine/src/pipeline/monetary.ts",
-      "line": 17
+      "line": 41
     },
     {
       "order": 12,
@@ -16832,7 +17179,7 @@ export const architecture = {
         },
         {
           "path": "packages/observation/src/observe.ts",
-          "line": 222
+          "line": 223
         }
       ]
     },

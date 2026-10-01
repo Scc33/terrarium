@@ -248,6 +248,10 @@ export interface DrawerCopy {
   brief: string
   /** the question the drawer is an answer to */
   question: string
+  /** the handbook's extra paragraph, for a drawer that carries something
+   * besides its levers — a briefing, a reading — that the sliders' own
+   * sentences cannot explain */
+  note?: string
 }
 
 const DRAWERS: Record<LeverGroupId, DrawerCopy> = {
@@ -268,6 +272,8 @@ const DRAWERS: Record<LeverGroupId, DrawerCopy> = {
     brief:
       'Set interest rates, support lending when rates hit zero, decide how much of their own money banks must put at risk, and stand in the currency market.',
     question: 'How much financial risk should the state carry?',
+    note:
+      'The drawer opens with the desk’s reading of its own stance: below, near or above NEUTRAL, the posted rate at which the bank’s own push on credit, asset valuations and private investment is zero. Neutral is not one number. It rises with what the public expects prices to do, falls with what your own borrowing adds to private funding costs, and rises again with asset purchases, so it opens near five percent, can fall below zero in a deflation — where the rate dial alone cannot reach it — and settles near two late in a calm century. The desk estimates it from the office’s inflation prints and the treasury’s books, never from the truth, and says how far it trusts the figure; a better statistical office buys a narrower range. Near neutral means the bank is neither pushing nor leaning. It does not promise steady growth: everything else those three channels read still moves.',
   },
   MIGRATION: {
     tab: 'BORDERS',

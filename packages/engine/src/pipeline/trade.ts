@@ -62,7 +62,8 @@ import {
 import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import { SECTOR_IDS, type Money, type TrueState } from '../state/schema'
-import { exchangeRateParity, sovereignRiskPremium } from './derive'
+import { exchangeRateParity } from './derive'
+import { sovereignRiskPremium } from './funding'
 import type { PipelineStep } from './pipeline'
 
 /**
