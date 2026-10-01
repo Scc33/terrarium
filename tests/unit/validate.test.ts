@@ -43,6 +43,9 @@ describe('validate()', () => {
     ['a fund and a debt at once', (s) => (s.gov.fund = 10)],
     ['a surplus payout above 1', (s) => (s.gov.dials.surplusPayout = 1.5)],
     ['a negative surplus payout', (s) => (s.gov.dials.surplusPayout = -0.1)],
+    ['a non-finite household inflation expectation', (s) => (s.ledger.consumerInflationExpectations = NaN)],
+    ['a household inflation expectation above its rail', (s) => (s.ledger.consumerInflationExpectations = 3.1)],
+    ['a household inflation expectation below its rail', (s) => (s.ledger.consumerInflationExpectations = -0.06)],
   ]
 
   for (const [name, mutate] of cases) {

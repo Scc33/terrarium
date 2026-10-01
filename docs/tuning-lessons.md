@@ -13,6 +13,39 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
 - Wages need all three legs: Phillips slack anchor (else drift to 50% unemployment),
   productivity passthrough near full employment (else permanent deflation), downward
   stickiness (else 1870s-depth busts).
+- **Household wage expectations learn from experienced prices.** The nominal forecast's
+  direct printing premium belongs to its existing price-drift/private-rate readers. Passing
+  that premium straight into wages prematurely indexed them to the financing book: in the
+  1000 × 120q random baseline it moved median growth 4.04 → 3.73%/yr and unemployment
+  11.98 → 13.50%. A separate household forecast restored them to 4.02% and 12.09%, while
+  retaining gradual wage adjustment. Both forecasts use `EXPECTATION_ADAPT = 0.12`; the
+  wage share remains `WAGE_INFLATION_PASSTHROUGH = 0.35` (ADR-0044).
+
+  Measured 2026-10-01 against `65b2f08` (schema 46), with the schema 47 household-forecast
+  change; the paired figures below were rechecked after integrating `92f9d13`. Passive,
+  developmental and printing reports were unchanged by that integration.
+  `pnpm inflation-expectations -- --runs 40 --ticks 416` pairs the former spot-CPI
+  bargain and the new expectation bargain across all six recipes, with 240 runs per policy.
+  Each report stops at deposition. Future quiet quarters exclude shock onset plus eight
+  quarters, as in the stability harness; inflation endpoints are annualized percentage points:
+
+  | policy | future quiet CPI p01–p99, before → after | survivor GDP CAGR, before → after | 2050 survivors |
+  |---|---|---|---|
+  | passive | −4.879–4.592 → −3.735–3.615 | 2.866 → 2.868% | 238 → 238 |
+  | developmental | −5.430–4.432 → −4.210–3.637 | 2.993 → 2.991% | 215 → 214 |
+  | random | −15.547–18.251 → −14.901–14.376 | 3.508 → 3.508% | 53 → 57 |
+
+  Passive/developmental tail widths narrow 22.4%/20.4%, and future drought peak p95 falls
+  9.556 → 8.950% / 8.366 → 7.626%, with shallower subsequent deflation. The broader 1000-run
+  baseline still reads 2.86% passive growth and 3.06% developmental growth; unemployment
+  changes only 12.60 → 12.64% and 12.35 → 12.41%. The full 120-run-per-policy all-country
+  stability sweep has no reachable non-finite values or price explosions.
+
+  Mean adjacent-quarter CPI movement rises slightly under ordinary play (passive 1.160 →
+  1.191 points, developmental 1.173 → 1.202), even as the tails narrow. Supply shocks retain
+  their immediate scarcity price. The deliberate printing arm enacts all orders under
+  `unlimitedCapital`, keeping ordinary tenure and fog; only 3/240 governments survive in
+  either bargain, so its future tail is a diagnostic with a tiny survivor sample.
 - Households spend against EMA "habitual" income (the same EMA approval judges against) —
   permanent-income smoothing is the main cycle damper. The wage/employment gains were lowered
   until the business cycle stopped resonating with the 16-quarter election period.
@@ -28,6 +61,10 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   valve (`SUBSISTENCE_ABSORPTION_Q`, capped by the rural labor force — uncapped it recreates
   the Malthusian trap). Vital rates read the income LEVEL (`LIVING_STANDARD_1946`), the report
   card reads income vs your own 1946 — don't conflate the two anchors.
+  **The subsistence half no longer holds (schema 46):** the cap binds from the 1950s on, and
+  `SUBSISTENCE_ABSORPTION_Q = 0` moves passive growth 2.94 → 2.95%/yr and unemployment by 0.02pt.
+  Farm employment is `SUBSISTENCE_CAP × rural labour force`, a demographic quantity, so do not
+  tune the valve or `TECH_EXPOSURE.agri` to move it. `docs/investigations/0023`.
 - Init self-calibrates spending to the tax base (`init.ts`) — an unbalanced opening budget
   compounds into a scripted depression.
 - Finance is a loop that WANTS to ratchet (assets↑ → collateral↑ → credit↑ → assets↑). Two

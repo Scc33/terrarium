@@ -628,6 +628,7 @@ export function init(
     },
     ledger: {
       inflationExpectations: INIT_INFLATION_EXPECTATIONS,
+      consumerInflationExpectations: INIT_INFLATION_EXPECTATIONS,
       debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
