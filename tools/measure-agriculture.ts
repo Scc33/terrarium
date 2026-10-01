@@ -27,11 +27,11 @@
  *    sets where the share comes to rest. Shares are of gross DEMAND; `met` is
  *    how much of it the farm actually produced.
  *
- * Each table reads the state its own step was handed, not the end of the tick:
- * `demography` runs second and `labor` twelfth, so the end-of-tick wages and
- * capital are a quarter ahead of the one and a step behind the other. The tool
- * re-runs the same fold `step` runs, stopped short at each, and checks that the
- * headcount it gets is the one `step` produced.
+ * Each table reads the quarter at the point its own step does, never the end of
+ * the tick: `demography` runs before anything sets this quarter's wages,
+ * `production` before `prices` and `labor` move what it bought and who made it,
+ * and `labor` after both. The tool replays the fold `step` runs, keeps those
+ * snapshots, and checks that the headcount it gets is the one `step` produced.
  *
  * Arms run with protected tenure and unlimited capital, like `pnpm composition`'s
  * isolated arm: what is measured is the economy, not whether a cabinet lived to
@@ -130,23 +130,28 @@ interface Reading {
 
 const agriOf = (s: TrueState) => s.sectors.find((x) => x.id === 'agri')!
 
-/** The state the named step is handed this quarter: the fold `step` runs,
- * stopped short. Steps are pure, so this never touches the trajectory. */
-function handedTo(state: TrueState, name: string): TrueState {
+/** One pass of the fold `step` runs, through `last`, keeping what each step was
+ * handed and what it returned. Steps are pure, so this never touches the
+ * trajectory. */
+function replay(state: TrueState, last: string) {
+  const handed = new Map<string, TrueState>()
+  const returned = new Map<string, TrueState>()
   let s = state
   for (const p of TICK_ORDER) {
-    if (p.name === name) return s
+    handed.set(p.name, s)
     s = p.run(s, rngFor(s.meta.seed, p.name, s.meta.tick))
+    returned.set(p.name, s)
+    if (p.name === last) return { handed, returned }
   }
-  throw new Error(`no pipeline step named ${name}`)
+  throw new Error(`no pipeline step named ${last}`)
 }
 
-const LABOR_STEP = TICK_ORDER.find((p) => p.name === 'labor')!
-
-/** One quarter, read at the three points the tables need. */
+/** One quarter, read where each table's step reads it. */
 interface Quarter {
   /** what `demography` was handed */
   migrating: TrueState
+  /** what `production` returned: the demand, output and prices it cleared at */
+  produced: TrueState
   /** what `labor` was handed, and what it returned */
   hiring: TrueState
   hired: TrueState
@@ -160,13 +165,8 @@ function capRatio(q: Quarter): number {
 
 function read(q: Quarter): Reading {
   const s = q.after
-  const agri = agriOf(s)
-  const totalEmployment = s.sectors.reduce((sum, x) => sum + x.employment, 0)
   const lf = laborForce(s)
   const lfTotal = Object.values(lf).reduce((a, b) => a + b, 0)
-  const valueAdded = sectorValueAdded(s)
-  const vaTotal = SECTOR_IDS.reduce((sum, sid) => sum + valueAdded[sid], 0)
-  const gross = Math.max(s.flows.grossDemand.agri, 1e-9)
 
   // labor's expression, on labor's inputs
   const farm = agriOf(q.hiring)
@@ -184,10 +184,18 @@ function read(q: Quarter): Reading {
   const ruralBefore = q.migrating.demography.classShares.rural_workers
   const ruralAfter = s.demography.classShares.rural_workers
 
+  // the market production cleared: output beside the hands that made it, and
+  // quantities at the prices they were bought at
+  const p = q.produced
+  const producers = p.sectors.reduce((sum, x) => sum + x.employment, 0)
+  const valueAdded = sectorValueAdded(p)
+  const vaTotal = SECTOR_IDS.reduce((sum, sid) => sum + valueAdded[sid], 0)
+  const gross = Math.max(p.flows.grossDemand.agri, 1e-9)
   let spend = 0
-  for (const sid of SECTOR_IDS) spend += s.flows.householdDemand[sid] * s.market.prices[sid]
+  for (const sid of SECTOR_IDS) spend += p.flows.householdDemand[sid] * p.market.prices[sid]
+
   return {
-    agEmployment: agri.employment / totalEmployment,
+    agEmployment: agriOf(s).employment / s.sectors.reduce((sum, x) => sum + x.employment, 0),
     ruralLabourForce: lf.rural_workers / lfTotal,
     capRatio: capRatio(q),
     targetRatio: target / farm.employment,
@@ -195,15 +203,15 @@ function read(q: Quarter): Reading {
     jobsPull,
     urbanization: (4 * (ruralBefore - ruralAfter)) / Math.max(ruralBefore, 1e-9),
     urbanizationMax: 4 * URBANIZATION_GAIN * jobsPull,
-    foodShare: (s.flows.householdDemand.agri * s.market.prices.agri) / Math.max(spend, 1e-9),
-    household: s.flows.householdDemand.agri / gross,
-    intermediate: (s.flows.grossDemand.agri - s.flows.finalDemand.agri) / gross,
-    netExports: (s.flows.exportsReal.agri - s.flows.importsReal.agri) / gross,
-    met: s.flows.satisfied.agri,
+    foodShare: (p.flows.householdDemand.agri * p.market.prices.agri) / Math.max(spend, 1e-9),
+    household: p.flows.householdDemand.agri / gross,
+    intermediate: (p.flows.grossDemand.agri - p.flows.finalDemand.agri) / gross,
+    netExports: (p.flows.exportsReal.agri - p.flows.importsReal.agri) / gross,
+    met: p.flows.satisfied.agri,
     agValueAdded: valueAdded.agri / vaTotal,
-    relativeProductivity: valueAdded.agri / agri.employment / (vaTotal / totalEmployment),
-    relativePrice: s.market.prices.agri / s.market.prices.manuf,
-    consumptionPerHead: realConsumptionPerCapita(s),
+    relativeProductivity: valueAdded.agri / agriOf(p).employment / (vaTotal / producers),
+    relativePrice: p.market.prices.agri / p.market.prices.manuf,
+    consumptionPerHead: realConsumptionPerCapita(p),
   }
 }
 
@@ -228,15 +236,20 @@ function run(country: CountryScenarioId, arm: ArmId, seed: string): Run {
         }
       }
     }
-    const hiring = handedTo(staged, 'labor')
-    const hired = LABOR_STEP.run(hiring, rngFor(hiring.meta.seed, LABOR_STEP.name, hiring.meta.tick))
+    const fold = replay(staged, 'labor')
     s = step(staged)
+    const quarter: Quarter = {
+      migrating: fold.handed.get('demography')!,
+      produced: fold.returned.get('production')!,
+      hiring: fold.handed.get('labor')!,
+      hired: fold.returned.get('labor')!,
+      after: s,
+    }
     // the replayed fold must be the one `step` ran, or every column below is
     // measuring a quarter that never happened
-    if (agriOf(hired).employment !== agriOf(s).employment) {
+    if (agriOf(quarter.hired).employment !== agriOf(s).employment) {
       throw new Error(`replayed labor disagrees with step at ${country}/${seed} q${t}`)
     }
-    const quarter: Quarter = { migrating: handedTo(staged, 'demography'), hiring, hired, after: s }
     const tick = t + 1
     if (tick >= BIND_FROM && capRatio(quarter) >= 1 - 1e-9) binding++
     if (MARKS.includes(tick)) marks.set(tick, read(quarter))

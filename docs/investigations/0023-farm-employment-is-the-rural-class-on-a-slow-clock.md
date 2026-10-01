@@ -11,7 +11,8 @@ employment rate of agriculture is very high." The comment on that issue measured
 
 **Measured at:** `92f9d13` (schema 46). Composition tables are `pnpm agriculture -- --seeds 8
 --ticks 400` (protected tenure, unlimited capital; `developmental` funds all four capacities every
-four quarters). Macro tables are `pnpm batch -- --runs 200 --ticks 400 --country all`, ordinary
+four quarters). Macro tables are `pnpm batch -- --runs 200 --ticks 400 --country all --policy
+passive`, then the same with `--policy developmental` (the runner defaults to `random`), ordinary
 tenure. Counterfactuals are one-line edits to `constants.ts` or `demography.ts`, listed with each
 table and reverted after the run. Re-measure before acting on any number here.
 
@@ -113,10 +114,10 @@ proportionally more abroad whatever the world wants. A farm sector that shrinks 
 not more. Under development the farm's net exports rise from 0.08–0.15 of the demand for its
 output in 1947 to **0.29–0.35 by 2046** on Meridia, Costona, Oranga and Kestrel, all of it met
 (`met` is 1.00 from the 1950s on). Under passive they end at 0.11–0.19. **This is most of why developing barely helps.** Meridia's developmental household food
-share is 13.6% against passive's 16.8%, and the export share more than doubles to cover it.
+share is 13.7% against passive's 16.9%, and the export share more than doubles to cover it.
 
 **Households buy all their food at the farm gate.** The food share of household spending falls
-from 34% in 1947 to 13.6% in 2046 on Meridia, which is a plausible figure for *food*. But every
+from 34% in 1947 to 13.7% in 2046 on Meridia, which is a plausible figure for *food*. But every
 unit of it is agricultural output, with `IO_COEFF`'s 0.67 value-added ratio. In real economies the
 farm's share of the food budget falls steeply with income, because processing, distribution and
 restaurants take a growing share of what a household pays for food. `ENGEL_ELASTICITY.agri = −0.35`
@@ -151,7 +152,7 @@ development matter on the three countries that open agrarian. The developmental�
 goes from 1.9 to 2.9 points on Meridia, **1.5 to 5.4 on Costona** and 3.1 to 4.0 on Kestrel, which
 is #97's question answered for this one statistic. The two industrial recipes stay under a point.
 
-The macro cost, `pnpm batch --country all`, 200 × 400q:
+The macro cost, `pnpm batch -- --runs 200 --ticks 400 --country all` once per `--policy`:
 
 | | passive growth / u / deposed | developmental growth / u / deposed |
 |---|---|---|
@@ -168,8 +169,8 @@ The two demand-side changes cost passive a few points, about one run in thirty-t
 so they still need the economics review.
 
 One caution for whoever builds this: under all three, farm value added per worker overtakes the
-economy's (relative productivity 1.25 on Meridia and 1.55 on Costona by 2046, against 0.88 and
-1.00 at baseline). Real farms stay *less* productive per head than the rest of the economy, so a
+economy's (relative productivity 1.24 on Meridia and 1.55 on Costona by 2046, against 0.88 and
+0.99 at baseline). Real farms stay *less* productive per head than the rest of the economy, so a
 reading above 1 means the countryside emptied faster than the farm's market shrank. That is
 `pnpm agriculture`'s `rel prod` column, and it belongs in the acceptance check.
 
@@ -201,5 +202,5 @@ and the wage-gap clamp on its own.
 `pnpm agriculture` before and after each step. Read table 1's `cap binds` to see whether the pin
 still holds, table 2's `urb %/yr` against `urb max` for the speed, and table 3's `net exp.` and
 `rel prod` for the destination. Then the standard gates for a change that moves the economy:
-`pnpm batch --country all` on every policy, with passive read per country, and `pnpm diff-state
---moved-only` → `pnpm bless`.
+`pnpm batch -- --ticks 400 --country all` once per `--policy`, with passive read per country, and
+`pnpm diff-state --moved-only` → `pnpm bless`.
