@@ -280,6 +280,23 @@ const PRODUCTIVITY_QUARTERS: readonly FixtureQuarter[] = [
   [992.7, 992.7],
 ]
 
+/**
+ * Costona under the survey's maximal builder (`packages/runner/src/survey.ts`,
+ * seed `range-costona-0`), 1960–1964: a state spending everything on
+ * ministries while the countryside stays poor, and poverty above its 0–50
+ * face for all twenty quarters. This is the gallery's OFF-SCALE dial —
+ * every other fixture keeps its needle on the face, so until it existed no
+ * screenshot had ever held the state the dial most needs to say loudly, and
+ * its unit (`% POPULATION`) is among the longest the face prints beneath the
+ * hub.
+ */
+const POVERTY_QUARTERS: readonly FixtureQuarter[] = [
+  [55, 56.6], [55.6, 56.4], [56.4, 56.4], [55.3, 56.7], [55.9, 56.2], [56.8, 56.1],
+  [54.7, 55.7], [55.2, 55.6], [54.9, 55.2], [54.2, 55], [54.6, 54.9], [55.9, 54.9],
+  [53.3, 54.3], [54.1, 54.3], [53, 54.1], [53.9, 53.9], [54, 53.6], [53.2, 53.4],
+  [52.3, 53.2], [54.1, 53],
+]
+
 export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: IndicatorSeries }[] = [
   {
     indicator: 'gdp_growth',
@@ -304,5 +321,9 @@ export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: Ind
       PRODUCTIVITY_QUARTERS,
       12.5,
     ),
+  },
+  {
+    indicator: 'poverty_rate',
+    series: buildSeries('poverty_rate', 'Poverty rate', '% of population', POVERTY_QUARTERS, 1.6),
   },
 ]

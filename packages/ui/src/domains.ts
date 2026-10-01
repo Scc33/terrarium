@@ -9,9 +9,16 @@
  * instruments and remembering what they looked like last time.
  *
  * So faces are FIXED, per indicator, and they are measured rather than
- * guessed — `tools/indicator-ranges.ts` runs a fully-surveyed century and
- * reports where each series actually lives. Domains here cover roughly the
- * 1st–99th percentile of that, rounded outward to a readable number.
+ * guessed — `tools/indicator-ranges.ts` runs a fully-surveyed century under
+ * every government in `packages/runner/src/survey.ts` and reports where each
+ * series actually lives. Domains here cover roughly the 1st–99th percentile
+ * of that, rounded outward to a readable number.
+ *
+ * "Every government" is the half that was missing until #190. The survey used
+ * to play one — build the ministries, touch nothing else — and a real game
+ * played well left fifteen faces behind, `investment_share` pinned to its
+ * rail for 98% of the century. A face has to fit the play the levers reach,
+ * not the play the calibration happened to sample.
  *
  * When the economy leaves the dial, the needle PEGS at the rail and says so.
  * Going off-scale is information — a country running 25 % inflation should
@@ -20,8 +27,8 @@
  *
  * The exception is a series that grows an order of magnitude over the century
  * — the capital stock (175 → 900), household income and output per worker
- * (87 → 872), all of which are levels indexed against 1946 rather than rates
- * that revert. None has a single honest face, so they RATCHET: bounds from the
+ * (87 → 872), output and consumption per head (7 → 300 and 6 → 176), all of
+ * which are levels rather than rates that revert. None has a single honest face, so they RATCHET: bounds from the
  * whole published history, which only ever grows, so the face can expand but
  * never shrinks back under the needle.
  */
@@ -61,28 +68,31 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // master; FDI widened the upper tail further. Keep the recession rail and
   // give investment booms an honest upper face.
   gdp_growth: { lo: -15, hi: 20 },
-  // Schema 24 p99 132.0, maximum 156.8. The exceptional tail still pegs,
-  // while a capacity-building country's ordinary late century stays on-face
-  // and the upper rail lands on a labelled gridline.
-  gdp_per_capita: { lo: 0, hi: 150 },
+  // Ratchets since #190. Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 6.7–301.6, maximum 435.3 — a factor of
+  // forty-five, and the old 0–150 face pegged a third of a builder's century
+  // while already putting 1946 in its bottom twentieth.
+  gdp_per_capita: 'ratchet',
   // Across 12 seeds × 6 countries × 400 quarters: p01–p99 0.0–74.5,
   // maximum 95.3. Let borrowing beyond a measured century peg visibly.
   debt_to_gdp: { lo: 0, hi: 100 },
-  // Schema 24 p99 98.6, maximum 122.9. Round outward to the nearest clean
-  // hundred rather than hiding late-century consumption against the rail.
-  consumption_per_capita: { lo: 0, hi: 100 },
+  // Ratchets since #190, for the reason output per head does: p01–p99
+  // 6.0–176.2, maximum 245.7, and 29% of the maximal builder's prints pegged
+  // on the old 0–100 face.
+  consumption_per_capita: 'ratchet',
   household_saving_rate: { lo: -10, hi: 20 },
   // The expenditure shares differ in magnitude by two orders of magnitude in
   // this economy, so they get four very different faces rather than a shared
   // 0–100 one. A common face would put three of the four needles in the same
   // millimetre of dial and make the split unreadable — which is the opposite
   // of what a composition instrument is for.
-  // Schema 35 widened the floor: with the basket answering to income
-  // (ADR-0030) a household buys more services per unit of real output, and
-  // consumption's share of expenditure now reaches p01 68.1 against the old
-  // 70 rail. Measured p01–p99 68.1–82.2, extrema 63.6–89.1.
-  consumption_share: { lo: 65, hi: 85 },
-  investment_share: { lo: 0, hi: 10 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): consumption p01–p99 53.7–81.6, extrema 48.2–88.0; capital
+  // formation p01–p99 2.1–20.8, extrema 1.0–27.3. A government that taxes to
+  // build — the welfare builder, #180's player — moves a quarter of final
+  // spending from one to the other, and on the old 65–85 and 0–10 faces it
+  // spent 58% and 64% of its century against the rails. Capital formation
+  // takes 0–25 rather than 0–20: at 20 the maximal builder still pegged 9%.
+  consumption_share: { lo: 50, hi: 85 },
+  investment_share: { lo: 0, hi: 25 },
   export_share: { lo: 5, hi: 30 },
   // Schema 24 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
   // Exceptional small-country surges should peg; ordinary dependence should
@@ -99,7 +109,9 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // `price_fuel` was already spending part of its life against the old 40 rail
   // and this pushed it to a fifth of every print.
   price_food: { lo: 25, hi: 180 },
-  price_fuel: { lo: 25, hi: 130 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel
+  // board past the old 130 rail; food stays on its face.
+  price_fuel: { lo: 25, hi: 150 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema
@@ -111,8 +123,8 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // construction, so keep the natural face and preserve room for failed or
   // exceptionally educated workforces without rescaling under the needle.
   human_capital: { lo: 0, hi: 100 },
-  // The same sweep puts payrolls at p01–p99 2.4–46.3 M, extrema 1.6–54.3 M.
-  payrolls: { lo: 0, hi: 60 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 2.4–67.5 M, extrema 1.5–88.3 M.
+  payrolls: { lo: 0, hi: 80 },
   capital_stock: 'ratchet',
   // Measured across 12 seeds × 6 countries × 400 quarters: 1st–99th
   // percentile 53.4–94.6, extrema 47.5–96.5. Keep the frontier mark visible
@@ -122,7 +134,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // in the bottom fifth and the player would learn nothing from the decade
   // that matters most. Ratchets, like the capital stock it partly measures.
   productivity: 'ratchet',
-  technology_attainment: { lo: 45, hi: 105 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 44.1–96.1, extrema 38.9–98.0. An extractive state that
+  // builds no schools stalls in the low forties and pegged 11% of its century
+  // on the old 45 rail.
+  technology_attainment: { lo: 35, hi: 105 },
   conf_consumer: { lo: 20, hi: 80 },
   conf_business: { lo: 20, hi: 90 },
   approval: { lo: 20, hi: 80 },
@@ -132,10 +147,12 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // 6.4–24.1%, extrema 5.7–45.8. Poverty cannot go below zero; the 50% rail
   // clears the measured maximum while leaving the ordinary range legible.
   poverty_rate: { lo: 0, hi: 50 },
-  // Schema 38, 12 seeds × 6 countries × 400 funded quarters: p01–p99
-  // 47.8–58.2 years, extrema 44.2–59.8. Round to a five-year lower rail and
-  // the measured maximum; exceptional mortality crises should peg visibly.
-  life_expectancy: { lo: 45, hi: 60 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 47.6–65.2 years, extrema 44.0–67.2. The old 60 rail was
+  // the capacity builder's maximum, and #180's player lived past it from 1980
+  // to the end. 75 clears the model's own ceiling — `MORT_FLOOR` stops life
+  // expectancy at 72.8 years — so every reachable reading above the
+  // mortality-crisis rail is on the face.
+  life_expectancy: { lo: 45, hi: 75 },
   // Schema 41, 12 seeds × 6 countries × 400 funded quarters: p01–p99
   // 0.304–0.783, extrema 0.254–0.804, with no component clamped. ADR-0033
   // defines the quantity on 0–1 fixed goalposts, so the honest face is the
@@ -147,37 +164,38 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   birth_rate: { lo: 0, hi: 45 },
   death_rate: { lo: 0, hi: 30 },
   terms_of_trade: { lo: 85, hi: 115 },
-  asset_prices: { lo: 50, hi: 140 },
-  credit_growth: { lo: -30, hi: 30 },
-  // Deliberately WIDER than the surveyed century, and this is the one face
-  // where `pnpm ranges` is not the whole evidence. The funded sweep puts it
-  // at p01–p99 40.3–65.9, extrema 29.3–82.4 — but that sweep never touches
-  // the money dials, and the reading this instrument exists for is the
-  // fragility rail at 75. A face fitted to the percentiles would put the rail
-  // in its last tenth and peg for a quarter of the century under an easy-money
-  // government, which a separate sweep (0% policy rate, maximum purchases,
-  // minimum bank-capital floor) measured reaching 112. So the face covers the
-  // play the levers actually reach; ordinary play sits in the middle third,
-  // which is still legible. Zero is the honest low rail — a crunch clamps
-  // credit to almost nothing, and no lending at all is a real position.
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): asset valuation p01–p99 55.9–179.2, extrema 29.1–252.1; credit
+  // growth p01–p99 −30.8–46.7, extrema −38.3–274.1. Both were cut where no
+  // money dial had moved: free money put the asset market past 140 for a
+  // quarter of the century and a credit boom past +30.
+  asset_prices: { lo: 50, hi: 200 },
+  credit_growth: { lo: -40, hi: 60 },
+  // The face #190 generalised. It was set by hand, wider than the survey,
+  // because that survey never touched the money dials and a separate sweep
+  // (0% policy rate, maximum purchases, minimum bank-capital floor) measured
+  // 112 — and the reading this instrument exists for is the fragility rail at
+  // 75, which a percentile-fitted face would have put in its last tenth. That
+  // sweep is now the survey's `money` government: schema 46, all five
+  // governments, p01–p99 17.3–95.7, extrema 8.4–142.1, pegged 0.0%. Zero is
+  // the honest low rail — a crunch clamps credit to almost nothing, and no
+  // lending at all is a real position.
   credit_to_gdp: { lo: 0, hi: 120 },
-  // Measured p01–p99 15.7–26.0, extrema 8.3–30.9, so the upper rail clears
-  // the maximum rather than pegging on it. The low rail is zero because the
-  // whole legal range of the `capitalRequirement` floor (3–25) has to fit on
-  // the face: "am I above the floor I set" is the reading, and a dial that
-  // could not draw the floor could not answer it.
-  bank_capital_ratio: { lo: 0, hi: 35 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 0.5–43.2, extrema 0.0–89.3 — dear money shrinks the loan
+  // book faster than it shrinks bank equity, and the ratio climbs. The low
+  // rail is zero because the whole legal range of the `capitalRequirement`
+  // floor (3–25) has to fit on the face: "am I above the floor I set" is the
+  // reading, and a dial that could not draw the floor could not answer it.
+  bank_capital_ratio: { lo: 0, hi: 50 },
   // Measured with `pnpm ranges` over the funded century: p01–p99 is 66.8–418.2
   // and the extrema are 57.6–477.9. A country that never industrialises sits
   // near its 1946 inheritance at 100; one that industrialises without rules
   // runs past 400. The face covers the middle 98% and lets the filthiest
   // centuries peg, which is the point — going off this dial is information.
   pollution: { lo: 50, hi: 450 },
-  // Schema 35: p01–p99 4.5–61.3, extrema −13.1–79.9. The top rail moved
-  // because a developing century now runs slightly hotter (ADR-0030 shifts
-  // demand toward the sector the richest working cohort staffs), not because
-  // the face was wrong before.
-  unrest: { lo: 0, hi: 70 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 6.6–93.7, extrema −10.6–104.1. A state that represses
+  // rather than reforms lives at 80–100 — the old 70 rail pegged 62% of its
+  // century — so the face is the index's whole natural range.
+  unrest: { lo: 0, hi: 100 },
   // Schema 46, 12 seeds × 6 countries × 400 funded quarters: p01–p99
   // 8.6–29.6%, extrema 6.2–40.1. Zero is the honest lower rail for a rate;
   // the 30% upper rail covers the middle 98% and lets exceptional mismatch
@@ -252,6 +270,15 @@ export function gaugeDomain(indicator: IndicatorId, values: readonly number[]): 
   const finite = values.filter((v) => Number.isFinite(v))
   if (finite.length === 0) return { lo: 0, hi: 1 }
   return niceBounds(Math.min(...finite), Math.max(...finite))
+}
+
+/** The figures printed on a face: both rails and the midpoint. Rails alone
+ * made every reading an interpolation across the whole arc; the midpoint
+ * halves it. Ratcheting faces land on `niceBounds`' grid and fixed faces are
+ * chosen round, so two decimals is a ceiling rather than a format. */
+export function faceScale(domain: Domain): { lo: string; mid: string; hi: string } {
+  const print = (v: number) => String(Number(v.toFixed(2)))
+  return { lo: print(domain.lo), mid: print((domain.lo + domain.hi) / 2), hi: print(domain.hi) }
 }
 
 /** Where the needle points, pegging at the rails rather than running off. */

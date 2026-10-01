@@ -22,50 +22,29 @@
  * built every survey and kept it.
  */
 
-import {
-  applyActions,
-  createCountryParams,
-  generateParams,
-  init,
-  step,
-  type CapacityId,
-  type CountryScenarioId,
-  type TrueState,
-} from '@terrarium/engine'
+import type { CountryScenarioId } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
+import { surveyQuarters, type SurveyArmId } from '../../packages/runner/src/survey'
 
-/** typed, so a renamed capacity is a build error here rather than a funding
- * call this harness silently swallows and a century that measures nothing */
-const CAPACITIES: readonly CapacityId[] = ['tax', 'statistical', 'administrative', 'education']
+export { SURVEY_ARM_IDS, type SurveyArmId } from '../../packages/runner/src/survey'
 
 /**
- * Play `ticks` quarters keeping every survey funded, calling `visit` with the
- * published state after each one. Frames are not retained — a century of
- * PublishedState holds every print ever made, so tests accumulate the little
- * they need instead of the harness hoarding all of it.
+ * Play `ticks` quarters under one of the survey's governments — by default
+ * the capacity builder, which keeps every survey funded and touches nothing
+ * else — calling `visit` with the published state after each one. Frames are
+ * not retained — a century of PublishedState holds every print ever made, so
+ * tests accumulate the little they need instead of the harness hoarding all
+ * of it.
  */
 export function eachQuarter(
   seed: string,
   ticks: number,
   visit: (pub: PublishedState, tick: number) => void,
   country?: CountryScenarioId,
+  arm: SurveyArmId = 'developmental',
 ): void {
-  const params = country ? createCountryParams(country, seed) : generateParams(seed)
-  let s: TrueState = init(params, seed)
-  for (let t = 0; t < ticks; t++) {
-    if (t % 8 === 0) {
-      for (const target of CAPACITIES) {
-        try {
-          s = applyActions(s, [{ kind: 'investCapacity', target, amount: 2 }])
-        } catch {
-          // unaffordable this quarter; the survey simply waits
-        }
-      }
-    }
-    s = step(s)
-    visit(observe(s), t)
-  }
+  surveyQuarters(seed, ticks, arm, country, (state, tick) => visit(observe(state), tick))
 }
 
 /** The seeds and length the presentation invariants are measured over. A

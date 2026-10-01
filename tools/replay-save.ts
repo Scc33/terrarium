@@ -58,14 +58,11 @@ import {
   TECH_EXPOSURE,
 } from '../packages/engine/src/constants'
 import {
-  CAPACITY_IDS,
   END_OF_HISTORY_TICK,
   ENGINE_VERSION,
   POVERTY_LINE_REAL,
   SCHEMA_VERSION,
   SECTOR_IDS,
-  STATUTE_IDS,
-  STATUTE_LEVELS,
   absorptiveCapacity,
   appointmentTick,
   frontierGrowthAt,
@@ -75,13 +72,12 @@ import {
   periodLifeExpectancy,
   technologyAttainment,
   totalLaborForce,
-  type Action,
   type ActionLog,
   type Qtr,
   type SaveFile,
   type TrueState,
 } from '../packages/engine/src/index'
-import { developmentalPolicy, type RunnerPolicy } from '../packages/runner/src/policies'
+import { developmentalPolicy, maximalPolicy, type RunnerPolicy } from '../packages/runner/src/policies'
 import { runOne } from '../packages/runner/src/run'
 
 export const ARM_IDS = ['log', 'passive', 'developmental', 'maximal'] as const
@@ -198,47 +194,8 @@ export function planReplay(save: SaveFile, requestedTicks: number | null): Repla
 }
 
 // ---------- policies for the counterfactual arms ----------
-/** Build every ministry, legislate to the top of every ladder, fund research
- * and state investment hard. It is a CEILING PROBE, not a model of good play —
- * quote it when asking whether a mechanic can be reached at all, never as a
- * balance baseline. It spends so heavily that consumption, and with it every
- * welfare reading, comes out BELOW the do-nothing arm; that is the probe
- * working, and it is why `livingStandard` is a column.
- *
- * It is not lenient about the thing under test: statutes are re-attempted
- * every year until the book actually reads the top rung, because an enactment
- * that a deposed or broke cabinet silently refused looks exactly like a
- * statute that does nothing (see docs/tuning-lessons.md). */
-export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
-  const actions: Action[] = []
-  const gdp = Math.max(state.flows.nominalGdp, 1e-9)
-  if (tick % 4 === 0) {
-    for (const target of CAPACITY_IDS) {
-      if (state.gov.capacity[target] < 0.999) {
-        actions.push({ kind: 'investCapacity', target, amount: 0.05 * gdp })
-      }
-    }
-    for (const id of STATUTE_IDS) {
-      const top = STATUTE_LEVELS[id].length - 1
-      if (state.gov.statutes[id].level < top) {
-        actions.push({ kind: 'enact', statute: id, level: top })
-      }
-    }
-    // Vote a rule only while it is not already the rule. `setSpendingRule`
-    // charges the base political-capital cost even for an identical share, so
-    // a probe that re-submits every year burns capital it should be spending
-    // on ministries and statutes — and on any run without `unlimitedCapital`
-    // that is the difference between a ceiling and a deposition.
-    for (const [programme, share] of [['research', 0.05], ['investment', 0.08]] as const) {
-      const rule = state.gov.spendingRules[programme]
-      if (rule.kind !== 'gdpShare' || Math.abs(rule.share - share) > 1e-9) {
-        actions.push({ kind: 'setSpendingRule', programme, mode: 'gdpShare', value: share })
-      }
-    }
-  }
-  return actions
-}
-
+// `maximal` lives with the runner's other policies because the dial-fit survey
+// (`packages/runner/src/survey.ts`) samples it too.
 const POLICIES: Record<Exclude<ArmId, 'log'>, RunnerPolicy | undefined> = {
   passive: undefined,
   developmental: developmentalPolicy,
