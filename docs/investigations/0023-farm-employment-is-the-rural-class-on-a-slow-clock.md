@@ -47,8 +47,9 @@ what this measures. The supply side turns out not to be where the problem is.
 `labor` caps agricultural employment at `SUBSISTENCE_CAP × laborForce.rural_workers`. From q20 on
 the cap binds in **90–100% of quarters on every country and both arms**, at `emp/cap = 1.000`, and
 it still binds under every counterfactual below (93–100% of quarters even in the one that takes
-the share to 7%). `labor`'s own hiring target sits at 0.98–1.09× the headcount, so the farm always
-wants slightly more hands than the countryside has. The price of food clears the gap, not the payroll.
+the share to 7%). Once it binds, `labor`'s own hiring target, read off the state `labor` is handed,
+sits at 0.98–1.09× the headcount, so the farm always wants slightly more hands than the
+countryside has. The price of food clears the gap, not the payroll.
 
 So **farm labour demand never decides farm employment.** The agricultural row of the industrial
 census is `0.92 × rural labour force`, and the only thing that moves it is the class transition in
@@ -66,7 +67,7 @@ the frontier faster than factories, which is closer to the post-war record) move
 by under half a point. That is the textbook result. With a unit price elasticity in the basket
 (`HOUSEHOLD_SUBSTITUTION = 1`), a cheaper farm sector gets the same share of spending, so
 productivity growth cannot release labour. The cheaper food goes abroad instead: farm net exports
-rise from 0.29 to 0.36 of farm output on Meridia. **Do not tune agricultural technology for this.**
+rise from 0.29 to 0.36 of the demand for farm output on Meridia. **Do not tune agricultural technology for this.**
 
 ## 2 — The clock has a speed limit
 
@@ -82,9 +83,9 @@ at full speed every quarter leaves `(1 − 0.004)^400 ≈ 0.20` of the 1946 rura
 demand at all, the speed limit alone holds Meridia and Costona above 10% in 2046.** The fast real
 transitions ran at three times this rate.
 
-The limit binds where it matters. Costona's urban wage is **3.8–4.2× its farm wage** from 1956 to
-1976 (`wage gap` 2.8–3.2), and the countryside drains no faster than it would at 2×.
-`jobsPull` then halves the rate through the mid-century unemployment hump (0.50–0.55 around 1976
+The limit binds where it matters. Costona's urban wage is **3.8–4.3× its farm wage** from 1956 to
+1976 (`wage gap` 2.8–3.3), and the countryside drains no faster than it would at 2×.
+`jobsPull` then halves the rate through the mid-century unemployment hump (0.50–0.53 around 1976
 on Meridia, Costona and Kestrel).
 
 | developmental, ag employment 2006 / 2046 | meridia | costona | veltravia | oranga | kestrel | gap 2046 |
@@ -109,9 +110,9 @@ agriculture's share of demand can pay for. Two things hold that share at 15–25
 `EXPORT_BASE_SHARE × qPot × openness × partner demand × (p_world/p)^1.5`, and imports at
 `IMPORT_BASE_SHARE × qPot × …` of the same *domestic* potential. A farm sector that grows sells
 proportionally more abroad whatever the world wants. A farm sector that shrinks imports less food,
-not more. Under development the farm's net exports rise from 0.08–0.15 of its gross output in
-1947 to **0.29–0.35 by 2046** on Meridia, Costona, Oranga and Kestrel. Under passive they end at
-0.11–0.19. **This is most of why developing barely helps.** Meridia's developmental household food
+not more. Under development the farm's net exports rise from 0.08–0.15 of the demand for its
+output in 1947 to **0.29–0.35 by 2046** on Meridia, Costona, Oranga and Kestrel, all of it met
+(`met` is 1.00 from the 1950s on). Under passive they end at 0.11–0.19. **This is most of why developing barely helps.** Meridia's developmental household food
 share is 13.6% against passive's 16.8%, and the export share more than doubles to cover it.
 
 **Households buy all their food at the farm gate.** The food share of household spending falls
@@ -125,7 +126,7 @@ models the household's total food bill and nothing about where that money lands.
 |---|---|---|---|---|---|---|
 | `EXPORT_BASE_SHARE.agri` 0.14 → 0.04 | 30.0 / 16.7 | 42.4 / 25.8 | 19.6 / 15.4 | 19.7 / 14.8 | 27.6 / 16.4 | 0.48 |
 | `ENGEL_ELASTICITY.agri` −0.35 → −0.8 | 29.1 / 15.9 | 40.8 / 24.7 | 18.4 / 13.3 | 20.2 / 14.1 | 27.5 / 15.9 | 0.57 |
-| both | 29.6 / 15.3 | 42.0 / 25.5 | 15.3 / 9.8 | 15.4 / 9.2 | 27.3 / 14.4 | **1.53** |
+| both | 29.6 / 15.3 | 42.0 / 25.5 | 15.3 / 9.8 | 15.4 / 9.2 | 27.3 / 14.4 | **1.54** |
 
 Each alone takes 3–5 points off the countries the speed limit does not hold back. Costona moves by
 under a point, because it is pinned by the clock and not the destination.
@@ -143,7 +144,7 @@ Both together, `URBANIZATION_GAIN × 3` plus the export and Engel edits:
 | ag employment 2006 / 2046 | meridia | costona | veltravia | oranga | kestrel | gap 2046 |
 |---|---|---|---|---|---|---|
 | developmental | 12.8 / **7.6** | 20.7 / **7.7** | 11.7 / **8.1** | 10.9 / **7.3** | 13.8 / **8.0** | 0.14 |
-| passive | 16.4 / 10.5 | 20.8 / 13.1 | 13.2 / 9.1 | 12.4 / 7.9 | 18.3 / 12.0 | 0.16 |
+| passive | 16.4 / 10.5 | 20.8 / 13.1 | 13.2 / 9.1 | 12.4 / 7.9 | 18.3 / 12.0 | 0.15 |
 
 That is inside the historical range for the income growth these countries achieve. It also makes
 development matter on the three countries that open agrarian. The developmental–passive spread

@@ -21,10 +21,17 @@
  * 2. **THE CLOCK.** `demography` drains the rural class at `URBANIZATION_GAIN ×
  *    clamp(wageGap, 0, 1) × jobsPull`, so no wage gap can move it faster than
  *    `urb max`. That is the SPEED of the transition.
- * 3. **THE DESTINATION.** Where the farm's gross output goes. Migration stops
- *    when the wage gap closes, and it closes at whatever headcount agriculture's
- *    share of demand can pay for — so this table, not table 2, sets where the
- *    share comes to rest.
+ * 3. **THE DESTINATION.** Where the demand for farm output comes from. Migration
+ *    stops when the wage gap closes, and it closes at whatever headcount
+ *    agriculture's share of demand can pay for — so this table, not table 2,
+ *    sets where the share comes to rest. Shares are of gross DEMAND; `met` is
+ *    how much of it the farm actually produced.
+ *
+ * Each table reads the state its own step was handed, not the end of the tick:
+ * `demography` runs second and `labor` twelfth, so the end-of-tick wages and
+ * capital are a quarter ahead of the one and a step behind the other. The tool
+ * re-runs the same fold `step` runs, stopped short at each, and checks that the
+ * headcount it gets is the one `step` produced.
  *
  * Arms run with protected tenure and unlimited capital, like `pnpm composition`'s
  * isolated arm: what is measured is the economy, not whether a cabinet lived to
@@ -39,9 +46,11 @@ import {
   init,
   laborForce,
   realConsumptionPerCapita,
+  rngFor,
   SECTOR_IDS,
   sectorValueAdded,
   step,
+  TICK_ORDER,
   type CountryScenarioId,
   type TrueState,
 } from '../packages/engine/src/index'
@@ -88,27 +97,30 @@ const COUNTRIES: readonly CountryScenarioId[] = ONLY_COUNTRY
   ? [ONLY_COUNTRY as CountryScenarioId]
   : CURATED_COUNTRY_IDS
 const ARMS: readonly ArmId[] = ONLY_ARM ? [ONLY_ARM as ArmId] : ARM_IDS
-const MARKS = [4, 40, 120, 240, 400].filter((t) => t <= TICKS)
+const MARKS = [...new Set([4, 40, 120, 240, 400, TICKS])].filter((t) => t <= TICKS).sort((a, b) => a - b)
 
 const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x))
 
 interface Reading {
   agEmployment: number
   ruralLabourForce: number
+  /** farm headcount as `labor` set it, over the cap `labor` applied */
   capRatio: number
-  /** `labor`'s own hiring target over the headcount: above 1, the farm wants
-   * hands it cannot get */
+  /** `labor`'s own hiring target over the headcount it started from: above 1,
+   * the farm wants hands it cannot get */
   targetRatio: number
   wageGap: number
   jobsPull: number
-  /** rural class lost per year, as a share of itself */
+  /** rural class actually lost this quarter, annualized, as a share of itself */
   urbanization: number
-  /** the same, had the wage gap been at its clamp */
+  /** the most it could have lost at this `jobsPull`, had the wage gap been at its clamp */
   urbanizationMax: number
   foodShare: number
   household: number
   intermediate: number
   netExports: number
+  /** share of gross demand for farm output that was produced */
+  met: number
   agValueAdded: number
   /** farm value added per worker over the economy's */
   relativeProductivity: number
@@ -116,37 +128,78 @@ interface Reading {
   consumptionPerHead: number
 }
 
-function read(s: TrueState): Reading {
-  const agri = s.sectors.find((x) => x.id === 'agri')!
+const agriOf = (s: TrueState) => s.sectors.find((x) => x.id === 'agri')!
+
+/** The state the named step is handed this quarter: the fold `step` runs,
+ * stopped short. Steps are pure, so this never touches the trajectory. */
+function handedTo(state: TrueState, name: string): TrueState {
+  let s = state
+  for (const p of TICK_ORDER) {
+    if (p.name === name) return s
+    s = p.run(s, rngFor(s.meta.seed, p.name, s.meta.tick))
+  }
+  throw new Error(`no pipeline step named ${name}`)
+}
+
+const LABOR_STEP = TICK_ORDER.find((p) => p.name === 'labor')!
+
+/** One quarter, read at the three points the tables need. */
+interface Quarter {
+  /** what `demography` was handed */
+  migrating: TrueState
+  /** what `labor` was handed, and what it returned */
+  hiring: TrueState
+  hired: TrueState
+  /** the end of the tick */
+  after: TrueState
+}
+
+function capRatio(q: Quarter): number {
+  return agriOf(q.hired).employment / (SUBSISTENCE_CAP * laborForce(q.hiring).rural_workers)
+}
+
+function read(q: Quarter): Reading {
+  const s = q.after
+  const agri = agriOf(s)
   const totalEmployment = s.sectors.reduce((sum, x) => sum + x.employment, 0)
   const lf = laborForce(s)
   const lfTotal = Object.values(lf).reduce((a, b) => a + b, 0)
   const valueAdded = sectorValueAdded(s)
   const vaTotal = SECTOR_IDS.reduce((sum, sid) => sum + valueAdded[sid], 0)
   const gross = Math.max(s.flows.grossDemand.agri, 1e-9)
-  const demanded = Math.min(s.flows.grossDemand.agri, HIRING_DEMAND_CAP * Math.max(agri.output, 1e-9))
-  const w = s.market.wages
+
+  // labor's expression, on labor's inputs
+  const farm = agriOf(q.hiring)
+  const demanded = Math.min(q.hiring.flows.grossDemand.agri, HIRING_DEMAND_CAP * Math.max(farm.output, 1e-9))
+  const target = laborForOutput(farm, demanded / NORMAL_UTILIZATION)
+
+  // demography's inputs, and what it actually did with them
+  const w = q.migrating.market.wages
   const wageGap = (w.manuf + w.services) / 2 / Math.max(w.agri, 1e-9) - 1
   const jobsPull = clamp(
-    1 - JOBS_PULL_UNEMPLOYMENT_GAIN * (s.flows.unemployment - NATURAL_UNEMPLOYMENT),
+    1 - JOBS_PULL_UNEMPLOYMENT_GAIN * (q.migrating.flows.unemployment - NATURAL_UNEMPLOYMENT),
     0,
     1,
   )
+  const ruralBefore = q.migrating.demography.classShares.rural_workers
+  const ruralAfter = s.demography.classShares.rural_workers
+
   let spend = 0
   for (const sid of SECTOR_IDS) spend += s.flows.householdDemand[sid] * s.market.prices[sid]
   return {
     agEmployment: agri.employment / totalEmployment,
     ruralLabourForce: lf.rural_workers / lfTotal,
-    capRatio: agri.employment / (SUBSISTENCE_CAP * lf.rural_workers),
-    targetRatio: laborForOutput(agri, demanded / NORMAL_UTILIZATION) / agri.employment,
+    capRatio: capRatio(q),
+    targetRatio: target / farm.employment,
     wageGap,
     jobsPull,
-    urbanization: 4 * URBANIZATION_GAIN * clamp(wageGap, 0, 1) * jobsPull,
+    urbanization: (4 * (ruralBefore - ruralAfter)) / Math.max(ruralBefore, 1e-9),
     urbanizationMax: 4 * URBANIZATION_GAIN * jobsPull,
     foodShare: (s.flows.householdDemand.agri * s.market.prices.agri) / Math.max(spend, 1e-9),
     household: s.flows.householdDemand.agri / gross,
     intermediate: (s.flows.grossDemand.agri - s.flows.finalDemand.agri) / gross,
     netExports: (s.flows.exportsReal.agri - s.flows.importsReal.agri) / gross,
+    met: s.flows.satisfied.agri,
     agValueAdded: valueAdded.agri / vaTotal,
     relativeProductivity: valueAdded.agri / agri.employment / (vaTotal / totalEmployment),
     relativePrice: s.market.prices.agri / s.market.prices.manuf,
@@ -175,13 +228,18 @@ function run(country: CountryScenarioId, arm: ArmId, seed: string): Run {
         }
       }
     }
+    const hiring = handedTo(staged, 'labor')
+    const hired = LABOR_STEP.run(hiring, rngFor(hiring.meta.seed, LABOR_STEP.name, hiring.meta.tick))
     s = step(staged)
-    const tick = t + 1
-    if (tick >= BIND_FROM) {
-      const agri = s.sectors.find((x) => x.id === 'agri')!
-      if (agri.employment >= (1 - 1e-6) * SUBSISTENCE_CAP * laborForce(s).rural_workers) binding++
+    // the replayed fold must be the one `step` ran, or every column below is
+    // measuring a quarter that never happened
+    if (agriOf(hired).employment !== agriOf(s).employment) {
+      throw new Error(`replayed labor disagrees with step at ${country}/${seed} q${t}`)
     }
-    if (MARKS.includes(tick)) marks.set(tick, read(s))
+    const quarter: Quarter = { migrating: handedTo(staged, 'demography'), hiring, hired, after: s }
+    const tick = t + 1
+    if (tick >= BIND_FROM && capRatio(quarter) >= 1 - 1e-9) binding++
+    if (MARKS.includes(tick)) marks.set(tick, read(quarter))
   }
   return { marks, capBinds: binding / (TICKS - BIND_FROM + 1) }
 }
@@ -214,12 +272,13 @@ const TABLES: Array<{ title: string; columns: Column[] }> = [
     ],
   },
   {
-    title: '3. THE DESTINATION — where farm gross output goes, and what it is worth',
+    title: '3. THE DESTINATION — where the demand for farm output comes from, and what it is worth',
     columns: [
       ['food %', (r) => r.foodShare, pct],
       ['household', (r) => r.household, ratio],
       ['interm.', (r) => r.intermediate, ratio],
       ['net exp.', (r) => r.netExports, ratio],
+      ['met', (r) => r.met, ratio],
       ['ag VA %', (r) => r.agValueAdded, pct],
       ['rel prod', (r) => r.relativeProductivity, ratio],
       ['pA/pM', (r) => r.relativePrice, ratio],
