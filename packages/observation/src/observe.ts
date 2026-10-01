@@ -20,6 +20,7 @@ import {
   approvalIndex,
   inCorridor,
   INDICATOR_IDS,
+  INDICATOR_SPECS,
   INSTITUTION_IDS,
   LEGITIMACY_GRADE_ELECTIONS,
   LEGITIMACY_SUPPRESSION_CAPS,
@@ -37,6 +38,7 @@ import {
   WELFARE_DISCOUNT_Q,
   type TrueState,
 } from '@terrarium/engine'
+import { LONG_RUN_FORM, LONG_RUN_RECORD, longRunReading } from './longRun'
 import type {
   Grade,
   IndicatorId,
@@ -151,7 +153,29 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
     finalSocietalPower: state.institutions.societalPower,
     positionGrade,
     deposedBy: politics.deposedBy,
+    longRun: longRunRecord(state, meta.appointedAt, meta.appointedAt + quartersGoverned),
   }
+}
+
+/** The tenure's long run, from the office's prints and from the worksheet they
+ * estimate. The truth side runs the office's own `trueValue` over the record,
+ * so both columns measure one quantity. The last quarter is the one the run
+ * ended in — still the player's economy, whatever happened at the ballot. */
+function longRunRecord(state: TrueState, from: number, end: number): ReportCard['longRun'] {
+  const { record, series } = state.stats
+  const to = Math.min(end, record.length - 1)
+  const out = {} as ReportCard['longRun']
+  for (const id of LONG_RUN_RECORD) {
+    const truth: { forQtr: number; value: number }[] = []
+    for (let q = from; q <= to; q++) {
+      truth.push({ forQtr: q, value: INDICATOR_SPECS[id].trueValue(record, q) })
+    }
+    out[id] = {
+      reported: longRunReading(series[id] ?? [], LONG_RUN_FORM[id], from, to),
+      actual: longRunReading(truth, LONG_RUN_FORM[id], from, to),
+    }
+  }
+  return out
 }
 
 /** What each reform would cost right now — the veto premium and the reform

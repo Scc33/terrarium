@@ -11,10 +11,11 @@ interface GaugeProps {
   access: InstrumentAccess
   series?: IndicatorSeries
   now: number
+  appointedAt: number
   onOpenCapacity?: () => void
 }
 
-export function Gauge({ indicator, access, series, now, onOpenCapacity }: GaugeProps) {
+export function Gauge({ indicator, access, series, now, appointedAt, onOpenCapacity }: GaugeProps) {
   if (access.availability !== 'reporting') {
     return (
       <BlankPlate
@@ -32,6 +33,6 @@ export function Gauge({ indicator, access, series, now, onOpenCapacity }: GaugeP
     case 'dossier':
       return <AnalogGauge indicator={indicator} series={series!} now={now} />
     case 'terminal':
-      return <TerminalTicker indicator={indicator} series={series!} now={now} />
+      return <TerminalTicker indicator={indicator} series={series!} now={now} appointedAt={appointedAt} />
   }
 }

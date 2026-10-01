@@ -1,12 +1,12 @@
 ---
 name: add-indicator
-description: Add a new published indicator to Terrarium's instrument wall, or retune an existing one's dial face. Use when adding a metric the player can see (a rate, an index, a survey result), when a new series needs a fundedAt capacity gate, or when `pnpm ranges` / the gauge-domains test says a face has drifted. Covers the six tables that must agree, the schema bump, and the measurement step.
+description: Add a new published indicator to Terrarium's instrument wall, or retune an existing one's dial face. Use when adding a metric the player can see (a rate, an index, a survey result), when a new series needs a fundedAt capacity gate, or when `pnpm ranges` / the gauge-domains test says a face has drifted. Covers the seven tables that must agree, the schema bump, and the measurement step.
 ---
 
 # Adding an indicator
 
 An indicator is a **published** number: fogged by the statistical office, gated on capacity,
-and drawn on a fixed dial face. Six tables have to agree, and all six are now total `Record`s —
+and drawn on a fixed dial face. Seven tables have to agree, and all seven are total `Record`s —
 add the id first and the build walks you through every one of them.
 
 ## The tables
@@ -19,6 +19,7 @@ add the id first and the build walks you through every one of them.
 | 4 | `PRESENTATION` | `packages/observation/src/observe.ts` | `Record` ✓ |
 | 5 | `NAMES` | `packages/ui/src/components/labels.ts` | `Record` ✓ |
 | 6 | `INDICATOR_FACE` | `packages/ui/src/domains.ts` | `Record` ✓ |
+| 7 | `LONG_RUN_FORM` | `packages/observation/src/longRun.ts` | `Record` ✓ |
 
 **`INDICATOR_SPECS` was an array until #209**, and a missing entry used to compile clean, pass
 every test, and leave a blank plate on the wall forever. It is now keyed by id, and the mapped
@@ -89,13 +90,20 @@ catches faces that are too narrow. Read the `pnpm ranges` percentiles yourself, 
 `worst century` column: the sweep plays five governments in six countries, and a face can pool
 under 2% while pinning one of those centuries to a rail.
 
-### 6. Schema bump + changelog
+### 6. `LONG_RUN_FORM` — how a term summarises it
+
+The terminal's TERM view and the report card's record read it. `mean` for a rate, share or
+bounded index; `compound` for an annualized growth print; `growth` for a level. Averaging a
+level is the mistake this table exists to prevent: a mean capital stock says nothing about
+a term, its annualized growth does.
+
+### 7. Schema bump + changelog
 
 Bump `SCHEMA_VERSION` in `schema.ts` and add an entry to `docs/metrics-changelog.md` under a
 new version heading: the indicator, its unit, its `fundedAt`, and whether it is fogged or
 exact. That file is the engine's data contract — a new output that isn't in it isn't shipped.
 
-### 7. Verify
+### 8. Verify
 
 ```bash
 pnpm test
