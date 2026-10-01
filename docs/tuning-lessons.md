@@ -19,10 +19,12 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   1000 × 120q random baseline it moved median growth 4.04 → 3.73%/yr and unemployment
   11.98 → 13.50%. A separate household forecast restored them to 4.02% and 12.09%, while
   retaining gradual wage adjustment. Both forecasts use `EXPECTATION_ADAPT = 0.12`; the
-  wage share remains `WAGE_INFLATION_PASSTHROUGH = 0.35` (ADR-0043).
+  wage share remains `WAGE_INFLATION_PASSTHROUGH = 0.35` (ADR-0044).
 
   Measured 2026-10-01 against `65b2f08` (schema 46), with the schema 47 household-forecast
-  change. `pnpm inflation-expectations -- --runs 40 --ticks 416` pairs the former spot-CPI
+  change; the paired figures below were rechecked after integrating `92f9d13`. Passive,
+  developmental and printing reports were unchanged by that integration.
+  `pnpm inflation-expectations -- --runs 40 --ticks 416` pairs the former spot-CPI
   bargain and the new expectation bargain across all six recipes, with 240 runs per policy.
   Each report stops at deposition. Future quiet quarters exclude shock onset plus eight
   quarters, as in the stability harness; inflation endpoints are annualized percentage points:
@@ -31,7 +33,7 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   |---|---|---|---|
   | passive | −4.879–4.592 → −3.735–3.615 | 2.866 → 2.868% | 238 → 238 |
   | developmental | −5.430–4.432 → −4.210–3.637 | 2.993 → 2.991% | 215 → 214 |
-  | random | −15.522–18.140 → −14.950–14.342 | 3.499 → 3.508% | 52 → 56 |
+  | random | −15.547–18.251 → −14.901–14.376 | 3.508 → 3.508% | 53 → 57 |
 
   Passive/developmental tail widths narrow 22.4%/20.4%, and future drought peak p95 falls
   9.556 → 8.950% / 8.366 → 7.626%, with shallower subsequent deflation. The broader 1000-run

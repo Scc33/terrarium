@@ -162,7 +162,7 @@ const cabinetSections = (): ManualSection[] => [
   },
   ...LEVER_GROUPS.map((group) => ({
     heading: `${group.group} — ${group.tab}`,
-    body: [group.brief, group.question],
+    body: [group.brief, group.question, ...(group.note ? [group.note] : [])],
     entries: group.paths.map((path) => ({
       term: LEVER_COPY[path].label,
       detail: `${LEVER_COPY[path].hint} ${LEVER_COPY[path].resists}`,

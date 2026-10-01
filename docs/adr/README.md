@@ -55,4 +55,5 @@ the old one and update the Status line of both.
 | [0040](0040-portable-normal-noise.md) | Normal noise is a portable sum of uniforms | Accepted |
 | [0041](0041-engine-has-a-host-free-typecheck.md) | The engine has its own host-free typecheck | Accepted |
 | [0042](0042-import-cycles-are-a-lint-rule.md) | Import cycles are a lint rule, not a scanner assertion | Accepted |
-| [0043](0043-wage-bargains-use-inflation-expectations.md) | Wage bargains use household inflation expectations | Accepted |
+| [0043](0043-the-neutral-rate-is-estimated-downstream-of-the-fog.md) | The neutral rate is estimated downstream of the fog, by the desk | Accepted |
+| [0044](0044-wage-bargains-use-inflation-expectations.md) | Wage bargains use household inflation expectations | Accepted |

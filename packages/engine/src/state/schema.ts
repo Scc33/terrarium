@@ -815,7 +815,7 @@ export interface PoliticalState {
 // ---------- fragility ----------
 export interface FragilityLedger {
   inflationExpectations: number // annualized nominal forecast; includes fiscal printing pressure
-  consumerInflationExpectations: number // annualized household forecast learned from experienced CPI (ADR-0043)
+  consumerInflationExpectations: number // annualized household forecast learned from experienced CPI (ADR-0044)
   debtToGdp: number // cached
   /** animal spirits, 0..1 with 0.55 neutral — surveyed only if you fund it */
   confidence: { consumer: Ratio; business: Ratio }

@@ -245,6 +245,11 @@ export interface PublishedState {
      * are one net position, so the pair reads as a single line. */
     fund: number
     printed: number
+    /** The share of each bond auction that domestic balance sheets absorb,
+     * 0..1. The debt office knows its buyers, so this is exact — and it is the
+     * one structural fact the central-bank desk needs to price its own
+     * auction's claim on private funding (ADR-0043). */
+    domesticBondShare: Ratio
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit
   }

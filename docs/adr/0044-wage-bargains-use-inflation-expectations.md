@@ -1,4 +1,4 @@
-# ADR-0043 — Wage bargains use household inflation expectations
+# ADR-0044 — Wage bargains use household inflation expectations
 
 **Status:** Accepted · **Date:** 2026-10-01
 

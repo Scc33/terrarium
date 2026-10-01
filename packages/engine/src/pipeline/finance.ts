@@ -66,7 +66,7 @@ import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import { SECTOR_IDS, type NewsItem, type Sector } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { privateRealRate } from './derive'
+import { privateRealRate } from './funding'
 import { officialNominalGdp } from '../state/spending'
 
 export const finance: PipelineStep = {

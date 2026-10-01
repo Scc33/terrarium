@@ -99,7 +99,7 @@ export const labor: PipelineStep = {
     // Monetary has updated households' annualized expectation from last
     // quarter's experienced CPI; prices runs after that update. A temporary
     // shortage therefore does not immediately index every wage, while
-    // sustained inflation still reaches the cost anchor (ADR-0043).
+    // sustained inflation still reaches the cost anchor (ADR-0044).
     const expectedInflationQ = state.ledger.consumerInflationExpectations / 4
     const newWages = sectorRecord((sid, i) => {
       const s = state.sectors[i]

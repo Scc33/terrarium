@@ -1,13 +1,10 @@
 /** Shared derived quantities used by several steps. Pure reads, no mutation. */
 
 import {
-  ASSET_PURCHASE_PRIVATE_RATE_GAIN,
-  BOND_CROWDING_RATE_GAIN,
   CAPITAL_ELASTICITY,
   COMPETITION_CAPTURE_RELIEF,
   CONSUMPTION_WEIGHT_FLOOR,
   CORRIDOR_HALF_WIDTH,
-  DEBT_RISK_PREMIUM_AT,
   ELITE_CAPTURE_NEUTRAL,
   ELITE_VETO_ABSORB,
   ELITE_ABSORB_CLAMP,
@@ -15,7 +12,6 @@ import {
   ENGEL_INCOME_RATIO_MAX,
   ENGEL_INCOME_RATIO_MIN,
   EXPORT_BASE_SHARE,
-  FIN_FAVOR_PREMIUM,
   FX_PARITY_PASSTHROUGH,
   HOUSEHOLD_SUBSTITUTION,
   IMPORT_BASE_SHARE,
@@ -28,10 +24,8 @@ import {
   OVERQUALIFIED_HIRING_PREFERENCE,
   PARTICIPATION,
   POVERTY_LINE_REAL,
-  RISK_PREMIUM_SLOPE,
   SOCIETY_CHECK,
   SCHOOLING_LABOR_WITHDRAWAL,
-  SOVEREIGN_PRIVATE_PREMIUM_SHARE,
   STATE_CAPACITY_WEIGHT,
   STATE_REPRESSION_WEIGHT,
   STATUTE_COMPLIANCE_ADMIN,
@@ -45,7 +39,6 @@ import {
   STATUTE_PHASE_IN_QTRS,
   TECH_EXPOSURE,
   adminEffectiveness,
-  domesticBondFundingShare,
   taxEfficiency,
 } from '../constants'
 import { clamp } from '../math'
@@ -121,48 +114,6 @@ export function financierAnger(state: TrueState): number {
   return (
     Math.max(0, -state.institutions.blocs.financiers.favor) *
     effectiveBlocPower(state, 'financiers')
-  )
-}
-
-/** Yield above the policy rate on government paper. Fiscal charges it and
- * private finance passes a calibrated share through, so quote and consequence
- * cannot drift into two different sovereign-risk models. */
-export function sovereignRiskPremium(state: TrueState): number {
-  const debtToGdp = state.gov.debt / Math.max(4 * state.flows.nominalGdp, 1e-9)
-  return (
-    Math.max(0, debtToGdp - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE +
-    FIN_FAVOR_PREMIUM * financierAnger(state)
-  )
-}
-
-/** Bonds sold in the most recently booked quarter, as a share of that
- * quarter's GDP. The fiscal identity is deficit = bonds + printing. */
-export function bondIssuanceShare(state: TrueState): number {
-  const deficit = Math.max(0, -state.gov.budget.balance)
-  const bonds = Math.max(0, deficit - state.flows.printedThisQtr)
-  return bonds / Math.max(state.flows.nominalGdp, 1e-9)
-}
-
-/** Extra annual private funding cost created by the state's claim on finance:
- * a flow term for this quarter's domestic bond auction, plus a stock term for
- * sovereign risk. Printing is deliberately excluded from the flow term — it
- * fails through inflation instead of competing for loanable funds. */
-export function privateFundingSpread(state: TrueState): number {
-  const domesticAuction =
-    bondIssuanceShare(state) * domesticBondFundingShare(state.params.openness)
-  return (
-    BOND_CROWDING_RATE_GAIN * domesticAuction +
-    SOVEREIGN_PRIVATE_PREMIUM_SHARE * sovereignRiskPremium(state)
-  )
-}
-
-/** The common rate read by credit, asset valuation, and private investment. */
-export function privateRealRate(state: TrueState): number {
-  return (
-    state.gov.dials.policyRate -
-    state.ledger.inflationExpectations +
-    privateFundingSpread(state) -
-    ASSET_PURCHASE_PRIVATE_RATE_GAIN * state.gov.dials.assetPurchaseRate
   )
 }
 

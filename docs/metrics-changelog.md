@@ -33,7 +33,7 @@ contract, so it's called out below.
   keep their price-drift and private-rate readers. The household forecast learns printing's
   effects through actual prices, with no extra direct impulse from the financing book.
 - Both stocks remain hidden. Published outputs, funding gates, replay inputs and pipeline order
-  are unchanged; replays reconstruct the new stock and wage path. See ADR-0043.
+  are unchanged; replays reconstruct the new stock and wage path. See ADR-0044.
 
 ## Schema 46 — occupational labour survey and underuse headline (#197)
 
@@ -329,7 +329,7 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position. `treasury.domesticBondShare` *(ADR-0043, no schema bump)* is the share of each auction domestic balance sheets carry — the debt office knows its buyers — and is the one structural input the central-bank desk's stance briefing takes from the books |
 | ↳ `revenueBySource` | v11 | receipts per source: `income`, `corporate`, `tariff`, `fuel` after capacity-gated collection, plus `fund` *(v44)* — the return on the sovereign fund, the one line that is not a tax and posts no rate |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |

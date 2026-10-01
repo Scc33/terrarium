@@ -33,7 +33,8 @@ import {
   type RevenueSplit,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { effectiveBlocPower, financierAnger, sovereignRiskPremium } from './derive'
+import { effectiveBlocPower, financierAnger } from './derive'
+import { sovereignRiskPremium } from './funding'
 
 export const fiscal: PipelineStep = {
   name: 'fiscal',

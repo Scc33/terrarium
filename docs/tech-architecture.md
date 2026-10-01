@@ -43,7 +43,8 @@ terrarium/
 │   │   │   │   ├── foreignInvestment.ts production.ts environment.ts trade.ts fiscal.ts
 │   │   │   │   ├── monetary.ts prices.ts
 │   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
-│   │   │   │   └── derive.ts     # pure read-models over state (no step owns them)
+│   │   │   │   ├── derive.ts     # pure read-models over state (no step owns them)
+│   │   │   │   └── funding.ts    # the one private rate, on state AND on scalars (ADR-0043)
 │   │   │   ├── events/           # the wire (ADR-0031): a step names an event, this words it
 │   │   │   │   ├── ids.ts        # EVENT_IDS / DESK_IDS — a leaf, so schema.ts can type NewsItem
 │   │   │   │   ├── catalogue.ts  # every dispatch's copy, per press era. The only authored prose
@@ -401,13 +402,20 @@ credit. Their inherited settings (4%, zero, and 6%) preserve the passive economy
 available at the zero-rate floor but can inflate the same credit/asset pair that raises crisis
 risk, while a tighter capital floor leans directly against that leverage.
 
-The fragility ledger holds two adaptive annualized inflation forecasts (ADR-0043). Monetary
+The fragility ledger holds two adaptive annualized inflation forecasts (ADR-0044). Monetary
 updates `consumerInflationExpectations` from last quarter's experienced household CPI; labor
 uses it for wage bargains, so compensation follows experience gradually rather than indexing
 to the current price spike. The existing nominal `inflationExpectations` adds fiscal printing
 pressure, feeds price drift and enters the prior-quarter `privateRealRate` read by finance and
 production. Printing therefore reaches household bargains as it changes actual prices. Both
 stocks remain hidden; no official survey or fixed central-bank target is implied.
+
+The central-bank drawer opens with the desk's reading of its stance against the neutral rate
+(ADR-0043) — the posted rate at which that common private real rate reads `NATURAL_REAL_RATE`.
+The engine never publishes expectations or the funding spread; `ui/src/monetaryStance.ts`
+estimates them from the office's prints and the treasury's books by calling the same scalar
+functions `finance` and `production` read the truth through, so there is one formula and the
+only gap between briefing and truth is the fog.
 
 ---
 

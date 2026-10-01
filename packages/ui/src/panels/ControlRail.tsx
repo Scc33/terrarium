@@ -27,9 +27,8 @@ import {
 import { BlocRow } from './cabinet/BlocRow'
 import { CapacityRow } from './cabinet/CapacityRow'
 import { DIALS } from './cabinet/dials'
-import { DialRow } from './cabinet/DialRow'
+import { LeverDrawer } from './cabinet/LeverDrawer'
 import { ReformRow } from './cabinet/ReformRow'
-import { SpendingRuleRow } from './cabinet/SpendingRuleRow'
 import { StatuteRow } from './cabinet/StatuteRow'
 
 export function ControlRail({
@@ -292,21 +291,7 @@ export function ControlRail({
             </div>
           </section>
         ) : activeDials ? (
-          <section>
-            <div className="mb-2 border-b border-dossier-paper/15 pb-2">
-              <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-dossier-brass">{activeDials.question.toUpperCase()}</div>
-              <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">{activeDials.brief}</p>
-            </div>
-            <div className="flex flex-col gap-1">
-              {activeDials.dials.map((dial) =>
-                activeDials.group === 'SPENDING' ? (
-                  <SpendingRuleRow key={dial.path} def={dial} pub={pub} />
-                ) : (
-                  <DialRow key={dial.path} def={dial} pub={pub} />
-                ),
-              )}
-            </div>
-          </section>
+          <LeverDrawer group={activeDials} pub={pub} />
         ) : (
           <section>
             <div className="mb-2 border-b border-dossier-paper/15 pb-2">
