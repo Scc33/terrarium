@@ -86,8 +86,8 @@ decade that matters most teaches nothing.
 
 **`gauge-domains` will not tell you a face is too wide** — it fails on pegging, so it only
 catches faces that are too narrow. Read the `pnpm ranges` percentiles yourself, and its
-`worst arm` column: the sweep plays five governments, and a face can pool under 2% while
-pinning one of them to a rail.
+`worst century` column: the sweep plays five governments in six countries, and a face can pool
+under 2% while pinning one of those centuries to a rail.
 
 ### 6. Schema bump + changelog
 

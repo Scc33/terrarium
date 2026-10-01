@@ -18,9 +18,10 @@
  * It sweeps POLICY as well as country, seed and time (#190): every arm in
  * `SURVEY_ARMS`, the same governments the coverage test plays. A face cut
  * against the capacity builder alone welded `investment_share` to its rail for
- * 98% of a real game. The `worst arm` columns say which government a face
- * fails, and how badly — a face that pools under 2% can still be useless to
- * the one government that pegs it half the time.
+ * 98% of a real game. The `worst century` column names the government and
+ * country a face fails worst, and how badly — a face that pools under 2% can
+ * still be useless to the one country × government that pegs it half the
+ * time, and that pairing is exactly what `gauge-domains` holds to 10%.
  *
  * The default is 12 seeds × 6 countries × 5 governments, 360 centuries; narrow
  * it with RANGE_ARMS and RANGE_SEEDS while iterating, never for the face you
@@ -50,7 +51,9 @@ const unknown = arms.filter((a) => !(SURVEY_ARM_IDS as readonly string[]).includ
 if (unknown.length > 0) throw new Error(`unknown arm ${unknown.join(', ')} — pick from ${SURVEY_ARM_IDS.join(', ')}`)
 
 const values = new Map<IndicatorId, number[]>()
-/** prints and pegged prints under today's face, per indicator per arm */
+/** prints and pegged prints under today's face, per indicator per arm per
+ * country — keyed finer than the arm, because six countries pooled turn a
+ * dial pegged half of one country's century into an 8% arm */
 const prints = new Map<IndicatorId, Map<string, { n: number; pegged: number }>>()
 for (const id of INDICATOR_IDS) {
   values.set(id, [])
@@ -71,10 +74,11 @@ for (const arm of arms as SurveyArmId[]) {
             if (p.publishedAt !== t || !Number.isFinite(p.value)) continue
             values.get(id)!.push(p.value)
             if (face === 'ratchet') continue
-            const tally = prints.get(id)!.get(arm) ?? { n: 0, pegged: 0 }
+            const key = `${arm} in ${country}`
+            const tally = prints.get(id)!.get(key) ?? { n: 0, pegged: 0 }
             tally.n++
             if (readNeedle(face, p.value).pegged) tally.pegged++
-            prints.get(id)!.set(arm, tally)
+            prints.get(id)!.set(key, tally)
           }
         }
       })
@@ -92,7 +96,7 @@ console.log(
 console.log(
   'indicator'.padEnd(24) +
     ['min', 'p01', 'p25', 'p50', 'p75', 'p99', 'max'].map((h) => h.padStart(9)).join('') +
-    '   face'.padEnd(16) + 'pegged'.padStart(8) + '  worst arm',
+    '   face'.padEnd(16) + 'pegged'.padStart(8) + '  worst century',
 )
 for (const id of INDICATOR_IDS) {
   const xs = values.get(id)!.sort((a, b) => a - b)
@@ -107,9 +111,9 @@ for (const id of INDICATOR_IDS) {
     const tallies = [...prints.get(id)!]
     const n = tallies.reduce((sum, [, t]) => sum + t.n, 0)
     const pegged = tallies.reduce((sum, [, t]) => sum + t.pegged, 0)
-    const [worstArm, worst] = tallies.sort(([, a], [, b]) => b.pegged / b.n - a.pegged / a.n)[0] ?? ['—', { n: 1, pegged: 0 }]
+    const [worstCentury, worst] = tallies.sort(([, a], [, b]) => b.pegged / b.n - a.pegged / a.n)[0] ?? ['—', { n: 1, pegged: 0 }]
     tail = `   ${`${face.lo}–${face.hi}`.padEnd(13)}${pct(pegged / Math.max(n, 1)).padStart(8)}  ` +
-      `${worstArm} ${pct(worst.pegged / worst.n)}`
+      `${worstCentury} ${pct(worst.pegged / worst.n)}`
   }
   console.log(id.padEnd(24) + cells.map((v) => v.toFixed(1).padStart(9)).join('') + tail)
 }
