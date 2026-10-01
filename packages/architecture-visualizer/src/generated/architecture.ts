@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "a9622cc",
+  "revision": "65b2f08",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 50,
-      "lines": 16473
+      "lines": 16506
     },
     {
       "id": "fixtures",
@@ -4855,8 +4855,8 @@ export const architecture = {
       "label": "labor",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus inflation pass-through. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
-      "lines": 151,
+      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus expected inflation. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
+      "lines": 157,
       "exports": [
         {
           "name": "labor",
@@ -5002,14 +5002,14 @@ export const architecture = {
       "label": "monetary",
       "packageId": "engine",
       "category": "Pipeline",
-      "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
-      "lines": 35,
+      "summary": "Monetary. Both annualized forecasts adapt to experienced CPI. The nominal forecast also prices money-financed deficits directly; households learn their effects through purchase prices. Finance and production read the nominal forecast through the common private real rate; labor…",
+      "lines": 47,
       "exports": [
         {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 17
+          "line": 18
         }
       ],
       "imports": [
@@ -5571,7 +5571,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (ADR-0011); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 662,
+      "lines": 663,
       "exports": [
         {
           "name": "synthPyramid",
@@ -5666,7 +5666,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 1383,
+      "lines": 1384,
       "exports": [
         {
           "name": "Qtr",
@@ -6098,151 +6098,151 @@ export const architecture = {
           "name": "StatPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 824
+          "line": 825
         },
         {
           "name": "HumanDevelopmentDimensions",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 838
+          "line": 839
         },
         {
           "name": "NEWS_KINDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 857
+          "line": 858
         },
         {
           "name": "NewsKind",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 898
+          "line": 899
         },
         {
           "name": "NewsTone",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 900
+          "line": 901
         },
         {
           "name": "NewsItem",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 916
+          "line": 917
         },
         {
           "name": "INDUSTRY_TABLE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 942
+          "line": 943
         },
         {
           "name": "IndustryTableId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 943
+          "line": 944
         },
         {
           "name": "IndustryPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 963
+          "line": 964
         },
         {
           "name": "HouseholdSurveyPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 998
+          "line": 999
         },
         {
           "name": "StatRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1020
+          "line": 1021
         },
         {
           "name": "StatsOffice",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1184
+          "line": 1185
         },
         {
           "name": "TickFlows",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1200
+          "line": 1201
         },
         {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1285
+          "line": 1286
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1337
+          "line": 1338
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1338
+          "line": 1339
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1339
+          "line": 1340
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1342
+          "line": 1343
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1344
+          "line": 1345
         },
         {
           "name": "FIRST_YEAR",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1349
+          "line": 1350
         },
         {
           "name": "yearOfTick",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1351
+          "line": 1352
         },
         {
           "name": "tickForYear",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1355
+          "line": 1356
         },
         {
           "name": "LAST_APPOINTMENT_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1360
+          "line": 1361
         },
         {
           "name": "appointmentTick",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1375
+          "line": 1376
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1380
+          "line": 1381
         }
       ],
       "imports": [
@@ -6362,19 +6362,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Invariant checks (dev builds and test suites). Throws with a pointed message — a violated invariant is a bug in a step, never a shrug.",
-      "lines": 216,
+      "lines": 229,
       "exports": [
         {
           "name": "InvariantError",
           "kind": "class",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 17
+          "line": 23
         },
         {
           "name": "validate",
           "kind": "function",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 23
+          "line": 29
         }
       ],
       "imports": [
@@ -16565,7 +16565,7 @@ export const architecture = {
       "name": "monetary",
       "description": "expectations adapt; printing feeds them",
       "moduleId": "packages/engine/src/pipeline/monetary.ts",
-      "summary": "Step 4 — monetary. Inflation expectations adapt toward realized inflation, and the printing press feeds them directly: money-financed deficits raise expected inflation before they even hit prices. Rate transmission happens in production (investment reads the real rate).",
+      "summary": "Monetary. Both annualized forecasts adapt to experienced CPI. The nominal forecast also prices money-financed deficits directly; households learn their effects through purchase prices. Finance and production read the nominal forecast through the common private real rate; labor…",
       "stateAreas": [
         "flows",
         "ledger"
@@ -16579,11 +16579,11 @@ export const architecture = {
           "name": "monetary",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/monetary.ts",
-          "line": 17
+          "line": 18
         }
       ],
       "path": "packages/engine/src/pipeline/monetary.ts",
-      "line": 17
+      "line": 18
     },
     {
       "order": 12,
@@ -16621,11 +16621,12 @@ export const architecture = {
       "name": "labor",
       "description": "employment, wages, capital accumulation",
       "moduleId": "packages/engine/src/pipeline/labor.ts",
-      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus inflation pass-through. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
+      "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus expected inflation. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
       "stateAreas": [
         "external",
         "flows",
         "institutions",
+        "ledger",
         "market",
         "sectors",
         "tech"

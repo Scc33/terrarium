@@ -101,7 +101,7 @@ export const EMPLOYMENT_CEILING = 0.97
 /** Share of idle higher-skill applicants who contest a lesser post; zero is inert (ADR-0036). */
 export const OVERQUALIFIED_HIRING_PREFERENCE = 0.5
 export const WAGE_DEMAND_GAIN = 0.15
-export const WAGE_INFLATION_PASSTHROUGH = 0.35
+export const WAGE_INFLATION_PASSTHROUGH = 0.35 // expected quarterly inflation into bargains (ADR-0043)
 /** Phillips anchor: wage growth responds to economy-wide slack around this
  * natural rate — the long-run full-employment attractor */
 export const NATURAL_UNEMPLOYMENT = 0.075
@@ -534,8 +534,8 @@ export const CONF_BUSINESS_PROFIT_GAIN = 1.5
 export const CONF_BUSINESS_PROFIT_REFERENCE = 0.35
 
 // ---------- monetary ----------
-export const EXPECTATION_ADAPT = 0.12 // per quarter, toward realized inflation
-export const PRINT_PRICE_PRESSURE = 0.5 // extra quarterly price drift per (printed/GDP)
+export const EXPECTATION_ADAPT = 0.12 // household/nominal forecasts learn from annualized CPI; ~5q half-life
+export const PRINT_PRICE_PRESSURE = 0.5 // annualized expectations added per share of quarterly GDP printed
 export const INFLATION_EXPECTATIONS_MIN = -0.05
 export const INFLATION_EXPECTATIONS_MAX = 3
 export const INVESTMENT_RATE_SENSITIVITY = 2.5 // real-rate response of investment

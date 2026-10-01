@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 46. The short player-facing design is in
+*How the code is actually arranged, as of schema 47. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -400,6 +400,14 @@ being booked as fiscal printing; and the capital requirement changes the bank-eq
 credit. Their inherited settings (4%, zero, and 6%) preserve the passive economy. QE remains
 available at the zero-rate floor but can inflate the same credit/asset pair that raises crisis
 risk, while a tighter capital floor leans directly against that leverage.
+
+The fragility ledger holds two adaptive annualized inflation forecasts (ADR-0043). Monetary
+updates `consumerInflationExpectations` from last quarter's experienced household CPI; labor
+uses it for wage bargains, so compensation follows experience gradually rather than indexing
+to the current price spike. The existing nominal `inflationExpectations` adds fiscal printing
+pressure, feeds price drift and enters the prior-quarter `privateRealRate` read by finance and
+production. Printing therefore reaches household bargains as it changes actual prices. Both
+stocks remain hidden; no official survey or fixed central-bank target is implied.
 
 ---
 

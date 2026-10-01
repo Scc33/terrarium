@@ -21,6 +21,20 @@ contract, so it's called out below.
 
 ---
 
+## Schema 47 — household inflation expectations in wage bargains (#221)
+
+- **Internal state +**: `ledger.consumerInflationExpectations`, an annualized household
+  forecast initialized to the existing opening inflation prior. Monetary closes 12% of the
+  gap to last quarter's experienced CPI each quarter, bounded by the existing expectation rails.
+- **Behavior**: the wage bargain's inflation component reads the household forecast divided
+  by four, retaining the existing partial passthrough, slack, productivity, stickiness and floor.
+  A temporary price shock therefore does not immediately index every wage.
+- The existing nominal `ledger.inflationExpectations` and its direct printing-pressure term
+  keep their price-drift and private-rate readers. The household forecast learns printing's
+  effects through actual prices, with no extra direct impulse from the financing book.
+- Both stocks remain hidden. Published outputs, funding gates, replay inputs and pipeline order
+  are unchanged; replays reconstruct the new stock and wage path. See ADR-0043.
+
 ## Schema 46 — occupational labour survey and underuse headline (#197)
 
 - **Outputs +**: `labour_underuse` (`%`, fogged, unlock **0.45**) — open joblessness plus
@@ -53,7 +67,7 @@ contract, so it's called out below.
 - The same additive fields appear in published-data exports within format v1.
   No new funding gate, indicator, replay input or pipeline reordering.
 
-## Current contract (schema 46)
+## Current contract (schema 47)
 
 ### Inputs
 
