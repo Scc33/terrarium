@@ -116,8 +116,8 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   the same one-policy sample, so they agreed with each other and with nobody who plays: a real
   game pegged `investment_share` for 98% of its century while the suite stayed green
   (investigation 0019 §6, #190). The survey now plays the five governments in
-  `packages/runner/src/survey.ts`, and holds each one to 10% on any dial, because a pool of five
-  hides one government pinned to a rail. A new arm must be a government a person could play: a
+  `packages/runner/src/survey.ts`, and holds every country × government century to 10% on any
+  dial, because a pool hides one century pinned to a rail. A new arm must be a government a person could play: a
   decade at 18% interest shrank credit to a sliver and put `credit_growth` at 18,587%, which no
   face should be cut to fit.
 - **A ratio to a moving target saturates, and a saturated dial is a silent one.**

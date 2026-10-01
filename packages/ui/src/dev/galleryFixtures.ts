@@ -281,20 +281,19 @@ const PRODUCTIVITY_QUARTERS: readonly FixtureQuarter[] = [
 ]
 
 /**
- * Costona under the survey's maximal builder (`packages/runner/src/survey.ts`,
- * seed `range-costona-0`), 1960–1964: a state spending everything on
- * ministries while the countryside stays poor, and poverty above its 0–50
- * face for all twenty quarters. This is the gallery's OFF-SCALE dial —
- * every other fixture keeps its needle on the face, so until it existed no
- * screenshot had ever held the state the dial most needs to say loudly, and
- * its unit (`% POPULATION`) is among the longest the face prints beneath the
- * hub.
+ * Veltravia under the survey's money government (`packages/runner/src/survey.ts`,
+ * seed `range-veltravia-1`), 1976–1980, in its decade of dear money: the asset
+ * market falls from 77 through the 50 rail to 30 and is clawing back past 48
+ * when the window closes. This is the gallery's OFF-SCALE dial — every other
+ * fixture keeps its needle on the face, so until it existed no screenshot had
+ * ever held the state the dial most needs to say loudly — and it pegs LOW,
+ * the mirror of the arrow a boom would print, beside the RICH mark it left.
  */
-const POVERTY_QUARTERS: readonly FixtureQuarter[] = [
-  [55, 56.6], [55.6, 56.4], [56.4, 56.4], [55.3, 56.7], [55.9, 56.2], [56.8, 56.1],
-  [54.7, 55.7], [55.2, 55.6], [54.9, 55.2], [54.2, 55], [54.6, 54.9], [55.9, 54.9],
-  [53.3, 54.3], [54.1, 54.3], [53, 54.1], [53.9, 53.9], [54, 53.6], [53.2, 53.4],
-  [52.3, 53.2], [54.1, 53],
+const ASSET_SLUMP_QUARTERS: readonly FixtureQuarter[] = [
+  [76.5, 77.7], [68.8, 66.6], [56.2, 58.1], [51, 50.5], [44.8, 43.9], [38.4, 38.3],
+  [31.5, 32.4], [31, 31.1], [29.6, 30], [30.6, 30.5], [31.5, 31.8], [32.7, 32.7],
+  [33.7, 32.6], [32.5, 32.5], [34.9, 33.7], [34.4, 35.3], [38.2, 37.8], [40.8, 41.1],
+  [42.1, 44], [48, 48.1],
 ]
 
 export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: IndicatorSeries }[] = [
@@ -323,7 +322,7 @@ export const GALLERY_INSTRUMENTS: readonly { indicator: IndicatorId; series: Ind
     ),
   },
   {
-    indicator: 'poverty_rate',
-    series: buildSeries('poverty_rate', 'Poverty rate', '% of population', POVERTY_QUARTERS, 1.6),
+    indicator: 'asset_prices',
+    series: buildSeries('asset_prices', 'Asset valuation', 'replacement cost=100', ASSET_SLUMP_QUARTERS, 2.4),
   },
 ]

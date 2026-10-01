@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "92f9d13",
+  "revision": "256737a",
   "repoRoot": "../..",
   "packages": [
     {
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20124
+      "lines": 20130
     }
   ],
   "modules": [
@@ -9562,7 +9562,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Development tools",
       "summary": "Deterministic published series for the component gallery.",
-      "lines": 330,
+      "lines": 329,
       "exports": [
         {
           "name": "BOARD_SLOT",
@@ -9580,7 +9580,7 @@ export const architecture = {
           "name": "GALLERY_INSTRUMENTS",
           "kind": "constant",
           "path": "packages/ui/src/dev/galleryFixtures.ts",
-          "line": 300
+          "line": 299
         }
       ],
       "imports": [
@@ -9668,7 +9668,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 293,
+      "lines": 300,
       "exports": [
         {
           "name": "Domain",
@@ -9692,31 +9692,31 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 212
+          "line": 219
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 253
+          "line": 260
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 267
+          "line": 274
         },
         {
           "name": "faceScale",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 279
+          "line": 286
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 285
+          "line": 292
         }
       ],
       "imports": [

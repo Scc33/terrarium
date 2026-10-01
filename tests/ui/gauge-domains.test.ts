@@ -163,7 +163,7 @@ describe('the faces fit the economy the engine actually produces', () => {
    */
   const NO_HISTORY: readonly number[] = []
 
-  /** how much of one government's century a single dial may spend pegged */
+  /** how much of one government's century in one country a dial may spend pegged */
   const ARM_PEG_LIMIT = 0.1
 
   /**
@@ -225,10 +225,10 @@ describe('the faces fit the economy the engine actually produces', () => {
             for (const p of latest) {
               const off = readNeedle(domain, p.value).pegged !== null
               bump(total, id)
-              bump(armTotal, `${arm} ${id}`)
+              bump(armTotal, `${arm} in ${country.id}: ${id}`)
               if (off) {
                 bump(pegged, id)
-                bump(armPegged, `${arm} ${id}`)
+                bump(armPegged, `${arm} in ${country.id}: ${id}`)
               }
             }
           }
@@ -246,13 +246,15 @@ describe('the faces fit the economy the engine actually produces', () => {
 
     // The pooled figure alone can hide exactly the failure #190 was: one
     // government in five pinned to a rail all century still pools to a fifth
-    // of that. So no single government may spend more than ARM_PEG_LIMIT of
-    // its prints off any one dial either.
+    // of that. So each century — one government in one country — is held to
+    // ARM_PEG_LIMIT on every dial as well. Keyed by government alone, six
+    // countries diluted it again: Costona's poverty under the maximal builder
+    // pegged 16% of its century and pooled to 3% of the arm.
     const armOffenders: string[] = []
     for (const [key, n] of armTotal) {
       const rate = (armPegged.get(key) ?? 0) / n
       if (rate > ARM_PEG_LIMIT) armOffenders.push(`${key} pegged ${(rate * 100).toFixed(1)}% of ${n} prints`)
     }
-    expect(armOffenders, 'a dial face fails one government — retune INDICATOR_FACE').toEqual([])
+    expect(armOffenders, 'a dial face fails one government in one country — retune INDICATOR_FACE').toEqual([])
   }, SURVEY_TIMEOUT_MS)
 })

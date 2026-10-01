@@ -109,9 +109,13 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // `price_fuel` was already spending part of its life against the old 40 rail
   // and this pushed it to a fifth of every print.
   price_food: { lo: 25, hi: 180 },
-  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel
-  // board past the old 130 rail; food stays on its face.
-  price_fuel: { lo: 25, hi: 150 },
+  // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190):
+  // fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel board
+  // past the old 130 rail; food stays on its face. 175 rather than 150
+  // because the test holds every country × government century to 10%, and
+  // Costona under the maximal builder spent 8.7% of three centuries past 150
+  // — and it puts the 1946 price of 100 at the top of the arc.
+  price_fuel: { lo: 25, hi: 175 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema
@@ -143,10 +147,13 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   approval: { lo: 20, hi: 80 },
   gini: { lo: 20, hi: 60 },
   income_real: 'ratchet',
-  // Schema 35, 12 seeds × 6 countries × 400 funded quarters: p01–p99
-  // 6.4–24.1%, extrema 5.7–45.8. Poverty cannot go below zero; the 50% rail
-  // clears the measured maximum while leaving the ordinary range legible.
-  poverty_rate: { lo: 0, hi: 50 },
+  // Schema 46, all five survey governments (#190): p01–p99 0.0–48.5%,
+  // extrema 0.0–67.5. The rate is whole cohorts' shares, and Costona's
+  // countryside under the maximal builder stays poor at 54–57% through the
+  // 1960s — on the old 50 rail that century pegged 16% of its prints. Poverty
+  // cannot go below zero; 60 covers that century and keeps the ordinary
+  // 6–25% in the lower half of the dial.
+  poverty_rate: { lo: 0, hi: 60 },
   // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190): p01–p99 47.6–65.2 years, extrema 44.0–67.2. The old 60 rail was
   // the capacity builder's maximum, and #180's player lived past it from 1980
   // to the end. 75 clears the model's own ceiling — `MORT_FLOOR` stops life
