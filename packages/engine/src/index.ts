@@ -13,14 +13,17 @@ import { init as initState } from './state/init'
 import {
   END_OF_HISTORY_TICK,
   ENGINE_VERSION,
+  ORDINARY_TURBULENCE,
   SCHEMA_VERSION,
   appointmentTick,
   gameRules,
+  turbulenceLevel,
   type CountryParams,
   type GameMode,
   type GameRules,
   type Qtr,
   type TrueState,
+  type Turbulence,
 } from './state/schema'
 import type { Seed } from './rng/rng'
 export function init(
@@ -28,8 +31,9 @@ export function init(
   seed: Seed,
   rules: GameMode | Partial<GameRules> = 'standard',
   appointedAt = 0,
+  turbulence: Turbulence = ORDINARY_TURBULENCE,
 ): TrueState {
-  return initState(params, seed, rules, appointedAt)
+  return initState(params, seed, rules, appointedAt, turbulence)
 }
 
 export function applyActions(s: TrueState, actions: Action[]): TrueState {
@@ -67,6 +71,9 @@ export interface SaveFile {
    * before v28, which is the same thing as zero: every one of them began in
    * 1946. The interregnum's own orders are in `actionLog` like any others. */
   appointedAt?: Qtr
+  /** How often the world breaks (ADR-0046). Absent on saves written before
+   * v48, every one of which lived in the ordinary world. */
+  turbulence?: Turbulence
 }
 
 export function createSave(
@@ -76,6 +83,7 @@ export function createSave(
   tick: number,
   rules: GameMode | Partial<GameRules> = 'standard',
   appointedAt: Qtr = 0,
+  turbulence: Turbulence = ORDINARY_TURBULENCE,
 ): SaveFile {
   return {
     version: { engine: ENGINE_VERSION, schema: SCHEMA_VERSION },
@@ -85,6 +93,7 @@ export function createSave(
     tick,
     rules: gameRules(rules),
     appointedAt,
+    turbulence,
   }
 }
 
@@ -107,7 +116,8 @@ export function replay(save: SaveFile, untilTick?: number): TrueState {
       `the run was saved at quarter ${save.tick} but its government does not take office until ${appointedAt}`,
     )
   }
-  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard', appointedAt)
+  const world = turbulenceLevel(save.turbulence)
+  let s = init(save.params, save.seed, save.rules ?? save.mode ?? 'standard', appointedAt, world)
   const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
   const end = untilTick ?? save.tick
   while (s.meta.tick < end) {
@@ -172,6 +182,9 @@ export {
   GAME_RULE_IDS,
   STANDARD_RULES,
   gameRules,
+  TURBULENCE_IDS,
+  ORDINARY_TURBULENCE,
+  turbulenceLevel,
   INDICATOR_IDS,
   INDUSTRY_TABLE_IDS,
   NEWS_KINDS,
@@ -207,6 +220,7 @@ export type {
   GameMode,
   GameRuleId,
   GameRules,
+  Turbulence,
   GovernmentState,
   HouseholdSurveyPrint,
   HumanDevelopmentDimensions,
@@ -302,7 +316,7 @@ export { institutions, initialInstitutions, franchiseOf } from './pipeline/insti
 export { assetPurchaseRateEquivalent, bondIssuanceShare, domesticBondFundingShare, neutralPolicyRateOf, privateFundingSpread, privateFundingSpreadOf, privateRealRate, privateRealRateOf, sovereignRiskPremium, sovereignRiskPremiumOf } from './pipeline/funding'
 export { adaptExpectations, clampExpectations } from './pipeline/monetary'
 export { migrationFlow, professionalCeiling, vitalRates, type MigrationFlow } from './pipeline/demography'
-export { droughtHazardMultiplier } from './pipeline/shocks'
+export { droughtHazardMultiplier, droughtOdds } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
@@ -370,6 +384,8 @@ export {
   STATUTE_PHASE_IN_QTRS,
   STATUTE_STANCE,
   TRANSFER_SHARE,
+  // what the setup dial does to the world (ADR-0046), for the handbook
+  TURBULENCE,
   WELFARE_DISCOUNT_Q,
 } from './constants'
 export type { StatuteLevel } from './constants'

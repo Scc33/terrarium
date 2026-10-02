@@ -27,6 +27,7 @@ import {
   type SectorId,
   type TurnActions,
   type TrueState,
+  type Turbulence,
 } from '@terrarium/engine'
 import { DEBT_FREE_RATIO, debtToGdp } from './debt'
 
@@ -140,14 +141,13 @@ export interface RunOptions {
   /** Independent from the simulation seed when an experiment needs country,
    * shocks, and government behavior to vary on separate axes. */
   policySeed?: string
-  /** Immutable rules for the run. Ordinary balance baselines omit this and
-   * retain the standard rules. */
+  /** Immutable rules for the run; ordinary balance baselines omit them. */
   rules?: GameMode | Partial<GameRules>
-  /** The quarter the player takes office (ADR-0021). Balance baselines omit
-   * it and open in 1946. It exists here so a tool can replay a real save on
-   * the runner: `init` has always taken it, and a run that dropped it would
-   * quietly score a different country from the one the save holds. */
+  /** When the player takes office (ADR-0021) and how often the world breaks
+   * (ADR-0046); baselines omit both. They let a tool replay a real save — a run
+   * that dropped either would score a different century from the save's. */
   appointedAt?: Qtr
+  turbulence?: Turbulence
   /** Read-only probes for research and fuzz tooling. Successful generated or
    * scripted actions are reported before the tick; state is reported after it. */
   observer?: RunObserver
@@ -304,7 +304,7 @@ function simulate(opts: RunOptions, onPoint: (point: TrajectoryPoint) => void): 
   const lenient = opts.lenient !== false
   const turnAtomic = opts.lenient === 'turn'
 
-  let s = init(params, opts.seed, opts.rules, opts.appointedAt ?? 0)
+  let s = init(params, opts.seed, opts.rules, opts.appointedAt ?? 0, opts.turbulence)
   let nanCount = 0
   let priceExplosions = 0
   let illegalActionsSkipped = 0

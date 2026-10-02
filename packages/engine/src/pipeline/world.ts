@@ -22,6 +22,7 @@ import {
   PARTNER_BOOM_AT,
   PARTNER_CYCLE,
   PARTNER_SLUMP_AT,
+  TURBULENCE,
   WORLD_PRICE_MAX,
   WORLD_PRICE_MIN,
   WORLD_PRICE_REVERT,
@@ -78,11 +79,12 @@ export const world: PipelineStep = {
     }
 
     // --- advance each partner's cycle (AR(1) toward 1, with rare crises) ---
+    const { hazard, cycle } = TURBULENCE[state.meta.turbulence]
     const partners: WorldPartner[] = external.world.partners.map((p) => {
       const c = PARTNER_CYCLE[p.id]
-      let a = 1 + c.drift + c.persistence * (p.activity - 1) + c.vol * rng.normal(0, 1)
+      let a = 1 + c.drift + c.persistence * (p.activity - 1) + c.vol * cycle * rng.normal(0, 1)
       let crisis = false
-      if (rng.next() < c.crisisProb) {
+      if (rng.next() < c.crisisProb * hazard) {
         a -= c.crisisDepth
         crisis = true
       }

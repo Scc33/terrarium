@@ -16,6 +16,7 @@ import {
   ENERGY_SHOCK_P,
   POLLUTION_DROUGHT_GAIN,
   POLLUTION_DROUGHT_MAX,
+  TURBULENCE,
 } from '../constants'
 import { fileDispatch } from '../events/file'
 import type { NewsItem, TrueState } from '../state/schema'
@@ -31,6 +32,17 @@ export function droughtHazardMultiplier(state: TrueState): number {
   return Math.min(1 + POLLUTION_DROUGHT_GAIN * excess, POLLUTION_DROUGHT_MAX)
 }
 
+/** The quarter's odds of a failed harvest. The world's turbulence (ADR-0046)
+ * scales only the inherited climate's share, `DROUGHT_P`; the increment the
+ * country's own burden added stays whole, or choosing a calm world would halve
+ * a pollution penalty the player earned. Written as `p·m + p·(h − 1)` rather
+ * than `p·(h + m − 1)` so that at `ordinary` it adds an exact zero to the old
+ * expression and every draw lands where it always did. */
+export function droughtOdds(state: TrueState): number {
+  const { hazard } = TURBULENCE[state.meta.turbulence]
+  return DROUGHT_P * droughtHazardMultiplier(state) + DROUGHT_P * (hazard - 1)
+}
+
 export const shocks: PipelineStep = {
   name: 'shocks',
   run(state, rng) {
@@ -39,6 +51,7 @@ export const shocks: PipelineStep = {
     let worldPrices = external.worldPrices
     let { droughtQtrsLeft, droughtSeverity } = external.shocks
     const news: NewsItem[] = []
+    const { hazard } = TURBULENCE[state.meta.turbulence]
 
     // --- drought bookkeeping: run down, then the next harvest comes in ---
     if (droughtQtrsLeft > 0) {
@@ -60,7 +73,7 @@ export const shocks: PipelineStep = {
       // Note this reads the burden at the START of the quarter, because
       // `environment` runs after `production` and therefore after this step.
       // Damage from pollution not yet emitted would be the wrong way round.
-    } else if (rng.next() < DROUGHT_P * droughtHazardMultiplier(state)) {
+    } else if (rng.next() < droughtOdds(state)) {
       droughtSeverity = rng.range(...DROUGHT_SEVERITY)
       droughtQtrsLeft = Math.floor(rng.range(DROUGHT_EXTRA_QTRS[0], DROUGHT_EXTRA_QTRS[1] + 1))
       sectors = sectors.map((s) => (s.id === 'agri' ? { ...s, tfp: s.tfp * droughtSeverity } : s))
@@ -68,7 +81,7 @@ export const shocks: PipelineStep = {
     }
 
     // --- world energy rupture: a jump the reverting walk takes years to unwind ---
-    if (rng.next() < ENERGY_SHOCK_P) {
+    if (rng.next() < ENERGY_SHOCK_P * hazard) {
       const jump = rng.range(...ENERGY_SHOCK_JUMP)
       worldPrices = { ...worldPrices, energy: worldPrices.energy * jump }
       news.push(fileDispatch(state, 'fuel_shock'))

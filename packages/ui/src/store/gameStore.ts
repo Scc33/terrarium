@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { Action, CountryDocument, CountryScenarioId, GameRules, SaveFile } from '@terrarium/engine'
-import { parseCountryDocument, STANDARD_RULES } from '@terrarium/engine'
+import type { Action, CountryDocument, CountryScenarioId, GameRules, SaveFile, Turbulence } from '@terrarium/engine'
+import { ORDINARY_TURBULENCE, parseCountryDocument, STANDARD_RULES } from '@terrarium/engine'
 import type { IndicatorId, PublishedState } from '@terrarium/observation'
 import { INDICATOR_IDS } from '@terrarium/observation'
 import { type ClientMessage, type DevMessage, type DevNode, isDevMessage, type WorkerMessage } from '../worker/protocol'
@@ -82,14 +82,22 @@ interface GameState {
   // signature would tell the type checker otherwise — which is what made
   // destructuring them from the store read as an unbound method.
   /** `appointedAt` is the quarter the player takes office (ADR-0021) — zero,
-   * the ordinary 1946 posting, unless the posting room asked for a later one */
-  newGame: (country: CountryScenarioId, seed?: string, rules?: GameRules, appointedAt?: number) => void
+   * the ordinary 1946 posting, unless the posting room asked for a later one.
+   * `turbulence` is how often the world breaks (ADR-0046). */
+  newGame: (
+    country: CountryScenarioId,
+    seed?: string,
+    rules?: GameRules,
+    appointedAt?: number,
+    turbulence?: Turbulence,
+  ) => void
   /** start a country a player wrote */
   newDraftedGame: (
     document: CountryDocument,
     seed?: string,
     rules?: GameRules,
     appointedAt?: number,
+    turbulence?: Turbulence,
   ) => void
   loadSave: (save: SaveFile) => void
   loadAutosave: () => Promise<boolean>
@@ -237,18 +245,18 @@ export const useGame = create<GameState>((set, get) => {
       set({ pinned: next })
     },
 
-    newGame(country, seed, rules = STANDARD_RULES, appointedAt = 0) {
+    newGame(country, seed, rules = STANDARD_RULES, appointedAt = 0, turbulence = ORDINARY_TURBULENCE) {
       // seed entropy comes from the browser, not the sim — the sim itself
       // never touches a clock or unseeded randomness
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'new', seed: s, country, rules, appointedAt })
+      send({ type: 'new', seed: s, country, rules, appointedAt, turbulence })
     },
 
-    newDraftedGame(document, seed, rules = STANDARD_RULES, appointedAt = 0) {
+    newDraftedGame(document, seed, rules = STANDARD_RULES, appointedAt = 0, turbulence = ORDINARY_TURBULENCE) {
       const s = seed ?? `game-${crypto.randomUUID().slice(0, 8)}`
       set({ staged: new Map(), stagedCost: null, stagedCosts: {}, previewError: null, rejection: null, loadError: null })
-      send({ type: 'newDrafted', seed: s, document, rules, appointedAt })
+      send({ type: 'newDrafted', seed: s, document, rules, appointedAt, turbulence })
     },
 
     /** A file from the records office, or the autosave. Anything that isn't

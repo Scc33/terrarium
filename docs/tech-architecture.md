@@ -153,27 +153,28 @@ somehow obtains one anyway, the contract test fails.
 The live engine is three functions; country recipes materialize their immutable input:
 
 ```ts
-export function init(params: CountryParams, seed: Seed, rules?: GameMode | Partial<GameRules>, appointedAt?: Qtr): TrueState
+export function init(params: CountryParams, seed: Seed, rules?: GameMode | Partial<GameRules>, appointedAt?: Qtr, turbulence?: Turbulence): TrueState
 export function applyActions(s: TrueState, actions: Action[]): TrueState
 export function step(s: TrueState): TrueState          // one quarter
 export function createCountryParams(id: CountryScenarioId, seed: Seed): CountryParams
 export function generateCountryParams(seed: Seed, options?): CountryParams
-export function runInterregnum(params, seed, rules, appointedAt): { state, actionLog }
+export function runInterregnum(params, seed, rules, appointedAt, turbulence): { state, actionLog }
 ```
 
 All pure. A game is:
 
 ```ts
-let s = init(params, seed, rules, appointedAt)
+let s = init(params, seed, rules, appointedAt, turbulence)
 for (const turn of actionLog) s = step(applyActions(s, turn.actions))
 ```
 
-The save file is literally `{version, params, seed, rules, appointedAt, actionLog, tick}` — state
-is *derived*, never stored (ADR-0001). `rules` and `appointedAt` are immutable for the run, and
-both are replay inputs for the same reason: the same country, seed and log produce a different
-century without them. `replay(save, untilTick?)` reconstructs any point in the run; pre-v27 saves
+The save file is literally `{version, params, seed, rules, appointedAt, turbulence, actionLog, tick}`
+— state is *derived*, never stored (ADR-0001). `rules`, `appointedAt` and `turbulence` are
+immutable for the run, and all three are replay inputs for the same reason: the same country,
+seed and log produce a different century without them. `replay(save, untilTick?)` reconstructs any point in the run; pre-v27 saves
 carry a `mode` scalar instead of `rules` (ADR-0015/0020) and pre-v28 saves omit `appointedAt`,
-which means 1946 (ADR-0021).
+which means 1946 (ADR-0021); pre-v48 saves omit `turbulence`, which means the ordinary world
+(ADR-0046).
 
 `runInterregnum` is the fourth function, and it is only `init` plus that loop: on a later
 appointment a caretaker administration governs the quarters before the player arrives, and it
@@ -189,7 +190,7 @@ the worker boundary, hashable, and diffable. `schema.ts` is the authority; this 
 
 ```ts
 interface TrueState {
-  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules; appointedAt: Qtr }
+  meta: { schemaVersion; engineVersion; tick: Qtr; seed: Seed; rules: GameRules; appointedAt: Qtr; turbulence: Turbulence }
   params: CountryParams        // immutable after init
   demography: DemographyState  // age pyramid + slow workforce-skills stock
   tech: TechState              // global frontier + domestic attainment; research moves both

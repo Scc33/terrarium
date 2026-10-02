@@ -28,6 +28,7 @@ import type {
   StatPrint,
   StatuteId,
   SpendingRules,
+  Turbulence,
 } from '@terrarium/engine'
 import type { LongRunReading, LongRunRecordId } from './longRun'
 
@@ -49,8 +50,9 @@ export {
   STANDARD_RULES,
   STATUTE_IDS,
   STATUTE_LEVELS,
+  TURBULENCE_IDS,
 } from '@terrarium/engine'
-export type { GameRuleId, GameRules } from '@terrarium/engine'
+export type { GameRuleId, GameRules, Turbulence } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit, TaxRateId } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
@@ -218,6 +220,9 @@ export interface PublishedState {
   countryAuthored: boolean
   /** exact opening rules: the government knows which safeties are on */
   rules: GameRules
+  /** how often the world breaks (ADR-0046) — chosen at the posting, so known
+   * exactly; the report card says which world a grade was earned in */
+  turbulence: Turbulence
   /** only funded indicators appear at all — unless `rules.fullInstrumentation` */
   indicators: Partial<Record<IndicatorId, IndicatorSeries>>
   /** the industrial census, in publication order — value added and heads at
