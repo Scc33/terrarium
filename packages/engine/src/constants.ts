@@ -702,8 +702,8 @@ export const POLLUTION_DROUGHT_MAX = 2
 // ---------- the world's turbulence (ADR-0046) ----------
 /** `hazard` multiplies the odds of every exogenous rupture — `DROUGHT_P`,
  * `ENERGY_SHOCK_P`, each partner's `crisisProb`, `CRISIS_BASE_P` (never the
- * fragility terms: a crisis the country's leverage earned is not the world's
- * doing). `cycle` multiplies each partner's `vol`, which sets how often it
+ * fragility terms or pollution's drought increment: what the country earned is
+ * not the world's doing). `cycle` multiplies each partner's `vol`, which sets how often it
  * crosses into a boom or slump — the commonest dispatch abroad. Exactly 1 at
  * `ordinary`, so the default is the calibrated economy bit for bit. Severities
  * are untouched: a calm world breaks less often, not more gently. */

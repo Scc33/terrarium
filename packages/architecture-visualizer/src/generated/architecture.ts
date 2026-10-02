@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "6834130",
+  "revision": "6285928",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 51,
-      "lines": 16703
+      "lines": 16714
     },
     {
       "id": "fixtures",
@@ -5280,7 +5280,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 0 — shocks. The crisis clock. Rare exogenous ruptures land here, at the head of the tick, so every later step lives in the shocked world: an oil crisis is a jump in the world energy price (imports dear, exports tempting — the tâtonnement and the I/O table do the rest, thr…",
-      "lines": 94,
+      "lines": 105,
       "exports": [
         {
           "name": "droughtHazardMultiplier",
@@ -5289,10 +5289,16 @@ export const architecture = {
           "line": 28
         },
         {
+          "name": "droughtOdds",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/shocks.ts",
+          "line": 41
+        },
+        {
           "name": "shocks",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/shocks.ts",
-          "line": 35
+          "line": 46
         }
       ],
       "imports": [
@@ -16892,14 +16898,20 @@ export const architecture = {
           "line": 28
         },
         {
+          "name": "droughtOdds",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/shocks.ts",
+          "line": 41
+        },
+        {
           "name": "shocks",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/shocks.ts",
-          "line": 35
+          "line": 46
         }
       ],
       "path": "packages/engine/src/pipeline/shocks.ts",
-      "line": 35
+      "line": 46
     },
     {
       "order": 2,

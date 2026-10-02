@@ -26,8 +26,9 @@ contract, so it's called out below.
 - **Inputs +**: `meta.turbulence` (`calm | ordinary | turbulent`), chosen in the posting room,
   written to `SaveFile.turbulence`, and taken by `init`, `createSave` and `runInterregnum` as a
   fifth argument. Absent on older saves, which means `ordinary`; the UI refuses an unknown value.
-- **Behavior**: `TURBULENCE[level].hazard` multiplies `DROUGHT_P`, `ENERGY_SHOCK_P`, each
-  partner's `crisisProb` and `CRISIS_BASE_P`; `.cycle` multiplies each partner's `vol`. Both are
+- **Behavior**: `TURBULENCE[level].hazard` multiplies `DROUGHT_P` (the inherited share only —
+  pollution's increment stays whole), `ENERGY_SHOCK_P`, each partner's `crisisProb` and
+  `CRISIS_BASE_P`; `.cycle` multiplies each partner's `vol`. Both are
   exactly 1 at `ordinary`, so every existing run is unchanged — only `meta.schemaVersion` moved
   in the goldens.
 - **Outputs +**: `PublishedState.turbulence`, exact. The header stamps a non-ordinary world and

@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createSave,
+  droughtOdds,
   hashState,
   init,
   replay,
@@ -80,6 +81,26 @@ describe('the dial moves how often the world breaks', () => {
     const a = init(standardCountry, 'turbulence-open', 'standard', 0, 'calm')
     const b = init(standardCountry, 'turbulence-open', 'standard', 0, 'turbulent')
     expect(hashState({ ...a, meta: b.meta })).toBe(hashState(b))
+  })
+})
+
+describe('only the world is scaled, never what the country caused', () => {
+  it('a polluted country keeps its whole climate penalty in every world', () => {
+    const base = init(standardCountry, 'turbulence-pollution')
+    const filthy = (turbulence: Turbulence): TrueState => ({
+      ...base,
+      meta: { ...base.meta, turbulence },
+      environment: { ...base.environment, pollution: base.environment.baseline + 2 },
+    })
+    const clean = (turbulence: Turbulence): TrueState => ({ ...base, meta: { ...base.meta, turbulence } })
+    const penalty = (turbulence: Turbulence) => droughtOdds(filthy(turbulence)) - droughtOdds(clean(turbulence))
+    expect(penalty('ordinary')).toBeGreaterThan(0)
+    expect(penalty('calm')).toBeCloseTo(penalty('ordinary'), 12)
+    expect(penalty('turbulent')).toBeCloseTo(penalty('ordinary'), 12)
+    // and the inherited climate's share is what moves
+    const inherited = droughtOdds(clean('ordinary'))
+    expect(droughtOdds(clean('calm'))).toBeCloseTo(inherited * TURBULENCE.calm.hazard, 12)
+    expect(droughtOdds(clean('turbulent'))).toBeCloseTo(inherited * TURBULENCE.turbulent.hazard, 12)
   })
 })
 

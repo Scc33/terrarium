@@ -34,8 +34,10 @@ two multipliers:
 
 - **`hazard`** multiplies the odds of every exogenous rupture: `DROUGHT_P`, `ENERGY_SHOCK_P`,
   each partner's `crisisProb`, and the background `CRISIS_BASE_P` of a bank panic. It does not
-  touch the fragility terms of the banking hazard or pollution's drought multiplier: a crisis
-  the country's own leverage earned, or a climate it fouled, is not the world's doing.
+  touch the fragility terms of the banking hazard, nor the drought odds pollution adds above
+  the inheritance (`droughtOdds` scales only the inherited `DROUGHT_P` share): a crisis the
+  country's own leverage earned, or a climate it fouled, is not the world's doing. Each is
+  written so that `ordinary` adds an exact zero or multiplies by an exact one.
 - **`cycle`** multiplies each partner's `vol`. A partner's boom or slump is a threshold crossing
   on an AR(1), so its amplitude, not a hazard, sets how often those dispatches file — and they
   are the most common items abroad.
@@ -54,23 +56,24 @@ over everything outside `meta`.
 
 ## Measurements
 
+Measured on schema 48 with ADR-0045's urbanization merged.
 `pnpm events -- --runs 12 --ticks 400 --turbulence <level>` (sixty centuries each):
 
 | | calm | ordinary | turbulent |
 |---|---:|---:|---:|
-| bad-toned dispatches a century | 70 | 94 | 127 |
-| foreign desk, share of the paper | 10.5% | 23.5% | 30.1% |
+| bad-toned dispatches a century | 69 | 94 | 126 |
+| foreign desk, share of the paper | 10.6% | 23.5% | 30.3% |
 | dispatches per quarter | 0.46 | 0.56 | 0.67 |
-| quiet quarters | 61.6% | 54.4% | 47.5% |
+| quiet quarters | 61.6% | 54.5% | 47.7% |
 
 `pnpm batch -- --runs 300 --ticks 400 --country all --turbulence <level>`:
 
 | | calm | ordinary | turbulent |
 |---|---:|---:|---:|
-| passive growth p50, %/yr | 2.95 | 2.94 | 2.91 |
-| passive unemployment p50, % | 12.86 | 12.87 | 12.89 |
+| passive growth p50, %/yr | 2.93 | 2.93 | 2.90 |
+| passive unemployment p50, % | 12.83 | 12.84 | 12.86 |
 | passive deposed | 1% | 1% | 1% |
-| random-policy deposed | 79% | 79% | 78% |
+| random-policy deposed | 80% | 79% | 77% |
 
 The century averages barely move. The dial changes how often the player is hit and how much the
 wire has to say about it, not what kind of economy the country becomes, which is what the issue
@@ -96,15 +99,17 @@ which is the player's own record and correctly untouched.
   to carry it, and the difficulty matrix would have to be re-measured per value.
 - **Scale only the hazards.** Measured and rejected: a calm world at `hazard: 0.5, cycle: 1`
   cut the foreign desk by 11% (3157 → 2812 dispatches over the sixty centuries) and bad news to
-  83 a century, against 10.5% of the paper and 70 a century with the cycle scaled too. Partner
-  slumps, the most common bad dispatch abroad, are amplitude, not hazard.
+  83 a century, against 10.5% of the paper and 70 a century at the time with the cycle scaled too. Partner
+  slumps, the most common bad dispatch abroad, are amplitude, not hazard. (Measured before
+  ADR-0045 merged; the comparison, not the level, is the finding.)
 
 ## Consequences
 
 **Good:**
 
 - The default is the calibrated game, proved by the goldens and the 400-quarter hashes.
-- One table in `constants.ts`; three read sites (`shocks`, `world`, `finance`). A new level is one
+- One table in `constants.ts`; three read sites (`shocks` through `droughtOdds`, `world`,
+  `finance`). A new level is one
   id and one row, and `TURBULENCE_COPY` in `ui/src/turbulence.ts` is a total `Record` that fails
   the build until it has words. The posting room's caption reads its frequencies off the engine
   table, so a retune cannot leave the copy promising a world the engine no longer runs.

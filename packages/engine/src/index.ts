@@ -316,7 +316,7 @@ export { institutions, initialInstitutions, franchiseOf } from './pipeline/insti
 export { assetPurchaseRateEquivalent, bondIssuanceShare, domesticBondFundingShare, neutralPolicyRateOf, privateFundingSpread, privateFundingSpreadOf, privateRealRate, privateRealRateOf, sovereignRiskPremium, sovereignRiskPremiumOf } from './pipeline/funding'
 export { adaptExpectations, clampExpectations } from './pipeline/monetary'
 export { migrationFlow, professionalCeiling, vitalRates, type MigrationFlow } from './pipeline/demography'
-export { droughtHazardMultiplier } from './pipeline/shocks'
+export { droughtHazardMultiplier, droughtOdds } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
