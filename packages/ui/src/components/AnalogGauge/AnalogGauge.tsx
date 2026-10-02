@@ -19,9 +19,10 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
-import { FACE_MARK, gaugeDomain, readNeedle } from '../../domains'
+import { FACE_MARK, faceScale, gaugeDomain, readNeedle } from '../../domains'
 import {
   complementReading,
+  dossierParts,
   HUMAN_DEVELOPMENT_COMPONENTS,
   humanDevelopmentBreakdown,
   NAMES,
@@ -87,11 +88,15 @@ export function AnalogGauge({
   // the revision row can never disagree about how precise this print was
   const digits = readingDigits(latest.value, indicator)
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
+  const title = dossierParts(indicator)
+  const scale = faceScale(domain)
+  const reading = `${NAMES[indicator].plate}: ${latest.value.toFixed(digits)}${title.unit ? ` ${title.unit.toLowerCase()}` : ''} on a dial from ${scale.lo} to ${scale.hi}${pegged ? `, off the scale ${pegged === 'hi' ? 'high' : 'low'}` : ''}.`
+  const ink = pegged ? 'var(--color-dossier-warn)' : 'var(--color-dossier-ink)'
 
   const header = (
-    <div className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.2em] text-dossier-ink">
+    <div className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.14em] text-dossier-ink">
       <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate">
-        {NAMES[indicator].dossier}
+        {title.name}
       </TooltipLabel>
       {latest.levels && (
         <TooltipLabel
@@ -114,7 +119,10 @@ export function AnalogGauge({
     <div>
       <Tooltip content="Latest reading; ± is the office’s uncertainty, the arrow is the change, and Q LATE says how old the figure was when published.">
         <div tabIndex={0} className="flex items-baseline justify-between gap-2 border-t border-dossier-ink/20 px-3 py-1 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-dossier-brass">
-          <span className="flex min-w-0 items-baseline gap-1.5">
+          {/* the reading never yields: when the row is short the date
+              truncates, rather than the reading sliding under it — the
+              delta used to print straight into the quarter (`▲6.249 Q4`) */}
+          <span className="flex shrink-0 items-baseline gap-1.5">
             <span className="font-mono text-lg font-medium leading-tight tabular-nums text-dossier-ink">
               {latest.value.toFixed(digits)}
             </span>
@@ -125,7 +133,7 @@ export function AnalogGauge({
             )}
             <DeltaChip delta={quarterDelta(points)} digits={digits} />
           </span>
-          <span className="shrink truncate font-mono text-[9px] tracking-[0.1em] text-dossier-ink/55">
+          <span className="min-w-0 truncate font-mono text-[9px] tracking-[0.1em] text-dossier-ink/55">
             {qtrLabel(latest.forQtr).slice(2)} · {latest.lag}Q LATE
           </span>
         </div>
@@ -162,7 +170,13 @@ export function AnalogGauge({
       header={header}
       footer={footer}
     >
-        <svg viewBox="0 0 200 118" preserveAspectRatio="xMidYMid meet" className="block h-full w-full">
+        <svg
+          viewBox="0 0 200 118"
+          preserveAspectRatio="xMidYMid meet"
+          className="block h-full w-full"
+          role="img"
+          aria-label={reading}
+        >
           {/* brass rim + face */}
           <path d={arcPath(0, 1, R + 9)} fill="none" stroke="var(--color-dossier-brass)" strokeWidth="7" />
           <path d={arcPath(0, 1, R)} fill="none" stroke="var(--color-dossier-ink)" strokeWidth="1" opacity="0.6" />
@@ -176,7 +190,9 @@ export function AnalogGauge({
               opacity="0.35"
             />
           )}
-          {/* ticks + bound labels */}
+          {/* ticks, and the scale printed on the face: both rails, the
+              midpoint, and the unit beneath the hub where a real gauge
+              prints it */}
           {ticks.map((t) => {
             const [x0, y0] = polar(t, R - 4)
             const [x1, y1] = polar(t, R + 3)
@@ -188,20 +204,29 @@ export function AnalogGauge({
                 x2={x1}
                 y2={y1}
                 stroke="var(--color-dossier-ink)"
-                strokeWidth={t === 0 || t === 1 ? 1.4 : 0.8}
+                strokeWidth={t === 0 || t === 0.5 || t === 1 ? 1.4 : 0.8}
                 opacity="0.7"
               />
             )
           })}
           <text x={CX - R - 8} y={CY + 12} fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.75">
-            {domain.lo}
+            {scale.lo}
+          </text>
+          <text x={CX} y={CY - R + 22} textAnchor="middle" fontSize="7" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.6">
+            {scale.mid}
           </text>
           <text x={CX + R + 8} y={CY + 12} textAnchor="end" fontSize="9" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.75">
-            {domain.hi}
+            {scale.hi}
           </text>
+          {title.unit && (
+            <text x={CX} y={CY + 12} textAnchor="middle" fontSize="6.5" letterSpacing="0.5" fontFamily="var(--font-mono)" fill="var(--color-dossier-ink)" opacity="0.55">
+              {title.unit}
+            </text>
+          )}
 
           {/* a line the rules put on the face — the electoral threshold, zero.
-              Certain, even when the reading against it is not. */}
+              Certain, even when the reading against it is not. Near a rail the
+              label hangs inward so it is never cut by the edge of the card. */}
           {mark && (() => {
             const f = frac(mark.at)
             const [mx0, my0] = polar(f, R - 10)
@@ -213,7 +238,7 @@ export function AnalogGauge({
                 <text
                   x={lx}
                   y={ly}
-                  textAnchor="middle"
+                  textAnchor={f > 0.85 ? 'end' : f < 0.15 ? 'start' : 'middle'}
                   fontSize="7"
                   fontFamily="var(--font-mono)"
                   letterSpacing="0.5"
@@ -225,44 +250,60 @@ export function AnalogGauge({
             )
           })()}
 
-          {/* needle; pegged at the rail with a chevron when the economy has
-              left the dial — going off-scale is information, not a reason to
-              redraw the face */}
+          {/* needle. Off the dial it pegs at the rail, turns warning-red and
+              says so in words — going off-scale is information, not a reason
+              to redraw the face, and a needle lying quietly along the rail
+              read as a calm reading for half of #180's century. A pegged
+              needle is horizontal, so the legend above the hub is always
+              clear of it. */}
           {(() => {
             const [nx, ny] = polar(needle, R - 12)
-            const [px, py] = polar(needle, R - 2)
             return (
               <g>
-                <line x1={CX} y1={CY} x2={nx} y2={ny} stroke="var(--color-dossier-ink)" strokeWidth="2" strokeLinecap="round" />
                 {pegged && (
-                  <text
-                    x={px}
-                    y={py}
-                    textAnchor="middle"
-                    fontSize="11"
-                    fontFamily="var(--font-mono)"
-                    fill="var(--color-dossier-warn)"
-                  >
-                    {pegged === 'hi' ? '»' : '«'}
-                  </text>
+                  <>
+                    <path d={pegged === 'hi' ? arcPath(0.94, 1, R + 9) : arcPath(0, 0.06, R + 9)} fill="none" stroke="var(--color-dossier-warn)" strokeWidth="7" />
+                    <text
+                      x={CX}
+                      y={CY - 22}
+                      textAnchor="middle"
+                      fontSize="8"
+                      letterSpacing="1.2"
+                      fontFamily="var(--font-mono)"
+                      fontWeight="600"
+                      fill="var(--color-dossier-warn)"
+                    >
+                      {pegged === 'hi' ? 'OFF SCALE ▸' : '◂ OFF SCALE'}
+                    </text>
+                  </>
                 )}
-                <circle cx={CX} cy={CY} r="4.5" fill="var(--color-dossier-brass)" stroke="var(--color-dossier-ink)" strokeWidth="1" />
+                <line x1={CX} y1={CY} x2={nx} y2={ny} stroke={ink} strokeWidth="2" strokeLinecap="round" />
+                <circle cx={CX} cy={CY} r="4.5" fill="var(--color-dossier-brass)" stroke={ink} strokeWidth="1" />
               </g>
             )
           })()}
-        </svg>
 
+          {/* the rubber stamp, in the corner the arc leaves empty: tilted
+              -6° about (176,14), its lowest corner sits a unit clear of the
+              rim and its highest just inside the top of the face, so it no
+              longer stamps over the scale it annotates */}
+          {stamped && (
+            <g transform="translate(176 14) rotate(-6)" aria-hidden="true">
+              <rect x="-22" y="-11" width="44" height="22" fill="var(--color-dossier-paper)" fillOpacity="0.6" stroke="var(--color-dossier-warn)" strokeWidth="1.3" />
+              <text y="-2.5" textAnchor="middle" fontSize="8" letterSpacing="0.5" fontFamily="var(--font-mono)" fontWeight="600" fill="var(--color-dossier-warn)">
+                REVISED
+              </text>
+              <text y="7.5" textAnchor="middle" fontSize="8" fontFamily="var(--font-mono)" fill="var(--color-dossier-warn)">
+                {stamped.revisionDelta > 0 ? '+' : ''}
+                {stamped.revisionDelta.toFixed(1)}
+              </text>
+            </g>
+          )}
+        </svg>
         {stamped && (
-          <div
-            className="absolute right-2 top-1 -rotate-12 border-2 border-dossier-warn px-1.5 py-0.5 text-center font-mono text-[9px] font-medium leading-tight tracking-[0.2em] text-dossier-warn"
-            aria-label={`The office revised ${qtrLabel(stamped.forQtr)} by ${stamped.revisionDelta.toFixed(1)} since first publication.`}
-          >
-            REVISED
-            <span className="block tracking-normal tabular-nums">
-              {stamped.revisionDelta > 0 ? '+' : ''}
-              {stamped.revisionDelta.toFixed(1)}
-            </span>
-          </div>
+          <span className="sr-only">
+            The office revised {qtrLabel(stamped.forQtr)} by {stamped.revisionDelta.toFixed(1)} since first publication.
+          </span>
         )}
     </WallTile>
   )

@@ -54,8 +54,8 @@ becomes untestable:
   indicators fit; **at zero, the wall needs a real layout decision, not a smaller font.**
   Adding a tile means adding it here too.
 - **`ui/src/domains.ts`** — fixed per-indicator dial faces, measured with `pnpm ranges`, never
-  derived from the trailing window (ADR-0006). Off-scale pegs at the rail with a chevron —
-  going off the dial is information. Only `capital_stock` ratchets.
+  derived from the trailing window (ADR-0006). Off-scale pegs at the rail, turns red and says
+  OFF SCALE — going off the dial is information. Levels that grow tenfold ratchet instead.
 - **`ui/src/shares.ts`** — pie and stacked-band geometry, pinned by `tests/ui/shares.test.ts`.
   Pure because a wedge that emits `NaN` into its path draws nothing, which in review is
   indistinguishable from a category with no money in it.
