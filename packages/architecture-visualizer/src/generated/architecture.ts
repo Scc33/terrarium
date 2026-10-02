@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "df4413f",
+  "revision": "0261dbb",
   "repoRoot": "../..",
   "packages": [
     {
@@ -25,7 +25,7 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 5,
-      "lines": 1129
+      "lines": 1147
     },
     {
       "id": "runner",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20291
+      "lines": 20295
     }
   ],
   "modules": [
@@ -6713,7 +6713,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "The long run: what a tenure averaged, read off a run of quarterly figures.",
-      "lines": 149,
+      "lines": 151,
       "exports": [
         {
           "name": "LongRunForm",
@@ -6755,13 +6755,13 @@ export const architecture = {
           "name": "longRunTrail",
           "kind": "function",
           "path": "packages/observation/src/longRun.ts",
-          "line": 108
+          "line": 110
         },
         {
           "name": "longRunReading",
           "kind": "function",
           "path": "packages/observation/src/longRun.ts",
-          "line": 140
+          "line": 142
         }
       ],
       "imports": [
@@ -6781,13 +6781,13 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
-      "lines": 390,
+      "lines": 406,
       "exports": [
         {
           "name": "observe",
           "kind": "function",
           "path": "packages/observation/src/observe.ts",
-          "line": 247
+          "line": 263
         }
       ],
       "imports": [
@@ -8668,13 +8668,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Terminal-era instrument: dense phosphor line on near-black, tight bands, live-feeling readout. Superseded first prints stay on screen with a strikethrough beside the reprint — the machine remembers what it told you. No shadows, no gradients, no rounding: hairlines only.",
-      "lines": 367,
+      "lines": 371,
       "exports": [
         {
           "name": "TerminalTicker",
           "kind": "function",
           "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-          "line": 124
+          "line": 125
         }
       ],
       "imports": [
@@ -17380,7 +17380,7 @@ export const architecture = {
         },
         {
           "path": "packages/observation/src/observe.ts",
-          "line": 247
+          "line": 263
         }
       ]
     },

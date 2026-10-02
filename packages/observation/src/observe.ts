@@ -153,17 +153,28 @@ function reportCardOf(state: TrueState): ReportCard | undefined {
     finalSocietalPower: state.institutions.societalPower,
     positionGrade,
     deposedBy: politics.deposedBy,
-    longRun: longRunRecord(state, meta.appointedAt, meta.appointedAt + quartersGoverned),
+    // the last quarter of the run: the one a deposition happened in, or 2049Q4
+    longRun: longRunRecord(
+      state,
+      meta.appointedAt,
+      politics.deposedAt ?? Math.min(meta.tick, END_OF_HISTORY_TICK) - 1,
+    ),
   }
 }
 
 /** The tenure's long run, from the office's prints and from the worksheet they
  * estimate. The truth side runs the office's own `trueValue` over the record,
  * so both columns measure one quantity. The last quarter is the one the run
- * ended in — still the player's economy, whatever happened at the ballot. */
-function longRunRecord(state: TrueState, from: number, end: number): ReportCard['longRun'] {
+ * ended in — still the player's economy, whatever happened at the ballot.
+ *
+ * The prints stop at the desk as it stood when the book closed: a quarter's
+ * releases land the quarter after it, and a state stepped past the verdict goes
+ * on revising the term's quarters, which must not move a card already issued. */
+function longRunRecord(state: TrueState, from: number, last: number): ReportCard['longRun'] {
   const { record, series } = state.stats
-  const to = Math.min(end, record.length - 1)
+  // the record only grows, so clamping to it cannot move a closed card
+  const to = Math.min(last, record.length - 1)
+  const closedAt = last + 1
   const out = {} as ReportCard['longRun']
   for (const id of LONG_RUN_RECORD) {
     const truth: { forQtr: number; value: number }[] = []
@@ -171,7 +182,12 @@ function longRunRecord(state: TrueState, from: number, end: number): ReportCard[
       truth.push({ forQtr: q, value: INDICATOR_SPECS[id].trueValue(record, q) })
     }
     out[id] = {
-      reported: longRunReading(series[id] ?? [], LONG_RUN_FORM[id], from, to),
+      reported: longRunReading(
+        (series[id] ?? []).filter((p) => p.publishedAt <= closedAt),
+        LONG_RUN_FORM[id],
+        from,
+        to,
+      ),
       actual: longRunReading(truth, LONG_RUN_FORM[id], from, to),
     }
   }

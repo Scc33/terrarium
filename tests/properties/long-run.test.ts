@@ -49,6 +49,14 @@ describe('the long-run record', () => {
     }
   })
 
+  it('is frozen when the book closes, however long the state keeps stepping', () => {
+    // the office goes on revising quarters of the closed term; the verdict
+    // was issued on what had been published by then
+    let later = full
+    for (let t = 0; t < 12; t++) later = step(later)
+    expect(observe(later).reportCard!.longRun).toEqual(card.longRun)
+  })
+
   it('is fogged, not biased: a century of prints lands near the truth', () => {
     for (const id of LONG_RUN_RECORD) {
       const { reported, actual } = card.longRun[id]

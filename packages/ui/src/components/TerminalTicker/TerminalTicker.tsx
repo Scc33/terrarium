@@ -109,9 +109,10 @@ const CHART_VIEWS: readonly {
 ]
 const VIEW_CYCLE = '40Q, ALL, R3M, R6M, R12M and TERM'
 
-/** The TERM view plots the long-run reading as it stood after each release of
- * the term — the same arithmetic the report card's record runs at the end, so
- * the last point here is the figure the historians will print beside the truth. */
+/** The TERM view plots the long-run reading through each quarter of the term,
+ * on the latest revisions — the same arithmetic the report card's record runs
+ * at the end, so the last point here is the figure the historians will print
+ * beside the truth. */
 const TERM_TITLE: Record<LongRunForm, (year: number) => string> = {
   mean: (year) => `Your term so far: the mean of every release since you took office in ${year}`,
   compound: (year) => `Your term so far: every release since ${year} chained into one annual rate`,
@@ -281,10 +282,13 @@ export function TerminalTicker({
         formatTick={qtrLabel}
         summary={chartSummary}
         emptyLabel={
+          // one reading is a figure for the footer but not yet a line
           term
-            ? termGrowth
-              ? 'TERM NEEDS A YEAR OF RELEASES'
-              : 'NO RELEASES YET THIS TERM'
+            ? trail.length === 1
+              ? 'TERM NEEDS ANOTHER RELEASE'
+              : termGrowth
+                ? 'TERM NEEDS A YEAR OF RELEASES'
+                : 'NO RELEASES YET THIS TERM'
             : view.rollingMonths
               ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY`
               : 'INSUFFICIENT HISTORY'

@@ -101,9 +101,11 @@ function latestByQuarter(
 }
 
 /**
- * The reading as it stood at each measured quarter of `[from, to]` — what the
- * tenure had averaged so far. Its last entry is `longRunReading`. Quarters the
- * office never measured are skipped rather than interpolated.
+ * The running reading through each measured quarter of `[from, to]`, on the
+ * latest revision of every quarter — so a revision redraws the trail behind it,
+ * as it redraws the raw trace, rather than leaving the vintage the desk saw at
+ * the time. Its last entry is `longRunReading`. Quarters the office never
+ * measured are skipped rather than interpolated.
  */
 export function longRunTrail(
   points: readonly { forQtr: Qtr; value: number }[],
