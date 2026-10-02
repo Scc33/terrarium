@@ -34,8 +34,10 @@ const capital = (s: TrueState): number => sum(s.sectors.map((sector) => sector.c
 
 /** Imports are generously available to ANY domestic use, including the
  * imported FDI machinery. Exports, households and government consumption
- * take nothing here. Consequently the investment envelope is an optimistic
- * necessary bound at recorded output, never a delivery estimate or forecast.
+ * take nothing here. The envelope counts complete bundles at the order book's
+ * authored 60/40 goods mix. That fixed composition is a measurement assumption;
+ * the engine has no delivery technology that enforces it. This is an optimistic
+ * necessary bound for those bundles at recorded output, not actual delivery.
  * A negative balance means even these gross outputs need unavailable inputs.
  */
 export function deliveryWorksheet(state: Pick<TrueState, 'sectors' | 'io' | 'flows'>) {
@@ -252,7 +254,16 @@ function main(): void {
     console.error(`Measured ${id}: ${runs} seeds × ${arms.length} arms × ${ticks} quarters`)
   }
   const groups = arms.flatMap((scenario) => ['all', ...countries].map((id) => grouped(samples, scenario, id)))
-  process.stdout.write(JSON.stringify({ ...provenance, schemaVersion: SCHEMA_VERSION, runs, ticks, groups, samples }, null, 2) + '\n')
+  process.stdout.write(JSON.stringify({
+    ...provenance, schemaVersion: SCHEMA_VERSION, runs, ticks,
+    envelopeAssumptions: {
+      goodsMix: { manuf: INVESTMENT_DEMAND_MANUF_SHARE, services: INVESTMENT_DEMAND_SERVICES_SHARE },
+      imports: 'All recorded imports, including FDI machinery, can cover domestic inputs and investment.',
+      competingFinalUses: 'Households, exports and government consumption receive nothing.',
+      interpretation: 'Complete fixed-mix bundles at recorded output; no delivery estimate or forecast.',
+    },
+    groups, samples,
+  }, null, 2) + '\n')
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) main()
