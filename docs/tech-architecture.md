@@ -429,6 +429,15 @@ settlement. Both reuse `publicAssets.ts` and `PublicAssetBook` over exact publis
 records, which also appear in data exports. `state/accounts.ts` owns the self-account
 projection; `state/finance.ts` owns the financial stock type and opening balances.
 
+Productive capital and household savings are separate stocks, not a complete ownership
+balance sheet. Booked real investment accumulates into sector capital after depreciation;
+household savings accumulate nominal disposable income less consumption budgets and plus
+bond redemptions. Savings support consumption but do not fund private investment directly.
+Domestic profit and bondholder income use fixed allocation weights, with no household equity
+or bond portfolio. The asset-valuation instrument is Tobin's q, not national wealth.
+[Investigation 0024](investigations/0024-capital-stock-is-not-household-wealth.md) records
+the accounting boundaries and the evidence for future wealth work.
+
 ## 5. Actions
 
 ```ts
@@ -634,6 +643,7 @@ a floor to prevent regression; raise it, never lower it to green a build. The UI
 | `pnpm export-feedback -- --runs 40 --openness all` | paired foreign-demand and household-feedback counterfactuals |
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
 | `pnpm neutral-rate -- --runs 40 --ticks 160` | implied neutral-rate ranges and paired fixed-rate transmission |
+| `pnpm capital-ownership -- --runs 12 --ticks 400` | productive-stock and savings reconciliation, foreign ownership, and isolated financing/valuation probes |
 | `pnpm fdi -- --runs 20 --ticks 400` | the foreign-investment flow decomposed into its factors, then the marginal and century value of every order that reaches one |
 | `pnpm architecture:scan` | redraw the map of the repository the in-game atlas reads |
 | `pnpm architecture:check` | fail if that map no longer describes the repository (CI runs this) |

@@ -18,8 +18,17 @@ import {
   POSITION_GRADE_CUTS,
   PROSPERITY_GRADE_CUTS,
 } from '@terrarium/engine'
-import type { Grade, PublishedState, ReportCard } from '@terrarium/observation'
-import { Modal, Panel, Tooltip } from '../components/ui'
+import {
+  LONG_RUN_FORM,
+  LONG_RUN_RECORD,
+  type Grade,
+  type LongRunForm,
+  type LongRunReading,
+  type LongRunRecordId,
+  type PublishedState,
+  type ReportCard,
+} from '@terrarium/observation'
+import { Modal, Panel, Tooltip, TooltipLabel } from '../components/ui'
 import { TURBULENCE_COPY } from '../turbulence'
 
 const yearOf = (q: number) => FIRST_YEAR + Math.floor(q / 4)
@@ -92,6 +101,90 @@ function Axis({ name, grade, children }: { name: string; grade: Grade; children:
         </div>
         <GradeStamp grade={grade} scale={GRADE_SCALES[name]} />
       </div>
+    </Panel>
+  )
+}
+
+const LONG_RUN_ROWS: Record<LongRunRecordId, { label: string; unit: string }> = {
+  gdp_growth: { label: 'Real GDP growth', unit: '%/yr' },
+  inflation: { label: 'Inflation', unit: '%/yr' },
+  capital_stock: { label: 'Capital stock growth', unit: '%/yr' },
+  unemployment: { label: 'Unemployment', unit: '%' },
+}
+
+const FORM_HINT: Record<LongRunForm, string> = {
+  mean: 'The average of every quarter of the term.',
+  compound:
+    'Every quarter of the term chained into one annual rate: the steady pace that would have carried the level the same distance.',
+  growth: 'Annualized growth from the first quarter measured to the last.',
+}
+
+function LongRunFigure({ reading, unit }: { reading: LongRunReading; unit: string }) {
+  return (
+    <>
+      {reading.value.toFixed(2)}
+      <span className="ml-0.5 text-[10px] font-normal text-dossier-ink/60">{unit}</span>
+    </>
+  )
+}
+
+/** The term's long run, as the office printed it and as it was. No stamp: the
+ * axes above are the verdict, and this is the record they were reached through. */
+function LongRunRecord({ card }: { card: ReportCard }) {
+  const blind = LONG_RUN_RECORD.some((id) => card.longRun[id].reported === null)
+  return (
+    <Panel bodyClassName="p-3">
+      <div className="mb-2 flex items-baseline justify-between gap-3 font-mono text-[9px] font-medium tracking-[0.3em] text-dossier-ink/60">
+        <span>THE LONG RUN</span>
+        <span className="tracking-[0.2em] text-dossier-ink/45">UNGRADED</span>
+      </div>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-dossier-ink/20">
+            <th scope="col" className="pb-1" />
+            <th scope="col" className="pb-1 text-right font-mono text-[8px] font-normal tracking-[0.14em] text-dossier-ink/50">
+              THE OFFICE PRINTED
+            </th>
+            <th scope="col" className="pb-1 pl-3 text-right font-mono text-[8px] font-normal tracking-[0.14em] text-dossier-felt">
+              WHAT HAPPENED
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {LONG_RUN_RECORD.map((id) => {
+            const { reported, actual } = card.longRun[id]
+            const row = LONG_RUN_ROWS[id]
+            return (
+              <tr key={id} className="border-b border-dossier-ink/10 align-top last:border-0">
+                <th scope="row" className="py-1.5 pr-2 text-left font-dossier text-[12px] font-normal text-dossier-ink/75">
+                  <TooltipLabel label={row.label} content={FORM_HINT[LONG_RUN_FORM[id]]} />
+                </th>
+                <td className="py-1.5 text-right font-mono text-[12px] tabular-nums text-dossier-ink/70">
+                  {reported === null ? (
+                    <span className="font-dossier text-[11px] italic text-dossier-ink/50">never measured</span>
+                  ) : (
+                    <>
+                      <LongRunFigure reading={reported} unit={row.unit} />
+                      <div className="text-[9px] text-dossier-ink/45">
+                        {yearOf(reported.from)}–{yearOf(reported.to)}
+                      </div>
+                    </>
+                  )}
+                </td>
+                <td className="py-1.5 pl-3 text-right font-mono text-[12px] font-semibold tabular-nums text-dossier-ink">
+                  {actual === null ? '—' : <LongRunFigure reading={actual} unit={row.unit} />}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <p className="mt-2 font-dossier text-[12px] leading-snug text-dossier-ink/70">
+        The first column is what your statistical office released over the term, put through the
+        same arithmetic as the second: what actually happened, which nobody in the ministry could see
+        until now. The gap between them is the fog you governed through.
+        {blind && ' A figure the office never printed was one you governed blind.'}
+      </p>
     </Panel>
   )
 }
@@ -211,6 +304,8 @@ export function ReportCardOverlay({
         <p className="text-center font-mono text-[9px] tracking-[0.2em] text-dossier-ink/50">
           AXES ARE GRADED SEPARATELY. THEY ARE NEVER SUMMED.
         </p>
+
+        <LongRunRecord card={card} />
       </div>
     </Modal>
   )

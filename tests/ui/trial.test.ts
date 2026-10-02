@@ -87,11 +87,13 @@ describe('the study as an instrument', () => {
     const costona = createCountryParams('costona', 'unused')
     const report = runTrial(costona, { seeds: 3, ticks: 200, baseSeed: 'apart' })
     expect(report.candidate.country).toBe('Costona')
-    // Migration is now a pressure valve on Costona's rural labour reserve, so
-    // unemployment alone no longer owns the distinction. The study must still
-    // expose the materially different output path rather than silently reading
-    // the two recipes as alike.
-    expect(report.reference.growth.p50 - report.candidate.growth.p50).toBeGreaterThan(0.5)
+    // Which statistic carries the difference moves with the model: growth while
+    // Costona's countryside could not empty, unemployment once it can (ADR-0045)
+    // and its migrants queue for city jobs. The study must expose one of them
+    // rather than silently reading the two recipes as alike.
+    const slower = report.reference.growth.p50 - report.candidate.growth.p50
+    const idler = report.candidate.unemployment.p50 - report.reference.unemployment.p50
+    expect(slower > 0.5 || idler > 1, `growth ${slower.toFixed(2)}pt, unemployment ${idler.toFixed(2)}pt`).toBe(true)
   })
 
   it('reports a band, not a single century', () => {

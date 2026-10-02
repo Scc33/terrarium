@@ -311,13 +311,13 @@ export {
   urbanShare,
 } from './pipeline/derive'
 export { labourMarket, type LabourMarketReading } from './pipeline/labourMarket'
+export { INDICATOR_SPECS } from './pipeline/indicatorSpecs'
 export { institutions, initialInstitutions, franchiseOf } from './pipeline/institutions'
 export { assetPurchaseRateEquivalent, bondIssuanceShare, domesticBondFundingShare, neutralPolicyRateOf, privateFundingSpread, privateFundingSpreadOf, privateRealRate, privateRealRateOf, sovereignRiskPremium, sovereignRiskPremiumOf } from './pipeline/funding'
 export { adaptExpectations, clampExpectations } from './pipeline/monetary'
-export { migrationFlow, professionalCeiling, vitalRates } from './pipeline/demography'
+export { migrationFlow, professionalCeiling, vitalRates, type MigrationFlow } from './pipeline/demography'
 export { droughtHazardMultiplier } from './pipeline/shocks'
 export { emissionsPerHead } from './pipeline/environment'
-export type { MigrationFlow } from './pipeline/demography'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
