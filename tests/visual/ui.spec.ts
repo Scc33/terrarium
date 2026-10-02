@@ -241,6 +241,59 @@ test('rolling chart mode remains legible inside a fitted board slot', async ({ p
   await expect(gdpTicker).toHaveScreenshot('rolling-chart-12m.png')
 })
 
+test('the TERM view plots the term so far inside a fitted board slot', async ({ page }) => {
+  await page.goto('/?gallery=1')
+  await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+
+  // TERM is last in the cycle so the rolling test's four clicks still land on R12M
+  const viewButtons = page.getByRole('button', { name: /^Chart view:/ })
+  const count = await viewButtons.count()
+  expect(count).toBeGreaterThan(0)
+  for (let i = 0; i < count; i++) {
+    const button = viewButtons.nth(i)
+    for (let click = 0; click < 5; click++) await button.click()
+    await expect(button).toHaveText('TERM')
+  }
+
+  await expect(page.getByRole('img', { name: /Your term so far/ }).first()).toBeVisible()
+  // the footer's term figure is the half that truncates; a level's
+  // `+2.31%/YR` is the longest thing it has ever had to say
+  expect(await page.evaluate<ShearReport[]>(SHEAR_PROBE)).toEqual([])
+
+  const gdpTicker = page
+    .locator('figure')
+    .filter({ hasText: 'TERMINAL · REAL GDP GROWTH' })
+    .locator('> div')
+  await expect(gdpTicker).toContainText(/TERM -?\d+\.\d\d/)
+  await expect(gdpTicker).toHaveScreenshot('term-chart.png')
+})
+
+test('the verdict sets the long run the office printed beside what happened', async ({ page }) => {
+  await openGame(page)
+  await page.keyboard.press('Backquote')
+  await page.getByRole('spinbutton', { name: 'YEAR — 1946 to 2050', exact: true }).fill('2050')
+  await page.getByRole('spinbutton', { name: 'STATISTICAL', exact: true }).fill('1')
+  await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
+  await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
+
+  const verdict = page.getByRole('dialog', { name: "THE HISTORIANS' VERDICT" })
+  await expect(verdict).toBeVisible()
+  const record = verdict.locator('section').filter({ hasText: 'THE LONG RUN' })
+  await record.scrollIntoViewIfNeeded()
+  await expect(record.getByRole('columnheader', { name: 'THE OFFICE PRINTED' })).toBeVisible()
+  await expect(record.getByRole('columnheader', { name: 'WHAT HAPPENED' })).toBeVisible()
+  for (const row of ['Real GDP growth', 'Inflation', 'Capital stock growth', 'Unemployment']) {
+    await expect(record.getByRole('rowheader', { name: `Explain ${row}` })).toBeVisible()
+  }
+  const fits = await page.evaluate<boolean>(`(() => {
+    const dialog = document.querySelector('[role="dialog"]')
+    return [...dialog.querySelectorAll('table')].every((t) => t.scrollWidth <= t.clientWidth)
+  })()`)
+  expect(fits).toBe(true)
+  await expect(record).toHaveScreenshot('verdict-long-run.png')
+})
+
 test('time-series charts compare a dragged or keyboard-selected range', async ({ page }) => {
   await page.goto('/?gallery=1')
   await expect(page.getByRole('heading', { name: 'Terrarium component gallery' })).toBeVisible()

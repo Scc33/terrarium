@@ -29,6 +29,7 @@ import type {
   StatuteId,
   SpendingRules,
 } from '@terrarium/engine'
+import type { LongRunReading, LongRunRecordId } from './longRun'
 
 
 export {
@@ -90,6 +91,14 @@ export type HouseholdIncomePoint = HouseholdSurveyPrint
 
 export type Grade = 'A' | 'B' | 'C' | 'D' | 'F'
 
+/** One line of the tenure's long-run record. `reported` is the office's prints
+ * run through `LONG_RUN_FORM`, null if it never measured the figure; `actual`
+ * is the same arithmetic on what really happened. */
+export interface LongRunLine {
+  reported: LongRunReading | null
+  actual: LongRunReading | null
+}
+
 /** The historians' verdict. Axes are graded separately, never summed.
  * Only exists once the run is over — no mid-run truth leak. */
 export interface ReportCard {
@@ -117,6 +126,9 @@ export interface ReportCard {
   positionGrade: Grade
   /** how the run ended — the street and the palace are not the ballot box */
   deposedBy: 'poll' | 'revolt' | 'coup' | null
+  /** The long run, kept twice: as printed and as it was. Ungraded — a record
+   * beside the verdict, not a fourth axis. */
+  longRun: Record<LongRunRecordId, LongRunLine>
 }
 
 /**

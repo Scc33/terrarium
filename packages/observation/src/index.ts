@@ -1,5 +1,15 @@
 export { observe } from './observe'
 export {
+  LONG_RUN_FORM,
+  LONG_RUN_MIN_SPAN_QTRS,
+  LONG_RUN_RECORD,
+  longRunReading,
+  longRunTrail,
+  type LongRunForm,
+  type LongRunReading,
+  type LongRunRecordId,
+} from './longRun'
+export {
   createHistoricalDataExport,
   DATA_EXPORT_FORMAT,
   DATA_EXPORT_VERSION,
@@ -45,6 +55,7 @@ export {
   type SpendingProgramId,
   type SpendingRuleMode,
   type ReportCard,
+  type LongRunLine,
   type RevenueSourceId,
   type RevenueSplit,
   type TaxRateId,

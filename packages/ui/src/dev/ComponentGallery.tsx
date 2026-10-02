@@ -179,7 +179,7 @@ export function ComponentGallery() {
                       TERMINAL · {NAMES[indicator].plate}
                     </figcaption>
                     <div style={{ width: BOARD_SLOT.w, height: BOARD_SLOT.h }}>
-                      <TerminalTicker indicator={indicator} series={series} now={GALLERY_NOW} />
+                      <TerminalTicker indicator={indicator} series={series} now={GALLERY_NOW} appointedAt={0} />
                     </div>
                   </figure>
                 </Fragment>
