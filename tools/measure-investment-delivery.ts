@@ -154,7 +154,7 @@ export function outageProbe(state: TrueState) {
   }
 }
 
-const ARM_IDS = ['passive', 'developmental', 'random', 'works-control', 'works-gdp-2', 'works-gdp-5'] as const
+const ARM_IDS = ['passive', 'developmental', 'random', 'works-control', 'works-gdp-2', 'works-gdp-5', 'works-gdp-50'] as const
 type ArmId = (typeof ARM_IDS)[number]
 
 function sample(seed: string, country: (typeof CURATED_COUNTRY_IDS)[number], arm: ArmId, ticks: number) {
@@ -167,6 +167,7 @@ function sample(seed: string, country: (typeof CURATED_COUNTRY_IDS)[number], arm
   let final: TrueState
   let deposed = false
   const works = arm.startsWith('works-')
+  const worksShare = arm === 'works-gdp-2' ? 0.02 : arm === 'works-gdp-5' ? 0.05 : arm === 'works-gdp-50' ? 0.5 : null
   const summary = runSummary({
     seed, country, ticks,
     rules: works ? { protectedTenure: true, unlimitedCapital: true } : undefined,
@@ -174,9 +175,9 @@ function sample(seed: string, country: (typeof CURATED_COUNTRY_IDS)[number], arm
     // The lever under test is strict; ordinary policy sampling alone skips
     // refused orders. The GDP-share order goes in at Q4, after the first print.
     lenient: !works,
-    script: arm === 'works-gdp-2' || arm === 'works-gdp-5' ? [{ tick: 4, actions: [{
+    script: worksShare !== null ? [{ tick: 4, actions: [{
       kind: 'setSpendingRule', programme: 'investment', mode: 'gdpShare',
-      value: arm === 'works-gdp-2' ? 0.02 : 0.05,
+      value: worksShare,
     }] }] : undefined,
     observer: {
       afterActions(state) { before = state },
@@ -196,8 +197,9 @@ function sample(seed: string, country: (typeof CURATED_COUNTRY_IDS)[number], arm
   })
   assert.equal(summary.nanCount, 0, 'non-finite simulation')
   return {
-    arm, country, seed, protectedExperiment: works,
+    arm, country, seed, protectedExperiment: works, publicWorksGdpShare: worksShare,
     deposedAt: summary.deposedAt, illegalActionsSkipped: summary.illegalActionsSkipped,
+    priceExplosionQuarters: summary.priceExplosions,
     all: describeTally(all), retained: describeTally(reachable),
     drought: describeTally(drought), nonDrought: describeTally(nonDrought),
     audit, probe: outageProbe(final!),
@@ -209,6 +211,7 @@ function grouped(samples: ReturnType<typeof sample>[], arm: ArmId, country: stri
   return {
     arm, country, paths: rows.length, protectedExperiment: arm.startsWith('works-'),
     deposedRuns: rows.filter((row) => row.deposedAt !== null).length,
+    priceExplosionRuns: rows.filter((row) => row.priceExplosionQuarters > 0).length,
     illegalActionsSkipped: sum(rows.map((row) => row.illegalActionsSkipped)),
     all: pool(rows.map((row) => row.all)),
     retained: pool(rows.map((row) => row.retained)),
