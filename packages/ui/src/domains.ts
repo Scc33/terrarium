@@ -115,7 +115,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // because the test holds every country × government century to 10%, and
   // Costona under the maximal builder spent 8.7% of three centuries past 150
   // — and it puts the 1946 price of 100 at the top of the arc.
-  price_fuel: { lo: 25, hi: 175 },
+  // ADR-0045 (the countryside empties faster) cheapens fuel a further fifth
+  // from the 1970s: p01 28.7 → 26.5, minimum 19.8. The gauge-domains test's
+  // procedural country under the money government sat under 25 for 24% of
+  // its century from 2021, so the floor goes to 20.
+  price_fuel: { lo: 20, hi: 175 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema

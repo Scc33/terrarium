@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "0261dbb",
+  "revision": "20f834d",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 51,
-      "lines": 16617
+      "lines": 16637
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20295
+      "lines": 20299
     }
   ],
   "modules": [
@@ -4219,43 +4219,43 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1.5 — demography. The century IS the transition window: a young 1946 pyramid ages quarter by quarter under endogenous fertility (falls with income, cities, surviving children, and a slow norms drift), income-driven mortality, and migration as a pressure valve. Cohort size…",
-      "lines": 375,
+      "lines": 395,
       "exports": [
         {
           "name": "vitalRates",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 72
+          "line": 80
         },
         {
           "name": "classSizesFrom",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 93
+          "line": 101
         },
         {
           "name": "professionalCeiling",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 126
+          "line": 134
         },
         {
           "name": "MigrationFlow",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 145
+          "line": 153
         },
         {
           "name": "migrationFlow",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 167
+          "line": 175
         },
         {
           "name": "demography",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 196
+          "line": 204
         }
       ],
       "imports": [
@@ -9748,7 +9748,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 300,
+      "lines": 304,
       "exports": [
         {
           "name": "Domain",
@@ -9772,31 +9772,31 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 219
+          "line": 223
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 260
+          "line": 264
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 274
+          "line": 278
         },
         {
           "name": "faceScale",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 286
+          "line": 290
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 292
+          "line": 296
         }
       ],
       "imports": [
@@ -16742,41 +16742,41 @@ export const architecture = {
           "name": "vitalRates",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 72
+          "line": 80
         },
         {
           "name": "classSizesFrom",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 93
+          "line": 101
         },
         {
           "name": "professionalCeiling",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 126
+          "line": 134
         },
         {
           "name": "MigrationFlow",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 145
+          "line": 153
         },
         {
           "name": "migrationFlow",
           "kind": "function",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 167
+          "line": 175
         },
         {
           "name": "demography",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/demography.ts",
-          "line": 196
+          "line": 204
         }
       ],
       "path": "packages/engine/src/pipeline/demography.ts",
-      "line": 196
+      "line": 204
     },
     {
       "order": 3,

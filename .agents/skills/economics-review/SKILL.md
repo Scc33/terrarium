@@ -288,6 +288,29 @@ If a change here moves the PASSIVE column, the surplus rule has stopped being a 
 become a stimulus, which is a different mechanic. Same shape as the pollution and basket tests
 above.
 
+### Where the countryside stops (ADR-0045)
+
+This change moves survival and the early decades, not the century. 1000 × 400q, `--country all`,
+before → after:
+
+| | passive | developmental | regulated |
+|---|---|---|---|
+| growth %/yr | 2.94 → **2.93** | 3.14 → **3.11** | 3.13 → **3.11** |
+| unemployment % | 12.87 → **12.84** | 12.56 → **12.57** | 12.30 → **12.31** |
+| deposed | 1% → **1%** | 11% → **6%** | 14% → **8%** |
+
+Costona's developmental deposition goes from 27% to 3%. It was a rural poverty trap the old speed
+limit could not drain. Passive does not move on any country, and that is the calibration test
+here too: a do-nothing country drains on its own wage gap.
+
+**The first thirty years carry about a point more open unemployment** (random 120q 12.09 →
+13.24%, passive 120q 12.77 → 13.65%, growth up 0.1pt/yr). That is Harris–Todaro's prediction:
+people nominally employed on capped farms queue for city jobs instead. Do not "fix" it with
+`JOBS_PULL_UNEMPLOYMENT_GAIN` before reading the ADR's alternatives.
+
+Use **`pnpm agriculture`** as the evidence. Table 2 prints `job odds` and `exp. gap`, and
+table 3's `rel prod` checks that the countryside did not empty past the farm's market.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
@@ -315,6 +338,11 @@ agricultural wage, the Gini falls about five points, and lower inequality feeds 
 approval through the channels that were already there. On the hardest country in the catalogue
 the statute book's payoff is survival, not output — which is the correct shape for a political
 economy game and was not designed in.
+
+*That payoff ended with ADR-0045.* Once Costona's countryside can empty, its farm wage outruns
+the floor, so the living wage reaches no curated farm. Costona's developmental deposition is
+already 3%, against 5% regulated. The rescue the table shows came from the poverty trap the
+floor was compensating for.
 
 The competition act alone, against `developmental`, was +0.01–0.05 pp/yr per country with the
 right ordering (most captured gains most). That is **much smaller than the mechanism test

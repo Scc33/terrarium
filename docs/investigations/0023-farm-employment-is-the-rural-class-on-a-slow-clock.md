@@ -3,7 +3,10 @@
 **Status:** Open — the spike for [#151](https://github.com/Scc33/terrarium/issues/151). The three
 changes it points at are split out as [#288](https://github.com/Scc33/terrarium/issues/288),
 [#289](https://github.com/Scc33/terrarium/issues/289) and
-[#290](https://github.com/Scc33/terrarium/issues/290), in that order.
+[#290](https://github.com/Scc33/terrarium/issues/290), in that order. The speed (#288) is
+[ADR-0045](../adr/0045-the-countryside-empties-toward-expected-income.md): ×3 alone, measured below,
+stopped at wage parity and drained Costona past the farm's market, so it shipped with an
+expected-income stopping rule. The destination (#289, #290) is still open.
 
 **Raised by:** #151, "even in a very wealthy, highly educated, and industrial society the
 employment rate of agriculture is very high." The comment on that issue measured the basket fix

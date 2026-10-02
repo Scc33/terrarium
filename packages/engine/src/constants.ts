@@ -889,8 +889,8 @@ export const SUBSISTENCE_ABSORPTION_Q = 0.06
  * multiple of the rural labor force */
 export const SUBSISTENCE_CAP = 0.92
 
-/** rural→urban drift per quarter per unit of urban/rural wage gap */
-export const URBANIZATION_GAIN = 0.004
+/** rural→urban drift per quarter per unit of expected-income gap: 4.7%/yr at full pull (ADR-0045) */
+export const URBANIZATION_GAIN = 0.012
 /** how fast the cities stop pulling as open unemployment rises above natural
  * — the move (urbanization) and the rise (professionalization) both gate on
  * this same "do the cities have jobs" read, closing off entirely once
