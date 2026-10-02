@@ -9,7 +9,13 @@ the same as assets owned per person, and does asset ownership match capital form
 **Measured at:** engine `df4413f676e3724d1c63e67245c8cdf01e8d6da0`, schema 47,
 12 seeds × five curated countries × 400 quarters, on 2026-10-01. Reproduce with
 `pnpm capital-ownership -- --runs 12 --ticks 400`. The tool emits JSON with its commit,
-schema, seed pattern, units, medians, isolated probes and accumulation residuals.
+schema, seed pattern, units, medians, isolated probes and accumulation residuals. The
+measurement runtime was Node **v24.20.0**, **darwin/arm64**. The harness now stamps
+Node version, platform and architecture, and records `dirty: true` if tracked or
+untracked worktree changes were present before simulation. A dirty result is an
+experimental working-copy result, not reproducible from its HEAD commit alone;
+commit the inputs and rerun before citing it as a commit-only measurement. Long
+replays can differ across architectures ([investigation 0022](0022-golden-replays-are-not-reproducible-across-cpu-architecture.md)).
 
 ## The answer
 
@@ -61,6 +67,9 @@ Each sector has a stock floor of 1. In this passive sample the floor never bound
 across **24,000 quarters**, the maximum absolute aggregate capital residual was
 **9.10 × 10⁻¹³** engine units, and the foreign-stock residual was **zero**. Gross
 investment can leave capital roughly flat when it merely replaces depreciation.
+The audit checks each sector against its individually floored expected stock, using
+the retained production utilization to allocate investment; it then checks the sum.
+A legitimate floor correction cannot mask a loss or creation in another sector.
 
 This reconciles the **booked real investment flow**, not a financing account or proof
 that every investment good was delivered. Production records shortages through
@@ -79,6 +88,9 @@ savings[next, cohort] = max(0,
 aggregate savings identity had a maximum absolute residual of **2.73 × 10⁻¹²** nominal
 units, with no savings floor binding. These successful local identities do **not**
 close the economy's financial accounts.
+Each cohort is likewise checked against its individually floored income/spending/
+redemption account before checking the aggregate. Regression fixtures bind both
+floors and inject unrelated losses, creations and offsetting stock errors.
 
 ## Where ownership and financing stop
 

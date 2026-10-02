@@ -8,6 +8,8 @@
  */
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   createCountryParams,
   CURATED_COUNTRY_IDS,
@@ -18,7 +20,14 @@ import {
   validate,
   type TrueState,
 } from '../packages/engine/src/index'
-import { DEPRECIATION_Q, SAVINGS_DRAWDOWN, taxEfficiency } from '../packages/engine/src/constants'
+import {
+  BOND_HOLDING,
+  DEPRECIATION_Q,
+  INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION,
+  INVESTMENT_ALLOCATION_PRESSURE_FLOOR,
+  SAVINGS_DRAWDOWN,
+  taxEfficiency,
+} from '../packages/engine/src/constants'
 import { cohorts } from '../packages/engine/src/pipeline/cohorts'
 import { finance } from '../packages/engine/src/pipeline/finance'
 import { production } from '../packages/engine/src/pipeline/production'
@@ -33,10 +42,17 @@ function arg(name: string, fallback: string): number {
   return value
 }
 
-const RUNS = arg('runs', '12')
-const TICKS = arg('ticks', '400')
-const HORIZONS = [...new Set([0, 40, 160, 400, TICKS].filter((tick) => tick <= TICKS))]
-  .sort((a, b) => a - b)
+/** Capture before simulating: HEAD alone cannot identify uncommitted inputs,
+ * and long replays can differ across runtimes (investigation 0022). Resolve
+ * the source checkout rather than assuming the caller's cwd is this repo. */
+export function studyProvenance(repoRoot = fileURLToPath(new URL('../', import.meta.url))) {
+  const options = { cwd: repoRoot, encoding: 'utf8' as const }
+  return {
+    commit: execFileSync('git', ['rev-parse', 'HEAD'], options).trim(),
+    dirty: execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=normal'], options).length > 0,
+    runtime: { node: process.version, platform: process.platform, arch: process.arch },
+  }
+}
 const sum = (values: readonly number[]): number => values.reduce((a, b) => a + b, 0)
 const capital = (state: TrueState): number => sum(state.sectors.map((s) => s.capital))
 const savings = (state: TrueState): number => sum(state.cohorts.map((c) => c.savings))
@@ -115,26 +131,45 @@ function probe(state: TrueState): Probe {
   }
 }
 
-const audit = {
-  quarters: 0,
-  capitalFloorQuarters: 0,
-  maxCapitalResidualWithoutFloor: 0,
-  capitalFloorAddition: 0,
-  maxForeignCapitalResidual: 0,
-  savingsFloorQuarters: 0,
-  savingsFloorAddition: 0,
-  maxSavingsResidualWithoutFloor: 0,
+export function createAudit() {
+  return {
+    quarters: 0,
+    capitalFloorQuarters: 0,
+    maxCapitalResidualWithoutFloor: 0,
+    capitalFloorAddition: 0,
+    maxCapitalStockResidual: 0,
+    maxForeignCapitalResidual: 0,
+    savingsFloorQuarters: 0,
+    savingsFloorAddition: 0,
+    maxSavingsResidualWithoutFloor: 0,
+    maxSavingsStockResidual: 0,
+  }
 }
 
-function auditQuarter(before: TrueState, after: TrueState): void {
+export function auditQuarter(before: TrueState, after: TrueState, audit: ReturnType<typeof createAudit>): void {
+  // Utilization is the production reading retained through labor. Checking
+  // each stock prevents a legitimate floor correction from hiding another
+  // sector's loss or any spurious creation, even if aggregate totals match.
+  const pressures = after.sectors.map((s) => Math.max(INVESTMENT_ALLOCATION_PRESSURE_FLOOR,
+    s.capacityUtilization - INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION))
+  const pressureSum = sum(pressures)
+  let capitalFloorCorrection = 0
+  for (const [index, sector] of after.sectors.entries()) {
+    const old = before.sectors.find((s) => s.id === sector.id)!
+    const unfloored = old.capital * (1 - DEPRECIATION_Q) +
+      after.flows.investmentReal * (pressures[index] / pressureSum)
+    const expected = Math.max(1, unfloored)
+    close(sector.capital, expected, `capital accumulation [${sector.id}]`)
+    audit.maxCapitalStockResidual = Math.max(audit.maxCapitalStockResidual, Math.abs(sector.capital - expected))
+    capitalFloorCorrection += Math.max(0, 1 - unfloored)
+  }
   const expectedCapital = capital(before) * (1 - DEPRECIATION_Q) + after.flows.investmentReal
   const capitalResidual = capital(after) - expectedCapital
-  if (after.sectors.some((s) => s.capital === 1)) {
+  close(capital(after), expectedCapital + capitalFloorCorrection, 'aggregate capital accumulation')
+  if (capitalFloorCorrection > 0) {
     audit.capitalFloorQuarters++
-    audit.capitalFloorAddition += Math.max(0, capitalResidual)
-    assert(capitalResidual >= -1e-9, 'capital floor destroyed capital')
+    audit.capitalFloorAddition += capitalFloorCorrection
   } else {
-    close(capital(after), expectedCapital, 'capital accumulation')
     audit.maxCapitalResidualWithoutFloor = Math.max(audit.maxCapitalResidualWithoutFloor, Math.abs(capitalResidual))
   }
   const expectedForeign = Math.min(capital(after), Math.max(0,
@@ -142,72 +177,94 @@ function auditQuarter(before: TrueState, after: TrueState): void {
   close(after.external.foreignOwnedCapital, expectedForeign, 'foreign ownership')
   audit.maxForeignCapitalResidual = Math.max(audit.maxForeignCapitalResidual,
     Math.abs(after.external.foreignOwnedCapital - expectedForeign))
-  const netIncome = sum(after.cohorts.map((c) =>
-    c.wageIncome * (1 - after.gov.dials.taxRates.income * taxEfficiency(after.gov.capacity.tax)) +
-    c.profitIncome + c.transferIncome + c.rebateIncome))
+  const incomeTax = after.gov.dials.taxRates.income * taxEfficiency(after.gov.capacity.tax)
+  let netIncome = 0
+  let savingsFloorCorrection = 0
+  for (const cohort of after.cohorts) {
+    const old = before.cohorts.find((c) => c.id === cohort.id)!
+    const income = cohort.wageIncome * (1 - incomeTax) +
+      cohort.profitIncome + cohort.transferIncome + cohort.rebateIncome
+    const unfloored = old.savings + income - after.flows.cohortSpend[cohort.id] +
+      after.flows.debtPrincipal * BOND_HOLDING[cohort.id]
+    const expected = Math.max(0, unfloored)
+    close(cohort.savings, expected, `household savings accumulation [${cohort.id}]`)
+    audit.maxSavingsStockResidual = Math.max(audit.maxSavingsStockResidual, Math.abs(cohort.savings - expected))
+    savingsFloorCorrection += Math.max(0, -unfloored)
+    netIncome += income
+  }
   const expectedSavings = savings(before) + netIncome - budget(after) + after.flows.debtPrincipal
   const savingsResidual = savings(after) - expectedSavings
-  if (after.cohorts.some((c) => c.savings === 0)) {
+  close(savings(after), expectedSavings + savingsFloorCorrection, 'aggregate household savings accumulation')
+  if (savingsFloorCorrection > 0) {
     audit.savingsFloorQuarters++
-    audit.savingsFloorAddition += Math.max(0, savingsResidual)
-    assert(savingsResidual >= -1e-9, 'savings floor destroyed savings')
+    audit.savingsFloorAddition += savingsFloorCorrection
   } else {
-    close(savings(after), expectedSavings, 'household savings accumulation')
     audit.maxSavingsResidualWithoutFloor = Math.max(audit.maxSavingsResidualWithoutFloor, Math.abs(savingsResidual))
   }
   audit.quarters++
 }
 
-const rows: { country: string; tick: number; reading: Reading; probe: Probe }[] = []
-for (const country of CURATED_COUNTRY_IDS) {
-  for (let index = 0; index < RUNS; index++) {
-    const seed = `capital-ownership-${country}-${index}`
-    let state = init(createCountryParams(country, seed), seed, { protectedTenure: true })
-    validate(state)
-    rows.push({ country, tick: 0, reading: read(state), probe: probe(state) })
-    for (let tick = 1; tick <= TICKS; tick++) {
-      const before = state
-      state = step(state)
+function main(): void {
+  const RUNS = arg('runs', '12')
+  const TICKS = arg('ticks', '400')
+  const HORIZONS = [...new Set([0, 40, 160, 400, TICKS].filter((tick) => tick <= TICKS))]
+    .sort((a, b) => a - b)
+  const provenance = studyProvenance()
+  const audit = createAudit()
+  const rows: { country: string; tick: number; reading: Reading; probe: Probe }[] = []
+  for (const country of CURATED_COUNTRY_IDS) {
+    for (let index = 0; index < RUNS; index++) {
+      const seed = `capital-ownership-${country}-${index}`
+      let state = init(createCountryParams(country, seed), seed, { protectedTenure: true })
       validate(state)
-      auditQuarter(before, state)
-      if (HORIZONS.includes(tick)) rows.push({ country, tick, reading: read(state), probe: probe(state) })
+      rows.push({ country, tick: 0, reading: read(state), probe: probe(state) })
+      for (let tick = 1; tick <= TICKS; tick++) {
+        const before = state
+        state = step(state)
+        validate(state)
+        auditQuarter(before, state, audit)
+        if (HORIZONS.includes(tick)) rows.push({ country, tick, reading: read(state), probe: probe(state) })
+      }
     }
+    console.error(`Measured ${country}: ${RUNS} passive paths × ${TICKS} quarters`)
   }
-  console.error(`Measured ${country}: ${RUNS} passive paths × ${TICKS} quarters`)
+
+  const median = (values: number[]): number => summarize(values).p50
+  const readings = CURATED_COUNTRY_IDS.flatMap((country) => HORIZONS.map((tick) => {
+    const selected = rows.filter((row) => row.country === country && row.tick === tick)
+    return { country, tick,
+      capitalPerPerson: median(selected.map((row) => row.reading.capitalPerPerson)),
+      savingsPerPerson: median(selected.map((row) => row.reading.savingsPerPerson)),
+      foreignOwnershipPct: median(selected.map((row) => row.reading.foreignOwnershipPct)),
+      q: median(selected.map((row) => row.reading.q)),
+    }
+  }))
+  const probes = HORIZONS.map((tick) => {
+    const selected = rows.filter((row) => row.tick === tick)
+    return { tick,
+      removeSavingsBudgetChangePct: median(selected.map((row) => row.probe.budgetChangePct)),
+      removeSavingsPrivateInvestmentChangePct: median(selected.map((row) => row.probe.privateInvestmentChangePct)),
+      maxAbsRemoveSavingsCreditChange: Math.max(...selected.map((row) => Math.abs(row.probe.creditChange))),
+      maxAbsRemoveSavingsProfitIncomeChange: Math.max(...selected.map((row) => Math.abs(row.probe.profitIncomeChange))),
+      halveQPrivateInvestmentChangePct: median(selected.map((row) => row.probe.qHalvedPrivateInvestmentChangePct)),
+      maxAbsHalveQSavingsChange: Math.max(...selected.map((row) => Math.abs(row.probe.qHalvedSavingsChange))),
+    }
+  })
+
+  console.log(JSON.stringify({
+    ...provenance,
+    schema: SCHEMA_VERSION,
+    runsPerCountry: RUNS,
+    ticks: TICKS,
+    policy: 'passive; protected tenure',
+    seedPattern: 'capital-ownership-${country}-${index}',
+    units: { capitalPerPerson: 'real engine capital units per resident',
+      savingsPerPerson: 'nominal money units per resident; not comparable to real capital', q: 'valuation ratio' },
+    readings,
+    probes,
+    audit,
+  }, null, 2))
 }
 
-const median = (values: number[]): number => summarize(values).p50
-const readings = CURATED_COUNTRY_IDS.flatMap((country) => HORIZONS.map((tick) => {
-  const selected = rows.filter((row) => row.country === country && row.tick === tick)
-  return { country, tick,
-    capitalPerPerson: median(selected.map((row) => row.reading.capitalPerPerson)),
-    savingsPerPerson: median(selected.map((row) => row.reading.savingsPerPerson)),
-    foreignOwnershipPct: median(selected.map((row) => row.reading.foreignOwnershipPct)),
-    q: median(selected.map((row) => row.reading.q)),
-  }
-}))
-const probes = HORIZONS.map((tick) => {
-  const selected = rows.filter((row) => row.tick === tick)
-  return { tick,
-    removeSavingsBudgetChangePct: median(selected.map((row) => row.probe.budgetChangePct)),
-    removeSavingsPrivateInvestmentChangePct: median(selected.map((row) => row.probe.privateInvestmentChangePct)),
-    maxAbsRemoveSavingsCreditChange: Math.max(...selected.map((row) => Math.abs(row.probe.creditChange))),
-    maxAbsRemoveSavingsProfitIncomeChange: Math.max(...selected.map((row) => Math.abs(row.probe.profitIncomeChange))),
-    halveQPrivateInvestmentChangePct: median(selected.map((row) => row.probe.qHalvedPrivateInvestmentChangePct)),
-    maxAbsHalveQSavingsChange: Math.max(...selected.map((row) => Math.abs(row.probe.qHalvedSavingsChange))),
-  }
-})
-
-console.log(JSON.stringify({
-  commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
-  schema: SCHEMA_VERSION,
-  runsPerCountry: RUNS,
-  ticks: TICKS,
-  policy: 'passive; protected tenure',
-  seedPattern: 'capital-ownership-${country}-${index}',
-  units: { capitalPerPerson: 'real engine capital units per resident',
-    savingsPerPerson: 'nominal money units per resident; not comparable to real capital', q: 'valuation ratio' },
-  readings,
-  probes,
-  audit,
-}, null, 2))
+// Keep the audit importable for regressions without running a century study.
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) main()
