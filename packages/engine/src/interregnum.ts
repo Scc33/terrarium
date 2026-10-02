@@ -46,6 +46,7 @@ import { init } from './state/init'
 import {
   CAPACITY_IDS,
   FIRST_YEAR,
+  ORDINARY_TURBULENCE,
   SPENDING_PROGRAM_IDS,
   tickForYear,
   type CountryParams,
@@ -53,6 +54,7 @@ import {
   type GameRules,
   type Qtr,
   type TrueState,
+  type Turbulence,
 } from './state/schema'
 
 /** A quarter the player can be appointed in, and what the world is doing when
@@ -153,8 +155,9 @@ export function runInterregnum(
   seed: Seed,
   rules: GameMode | Partial<GameRules> = 'standard',
   appointedAt: Qtr = 0,
+  turbulence: Turbulence = ORDINARY_TURBULENCE,
 ): { state: TrueState; actionLog: ActionLog } {
-  let state = init(params, seed, rules, appointedAt)
+  let state = init(params, seed, rules, appointedAt, turbulence)
   const actionLog: ActionLog = []
   while (state.meta.tick < state.meta.appointedAt) {
     const applied: Action[] = []

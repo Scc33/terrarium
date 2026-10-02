@@ -234,6 +234,7 @@ export function observe(state: TrueState): PublishedState {
     country: state.params.name,
     countryAuthored: state.params.authored === true,
     rules: { ...state.meta.rules },
+    turbulence: state.meta.turbulence,
     indicators,
     // the industrial census, as released. Cloned rather than shared: every
     // print holds two records, and a caller that mutated one would be editing

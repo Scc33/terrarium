@@ -50,8 +50,10 @@ const MODULE_LINE_BASELINE = {
   // thresholds, which the hard rule says may live nowhere else. Ratcheted
   // from 2027 by #239, the same no-magic-numbers pass as #179 run over
   // packages/observation: the one bare coefficient it found was a
-  // legitimacy grade cut, which likewise may live nowhere else.
-  'packages/engine/src/constants.ts': 2033,
+  // legitimacy grade cut, which likewise may live nowhere else. Ratcheted
+  // from 2033 by #122: schema 48's `TURBULENCE` table, the setup dial's
+  // multipliers, which ADR-0007 says may live nowhere else.
+  'packages/engine/src/constants.ts': 2048,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -70,7 +72,9 @@ const MODULE_LINE_BASELINE = {
   // through this file, so `treasuryFinancing` — which it had been reading
   // straight out of state/accounts — and the grade cut the same lint block
   // lifted out of observe.ts both have to be published here.
-  'packages/engine/src/index.ts': 423,
+  // Ratcheted from 423 by #122: schema 48's turbulence is a replay input, so
+  // `init`, `SaveFile`, `createSave` and `replay` all carry it.
+  'packages/engine/src/index.ts': 439,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
   // Ratcheted from 1080 by #179: named constants replacing bare literals.
   'packages/engine/src/pipeline/derive.ts': 1090,
@@ -91,7 +95,8 @@ const MODULE_LINE_BASELINE = {
   'packages/engine/src/state/init.ts': 670,
   // Cohesive schema: total state contracts and canonical id lists.
   // Schema 47 adds the hidden household expectation (#221).
-  'packages/engine/src/state/schema.ts': 1387,
+  // Schema 48 adds the world's turbulence as a replay input (#122).
+  'packages/engine/src/state/schema.ts': 1406,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,
   // Analysis tool: export-feedback measures, aggregation, and report formatting.
@@ -101,20 +106,24 @@ const MODULE_LINE_BASELINE = {
   // Analysis tool: multi-seed stability probes and their diagnostics.
   'packages/runner/src/stability.ts': 600,
   // Screen composition root: boot, keyboard, scene precedence and cabinet chrome
-  // are hooks in `shell/`. Ratcheted from 487 by #208.
-  'packages/ui/src/App.tsx': 352,
+  // are hooks in `shell/`. Ratcheted from 487 by #208, and from 352 by #122,
+  // which lifted the posting terms into `shell/usePostingTerms.ts`.
+  'packages/ui/src/App.tsx': 349,
   // Cohesive painter: shared chart geometry, inspection, comparison, and accessibility.
   'packages/ui/src/components/ui/TimeSeriesChart/TimeSeriesChart.tsx': 642,
   // Cohesive total record: generated country fields and validator-mirroring arithmetic.
   'packages/ui/src/countryDraft.ts': 441,
   // Cohesive catalogue: generated handbook chapters plus authored mechanism prose.
-  'packages/ui/src/manual.ts': 706,
+  // Ratcheted from 706 by #122: the chapter on the world's turbulence.
+  'packages/ui/src/manual.ts': 720,
   // Presentation hotspot: exact census summaries and charts in one dossier.
   'packages/ui/src/panels/CensusOverlay.tsx': 502,
   // Composition root: cabinet tab strip, drawer bodies, and the enact footer.
   'packages/ui/src/panels/ControlRail.tsx': 372,
   // Executable hotspot: posting-room selection, drafting, rules, and appointment flows.
-  'packages/ui/src/panels/CountrySelect.tsx': 644,
+  // Ratcheted from 644 by #122, which lifted the year and world bands into
+  // `PostingTerms.tsx` rather than grow a second band here.
+  'packages/ui/src/panels/CountrySelect.tsx': 584,
   // Presentation hotspot: banking diagnostics, phase chart, and crisis episodes.
   'packages/ui/src/panels/FinanceOverlay.tsx': 412,
   // Presentation hotspot: policy record, rules, statutes, and compliance views.

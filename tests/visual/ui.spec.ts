@@ -366,6 +366,7 @@ test('header keeps every reading visible with all standing orders', async ({ pag
   await expect(page.getByRole('heading', { name: 'Choose your posting' })).toBeVisible()
   await page.getByRole('radio', { name: /Costona/ }).click()
   await page.getByRole('group', { name: 'Year of appointment' }).getByRole('button', { name: '2005' }).click()
+  await page.getByRole('group', { name: 'The world abroad' }).getByRole('button', { name: 'TURBULENT' }).click()
   await page.getByText('STANDING ORDERS', { exact: true }).click()
   await page.getByRole('group', { name: 'TENURE' }).getByRole('button', { name: 'GOD MODE' }).click()
   await page.getByRole('group', { name: 'INSTRUMENTS' }).getByRole('button', { name: 'ALL FITTED' }).click()
@@ -398,7 +399,30 @@ test('header keeps every reading visible with all standing orders', async ({ pag
   await page.setViewportSize({ width: 1493, height: 720 })
   await expect(page.locator('summary').filter({ hasText: 'OFFICES' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Explain 3 standing orders in force' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Explain turbulent world' })).toBeVisible()
   await expect(page.locator('header')).toHaveScreenshot('header-all-rules-1493.png')
+})
+
+test('the posting room offers the world abroad beside the year, unsheared (#122)', async ({ page }) => {
+  await page.addInitScript({ content: `localStorage.setItem(${JSON.stringify(BRIEFED_KEY)}, '1')` })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Choose your posting' })).toBeVisible()
+  const world = page.getByRole('group', { name: 'The world abroad' })
+  await world.getByRole('button', { name: 'CALM' }).click()
+  await expect(page.getByText(/come half as often/)).toBeVisible()
+  await page.evaluate('document.fonts.ready')
+  // the aside is 330px and clips: a segment pushed past its right edge would
+  // be invisible to every vertical probe
+  const sheared = await page.evaluate(`(() => {
+    const aside = document.querySelector('aside').getBoundingClientRect();
+    return [...document.querySelectorAll('aside [role=group] button')]
+      .filter((b) => b.getBoundingClientRect().right > aside.right + 1)
+      .map((b) => b.textContent);
+  })()`)
+  expect(sheared).toEqual([])
+  // the aside scrolls at 720px, as it did before this band: bring the band up
+  await page.getByText(/come half as often/).scrollIntoViewIfNeeded()
+  await expect(page.locator('aside')).toHaveScreenshot('posting-terms-1280.png')
 })
 
 test('dense desktop rack fits every instrument name on one screen', async ({ page }) => {

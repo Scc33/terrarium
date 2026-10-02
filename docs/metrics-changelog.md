@@ -21,6 +21,19 @@ contract, so it's called out below.
 
 ---
 
+## Schema 48 — the world's turbulence is a replay input (#122)
+
+- **Inputs +**: `meta.turbulence` (`calm | ordinary | turbulent`), chosen in the posting room,
+  written to `SaveFile.turbulence`, and taken by `init`, `createSave` and `runInterregnum` as a
+  fifth argument. Absent on older saves, which means `ordinary`; the UI refuses an unknown value.
+- **Behavior**: `TURBULENCE[level].hazard` multiplies `DROUGHT_P`, `ENERGY_SHOCK_P`, each
+  partner's `crisisProb` and `CRISIS_BASE_P`; `.cycle` multiplies each partner's `vol`. Both are
+  exactly 1 at `ordinary`, so every existing run is unchanged — only `meta.schemaVersion` moved
+  in the goldens.
+- **Outputs +**: `PublishedState.turbulence`, exact. The header stamps a non-ordinary world and
+  the report card says which world a grade was earned in.
+- Pipeline order and every indicator are unchanged. See ADR-0046.
+
 ## Schema 47 — household inflation expectations in wage bargains (#221)
 
 - **Internal state +**: `ledger.consumerInflationExpectations`, an annualized household

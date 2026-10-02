@@ -14,21 +14,21 @@ import {
   APPOINTMENTS,
   COUNTRY_CATALOG,
   CURATED_COUNTRY_IDS,
-  FIRST_YEAR,
   GAME_RULE_IDS,
   InvalidCountryError,
   STANDARD_RULES,
-  type Appointment,
   type CountryDifficulty,
   type CountryProfile,
   type CountryScenarioId,
   type CuratedCountryId,
   type GameRuleId,
   type GameRules,
+  type Turbulence,
 } from '@terrarium/engine'
 import { Button, SegmentedControl, Tooltip, TooltipLabel } from '../components/ui'
 import { ProjectLinks } from '../components/ProjectLinks/ProjectLinks'
 import { activeRuleMarks, RULE_COPY } from '../gameRules'
+import { AppointmentBand, TurbulenceBand } from './PostingTerms'
 import { draftKey, draftPopulation, parseCountryDocument, type CountryDocument } from '../countryDraft'
 
 const DIFFICULTY: Record<CountryDifficulty, { label: string; className: string }> = {
@@ -219,72 +219,6 @@ function ForkPicker({
   )
 }
 
-const CARETAKER_NOTE =
-  `A caretaker ministry governs the years before you: it holds the ${FIRST_YEAR} programmes at their ` +
-  'share of the economy and builds the four state capacities, and does nothing else. You inherit ' +
-  'whatever that produced — the ministries, the debt, and the politics its programme earned.'
-
-const yearsBefore = (appointment: Appointment) => Math.round(appointment.tick / 4)
-
-/** The year you take office (ADR-0021).
- *
- * Sealed into the save like the standing orders, and for the same reason: the
- * same country and code produce a different century from a different quarter.
- * It gets its own band rather than a fold, because unlike the safeties it is a
- * choice every player is making whether or not they open anything — the wrong
- * default here is a whole game, not a lifted constraint.
- *
- * The copy has to say what happens to the missing years, or a later appointment
- * reads as a cheat that skips them. It does not skip them: a caretaker
- * administration governs them in the ordinary loop and the country that arrives
- * is whatever that produced. */
-function AppointmentBand({
-  value,
-  onChange,
-}: {
-  value: Appointment
-  onChange: (tick: number) => void
-}) {
-  const years = yearsBefore(value)
-  return (
-    <div className="border-t border-dossier-ink/15 pt-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[8px] font-semibold tracking-[0.18em] text-dossier-ink/55">
-          YEAR OF APPOINTMENT
-        </span>
-        <span className="font-mono text-[8px] tracking-[0.12em] text-dossier-brass">{value.name}</span>
-      </div>
-      <div className="mt-1.5">
-        <SegmentedControl
-          label="Year of appointment"
-          value={String(value.year)}
-          onChange={(next) => {
-            const picked = APPOINTMENTS.find((a) => String(a.year) === next)
-            if (picked) onChange(picked.tick)
-          }}
-          options={APPOINTMENTS.map((a) => ({
-            value: String(a.year),
-            label: String(a.year),
-            // the whole mechanism rides on the hover, so that the aside spends
-            // two lines on the choice rather than pushing the standing orders
-            // off the bottom of its own scroll region
-            title: yearsBefore(a) === 0
-              ? `${a.name} — ${a.summary}`
-              : `${a.name} — ${a.summary} ${CARETAKER_NOTE}`,
-          }))}
-        />
-      </div>
-      <p className="mt-1.5 font-dossier text-[10px] italic leading-snug text-dossier-ink/48">{value.summary}</p>
-      {years > 0 && (
-        <p className="mt-1.5 font-dossier text-[10px] italic leading-snug text-dossier-ink/48">
-          The {years} years before you are not skipped — a caretaker ministry governs them, and you inherit
-          what it built.
-        </p>
-      )}
-    </div>
-  )
-}
-
 /** One safety, with what it does spelled out under it. The rules are chosen
  * once and then sealed into the save, so this is the only place they are ever
  * explained — a row that only said ON/OFF would be a setting nobody could
@@ -329,6 +263,8 @@ export function CountrySelect({
   onStartDraft,
   appointedAt,
   onAppointedAt,
+  turbulence,
+  onTurbulence,
   onCancel,
   notice,
   drafts,
@@ -344,6 +280,9 @@ export function CountrySelect({
    * and the year chosen here is the year that player means. */
   appointedAt: number
   onAppointedAt: (tick: number) => void
+  /** how often the world breaks (ADR-0046) — owned by the app for the same reason */
+  turbulence: Turbulence
+  onTurbulence: (value: Turbulence) => void
   onCancel?: () => void
   /** why the player is standing here rather than in the run they left — set
    * when a save could not be reopened. Ordinary arrivals pass nothing. */
@@ -581,6 +520,7 @@ export function CountrySelect({
               )}
               <div className="mt-5">
                 <AppointmentBand value={appointment} onChange={onAppointedAt} />
+                <TurbulenceBand value={turbulence} onChange={onTurbulence} />
               </div>
               {/* Folded away by default. Three safeties spelled out in full is
                   more of this aside than an ordinary posting should spend on

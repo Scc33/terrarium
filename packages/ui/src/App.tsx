@@ -38,6 +38,7 @@ import type { CuratedCountryId } from '@terrarium/engine'
 import { useBootSequence } from './shell/useBootSequence'
 import { useCabinetChrome } from './shell/useCabinetChrome'
 import { useGlobalShortcuts } from './shell/useGlobalShortcuts'
+import { usePostingTerms } from './shell/usePostingTerms'
 import { useSceneOverlays } from './shell/useSceneOverlays'
 /**
  * The paperwork that is only ever `(pub, onClose)` — a table, so opening a new
@@ -71,10 +72,7 @@ export default function App() {
   /** the draft currently open in the drafting room, and the country it was
    * opened from — the origin is what the DRAFTED marks are measured against */
   const [editing, setEditing] = useState<{ draft: CountryDocument; origin: CountryDocument } | null>(null)
-  /** the quarter the player takes office (ADR-0021). It lives here rather than
-   * in the posting room because the drafting room's own ACCEPT starts a game
-   * too, and a year chosen next door is still the year that player means. */
-  const [appointedAt, setAppointedAt] = useState(0)
+  const terms = usePostingTerms()
   /** the handbook opens on whichever chapter the player was reaching for —
    * the records office wants the methodology, the header wants the front */
   const [manualChapter, setManualChapter] = useState<ManualChapterId>('briefing')
@@ -119,8 +117,7 @@ export default function App() {
     setEditing({ draft: doc, origin: doc })
   }
   const postingRoom = {
-    appointedAt,
-    onAppointedAt: setAppointedAt,
+    ...terms,
     drafts,
     onNewDraft: (from: CuratedCountryId) => openDraft(draftFrom(from)),
     onEditDraft: openDraft,
@@ -140,7 +137,7 @@ export default function App() {
         setEditing(null)
         setOverlay(null)
         setStartup('loading')
-        newDraftedGame(doc, undefined, undefined, appointedAt)
+        newDraftedGame(doc, undefined, undefined, terms.appointedAt, terms.turbulence)
       }}
     />
   )
@@ -158,11 +155,11 @@ export default function App() {
             notice={loadError}
             onStart={(country, seed, rules) => {
               setStartup('loading')
-              newGame(country, seed, rules, appointedAt)
+              newGame(country, seed, rules, terms.appointedAt, terms.turbulence)
             }}
             onStartDraft={(doc, seed, rules) => {
               setStartup('loading')
-              newDraftedGame(doc, seed, rules, appointedAt)
+              newDraftedGame(doc, seed, rules, terms.appointedAt, terms.turbulence)
             }}
           />
           {draftingRoom}
@@ -302,11 +299,11 @@ export default function App() {
           {...postingRoom}
           onCancel={() => setOverlay(null)}
           onStart={(country, seed, rules) => {
-            newGame(country, seed, rules, appointedAt)
+            newGame(country, seed, rules, terms.appointedAt, terms.turbulence)
             setOverlay(null)
           }}
           onStartDraft={(doc, seed, rules) => {
-            newDraftedGame(doc, seed, rules, appointedAt)
+            newDraftedGame(doc, seed, rules, terms.appointedAt, terms.turbulence)
             setOverlay(null)
           }}
         />

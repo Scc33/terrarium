@@ -13,14 +13,14 @@ function line(label: string, s: ReturnType<typeof summarize>): void {
 
 export function printReport(
   batch: SummaryBatchResult,
-  meta: { runs: number; ticks: number; policy: string; country?: string },
+  meta: { runs: number; ticks: number; policy: string; country?: string; turbulence?: string },
 ): void {
   const { runs, wallMs } = batch
   const nanRuns = runs.filter((r) => r.nanCount > 0)
   const explodedRuns = runs.filter((r) => r.priceExplosions > 0)
   const deposed = runs.filter((r) => r.deposedAt !== null)
 
-  console.log(`terrarium batch: ${meta.runs} runs × ${meta.ticks} ticks, policy=${meta.policy}, country=${meta.country ?? 'baseline'}`)
+  console.log(`terrarium batch: ${meta.runs} runs × ${meta.ticks} ticks, policy=${meta.policy}, country=${meta.country ?? 'baseline'}${meta.turbulence && meta.turbulence !== 'ordinary' ? `, turbulence=${meta.turbulence}` : ''}`)
   console.log(
     `  wall time: ${(wallMs / 1000).toFixed(1)}s  (${(wallMs / meta.runs).toFixed(1)} ms/run)`,
   )

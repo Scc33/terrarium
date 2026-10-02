@@ -1,8 +1,9 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { APPOINTMENTS, COUNTRY_CATALOG, GAME_RULE_IDS } from '@terrarium/engine'
+import { APPOINTMENTS, COUNTRY_CATALOG, GAME_RULE_IDS, TURBULENCE_IDS } from '@terrarium/engine'
 import { CountrySelect } from './CountrySelect'
 import { RULE_COPY } from '../gameRules'
+import { TURBULENCE_COPY } from '../turbulence'
 import { draftFrom } from '../countryDraft'
 import { NEW_ISSUE_URL, REPOSITORY_URL } from '../components/ProjectLinks/ProjectLinks'
 
@@ -12,6 +13,8 @@ const props = {
   onStartDraft: noop,
   appointedAt: 0,
   onAppointedAt: noop,
+  turbulence: 'ordinary' as const,
+  onTurbulence: noop,
   drafts: [],
   onNewDraft: noop,
   onEditDraft: noop,
@@ -42,6 +45,21 @@ describe('country selection', () => {
       expect(html, `${id} on`).toContain(copy.on)
       expect(html, `${id} caption`).toContain(copy.caption.off)
     }
+  })
+
+  it('offers every world, in plain view, and opens on the calibrated one', () => {
+    const html = renderToStaticMarkup(<CountrySelect {...props} />)
+    // not folded into the standing orders: a player who finds the wire
+    // relentless is looking for exactly this (#122)
+    expect(html).toContain('THE WORLD ABROAD')
+    for (const id of TURBULENCE_IDS) {
+      expect(html, `${id} segment`).toContain(`>${TURBULENCE_COPY[id].label}</button>`)
+    }
+    expect(html).toContain(TURBULENCE_COPY.ordinary.caption)
+    const calm = renderToStaticMarkup(<CountrySelect {...props} turbulence="calm" />)
+    // the caption follows the choice, and its frequency is the engine's own
+    expect(calm).toContain('half as often')
+    expect(calm).not.toContain(TURBULENCE_COPY.ordinary.caption)
   })
 
   it('only offers a return route when replacing an existing game', () => {

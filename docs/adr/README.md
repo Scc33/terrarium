@@ -57,3 +57,4 @@ the old one and update the Status line of both.
 | [0042](0042-import-cycles-are-a-lint-rule.md) | Import cycles are a lint rule, not a scanner assertion | Accepted |
 | [0043](0043-the-neutral-rate-is-estimated-downstream-of-the-fog.md) | The neutral rate is estimated downstream of the fog, by the desk | Accepted |
 | [0044](0044-wage-bargains-use-inflation-expectations.md) | Wage bargains use household inflation expectations | Accepted |
+| [0046](0046-the-world-has-a-turbulence-dial.md) | How often the world breaks is a replay input chosen at the posting | Accepted |

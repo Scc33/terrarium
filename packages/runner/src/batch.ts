@@ -7,7 +7,9 @@
 
 import {
   COUNTRY_CATALOG,
+  TURBULENCE_IDS,
   type CountryScenarioId,
+  type Turbulence,
 } from '@terrarium/engine'
 import {
   runOne,
@@ -39,6 +41,8 @@ export interface BatchOptions {
   seedPrefix?: string
   /** one scenario, or an even round-robin matrix over the full catalogue */
   country?: CountryScenarioId | 'baseline' | 'all'
+  /** the setup dial (ADR-0046); omitted is the ordinary world */
+  turbulence?: Turbulence
 }
 
 function executeBatch<Run>(opts: BatchOptions, execute: (options: RunOptions) => Run): BatchResult<Run> {
@@ -59,6 +63,7 @@ function executeBatch<Run>(opts: BatchOptions, execute: (options: RunOptions) =>
       ticks: opts.ticks,
       country: country === 'baseline' ? undefined : country,
       policy: policyFor(opts.policy ?? 'passive'),
+      turbulence: opts.turbulence,
     }))
   }
   return { runs, wallMs: performance.now() - start }
@@ -104,8 +109,10 @@ if (isMain) {
   const valid = country === 'all' || country === 'baseline' || COUNTRY_CATALOG.some((profile) => profile.id === country)
   if (!valid) throw new Error(`unknown country '${country}'; use baseline, ${COUNTRY_CATALOG.map((profile) => profile.id).join(', ')}, or all`)
   if (!POLICY_IDS.includes(policy)) throw new Error(`unknown policy '${policy}'; use ${POLICY_IDS.join(', ')}`)
-  const batch = runSummaryBatch({ runs, ticks, policy, country })
-  printReport(batch, { runs, ticks, policy, country })
+  const turbulence = arg('turbulence', 'ordinary') as Turbulence
+  if (!TURBULENCE_IDS.includes(turbulence)) throw new Error(`unknown turbulence '${turbulence}'; use ${TURBULENCE_IDS.join(', ')}`)
+  const batch = runSummaryBatch({ runs, ticks, policy, country, turbulence })
+  printReport(batch, { runs, ticks, policy, country, turbulence })
   // fail the process (and CI) on either failure mode — NaN or a runaway price
   const bad = batch.runs.filter((r) => r.nanCount > 0 || r.priceExplosions > 0).length
   process.exitCode = bad > 0 ? 1 : 0

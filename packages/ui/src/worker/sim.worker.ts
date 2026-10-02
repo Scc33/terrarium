@@ -11,9 +11,11 @@ import {
   createCountryParams,
   gameRules,
   init,
+  ORDINARY_TURBULENCE,
   runInterregnum,
   STANDARD_RULES,
   step,
+  turbulenceLevel,
   END_OF_HISTORY_TICK,
   IllegalActionError,
   InvalidCountryError,
@@ -25,6 +27,7 @@ import {
   type GameMode,
   type GameRules,
   type TrueState,
+  type Turbulence,
 } from '@terrarium/engine'
 import { observe } from '@terrarium/observation'
 import { applyScenario, tickForYear, type DevScenario } from '../devScenario'
@@ -40,6 +43,8 @@ let rules: GameRules = STANDARD_RULES
 /** the quarter the player took office — part of the save, so it has to live
  * beside the other three replay inputs rather than be read back off the state */
 let appointedAt = 0
+/** how often the world breaks (ADR-0046) — a replay input, kept beside the others */
+let turbulence: Turbulence = ORDINARY_TURBULENCE
 
 const post = (m: WorkerMessage) => postMessage(m)
 
@@ -48,7 +53,7 @@ function publish(): void {
   post({
     type: 'published',
     published: observe(state),
-    save: createSave(params, seed, actionLog, state.meta.tick, rules, appointedAt),
+    save: createSave(params, seed, actionLog, state.meta.tick, rules, appointedAt, turbulence),
   })
 }
 
@@ -62,12 +67,14 @@ function openPosting(
   vector: CountryParams,
   newRules: GameRules,
   takeOfficeAt: number,
+  world: Turbulence,
 ): void {
   seed = newSeed
   rules = newRules
   params = vector
   appointedAt = appointmentTick(takeOfficeAt)
-  const opened = runInterregnum(params, seed, rules, appointedAt)
+  turbulence = world
+  const opened = runInterregnum(params, seed, rules, appointedAt, turbulence)
   state = opened.state
   actionLog = opened.actionLog
   publish()
@@ -78,8 +85,9 @@ function startNew(
   country: CountryScenarioId,
   newRules: GameRules,
   takeOfficeAt: number,
+  world: Turbulence,
 ): void {
-  openPosting(newSeed, createCountryParams(country, newSeed), newRules, takeOfficeAt)
+  openPosting(newSeed, createCountryParams(country, newSeed), newRules, takeOfficeAt, world)
 }
 
 /** Start a country a player wrote. Identical to `startNew` in every respect
@@ -90,8 +98,9 @@ function startDrafted(
   document: CountryDocument,
   newRules: GameRules,
   takeOfficeAt: number,
+  world: Turbulence,
 ): void {
-  openPosting(newSeed, countryFromDocument(document), newRules, takeOfficeAt)
+  openPosting(newSeed, countryFromDocument(document), newRules, takeOfficeAt, world)
 }
 
 /** Study a candidate country. Errors here are the document's, not the game's,
@@ -130,6 +139,7 @@ function load(save: {
   rules?: GameRules
   mode?: GameMode
   appointedAt?: number
+  turbulence?: Turbulence
 }): void {
   // a save written before the rule set names only its tenure rule
   const saveRules = gameRules(save.rules ?? save.mode ?? 'standard')
@@ -137,10 +147,12 @@ function load(save: {
   // `replayWindow` also says whether the two replay inputs can both be true —
   // a save that stopped before its own government took office cannot.
   const { until, appointedAt: saveAppointedAt, conflict } = replayWindow(save)
+  // …and one from before the dial lived in the world it was calibrated in
+  const saveTurbulence = turbulenceLevel(save.turbulence)
   let next: TrueState
   try {
     if (conflict) throw new Error(conflict)
-    next = init(save.params, save.seed, saveRules, saveAppointedAt)
+    next = init(save.params, save.seed, saveRules, saveAppointedAt, saveTurbulence)
     const byTick = new Map(save.actionLog.map((t) => [t.tick, t.actions]))
     while (next.meta.tick < until) {
       const acts = byTick.get(next.meta.tick)
@@ -165,6 +177,7 @@ function load(save: {
   seed = save.seed
   rules = saveRules
   appointedAt = saveAppointedAt
+  turbulence = saveTurbulence
   params = save.params
   actionLog = save.actionLog
   state = next
@@ -305,6 +318,7 @@ function devScenario(sc: DevScenario): void {
   // console's whole point is that you specify the country and let it live, and
   // the posting room's caretaker would put its own decisions in the way
   appointedAt = 0
+  turbulence = ORDINARY_TURBULENCE
   params = applyScenario(createCountryParams(sc.country ?? 'procedural', sc.seed), sc)
   state = init(params, seed, rules)
   actionLog = []
@@ -328,10 +342,10 @@ onmessage = (ev: MessageEvent<ClientMessage>) => {
     }
     switch (msg.type) {
       case 'new':
-        startNew(msg.seed, msg.country, msg.rules, msg.appointedAt)
+        startNew(msg.seed, msg.country, msg.rules, msg.appointedAt, msg.turbulence)
         break
       case 'newDrafted':
-        startDrafted(msg.seed, msg.document, msg.rules, msg.appointedAt)
+        startDrafted(msg.seed, msg.document, msg.rules, msg.appointedAt, msg.turbulence)
         break
       case 'trial':
         trial(msg.document, msg.baseSeed)
