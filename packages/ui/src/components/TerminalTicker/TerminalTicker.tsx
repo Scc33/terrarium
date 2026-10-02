@@ -39,7 +39,14 @@
  */
 
 import { useState } from 'react'
-import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
+import { FIRST_YEAR } from '@terrarium/engine'
+import {
+  LONG_RUN_FORM,
+  longRunTrail,
+  type IndicatorId,
+  type IndicatorSeries,
+  type LongRunForm,
+} from '@terrarium/observation'
 import { FACE_MARK } from '../../domains'
 import {
   complementReading,
@@ -85,7 +92,7 @@ const INDEX_BASELINE: Partial<Record<IndicatorId, { at: number; label: string }>
   terms_of_trade: { at: 100, label: '1946 BASE' },
 }
 
-type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12'
+type ChartView = 'recent' | 'all' | 'rolling3' | 'rolling6' | 'rolling12' | 'term'
 
 const CHART_VIEWS: readonly {
   view: ChartView
@@ -98,16 +105,34 @@ const CHART_VIEWS: readonly {
   { view: 'rolling3', label: 'R3M', title: 'Rolling 3-month mean (one quarterly release)', rollingMonths: 3 },
   { view: 'rolling6', label: 'R6M', title: 'Rolling 6-month mean (two quarterly releases)', rollingMonths: 6 },
   { view: 'rolling12', label: 'R12M', title: 'Rolling 12-month mean (four quarterly releases)', rollingMonths: 12 },
+  { view: 'term', label: 'TERM', title: 'Your term so far' },
 ]
+const VIEW_CYCLE = '40Q, ALL, R3M, R6M, R12M and TERM'
+
+/** The TERM view plots the long-run reading through each quarter of the term,
+ * on the latest revisions — the same arithmetic the report card's record runs
+ * at the end, so the last point here is the figure the historians will print
+ * beside the truth. */
+const TERM_TITLE: Record<LongRunForm, (year: number) => string> = {
+  mean: (year) => `Your term so far: the mean of every release since you took office in ${year}`,
+  compound: (year) => `Your term so far: every release since ${year} chained into one annual rate`,
+  growth: (year) => `Your term so far: annualized growth since the first release of your term in ${year}`,
+}
+
+/** a point of the TERM trail, carrying how many releases it averages */
+type TermPoint = { tick: number; value: number; quarters: number }
 
 export function TerminalTicker({
   indicator,
   series,
   now,
+  appointedAt,
 }: {
   indicator: IndicatorId
   series: IndicatorSeries
   now: number
+  /** the first quarter of the player's term — the TERM view's origin (ADR-0021) */
+  appointedAt: number
 }) {
   const [chartView, setChartView] = useState<ChartView>('recent')
   const allPoints = shapeSeries(series, Number.MAX_SAFE_INTEGER, now)
@@ -115,8 +140,12 @@ export function TerminalTicker({
   const latest = allPoints[allPoints.length - 1]
   const viewIndex = CHART_VIEWS.findIndex((candidate) => candidate.view === chartView)
   const view = CHART_VIEWS[viewIndex]
+  const term = view.view === 'term'
+  const form = LONG_RUN_FORM[indicator]
+  const termYear = FIRST_YEAR + Math.floor(appointedAt / 4)
+  const viewTitle = term ? TERM_TITLE[form](termYear) : view.title
   const recentCutoff = now - 40
-  const points = (
+  const points = term ? [] : (
     view.rollingMonths
       ? rollingAverage(allPoints, view.rollingMonths)
       : chartView === 'all'
@@ -133,11 +162,21 @@ export function TerminalTicker({
   const complement = complementReading(indicator, latest.value, digits)
 
   const plotted: TickerPoint[] = points.map((p) => ({ ...p, tick: p.forQtr }))
+  const trail: TermPoint[] = term
+    ? longRunTrail(series.points, form, appointedAt, now).map((r) => ({ tick: r.to, value: r.value, quarters: r.quarters }))
+    : []
+  // a level's term reading is a growth rate, so it is read against no growth
+  // and to two places rather than against the level's own baseline
+  const termGrowth = term && form === 'growth'
+  const termDigits = termGrowth ? 2 : digits
+  const termReading = trail.length > 0 ? trail[trail.length - 1] : null
   // A known baseline or threshold is subject-matter context, not a borrowed
   // dial rail. Keep it on the analytical scale even when the displayed record
   // lies wholly to one side: 100 for a base-year index or frontier, zero for a
   // signed rate, and the rule line for the remaining marked instruments.
-  const reference = FACE_MARK[indicator] ?? INDEX_BASELINE[indicator] ?? null
+  const reference = termGrowth
+    ? { at: 0, label: 'FLAT' }
+    : (FACE_MARK[indicator] ?? INDEX_BASELINE[indicator] ?? null)
   // Superseded first prints are still painted as strike marks. They therefore
   // belong to the scale just as much as the current trace and its error band;
   // otherwise an unusually large revision can be clipped outside the SVG.
@@ -146,7 +185,7 @@ export function TerminalTicker({
     ...plotted.filter((point) => point.visiblyRevised).map((point) => point.firstPrint),
   ]
   const banded = plotted.filter((p) => p.errorBand > 0).map((p) => ({ ...p, band: p.errorBand }))
-  const chartSummary = `${NAMES[indicator].plate}. ${view.title}. Drag across the chart to compare two releases. The readout below remains the latest raw published figure.`
+  const chartSummary = `${NAMES[indicator].plate}. ${viewTitle}. Drag across the chart to compare two releases. The readout below remains the latest raw published figure.`
 
   // Both bands: `minmax(0,1fr)` for the half that may truncate, `auto` for the
   // half that must not. Spelled out as literals — Tailwind scans source text,
@@ -164,11 +203,11 @@ export function TerminalTicker({
       <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
         {NAMES[indicator].terminal}
       </TooltipLabel>
-      <Tooltip content={`${view.title}. Select to cycle 40Q, ALL, R3M, R6M and R12M.`}>
+      <Tooltip content={`${viewTitle}. Select to cycle ${VIEW_CYCLE}.`}>
         <button
           type="button"
           onClick={() => setChartView(CHART_VIEWS[(viewIndex + 1) % CHART_VIEWS.length].view)}
-          aria-label={`Chart view: ${view.title}. Select to cycle 40Q, ALL, R3M, R6M and R12M.`}
+          aria-label={`Chart view: ${viewTitle}. Select to cycle ${VIEW_CYCLE}.`}
           className="border border-terminal-grid px-1 font-mono text-[8px] text-terminal-primary/70 hover:text-terminal-primary"
         >
           {view.label}
@@ -177,7 +216,9 @@ export function TerminalTicker({
     </div>
   )
 
-  const footerHelp = latest.levels
+  const footerHelp = term
+    ? `The left side is your term since ${termYear} so far, the figure the report card will set beside the truth. The right side is still the latest raw reading.`
+    : latest.levels
     ? 'R is output after price rises are removed; N is output at current prices. The right side is the latest growth reading, its uncertainty and its change.'
     : latest.components
       ? `Current normalized components: ${humanDevelopmentBreakdown(latest.components)}. Each runs from zero to one; the index is their geometric mean.`
@@ -185,7 +226,16 @@ export function TerminalTicker({
   const footer = (
     <Tooltip content={footerHelp}>
       <div tabIndex={0} className={`${BAND} border-t border-terminal-grid font-mono text-[10px] tabular-nums text-terminal-primary focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-terminal-primary`}>
-        {latest.levels ? (
+        {term ? (
+          // the year lives in the tooltip: at a board slot's width "SINCE 1946"
+          // pushed the figure itself into the ellipsis
+          <span className="truncate opacity-70">
+            TERM{' '}
+            {termReading === null
+              ? '—'
+              : `${termGrowth && termReading.value >= 0 ? '+' : ''}${termReading.value.toFixed(termDigits)}${termGrowth ? '%/YR' : ''}`}
+          </span>
+        ) : latest.levels ? (
           <span className="truncate opacity-70">
             R{latest.levels.real.toFixed(0)}/N{latest.levels.nominal.toFixed(0)}
           </span>
@@ -222,20 +272,38 @@ export function TerminalTicker({
         width={W}
         height={H}
         fill
-        traces={[{ key: indicator, points: plotted, width: 1.6, lead: true }]}
+        traces={[{ key: indicator, points: term ? trail : plotted, width: 1.6, lead: true }]}
         ribbon={banded.length >= 2 ? { points: banded } : undefined}
         include={scaleAnchors}
         pad={0.08}
         rules={reference === null ? [] : [{ axis: 'y', at: reference.at, label: reference.label }]}
-        formatReading={(v) => v.toFixed(digits)}
-        formatRange={(v) => v.toFixed(digits)}
+        formatReading={(v) => v.toFixed(termDigits)}
+        formatRange={(v) => v.toFixed(termDigits)}
         formatTick={qtrLabel}
         summary={chartSummary}
         emptyLabel={
-          view.rollingMonths ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY` : 'INSUFFICIENT HISTORY'
+          // one reading is a figure for the footer but not yet a line
+          term
+            ? trail.length === 1
+              ? 'TERM NEEDS ANOTHER RELEASE'
+              : termGrowth
+                ? 'TERM NEEDS A YEAR OF RELEASES'
+                : 'NO RELEASES YET THIS TERM'
+            : view.rollingMonths
+              ? `${view.rollingMonths}M AVG NEEDS MORE HISTORY`
+              : 'INSUFFICIENT HISTORY'
         }
         hover
         hoverDetail={(point) => {
+          if (term) {
+            const t = point as TermPoint
+            return (
+              <div className="opacity-60">
+                {t.quarters} QTR{t.quarters === 1 ? '' : 'S'} SINCE {termYear}
+                {termGrowth ? ' · %/YR' : ''}
+              </div>
+            )
+          }
           const p = point as TickerPoint
           return (
             <>

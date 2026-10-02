@@ -361,8 +361,10 @@ reconciled to the separately noised `income_real` headline.
 | `finalStatePower`, `finalSocietalPower` | v12 | where the dot finished |
 | `positionGrade` | v12 | A–F on Position: the third axis the design named, now real |
 | `deposedBy` | v12 | `'poll'` · `'revolt'` · `'coup'` · null |
+| `longRun` | v47† | real GDP growth, inflation, capital-stock growth and unemployment over the term, each twice: `reported` from the office's prints (null if it never printed one) and `actual` from the worksheet through the same `INDICATOR_SPECS` definition. Both use `LONG_RUN_FORM`, the same arithmetic as the terminal's TERM view. Not graded |
 
 \* letter grades shipped after v5 without a schema bump.
+† shipped without a schema bump: derived from records every v47 state already carries.
 
 ---
 

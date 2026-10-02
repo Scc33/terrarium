@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "82d0fbe",
+  "revision": "0261dbb",
   "repoRoot": "../..",
   "packages": [
     {
@@ -24,8 +24,8 @@ export const architecture = {
       "id": "observation",
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
-      "moduleCount": 4,
-      "lines": 933
+      "moduleCount": 5,
+      "lines": 1147
     },
     {
       "id": "runner",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 117,
-      "lines": 20130
+      "lines": 20295
     }
   ],
   "modules": [
@@ -3977,10 +3977,10 @@ export const architecture = {
         "packages/engine/src/humanDevelopment.ts",
         "packages/engine/src/interregnum.ts",
         "packages/engine/src/pipeline/demography.ts",
-        "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/pipeline/environment.ts",
         "packages/engine/src/pipeline/funding.ts",
+        "packages/engine/src/pipeline/indicatorSpecs.ts",
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/pipeline/labourMarket.ts",
         "packages/engine/src/pipeline/monetary.ts",
@@ -4004,6 +4004,7 @@ export const architecture = {
         "packages/fixtures/countries/standard.ts",
         "packages/fixtures/scripts/scripts.ts",
         "packages/observation/src/dataExport.ts",
+        "packages/observation/src/longRun.ts",
         "packages/observation/src/observe.ts",
         "packages/observation/src/published.ts",
         "packages/observation/src/published.ts",
@@ -4019,6 +4020,7 @@ export const architecture = {
         "packages/runner/src/survey.ts",
         "packages/ui/src/App.tsx",
         "packages/ui/src/census.ts",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/series.ts",
         "packages/ui/src/countryDraft.ts",
@@ -4264,7 +4266,6 @@ export const architecture = {
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
-        "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/state/init.ts"
@@ -4836,6 +4837,7 @@ export const architecture = {
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
+        "packages/engine/src/index.ts",
         "packages/engine/src/pipeline/statistics.ts"
       ],
       "path": "packages/engine/src/pipeline/indicatorSpecs.ts",
@@ -6627,10 +6629,11 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "",
-      "lines": 64,
+      "lines": 75,
       "exports": [],
       "imports": [
         "packages/observation/src/dataExport.ts",
+        "packages/observation/src/longRun.ts",
         "packages/observation/src/observe.ts",
         "packages/observation/src/published.ts"
       ],
@@ -6705,22 +6708,91 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/observation/src/longRun.ts",
+      "label": "longRun",
+      "packageId": "observation",
+      "category": "Published projection",
+      "summary": "The long run: what a tenure averaged, read off a run of quarterly figures.",
+      "lines": 151,
+      "exports": [
+        {
+          "name": "LongRunForm",
+          "kind": "type",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 22
+        },
+        {
+          "name": "LONG_RUN_FORM",
+          "kind": "constant",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 24
+        },
+        {
+          "name": "LONG_RUN_RECORD",
+          "kind": "constant",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 67
+        },
+        {
+          "name": "LongRunRecordId",
+          "kind": "type",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 73
+        },
+        {
+          "name": "LONG_RUN_MIN_SPAN_QTRS",
+          "kind": "constant",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 77
+        },
+        {
+          "name": "LongRunReading",
+          "kind": "interface",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 79
+        },
+        {
+          "name": "longRunTrail",
+          "kind": "function",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 110
+        },
+        {
+          "name": "longRunReading",
+          "kind": "function",
+          "path": "packages/observation/src/longRun.ts",
+          "line": 142
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/observation/src/index.ts",
+        "packages/observation/src/observe.ts",
+        "packages/observation/src/published.ts"
+      ],
+      "path": "packages/observation/src/longRun.ts",
+      "line": 1
+    },
+    {
       "id": "packages/observation/src/observe.ts",
       "label": "observe",
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
-      "lines": 366,
+      "lines": 406,
       "exports": [
         {
           "name": "observe",
           "kind": "function",
           "path": "packages/observation/src/observe.ts",
-          "line": 223
+          "line": 263
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
+        "packages/observation/src/longRun.ts",
         "packages/observation/src/published.ts"
       ],
       "importedBy": [
@@ -6735,90 +6807,97 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 350,
+      "lines": 362,
       "exports": [
         {
           "name": "PolicyPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 66
+          "line": 67
         },
         {
           "name": "IndicatorPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 69
+          "line": 70
         },
         {
           "name": "IndicatorSeries",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 71
+          "line": 72
         },
         {
           "name": "IndustryPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 83
+          "line": 84
         },
         {
           "name": "LabourMarketPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 86
+          "line": 87
         },
         {
           "name": "HouseholdIncomePoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 89
+          "line": 90
         },
         {
           "name": "Grade",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 91
+          "line": 92
+        },
+        {
+          "name": "LongRunLine",
+          "kind": "interface",
+          "path": "packages/observation/src/published.ts",
+          "line": 97
         },
         {
           "name": "ReportCard",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 95
+          "line": 104
         },
         {
           "name": "PublishedStatute",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 135
+          "line": 147
         },
         {
           "name": "PublishedBloc",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 160
+          "line": 172
         },
         {
           "name": "PublishedCorridor",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 172
+          "line": 184
         },
         {
           "name": "PublishedCampaign",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 184
+          "line": 196
         },
         {
           "name": "PublishedState",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 194
+          "line": 206
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
-        "packages/engine/src/index.ts"
+        "packages/engine/src/index.ts",
+        "packages/observation/src/longRun.ts"
       ],
       "importedBy": [
         "packages/observation/src/dataExport.ts",
@@ -8252,13 +8331,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The maturity switch — one instrument identity, rendered at its current era.",
-      "lines": 38,
+      "lines": 39,
       "exports": [
         {
           "name": "Gauge",
           "kind": "function",
           "path": "packages/ui/src/components/Gauge/Gauge.tsx",
-          "line": 17
+          "line": 18
         }
       ],
       "imports": [
@@ -8589,16 +8668,17 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Terminal-era instrument: dense phosphor line on near-black, tight bands, live-feeling readout. Superseded first prints stay on screen with a strikethrough beside the reprint — the machine remembers what it told you. No shadows, no gradients, no rounding: hairlines only.",
-      "lines": 303,
+      "lines": 371,
       "exports": [
         {
           "name": "TerminalTicker",
           "kind": "function",
           "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-          "line": 103
+          "line": 125
         }
       ],
       "imports": [
+        "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/components/WallTile/WallTile.tsx",
         "packages/ui/src/components/labels.ts",
@@ -11461,7 +11541,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The instrument wall — the home view, in three bands.",
-      "lines": 113,
+      "lines": 114,
       "exports": [
         {
           "name": "Instruments",
@@ -11683,13 +11763,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The historians' verdict. A run ends (deposition or 2050) with a report card whose axes are graded separately and never summed: one number would secretly author a \"correct\" ideology.",
-      "lines": 211,
+      "lines": 306,
       "exports": [
         {
           "name": "ReportCardOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/ReportCardOverlay.tsx",
-          "line": 98
+          "line": 191
         }
       ],
       "imports": [
@@ -13316,11 +13396,6 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/index.ts",
-      "target": "packages/engine/src/pipeline/demography.ts",
-      "typeOnly": true
-    },
-    {
-      "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
       "typeOnly": false
     },
@@ -13332,6 +13407,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/funding.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/indicatorSpecs.ts",
       "typeOnly": false
     },
     {
@@ -14346,6 +14426,11 @@ export const architecture = {
     },
     {
       "source": "packages/observation/src/index.ts",
+      "target": "packages/observation/src/longRun.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/index.ts",
       "target": "packages/observation/src/observe.ts",
       "typeOnly": false
     },
@@ -14355,8 +14440,18 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/observation/src/longRun.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/observation/src/observe.ts",
       "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/observe.ts",
+      "target": "packages/observation/src/longRun.ts",
       "typeOnly": false
     },
     {
@@ -14373,6 +14468,11 @@ export const architecture = {
       "source": "packages/observation/src/published.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/published.ts",
+      "target": "packages/observation/src/longRun.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/runner/src/batch.ts",
@@ -14926,8 +15026,13 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
       "target": "packages/observation/src/index.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
@@ -16237,7 +16342,7 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
       "target": "packages/observation/src/index.ts",
-      "typeOnly": true
+      "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/ReportCardOverlay.tsx",
@@ -16555,8 +16660,8 @@ export const architecture = {
     {
       "source": "observation",
       "target": "engine",
-      "count": 4,
-      "typeOnlyCount": 1
+      "count": 5,
+      "typeOnlyCount": 2
     },
     {
       "source": "runner",
@@ -16567,14 +16672,14 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 44,
+      "count": 45,
       "typeOnlyCount": 8
     },
     {
       "source": "ui",
       "target": "observation",
       "count": 65,
-      "typeOnlyCount": 52
+      "typeOnlyCount": 50
     }
   ],
   "pipeline": [
@@ -17275,7 +17380,7 @@ export const architecture = {
         },
         {
           "path": "packages/observation/src/observe.ts",
-          "line": 223
+          "line": 263
         }
       ]
     },

@@ -14,14 +14,14 @@ const series: IndicatorSeries = {
 
 describe('TerminalTicker', () => {
   it('renders the current terminal readout', () => {
-    expect(renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} />)).toContain('2.50')
+    expect(renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} appointedAt={0} />)).toContain('2.50')
   })
 
   it('exposes raw-history and rolling-average chart views', () => {
-    const html = renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} />)
+    const html = renderToStaticMarkup(<TerminalTicker indicator="inflation" series={series} now={1} appointedAt={0} />)
 
     expect(html).toContain('40Q')
-    expect(html).toContain('R3M, R6M and R12M')
+    expect(html).toContain('R3M, R6M, R12M and TERM')
     expect(html).toContain('The readout below remains the latest raw published figure')
   })
 
@@ -46,10 +46,10 @@ describe('TerminalTicker', () => {
     }
 
     const price = renderToStaticMarkup(
-      <TerminalTicker indicator="price_fuel" series={priceSeries} now={9} />,
+      <TerminalTicker indicator="price_fuel" series={priceSeries} now={9} appointedAt={0} />,
     )
     const frontier = renderToStaticMarkup(
-      <TerminalTicker indicator="technology_attainment" series={frontierSeries} now={9} />,
+      <TerminalTicker indicator="technology_attainment" series={frontierSeries} now={9} appointedAt={0} />,
     )
 
     expect(price).toContain('1946 BASE')
@@ -74,7 +74,7 @@ describe('TerminalTicker', () => {
       ],
     }
     const html = renderToStaticMarkup(
-      <TerminalTicker indicator="human_development" series={development} now={2} />,
+      <TerminalTicker indicator="human_development" series={development} now={2} appointedAt={0} />,
     )
 
     expect(html).toContain('0.550')

@@ -68,6 +68,7 @@ export function Instruments({
             access={access[id]}
             series={pub.indicators[id]}
             now={pub.tick}
+            appointedAt={pub.appointedAt}
             onOpenCapacity={access[id].availability === 'unfunded' ? onOpenCapacity : undefined}
           />
         ))}
