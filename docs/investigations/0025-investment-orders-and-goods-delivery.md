@@ -3,10 +3,12 @@
 **Status:** Open — reachability measured for [#85](https://github.com/Scc33/terrarium/issues/85);
 allocation and settlement remain unspecified. Related to
 [#142](https://github.com/Scc33/terrarium/issues/142).
-**Date:** 2026-10-01
-**Measurement:** `12f874e7efe72f501cd341f8f971aee22faff8a0`, clean checkout,
-schema 47, Node v24.20.0 on darwin/arm64. This includes the merged urbanization change
-([ADR-0045](../adr/0045-the-countryside-empties-toward-expected-income.md)). Every result
+**Date:** 2026-10-01 · **Remeasured:** 2026-10-11
+**Measurement:** `8a70415e947837f94c9b41d6c5899ae2a5acfd57`, clean checkout,
+schema 48, ordinary turbulence, Node v24.20.0 on darwin/arm64. This includes the merged
+urbanization and turbulence changes
+([ADR-0045](../adr/0045-the-countryside-empties-toward-expected-income.md),
+[ADR-0046](../adr/0046-the-world-has-a-turbulence-dial.md)). Every result
 below comes from that revision; remeasure before selecting a mechanic.
 
 ## Question and answer
@@ -38,7 +40,8 @@ runtime before simulating. It exports raw per-path tallies and pooled country/ar
 `--country meridia` and `--arm works-gdp-50` select narrower runs. This is runner-only
 true-state research; no diagnostic is published to the player.
 
-The sample pairs the same engine seed across seven arms on each of five curated countries:
+The sample explicitly uses ordinary turbulence and pairs the same engine seed across seven
+arms on each of five curated countries:
 12 seeds per country, 420 paths, 168,000 raw quarters. Passive, developmental and random
 use standard game rules. Their reported sample includes the deposition quarter and excludes
 all later quarters, leaving 157,303 quarters across all arms. Random is adversarial policy
