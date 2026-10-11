@@ -643,6 +643,7 @@ a floor to prevent regression; raise it, never lower it to green a build. The UI
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
 | `pnpm neutral-rate -- --runs 40 --ticks 160` | implied neutral-rate ranges and paired fixed-rate transmission |
 | `pnpm capital-ownership -- --runs 12 --ticks 400` | productive-stock and savings reconciliation, foreign ownership, and isolated financing/valuation probes |
+| `pnpm investment-delivery -- --runs 12 --ticks 400` | input feasibility, generous fixed-mix investment envelopes, paired spending paths and isolated capacity outages |
 | `pnpm fdi -- --runs 20 --ticks 400` | the foreign-investment flow decomposed into its factors, then the marginal and century value of every order that reaches one |
 | `pnpm architecture:scan` | redraw the map of the repository the in-game atlas reads |
 | `pnpm architecture:check` | fail if that map no longer describes the repository (CI runs this) |
