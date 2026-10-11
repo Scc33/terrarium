@@ -29,6 +29,7 @@
     "inflation-expectations": "tsx tools/measure-inflation-expectations.ts",
     "capital-returns": "tsx tools/measure-capital-returns.ts",
     "capital-ownership": "tsx tools/measure-capital-ownership.ts",
+    "investment-delivery": "tsx tools/measure-investment-delivery.ts",
     "composition": "tsx tools/measure-composition.ts",
     "class-structure": "tsx tools/measure-class-structure.ts",
     "labour-market": "tsx tools/measure-labour-market.ts",
