@@ -9,7 +9,7 @@
  */
 
 import { useEffect, type KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { CAPACITY_IDS } from '@terrarium/engine'
+import { CAPACITY_IDS, PC_COST_CAPACITY } from '@terrarium/engine'
 import { INSTITUTION_IDS, STATUTE_IDS, type PublishedState } from '@terrarium/observation'
 import { useGame } from '../store/gameStore'
 import { Button, Metric, ProgressBar, Tooltip } from '../components/ui'
@@ -264,7 +264,8 @@ export function ControlRail({
               <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">
                 Layer 3 is generational and contested — the people who would lose by a reform are, by
                 construction, the people currently holding the veto. Prices below already carry their
-                objection.{' '}
+                objection. Reforms spend political capital, with no treasury payment. Bloc reactions
+                can still change tax collection and borrowing costs.{' '}
                 {pub.reformWindowOpen
                   ? 'The country is in ferment: the window is open and everything is cheap. It will close as the country calms.'
                   : 'A crisis prises the window open and cuts these prices sharply.'}
@@ -296,7 +297,7 @@ export function ControlRail({
           <section>
             <div className="mb-2 border-b border-dossier-paper/15 pb-2">
               <div className="font-mono text-[9px] font-semibold tracking-[0.2em] text-dossier-brass">BUILD THE STATE THAT DELIVERS THE POLICY</div>
-              <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">Capacity programmes take eight quarters. They make taxes collectible, programmes deliverable, instruments legible, and growth sustainable.</p>
+              <p className="mt-1 font-dossier text-[12px] leading-snug text-dossier-paper/72">Each programme costs {PC_COST_CAPACITY} PC plus eight quarterly cash payments. Bills add when programmes overlap, then end. Tax admin raises collections; civil service improves delivery. Capacity slowly decays without renewal.</p>
             </div>
             <div className="flex flex-col gap-2">
               {CAPACITY_IDS.map((id) => <CapacityRow key={id} id={id} pub={pub} />)}

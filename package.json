@@ -27,6 +27,7 @@
     "export-share": "tsx tools/measure-export-share.ts",
     "neutral-rate": "tsx tools/measure-neutral-rate.ts",
     "inflation-expectations": "tsx tools/measure-inflation-expectations.ts",
+    "institution-costs": "tsx tools/measure-institution-costs.ts",
     "capital-returns": "tsx tools/measure-capital-returns.ts",
     "capital-ownership": "tsx tools/measure-capital-ownership.ts",
     "investment-delivery": "tsx tools/measure-investment-delivery.ts",

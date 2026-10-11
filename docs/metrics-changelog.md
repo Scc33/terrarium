@@ -21,6 +21,18 @@ contract, so it's called out below.
 
 ---
 
+## Schema 49 — exact ministry commitments and bounded cabinet bids (#50, #48)
+
+- **Outputs +**: each `PublishedState.capacityBuilding` entry includes `perQtr` and
+  `moneyPerQtr`, the deliveries and cash payments the cabinet itself authorized. These exact
+  commitments permit the UI to sum all overlapping programmes and their unpaid bills.
+- The cabinet sizes FUND against capacity remaining after queued deliveries, and marks a
+  ministry already at or building toward the existing absorption gate as fully funded.
+  Revenue-based bids no longer buy points beyond full strength. Cash and PC are shown separately;
+  a half button can resize a draft rejected by the worker's unchanged administration ceiling.
+- No engine arithmetic, action pricing, pipeline order, replay input or survey changes.
+  Existing action logs reconstruct the same economy; only `meta.schemaVersion` moves in goldens.
+
 ## Schema 48 — the world's turbulence is a replay input (#122)
 
 - **Inputs +**: `meta.turbulence` (`calm | ordinary | turbulent`), chosen in the posting room,
