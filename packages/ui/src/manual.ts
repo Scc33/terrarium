@@ -15,7 +15,7 @@
  * - the wall chapter walks `INDICATOR_IDS` in funding order, taking every word
  *   from `NAMES` and every gate from `INDICATOR_FUNDED_AT`;
  * - the room chapter walks `BLOC_IDS`, `COHORT_IDS`, `INSTITUTION_IDS` and the
- *   platform table; the run chapter walks `GAME_RULE_IDS` and `APPOINTMENTS`.
+ *   platform table; the run chapter walks `GAME_RULE_IDS`, `TURBULENCE_IDS` and `APPOINTMENTS`.
  *
  * A new indicator, lever, statute, bloc, institution, sector or rule therefore appears
  * in the manual the quarter it appears in the game, and — because those tables
@@ -46,6 +46,7 @@ import {
   EVENT_IDS,
   FIRST_YEAR,
   GAME_RULE_IDS,
+  TURBULENCE_IDS,
   INDICATOR_FUNDED_AT,
   HUMAN_DEVELOPMENT_INCOME_MAX,
   HUMAN_DEVELOPMENT_INCOME_MIN,
@@ -76,6 +77,7 @@ import {
   PLATFORM_NOTES,
 } from './components/labels'
 import { RULE_COPY } from './gameRules'
+import { TURBULENCE_COPY } from './turbulence'
 import { CAPACITY_COPY, LEVER_COPY, LEVER_GROUPS } from './levers'
 import { STATUTE_COPY, STATUTE_DRAWER } from './statutes'
 import { BOARD_SLOTS } from './wallPlan'
@@ -368,6 +370,18 @@ const runSections = (): ManualSection[] => [
       term: RULE_COPY[id].label,
       detail: `${RULE_COPY[id].off.toUpperCase()} — ${RULE_COPY[id].caption.off} ${RULE_COPY[id].on.toUpperCase()} — ${RULE_COPY[id].caption.on}`,
       meta: RULE_COPY[id].mark,
+    })),
+  },
+  {
+    heading: 'THE WORLD ABROAD',
+    body: [
+      'Chosen in the posting room beside the year, and sealed into the save. It sets how often the world outside breaks — the ruptures no policy of yours can cause or prevent — and how far your trading partners swing between boom and slump. It does not soften a shock that does arrive, and it does not touch a crisis your own banks have earned.',
+      'The wire always reports a drought or a foreign crash; that is the warning you get. A calmer world is therefore the only honest way to read fewer of them: fewer of them happen.',
+    ],
+    entries: TURBULENCE_IDS.map((id) => ({
+      term: TURBULENCE_COPY[id].label,
+      detail: TURBULENCE_COPY[id].caption,
+      meta: TURBULENCE_COPY[id].mark ?? 'AS CALIBRATED',
     })),
   },
   {

@@ -57,6 +57,7 @@ import {
   COHORT_IDS,
   ELECTION_PERIOD,
   ENGINE_VERSION,
+  ORDINARY_TURBULENCE,
   PARTNER_IDS,
   RETIREMENT_BAND,
   SCHEMA_VERSION,
@@ -66,6 +67,7 @@ import {
   WORKING_CLASS_IDS,
   appointmentTick,
   gameRules,
+  turbulenceLevel,
   type Cohort,
   type CohortId,
   type CountryParams,
@@ -77,6 +79,7 @@ import {
   type StatuteBook,
   type TickFlows,
   type TrueState,
+  type Turbulence,
 } from './schema'
 import {
   BASE_WORKER_SHARE,
@@ -199,6 +202,7 @@ export function init(
   seed: Seed,
   rules: GameMode | Partial<GameRules> = 'standard',
   appointedAt: Qtr = 0,
+  turbulence: Turbulence = ORDINARY_TURBULENCE,
 ): TrueState {
   validateCountryParams(params)
   const totalPop = Object.values(params.cohortSizes).reduce((a, b) => a + b, 0)
@@ -485,6 +489,7 @@ export function init(
       // clamped, never trusted: this is the door a hand-edited save comes
       // through, and quarter 900 would open a game whose player never arrives
       appointedAt: appointmentTick(appointedAt),
+      turbulence: turbulenceLevel(turbulence),
     },
     params,
     demography,

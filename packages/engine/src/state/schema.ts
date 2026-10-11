@@ -49,6 +49,26 @@ export function gameRules(input: GameMode | Partial<GameRules> = 'standard'): Ga
   return { ...STANDARD_RULES, ...input }
 }
 
+/**
+ * How often the world outside breaks (#122, ADR-0046): the hazard of every
+ * rupture the player cannot cause and the swing of the partners' cycles. A
+ * replay input sealed into the save beside `rules` — but not a rule, which
+ * lifts one constraint and is off in ordinary play; this has no "off". And not
+ * a news filter: a drought always files (ADR-0031), so the honest way to hear
+ * of fewer is for fewer to happen.
+ */
+export const TURBULENCE_IDS = ['calm', 'ordinary', 'turbulent'] as const
+export type Turbulence = (typeof TURBULENCE_IDS)[number]
+export const ORDINARY_TURBULENCE: Turbulence = 'ordinary'
+
+/** A level the engine knows. Absent is every save before v48, which lived in
+ * the ordinary world; anything unknown reads as ordinary too, as
+ * `appointmentTick` reads a bad quarter as 1946. The UI refuses such a file at
+ * the door (`looksLikeSave`) rather than replay it in a world it did not name. */
+export function turbulenceLevel(input: unknown): Turbulence {
+  return TURBULENCE_IDS.find((id) => id === input) ?? ORDINARY_TURBULENCE
+}
+
 export const SECTOR_IDS = ['agri', 'manuf', 'energy', 'services', 'transport'] as const
 export type SectorId = (typeof SECTOR_IDS)[number]
 
@@ -1297,6 +1317,8 @@ export interface TrueState {
      * A replay input like `rules`, sealed into the save, because the same
      * country, seed, and action log produce a different century without it. */
     appointedAt: Qtr
+    /** How often the world breaks (ADR-0046). A replay input like `rules`. */
+    turbulence: Turbulence
   }
   params: CountryParams
   demography: DemographyState
@@ -1335,7 +1357,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 47 // v47: household inflation expectations enter wage bargains (#221)
+export const SCHEMA_VERSION = 48 // v48: the world's turbulence is a replay input (#122)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

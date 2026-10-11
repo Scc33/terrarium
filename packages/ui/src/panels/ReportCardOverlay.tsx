@@ -29,6 +29,7 @@ import {
   type ReportCard,
 } from '@terrarium/observation'
 import { Modal, Panel, Tooltip, TooltipLabel } from '../components/ui'
+import { TURBULENCE_COPY } from '../turbulence'
 
 const yearOf = (q: number) => FIRST_YEAR + Math.floor(q / 4)
 
@@ -219,6 +220,12 @@ export function ReportCardOverlay({
           >
             {card.endedBy === 'deposition' ? 'DEPOSED' : 'THE BOOK CLOSES'}
           </div>
+          {TURBULENCE_COPY[pub.turbulence].mark && (
+            <p className="mx-auto mt-3 max-w-md border-l-2 border-dossier-brass bg-dossier-brass/8 px-3 py-1.5 text-left font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
+              Served in a {pub.turbulence} world. The grades are scaled against centuries lived in the ordinary
+              one, so they say how you governed this world, not how you would have fared in that one.
+            </p>
+          )}
           {pub.countryAuthored && (
             <p className="mx-auto mt-3 max-w-md border-l-2 border-dossier-brass bg-dossier-brass/8 px-3 py-1.5 text-left font-dossier text-[11px] italic leading-snug text-dossier-ink/70">
               Served on a drafted posting. The country was written rather than drawn from the catalogue, so

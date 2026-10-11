@@ -61,6 +61,7 @@ import {
   FINANCIAL_ACTIVITY_SAFE,
   LOAN_LOSS_BASE_Q,
   NATURAL_REAL_RATE,
+  TURBULENCE,
 } from '../constants'
 import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
@@ -149,7 +150,7 @@ export const finance: PipelineStep = {
       const importPressure =
         Math.max(0, FINANCIAL_ACTIVITY_SAFE - financialActivity) * (1 + leverageExcess)
       const pCrisis =
-        CRISIS_BASE_P +
+        CRISIS_BASE_P * TURBULENCE[state.meta.turbulence].hazard +
         CRISIS_FRAGILITY_P * leverageExcess * overvaluation +
         CRISIS_IMPORT_GAIN * importPressure
       if (rng.next() < pCrisis) {

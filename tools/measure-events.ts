@@ -28,10 +28,12 @@ import {
   EVENT_CATALOGUE,
   EVENT_IDS,
   PRESS_ERAS,
+  TURBULENCE_IDS,
   createCountryParams,
   eraAtTick,
   type DeskId,
   type EventId,
+  type Turbulence,
 } from '../packages/engine/src/index'
 import { POLICY_IDS, policyFor } from '../packages/runner/src/policies'
 import { runOne } from '../packages/runner/src/run'
@@ -84,6 +86,10 @@ function arg(name: string, fallback: string): string {
 const RUNS = Number(arg('runs', '24'))
 const TICKS = Number(arg('ticks', '400'))
 if (!Number.isInteger(RUNS) || RUNS <= 0) throw new Error('--runs must be a positive integer')
+// the setup dial (ADR-0046): what the same sweep reads like in a calmer or a
+// rougher world
+const TURBULENCE = arg('turbulence', 'ordinary') as Turbulence
+if (!TURBULENCE_IDS.includes(TURBULENCE)) throw new Error(`--turbulence must be one of ${TURBULENCE_IDS.join(', ')}`)
 
 interface Tally {
   /** how many dispatches, in total, across every run */
@@ -98,6 +104,7 @@ const seen = new Map<EventId, Tally>()
 const perQuarter: number[] = []
 const byDesk = new Map<DeskId, number>()
 const byEra = new Map<string, number>()
+const byTone = new Map<string, number>()
 let quarters = 0
 let emptyQuarters = 0
 
@@ -111,6 +118,7 @@ for (const arm of ARMS) {
       params: createCountryParams(country, `wire-country-${r}`),
       policy: arm.policy,
       policySeed: `wire-policy-${policy}-${r}`,
+      turbulence: TURBULENCE,
       includeStateHash: false,
     })
     const news = result.finalState.stats.news
@@ -120,6 +128,7 @@ for (const arm of ARMS) {
       thisRun.set(item.event, (thisRun.get(item.event) ?? 0) + 1)
       load.set(item.tick, (load.get(item.tick) ?? 0) + 1)
       byDesk.set(item.desk, (byDesk.get(item.desk) ?? 0) + 1)
+      byTone.set(item.tone, (byTone.get(item.tone) ?? 0) + 1)
       const era = eraAtTick(item.tick)
       byEra.set(era, (byEra.get(era) ?? 0) + 1)
     }
@@ -144,7 +153,7 @@ const totalRuns = RUNS * ARMS.length
 const filedTotal = [...seen.values()].reduce((s, t) => s + t.filed, 0)
 const pct = (n: number, d: number) => `${((100 * n) / Math.max(d, 1)).toFixed(1)}%`
 
-console.log(`\n=== the wire, ${totalRuns} runs × ${TICKS}q, ${ARMS.map((a) => a.id).join('/')}, every curated country ===`)
+console.log(`\n=== the wire, ${totalRuns} runs × ${TICKS}q, ${ARMS.map((a) => a.id).join('/')}, every curated country, ${TURBULENCE} world ===`)
 console.log(`catalogue          ${EVENT_IDS.length} events`)
 console.log(`reached            ${seen.size} (${pct(seen.size, EVENT_IDS.length)})`)
 console.log(`dispatches         ${filedTotal} over ${quarters} quarters`)
@@ -156,6 +165,11 @@ console.log('\n--- by desk ---')
 for (const desk of DESK_IDS) {
   const n = byDesk.get(desk) ?? 0
   console.log(`  ${desk.padEnd(10)} ${String(n).padStart(6)}  ${pct(n, filedTotal)}`)
+}
+
+console.log('\n--- by tone ---')
+for (const [tone, n] of [...byTone.entries()].sort()) {
+  console.log(`  ${tone.padEnd(10)} ${String(n).padStart(6)}  ${pct(n, filedTotal)}  ${(n / Math.max(quarters, 1) * 400).toFixed(0)} a century`)
 }
 
 console.log('\n--- by era (dispatches per quarter lived in it) ---')

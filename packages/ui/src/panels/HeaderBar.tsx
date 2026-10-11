@@ -6,6 +6,7 @@ import type { PublishedState } from '@terrarium/observation'
 import { useRef } from 'react'
 import { Button, Metric, Tooltip, TooltipLabel } from '../components/ui'
 import { activeRuleMarks, capitalReading } from '../gameRules'
+import { TURBULENCE_COPY } from '../turbulence'
 
 const qtrLabel = (q: number) => `${FIRST_YEAR + Math.floor(q / 4)} Q${(q % 4) + 1}`
 
@@ -49,6 +50,7 @@ export function HeaderBar({
   const t = pub.treasury
   const capital = capitalReading(pub, null)
   const ruleMarks = activeRuleMarks(pub.rules)
+  const world = TURBULENCE_COPY[pub.turbulence]
   const officesMenuRef = useRef<HTMLDetailsElement>(null)
   const openOffice = (open: () => void) => {
     officesMenuRef.current?.querySelector<HTMLElement>('summary')?.focus()
@@ -72,6 +74,15 @@ export function HeaderBar({
                 className="ml-1.5 text-dossier-paper/70"
               >
                 · {ruleMarks.length} {ruleMarks.length === 1 ? 'ORDER' : 'ORDERS'}
+              </TooltipLabel>
+            )}
+            {world.mark && (
+              <TooltipLabel
+                label={world.mark.toLowerCase()}
+                content={world.caption}
+                className="ml-1.5 text-dossier-paper/70"
+              >
+                · {world.label}
               </TooltipLabel>
             )}
             {pub.countryAuthored && (

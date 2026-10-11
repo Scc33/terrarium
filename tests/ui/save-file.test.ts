@@ -13,6 +13,7 @@ import { describe, expect, it } from 'vitest'
 import {
   END_OF_HISTORY_TICK,
   SCHEMA_VERSION,
+  TURBULENCE_IDS,
   createCountryParams,
   createSave,
   init,
@@ -100,6 +101,28 @@ describe('the appointment a save carries', () => {
     // without this gate a file naming 1973 opens 1946 — a different century
     // from the same country, seed and log, with nothing said about it
     expect(looksLikeSave(withAppointment(value))).toBe(false)
+  })
+})
+
+describe('the world a save carries (ADR-0046)', () => {
+  const withWorld = (turbulence: unknown) => ({
+    ...createSave(createCountryParams('meridia', 'a'), 'a', [], 40, 'standard', 0, 'calm'),
+    turbulence,
+  })
+
+  it('accepts every world, and a save from before the dial existed', () => {
+    for (const id of TURBULENCE_IDS) expect(looksLikeSave(withWorld(id)), id).toBe(true)
+    const preV48 = createSave(createCountryParams('meridia', 'a'), 'a', [], 40)
+    delete preV48.turbulence
+    expect(looksLikeSave(preV48)).toBe(true)
+  })
+
+  it.each([
+    ['a misspelling', 'Calm'],
+    ['null', null],
+    ['a number', 0.5],
+  ])('refuses %s rather than replaying the log in the ordinary world', (_label, value) => {
+    expect(looksLikeSave(withWorld(value))).toBe(false)
   })
 })
 

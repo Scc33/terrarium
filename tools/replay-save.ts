@@ -65,6 +65,7 @@ import {
   SECTOR_IDS,
   absorptiveCapacity,
   appointmentTick,
+  turbulenceLevel,
   frontierGrowthAt,
   householdIncomeDistribution,
   lifeExpectancyAtBirth,
@@ -296,6 +297,7 @@ export function runArm(id: ArmId, save: SaveFile, plan: ReplayPlan): Arm {
     script,
     rules: save.rules ?? save.mode ?? 'standard',
     appointedAt: plan.appointedAt,
+    turbulence: turbulenceLevel(save.turbulence),
     // The loader's semantics, not the policy-scoring ones — see the header.
     lenient: 'turn',
     policy:
@@ -469,7 +471,7 @@ function main(argv: readonly string[]): void {
     `  seed ${save.seed}  ${plan.ticks} quarters (${1946 + Math.floor(plan.ticks / 4)})  ` +
     `appointed ${plan.appointedAt}`,
   )
-  console.log(`  rules ${JSON.stringify(save.rules ?? save.mode ?? 'standard')}`)
+  console.log(`  rules ${JSON.stringify(save.rules ?? save.mode ?? 'standard')}  turbulence ${turbulenceLevel(save.turbulence)}`)
   const elided = save.actionLog.length - turnsInHorizon
   console.log(
     `  ${turnsInHorizon} turns${elided > 0 ? ` (${elided} later ones outside this horizon)` : ''}, ` +

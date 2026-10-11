@@ -26,6 +26,7 @@ import {
   appointmentTick,
   END_OF_HISTORY_TICK,
   SCHEMA_VERSION,
+  TURBULENCE_IDS,
   type SaveFile,
 } from '@terrarium/engine'
 
@@ -46,8 +47,17 @@ export function looksLikeSave(value: unknown): value is SaveFile {
     typeof save.tick === 'number' &&
     Number.isInteger(save.tick) &&
     save.tick >= 0 &&
-    quarterOrAbsent(save.appointedAt)
+    quarterOrAbsent(save.appointedAt) &&
+    turbulenceOrAbsent(save.turbulence)
   )
+}
+
+/** The world's turbulence (ADR-0046), refused for the same reason as a bad
+ * quarter: the engine reads anything it does not know as `ordinary`, and
+ * quietly replaying a calm world's log in the ordinary one is a different
+ * century under the same seed. */
+function turbulenceOrAbsent(value: unknown): boolean {
+  return value === undefined || TURBULENCE_IDS.some((id) => id === value)
 }
 
 /** A quarter field that a save may legally omit. Absent means zero everywhere
