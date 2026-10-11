@@ -683,6 +683,29 @@ test('unfitted instrument routes to its capacity investment', async ({ page }) =
   await expect(page).toHaveScreenshot('instrument-capacity-route.png')
 })
 
+test('ministry funding can be resized and keeps overlapping cash bills visible', async ({ page }) => {
+  await openGame(page)
+  await page.getByRole('tab', { name: /CAPACITY/ }).click()
+  const tax = page.getByRole('tabpanel').locator('div.border').filter({ has: page.getByText('Tax admin', { exact: true }) })
+  await expect(tax).toContainText('2.0 PC · 2.0 TOTAL · 0.3 / QTR · 8Q')
+  await tax.getByRole('button', { name: 'Halve Tax admin funding' }).click()
+  await expect(tax).toContainText('2.0 PC · 1.0 TOTAL · 0.1 / QTR · 8Q')
+  await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
+  await expect(tax).toContainText('BUILDING · 7Q LEFT · 0.1 / QTR · 0.9 DUE')
+  await tax.getByRole('button', { name: 'FUND', exact: true }).click()
+  await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
+  await expect(tax).toContainText('BUILDING · 7Q LEFT · 0.4 / QTR · 2.5 DUE')
+  const overflow = await page.evaluate(`(() => {
+    const wall = document.querySelector('main > div'), bounds = wall.getBoundingClientRect();
+    return { scrolls: wall.scrollHeight > bounds.height + 1,
+      belowFold: [...wall.querySelectorAll('*')].filter(el => {
+        const rect = el.getBoundingClientRect(); return rect.height > 0 && rect.bottom > bounds.bottom + 1;
+      }).length };
+  })()`)
+  expect(overflow).toEqual({ scrolls: false, belowFold: 0 })
+  await expect(page).toHaveScreenshot('ministry-funding.png')
+})
+
 test('financial overlay empty state', async ({ page }) => {
   await openGame(page)
   await (await officeButton(page, 'FINANCE')).click()

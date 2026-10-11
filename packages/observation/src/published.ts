@@ -271,7 +271,13 @@ export interface PublishedState {
     outlaysByProgramme: OutlaySplit
   }
   capacity: Record<CapacityId, number>
-  capacityBuilding: Array<{ target: CapacityId; remaining: Qtr }>
+  /** Your own voted programmes: planned deliveries and bills, never a GDP estimate. */
+  capacityBuilding: Array<{
+    target: CapacityId
+    remaining: Qtr
+    perQtr: number
+    moneyPerQtr: number
+  }>
   /** the treasury's own books, every quarter, exact — no fog on yourself */
   books: Array<{
     centralBankAssets: number

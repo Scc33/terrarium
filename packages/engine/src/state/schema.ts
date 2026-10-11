@@ -1357,7 +1357,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 48 // v48: the world's turbulence is a replay input (#122)
+export const SCHEMA_VERSION = 49 // v49: exact ministry commitments in the cabinet (#50)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

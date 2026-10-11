@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 47. The short player-facing design is in
+*How the code is actually arranged, as of schema 49. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -259,6 +259,12 @@ The `human_development` print additionally carries its normalized `health`, `ski
 not from hidden state and not by a second observation draw (ADR-0033).
 
 ### 3.2 Not every fogged output is an indicator
+
+The cabinet's `capacityBuilding` register is also exact: each voted ministry programme carries
+its target, quarters remaining, planned capacity delivery per quarter and cash payment per
+quarter. These are commitments on the government's own orders, not a survey of GDP. The UI sums
+them before quoting another programme so a large revenue-based bid cannot buy capacity that
+fiscal would clamp away. The worker still validates the engine's administration ceiling.
 
 `industry`, `labour`, and `households` are the vector exceptions. The industrial census publishes a
 **vector** — two tables (`INDUSTRY_TABLE_IDS`: `valueAdded`, `employment`) over `SECTOR_IDS` —
