@@ -171,7 +171,7 @@ function sample(seed: string, country: (typeof CURATED_COUNTRY_IDS)[number], arm
   const works = arm.startsWith('works-')
   const worksShare = arm === 'works-gdp-2' ? 0.02 : arm === 'works-gdp-5' ? 0.05 : arm === 'works-gdp-50' ? 0.5 : null
   const summary = runSummary({
-    seed, country, ticks,
+    seed, country, ticks, turbulence: 'ordinary',
     rules: works ? { protectedTenure: true, unlimitedCapital: true } : undefined,
     policy: arm === 'developmental' ? developmentalPolicy : arm === 'random' ? randomPolicy : undefined,
     // The lever under test is strict; ordinary policy sampling alone skips
@@ -255,7 +255,7 @@ function main(): void {
   }
   const groups = arms.flatMap((scenario) => ['all', ...countries].map((id) => grouped(samples, scenario, id)))
   process.stdout.write(JSON.stringify({
-    ...provenance, schemaVersion: SCHEMA_VERSION, runs, ticks,
+    ...provenance, schemaVersion: SCHEMA_VERSION, runs, ticks, turbulence: 'ordinary',
     envelopeAssumptions: {
       goodsMix: { manuf: INVESTMENT_DEMAND_MANUF_SHARE, services: INVESTMENT_DEMAND_SERVICES_SHARE },
       imports: 'All recorded imports, including FDI machinery, can cover domestic inputs and investment.',
