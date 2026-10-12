@@ -17,7 +17,7 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   horizon; the term premium saturates at 0.8 percentage points. These are a
   transparent game model, not an empirical estimate or a recession predictor.
 
-  Measured 2026-10-12 on the schema 49 issue-31 change, against unmodified
+  Measured 2026-10-12 on implementation `edc423b` (schema 49), against unmodified
   `ab9d9e062bd70a616ceb5d56630f0bdb5c7b530e` (schema 48), Node 24.20.0/darwin arm64.
   `pnpm diff-state --moved-only` at the shadow-quote stage moved only the schema
   version. Once fixed contracts were connected, higher new duration coupons and
