@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyActions,
   assetPurchaseRateEquivalent,
+  effectivePurchaseRate,
   bondIssuanceShare,
   domesticBondFundingShare,
   financierAnger,
@@ -74,7 +75,7 @@ describe('the scalar helpers are the truth on scalars', () => {
           s.gov.dials.policyRate,
           s.ledger.inflationExpectations,
           privateFundingSpread(s),
-          s.gov.dials.assetPurchaseRate,
+          effectivePurchaseRate(s),
         ),
       ).toBe(privateRealRate(s))
     }

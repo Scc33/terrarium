@@ -18,6 +18,7 @@ import type {
   Turbulence,
 } from './state/schema'
 import type { DialPath } from './actions/types'
+import type { YieldId } from './state/bonds'
 // ---------- deterministic randomness ----------
 /** Six packed U(0, 1) components, centred and scaled to unit variance (ADR-0040). */
 export const NORMAL_UNIFORM_DRAWS = 6
@@ -333,11 +334,10 @@ export const SOVEREIGN_PRIVATE_PREMIUM_SHARE = 0.5
  * What the sovereign fund earns, annualized (ADR-0037).
  *
  * Deliberately BELOW `POLICY_RATE_1946`, the rate the state pays on its own
- * paper, and that ordering is the reason a surplus redeems debt before it funds
- * anything: safe foreign assets yield less than the coupon you are already
- * paying, so retiring the coupon dominates. Were it the other way round the
- * treasury would hold debt and a fund at the same time and earn the spread,
- * which is a money machine rather than a fiscal policy.
+ * paper at the opening settlement. Debt-first remains a liquidity rule under
+ * ADR-0047's variable issuance yields, rather than a claim that retiring every
+ * low-coupon bond maximizes investment returns. It forgoes positive carry when
+ * safe foreign assets yield more, keeping a single net treasury position.
  *
  * The return is credited to the budget as revenue rather than compounded inside
  * the stock. The two are arithmetically identical while the payout dial is at
@@ -348,6 +348,23 @@ export const FUND_YIELD = 0.02
 /** Bond issuance as a share of quarterly GDP bids up the private annual rate.
  * Openness determines how much of the auction domestic balance sheets carry. */
 export const BOND_CROWDING_RATE_GAIN = 1.0
+// ---------- term structure and debt management (#31) ----------
+export const YIELD_MATURITY_QTRS: Record<YieldId, number> = {
+  three_month: 1, one_year: 4, five_year: 20, ten_year: 40,
+}
+/** A four-year record moves the dealer's anchor slowly; no target is promised. */
+export const YIELD_POLICY_MEMORY_QTRS = 16
+export const YIELD_POLICY_REVERSION_QTRS = 8
+export const YIELD_TERM_PREMIUM_MAX = 0.008
+export const YIELD_TERM_PREMIUM_QTRS = 8
+export const QE_HOLDING_QTRS = 20
+export const QE_ANNOUNCEMENT_SHARE = 0.25
+export const SHORT_QE_TRANSMISSION_SHARE = 0.15
+export const DEBT_MATURITY_DEFAULT = 0.5
+export const DEBT_BALANCED_SHORT_SHARE = 0.25
+export const DEBT_BALANCED_MEDIUM_SHARE = 0.5
+export const DEBT_BALANCED_LONG_SHARE = 0.25
+export const DEBT_MATURITY_DIAL_SCALE = 0.5
 export const domesticBondFundingShare = (openness: number): number =>
   1 / (1 + Math.max(0, openness))
 
@@ -1320,10 +1337,9 @@ export const BANK_SPREAD = 0.02 // lending spread over the policy rate
 export const LOAN_LOSS_BASE_Q = 0.002 // calm-time write-offs, share of credit per quarter
 export const BANK_DIVIDEND_Q = 0.06 // capital paid out above target per quarter
 
-/** Quantitative easing is an annualized purchase pace, expressed as a share
- * of GDP. It lowers the common private funding rate without changing the
- * policy rate or pretending that an asset swap financed the fiscal deficit.
- * At 10% of GDP/year the term-premium channel is worth two percentage points. */
+/** Annual purchase pace as a share of official GDP. Announcement and held
+ * duration mostly lower longer funding without financing the fiscal deficit.
+ * The gain is the asymptotic duration relief; short credit gets a smaller share. */
 export const ASSET_PURCHASE_RATE_DEFAULT = 0
 export const ASSET_PURCHASE_RATE_MAX = 0.25
 export const ASSET_PURCHASE_PRIVATE_RATE_GAIN = 0.2
@@ -1459,6 +1475,9 @@ export const SUBSIDY_STANCE: Record<SectorId, Stance> = {
 }
 
 export const DIAL_STANCE: Record<DialPath, Stance> = {
+  // Maturity is a priced risk choice. No bloc is assumed to prefer duration
+  // at every curve shape; the ordinary political cost still prices the order.
+  debtMaturity: {},
   'taxRates.income': { landowners: 0.5, industrialists: 0.3, financiers: 0.2, unions: 0.4 },
   'taxRates.corporate': { industrialists: 0.9, financiers: 0.5, landowners: 0.3, unions: -0.3 },
   'taxRates.tariff': { industrialists: -0.5, landowners: -0.3, financiers: 0.3, unions: 0.2 },

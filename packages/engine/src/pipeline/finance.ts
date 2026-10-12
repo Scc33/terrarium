@@ -61,14 +61,16 @@ import {
   FINANCIAL_ACTIVITY_SAFE,
   LOAN_LOSS_BASE_Q,
   NATURAL_REAL_RATE,
+  QE_HOLDING_QTRS,
   TURBULENCE,
 } from '../constants'
 import { fileDispatch } from '../events/file'
 import { clamp } from '../math'
 import { SECTOR_IDS, type NewsItem, type Sector } from '../state/schema'
 import type { PipelineStep } from './pipeline'
-import { privateRealRate } from './funding'
+import { longNaturalRealRate, privateLongRealRate, privateRealRate } from './funding'
 import { officialNominalGdp } from '../state/spending'
+import { quoteYieldCurve } from './yields'
 
 export const finance: PipelineStep = {
   name: 'finance',
@@ -81,7 +83,17 @@ export const finance: PipelineStep = {
     // division. Like GDP-share appropriations, orders use the official book.
     // Annualized share × quarterly GDP: the two annualization fours cancel.
     const assetPurchases = gov.dials.assetPurchaseRate * (officialNominalGdp(state) ?? 0)
-    const realRate = privateRealRate(state)
+    const assetRunoff = fin.assetHoldings.filter(lot => lot.maturesAt <= state.meta.tick)
+      .reduce((sum, lot) => sum + lot.amount, 0)
+    const assetHoldings = fin.assetHoldings.filter(lot => lot.maturesAt > state.meta.tick)
+    if (assetPurchases > 0) assetHoldings.push({ amount: assetPurchases, maturesAt: state.meta.tick + QE_HOLDING_QTRS })
+    const durationHoldings = assetHoldings.reduce((sum, lot) =>
+      sum + lot.amount * (lot.maturesAt - state.meta.tick) / QE_HOLDING_QTRS, 0)
+    const priced = { ...state, finance: { ...fin, assetHoldings, durationHoldings } }
+    const yieldCurve = quoteYieldCurve(priced)
+    priced.finance.yieldCurve = yieldCurve
+    const realRate = privateRealRate(priced)
+    const longRate = privateLongRealRate(priced)
     const profitRate =
       SECTOR_IDS.reduce((s, sid) => s + flows.profits[sid], 0) / Math.max(flows.nominalGdp, 1e-9)
     const businessConf = ledger.confidence.business
@@ -90,7 +102,7 @@ export const finance: PipelineStep = {
     const qFund = clamp(
       1 +
         ASSET_FUND_PROFIT_GAIN * (profitRate - ASSET_NORMAL_PROFIT) -
-        ASSET_FUND_RATE_GAIN * (realRate - NATURAL_REAL_RATE),
+        ASSET_FUND_RATE_GAIN * (longRate - longNaturalRealRate()),
       ASSET_FUND_MIN,
       ASSET_FUND_MAX,
     )
@@ -200,7 +212,10 @@ export const finance: PipelineStep = {
       ...state,
       sectors: allocateCredit(state.sectors, creditOutstanding),
       finance: {
-        centralBankAssets: fin.centralBankAssets + assetPurchases,
+        yieldCurve,
+        assetHoldings,
+        durationHoldings,
+        centralBankAssets: Math.max(0, fin.centralBankAssets + assetPurchases - assetRunoff),
         assetPrice,
         bankCapital,
         creditOutstanding,
@@ -210,7 +225,7 @@ export const finance: PipelineStep = {
         crisisSeverity,
       },
       ledger: confidence === ledger.confidence ? ledger : { ...ledger, confidence },
-      flows: { ...flows, assetPurchases },
+      flows: { ...flows, assetPurchases, assetRunoff },
       stats: news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
     }
   },

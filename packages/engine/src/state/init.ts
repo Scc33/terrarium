@@ -6,9 +6,11 @@
  */
 
 import { initialFinance } from './finance'
+import { initialBonds } from '../pipeline/bonds'
 import type { Seed } from '../rng/rng'
 import { emissionsPerHead } from '../pipeline/environment'
 import {
+  DEBT_MATURITY_DEFAULT,
   adminEffectiveness,
   taxEfficiency,
   ASSET_PURCHASE_RATE_DEFAULT,
@@ -453,6 +455,11 @@ export function init(
     currentAccount: 0,
     fxIntervention: 0,
     assetPurchases: 0,
+    assetRunoff: 0,
+    debtMaturing: 0,
+    bondsRefinanced: 0,
+    debtBuybackAdjustment: 0,
+    newBondBorrowing: 0,
     subsidyDelivered: sectorRecord(() => 0),
     revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0, fund: 0 },
     outlaysByProgramme: {
@@ -507,7 +514,7 @@ export function init(
       researchStock: 0,
     },
     cohorts,
-    finance: initialFinance(creditOutstanding0, creditToGdp0),
+    finance: initialFinance(creditOutstanding0, creditToGdp0, debtToGdp0),
     sectors: SECTOR_IDS.map((id) => ({
       id,
       capital: capital[id],
@@ -527,6 +534,7 @@ export function init(
     },
     gov: {
       dials: {
+        debtMaturity: DEBT_MATURITY_DEFAULT,
         taxRates: {
           income: INCOME_TAX_1946,
           corporate: CORPORATE_TAX_1946,
@@ -566,6 +574,7 @@ export function init(
       pipeline: [],
       budget: { revenue: 0, outlays: 0, balance: 0 },
       debt: debt0,
+      bonds: initialBonds(debt0),
       // Nobody inherits a fund. A country opens with whatever debt its recipe
       // gave it, and the fund is what its own surpluses build — the two are
       // never both positive (ADR-0037).

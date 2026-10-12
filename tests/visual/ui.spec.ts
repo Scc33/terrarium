@@ -567,9 +567,10 @@ test('cabinet draft review', async ({ page }) => {
 
 test('central bank exposes conventional, QE, macroprudential and currency controls', async ({ page }) => {
   await openGame(page)
-  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 5 CONTROLS' }).click()
   await expect(page.getByRole('slider', { name: 'Policy rate' })).toHaveValue('0.04')
   await expect(page.getByRole('slider', { name: 'Asset purchases' })).toHaveValue('0')
+  await expect(page.getByRole('slider', { name: 'Borrowing maturity' })).toHaveValue('0.5')
   await expect(page.getByRole('slider', { name: 'Bank capital floor' })).toHaveValue('0.06')
   // The only signed lever on the desk (ADR-0034). Both rails are asserted
   // because a slider that cannot go below zero is a currency market with no
@@ -583,7 +584,7 @@ test('central bank exposes conventional, QE, macroprudential and currency contro
 
 test('central bank briefs the desk on its stance from the prints, and says when it cannot', async ({ page }) => {
   await openGame(page)
-  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 5 CONTROLS' }).click()
   const briefing = page.getByRole('region', { name: 'Monetary stance briefing' })
   // at the posting nothing has been released, and the desk says so rather
   // than reading a stance off nothing (ADR-0043)
@@ -595,9 +596,10 @@ test('central bank briefs the desk on its stance from the prints, and says when 
   await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
   await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
   for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'ADVANCE QUARTER' }).click()
-  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 5 CONTROLS' }).click()
   await expect(briefing).toContainText(/(BELOW|NEAR|ABOVE) NEUTRAL/)
-  await expect(briefing).toContainText('The desk puts neutral between')
+  await expect(briefing).toContainText('The desk puts short-rate neutral between')
+  await expect(briefing).toContainText('Five-year real funding')
   await expect(briefing).toContainText('FAIR CONFIDENCE')
   for (const driver of ['Real-rate anchor', 'Expected inflation', 'Sovereign funding', 'Asset purchases']) {
     await expect(briefing.getByRole('button', { name: `Explain ${driver}` })).toBeVisible()
@@ -690,6 +692,39 @@ test('financial overlay empty state', async ({ page }) => {
   await expect(page).toHaveScreenshot('finance-overlay-empty.png')
 })
 
+test('yield curve quotes and a maturity order are reachable without overflowing', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  await openGame(page)
+  await page.getByRole('tab', { name: 'CENTRAL BANK 5 CONTROLS' }).click()
+  const maturity = page.getByRole('slider', { name: 'Borrowing maturity', exact: true })
+  await maturity.press('End')
+  await expect(maturity).toHaveValue('1')
+  await expect(page.getByRole('button', { name: 'ENACT & ADVANCE' })).toBeEnabled()
+  await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
+  await (await officeButton(page, 'FINANCE')).click()
+  const dialog = page.getByRole('dialog', { name: 'THE FINANCIAL SYSTEM' })
+  await dialog.getByRole('button', { name: 'YIELD CURVE', exact: true }).click()
+  for (const label of ['3 MONTHS', '1 YEAR', '5 YEARS', '10 YEARS', 'SOVEREIGN PREMIUM']) {
+    await expect(dialog.getByText(label, { exact: true }).first()).toBeVisible()
+  }
+  expect(await page.evaluate(`(() => {
+    const d = document.querySelector('[role="dialog"]'), r = d.getBoundingClientRect();
+    return { pageScroll: document.documentElement.scrollHeight > innerHeight + 1,
+      horizontal: d.scrollWidth > d.clientWidth + 1,
+      offscreen: r.bottom > innerHeight + 1 || r.right > innerWidth + 1 };
+  })()`)).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
+  await expect(page).toHaveScreenshot('yield-curve.png')
+  await page.keyboard.press('Escape')
+  expect(await page.evaluate(`(() => {
+    const w = document.querySelector('main > div'), b = w.getBoundingClientRect();
+    let n = 0; w.querySelectorAll('*').forEach(e => {
+      const r = e.getBoundingClientRect(); if (r.bottom > b.bottom + 1 && r.height > 0) n++;
+    }); return { scrolls: w.scrollHeight > b.height + 1, belowFold: n };
+  })()`)).toEqual({ scrolls: false, belowFold: 0 })
+  expect(errors).toEqual([])
+})
+
 test('public asset books show opening balances, transactions and history without overflowing', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
@@ -707,7 +742,7 @@ test('public asset books show opening balances, transactions and history without
   // Post actual orders and let them settle. The labels are the cabinet's
   // public controls, so this also proves that the book is reachable in play.
   for (let i = 0; i < 12; i++) await page.getByRole('button', { name: 'ADVANCE QUARTER' }).click()
-  await page.getByRole('tab', { name: 'CENTRAL BANK 4 CONTROLS' }).click()
+  await page.getByRole('tab', { name: 'CENTRAL BANK 5 CONTROLS' }).click()
   const purchases = page.getByRole('slider', { name: 'Asset purchases', exact: true })
   await purchases.press('Home')
   await purchases.press('ArrowRight')
@@ -732,7 +767,9 @@ test('public asset books show opening balances, transactions and history without
   dialog = page.getByRole('dialog', { name: 'THE TREASURY LEDGER — FULL HISTORY, EXACT' })
   await dialog.getByRole('button', { name: 'SAVINGS & FINANCING', exact: true }).click()
   await expect(dialog.getByText('SOVEREIGN FUND', { exact: true })).toBeVisible()
-  await expect(dialog.getByText('BONDS ISSUED', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('NEW BORROWING', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('AVERAGE COUPON', { exact: true })).toBeVisible()
+  await expect(dialog.getByText('REFINANCED', { exact: true })).toBeVisible()
   expect(await fits()).toEqual({ pageScroll: false, horizontal: false, offscreen: false })
   await expect(page).toHaveScreenshot('treasury-financing.png')
   await page.setViewportSize({ width: 820, height: 760 })

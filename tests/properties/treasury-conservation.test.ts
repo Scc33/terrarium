@@ -20,10 +20,10 @@
  * every quarter, on every policy, at every setting of the dial. Written in the
  * stocks it can be read off the state as
  *
- *     balance + Δdebt + Δprinted − Δfund − rebate = 0
+ *     balance + Δdebt + Δprinted − Δfund − rebate − buybackAdjustment = 0
  *
- * which is the form below, because those are the four things a quarter's money
- * can become and there is deliberately no fifth.
+ * Early buybacks pay market cash rather than face principal; the explicit
+ * adjustment is cash paid minus face retired, not an extra destination.
  *
  * One thing this file is NOT is a whole-economy money conservation test, and
  * the distinction matters. The engine leaks money on purpose in one place: a
@@ -65,6 +65,7 @@ interface Quarter {
   debt: number
   fund: number
   residualToNowhere: number
+  buybackAdjustment: number
 }
 
 /**
@@ -110,9 +111,10 @@ function books(
       deltaFund: after.fund - before.fund,
       printed: after.printed - before.printed,
       rebate: state.flows.fiscalRebate,
+      buybackAdjustment: state.flows.debtBuybackAdjustment,
       debt: after.debt,
       fund: after.fund,
-      residualToNowhere: Math.max(0, after.budget.balance) - Math.min(Math.max(0, after.budget.balance), before.debt),
+      residualToNowhere: Math.max(0, after.budget.balance) - Math.min(Math.max(0, after.budget.balance), state.flows.debtPrincipal),
     })
   }
   return quarters
@@ -122,7 +124,7 @@ function books(
  * scaled to the quarter's own turnover: a century-end fund is a large number
  * and an unaccounted penny beside it must still fail. */
 function unaccounted(q: Quarter): number {
-  return q.balance + q.deltaDebt + q.printed - q.deltaFund - q.rebate
+  return q.balance + q.deltaDebt + q.printed - q.deltaFund - q.rebate - q.buybackAdjustment
 }
 
 const TICKS = 240
@@ -228,7 +230,7 @@ describe('the fund and the debt are one net position', () => {
       unlimitedCapital: true,
     })
     for (let tick = 0; tick < 8; tick++) state = step(state)
-    const seeded: TrueState = { ...state, gov: { ...state.gov, debt: 0, fund: 40 } }
+    const seeded: TrueState = { ...state, gov: { ...state.gov, debt: 0, bonds: [], fund: 40 } }
     expect(() => validate(seeded)).not.toThrow()
 
     let s = applyActions(seeded, [
@@ -291,7 +293,7 @@ describe('a rebate needs somebody who paid the tax', () => {
     for (let tick = 0; tick < 8; tick++) state = step(state)
     const idle: TrueState = {
       ...state,
-      gov: { ...state.gov, debt: 0, dials: { ...state.gov.dials, surplusPayout: 1 } },
+      gov: { ...state.gov, debt: 0, bonds: [], dials: { ...state.gov.dials, surplusPayout: 1 } },
       sectors: state.sectors.map((sector) => ({ ...sector, employment: 0 })),
     }
     const before = idle.gov
@@ -311,8 +313,8 @@ describe('the fund is a stock with a return, and the return is a revenue line', 
   it('pays the budget on the stock it opened the quarter with', () => {
     let state = init(createCountryParams('meridia', 'yield'), 'yield')
     for (let tick = 0; tick < 8; tick++) state = step(state)
-    const withFund: TrueState = { ...state, gov: { ...state.gov, debt: 0, fund: 100 } }
-    const without: TrueState = { ...state, gov: { ...state.gov, debt: 0, fund: 0 } }
+    const withFund: TrueState = { ...state, gov: { ...state.gov, debt: 0, bonds: [], fund: 100 } }
+    const without: TrueState = { ...state, gov: { ...state.gov, debt: 0, bonds: [], fund: 0 } }
     const a = step(withFund)
     const b = step(without)
     expect(a.flows.revenueBySource.fund).toBeCloseTo((100 * 0.02) / 4, 12)

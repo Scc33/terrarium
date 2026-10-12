@@ -67,6 +67,13 @@ const DIAL_MECHANICS: Record<DialPath, DialMechanics> = {
     fmt: pct,
   },
   policyRate: { get: (p) => p.dials.policyRate, min: 0, max: () => 0.3, step: 0.0025, fmt: pct1 },
+  debtMaturity: {
+    get: (p) => p.dials.debtMaturity,
+    min: 0,
+    max: () => 1,
+    step: 0.5,
+    fmt: (v) => v === 0 ? 'SHORT' : v === 1 ? 'LONG' : v === 0.5 ? 'BALANCED' : 'MIXED',
+  },
   assetPurchaseRate: {
     get: (p) => p.dials.assetPurchaseRate,
     min: 0,

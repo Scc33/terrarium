@@ -155,9 +155,15 @@ export const LEVER_COPY: Record<DialPath, LeverCopy> = {
   assetPurchaseRate: {
     label: 'Asset purchases',
     group: 'MONEY',
-    hint: 'Central-bank purchases that lower borrowing costs and can fuel asset booms. Orders are sized from official GDP; holdings and transactions appear in Finance → Central Bank.',
+    hint: 'Central-bank purchases that lower longer borrowing costs and can fuel asset booms. Orders are sized from official GDP; holdings mature after five years.',
     resists:
-      'Industry and labour want it; the money interest is the one that minds, because it is the state setting the price of the assets they hold. It works on the same channel a rate cut does, so the two stack — and so does the bubble they pay for.',
+      'Industry and labour want it; the money interest minds it. Purchases mostly lower the long end of the yield curve. Stopping the order leaves the remaining holdings working until they mature, so easing takes time to unwind.',
+  },
+  debtMaturity: {
+    label: 'Borrowing maturity',
+    group: 'MONEY',
+    hint: 'Choose one-year borrowing, a balanced mix, or ten-year borrowing. Only new loans and refinancing change; old coupons stay fixed.',
+    resists: 'Short borrowing usually costs less today but returns sooner for refinancing. Long borrowing locks in today’s coupon and reduces near-term rollover exposure; it can cost more after rates fall. The balanced mix issues one quarter at one year, half at five years and one quarter at ten years. No bloc automatically prefers a maturity.',
   },
   capitalRequirement: {
     label: 'Bank capital floor',

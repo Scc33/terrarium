@@ -48,7 +48,7 @@ describe('the cabinet assembles itself from the levers', () => {
       // paid the income tax, or into the fund (ADR-0037)
       ['TAXATION', 'REVENUE', 'taxRates.income', 'taxRates.corporate', 'taxRates.tariff', 'taxRates.fuel', 'surplusPayout'],
       ['SPENDING', 'SPENDING', 'spending.transfers', 'spending.procurement', 'spending.investment', 'spending.research'],
-      ['MONEY', 'CENTRAL BANK', 'policyRate', 'assetPurchaseRate', 'capitalRequirement', 'fxIntervention'],
+      ['MONEY', 'CENTRAL BANK', 'policyRate', 'assetPurchaseRate', 'debtMaturity', 'capitalRequirement', 'fxIntervention'],
       ['MIGRATION', 'BORDERS', 'immigrationLimit'],
       ['SUBSIDIES', 'INDUSTRY', ...SECTOR_IDS.map((sid) => `subsidies.${sid}`)],
     ])

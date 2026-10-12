@@ -1,6 +1,6 @@
 # ADR-0043: The neutral rate is estimated downstream of the fog, by the desk
 
-Status: Accepted
+Status: Partially superseded by [0047](0047-yields-price-duration-and-fixed-contracts.md) (separate short and long stance).
 
 ## Context
 

@@ -1,12 +1,11 @@
 /**
- * The state's claim on private funding, and the one rate it moves.
+ * The state's claim on private funding, across short and longer rates.
  *
- * Credit, asset valuation and private investment all read one private real
- * rate: the posted rate, less what the public expects prices to do, plus what
- * the treasury's own borrowing adds to funding costs, less the term premium
- * asset purchases take out. Fiscal charges the sovereign premium this module
- * prices, and finance passes a share of it through, so quote and consequence
- * cannot drift into two sovereign-risk models.
+ * Credit reads short funding; investment and valuation read five-year
+ * funding. Both subtract nominal-price expectations and add the treasury's
+ * new-money crowding and private share of sovereign risk. Government quotes
+ * use the same risk formula on official GDP (ADR-0047); private transmission
+ * still reads economic truth, never publishing it as an exact coupon.
  *
  * Every formula here exists twice — once on `TrueState`, once on scalars —
  * and the state version calls the scalar one. That is not ceremony: the
@@ -25,11 +24,15 @@ import {
   NATURAL_REAL_RATE,
   RISK_PREMIUM_SLOPE,
   SOVEREIGN_PRIVATE_PREMIUM_SHARE,
+  SHORT_QE_TRANSMISSION_SHARE,
+  YIELD_MATURITY_QTRS,
   domesticBondFundingShare,
 } from '../constants'
 import { treasuryFinancing } from '../state/accounts'
 import type { TrueState } from '../state/schema'
 import { financierAnger } from './derive'
+import { officialNominalGdp } from '../state/spending'
+import { benchmarkYieldAt, effectivePurchaseRateOf, termPremiumAt } from './termStructure'
 
 /** The share of an auction domestic balance sheets carry, by openness — the
  * debt office's one structural fact, published exactly as such. */
@@ -41,9 +44,8 @@ export function sovereignRiskPremiumOf(debtToGdp: number, anger: number): number
   return Math.max(0, debtToGdp - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE + FIN_FAVOR_PREMIUM * anger
 }
 
-/** Yield above the policy rate on government paper. Fiscal charges it and
- * private finance passes a calibrated share through, so quote and consequence
- * cannot drift into two different sovereign-risk models. */
+/** Economic risk premium for private transmission. Exact dealer quotes use
+ * this formula with official output instead of exposing the true ratio. */
 export function sovereignRiskPremium(state: TrueState): number {
   const debtToGdp = state.gov.debt / Math.max(4 * state.flows.nominalGdp, 1e-9)
   return sovereignRiskPremiumOf(debtToGdp, financierAnger(state))
@@ -98,14 +100,12 @@ export function privateRealRateOf(
     policyRate -
     expectedInflation +
     fundingSpread -
-    ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate
+    ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate * SHORT_QE_TRANSMISSION_SHARE
   )
 }
 
-/** The posted rate at which the direct rate term is zero — where credit,
- * valuation and investment read exactly `NATURAL_REAL_RATE` and the bank is
- * neither pushing nor leaning (investigation 0011). It is a rate TERM, not a
- * growth target: everything else those three read still moves. */
+/** The posted rate at which the short credit term reads its natural anchor.
+ * Longer funding has its own anchor; this is not a growth target. */
 export function neutralPolicyRateOf(
   expectedInflation: number,
   fundingSpread: number,
@@ -115,17 +115,17 @@ export function neutralPolicyRateOf(
     NATURAL_REAL_RATE +
     expectedInflation -
     fundingSpread +
-    ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate
+    ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate * SHORT_QE_TRANSMISSION_SHARE
   )
 }
 
-/** The common rate read by credit, asset valuation, and private investment. */
+/** Short real funding read by bank credit. */
 export function privateRealRate(state: TrueState): number {
   return privateRealRateOf(
     state.gov.dials.policyRate,
     state.ledger.inflationExpectations,
     privateFundingSpread(state),
-    state.gov.dials.assetPurchaseRate,
+    effectivePurchaseRate(state),
   )
 }
 
@@ -133,5 +133,24 @@ export function privateRealRate(state: TrueState): number {
 /** The rate-equivalent of a purchase pace: what asset purchases take off the
  * private rate, and therefore add to the posted rate that counts as neutral. */
 export function assetPurchaseRateEquivalent(assetPurchaseRate: number): number {
-  return ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate
+  return ASSET_PURCHASE_PRIVATE_RATE_GAIN * assetPurchaseRate * SHORT_QE_TRANSMISSION_SHARE
+}
+
+export function effectivePurchaseRate(state: TrueState): number {
+  return effectivePurchaseRateOf(state.gov.dials.assetPurchaseRate, state.finance.durationHoldings,
+    officialNominalGdp(state))
+}
+
+export function longNaturalRealRate(): number {
+  return NATURAL_REAL_RATE + termPremiumAt(YIELD_MATURITY_QTRS.five_year)
+}
+
+export function privateLongRealRateOf(policyRate: number, anchor: number, expectedInflation: number, spread: number, purchaseRate: number): number {
+  return benchmarkYieldAt(policyRate, anchor, ASSET_PURCHASE_PRIVATE_RATE_GAIN * purchaseRate,
+    YIELD_MATURITY_QTRS.five_year) - expectedInflation + spread
+}
+
+export function privateLongRealRate(state: TrueState): number {
+  return privateLongRealRateOf(state.gov.dials.policyRate, state.finance.yieldCurve.policyAnchor,
+    state.ledger.inflationExpectations, privateFundingSpread(state), effectivePurchaseRate(state))
 }

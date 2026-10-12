@@ -8,6 +8,74 @@ Read the lesson beside the constant you are about to touch, and add one when a r
 you something: state the rule, then the failure it prevents, concretely enough to recognise the
 symptom. A lesson that only says what to do gets ignored the first time it is inconvenient.
 
+- **A normal term premium must not become a tax on investment.** Five-year funding
+  uses `NATURAL_REAL_RATE + termPremiumAt(20)` as its anchor. Constant posted
+  policy, zero purchases and an unchanged funding spread therefore leave the
+  direct investment/valuation rate gap unchanged. The short/long split matters
+  after policy changes, rather than cooling every country merely for existing.
+  Dealers use a 16-quarter policy-history EMA and an eight-quarter reversion
+  horizon; the term premium saturates at 0.8 percentage points. These are a
+  transparent game model, not an empirical estimate or a recession predictor.
+
+  Measured 2026-10-12 on the schema 49 issue-31 change, against unmodified
+  `ab9d9e062bd70a616ceb5d56630f0bdb5c7b530e` (schema 48), Node 24.20.0/darwin arm64.
+  `pnpm diff-state --moved-only` at the shadow-quote stage moved only the schema
+  version. Once fixed contracts were connected, higher new duration coupons and
+  market-price buybacks deliberately changed fiscal cash flows. In the final
+  forty-quarter goldens, real GDP moved by +0.010%, −0.041% and +0.0014% in
+  passive, fuel-tax and competition-act cases; fiscal balance crossing zero
+  accounts for apparently enormous relative changes on tiny bond issues.
+
+  All-country batches use 1,000 seeds per policy and ordinary rules. Medians:
+
+  | Policy / horizon | Growth before → after | Inflation before → after | Unemployment before → after | Debt-free quarter before → after |
+  |---|---|---|---|---|
+  | Passive / 400q | 2.93 → 2.93% | 0.16 → 0.16% | 12.84 → 12.84% | 79 → 81 |
+  | Developmental / 400q | 3.11 → 3.11% | −0.32 → −0.32% | 12.57 → 12.57% | 72 → 73 |
+  | Random / 120q | 4.37 → 4.36% | 0.65 → 0.59% | 13.32 → 13.35% | 67 → 69 |
+
+  Every batch had zero NaNs and price explosions. The random sampler now also
+  explores maturity, so its comparison combines transmission with a changed
+  order mix; it is not a pure causal estimate. `pnpm stability -- --runs 120
+  --policy all --country all` also found no reachable non-finite values or price
+  explosions on any of its four policies through 416 quarters.
+
+- **Maturity must create a conditional advantage, never a universal best button.**
+  `pnpm yield-curve` legally applies short, balanced and long issuance across
+  20 seeds in each of six countries, with a rate hike or cut at quarter 16 of
+  a 64-quarter run. Safeties ensure all orders execute; these are deliberate
+  economic experiments, not claims about typical play. Long issuance reduced
+  cumulative coupons by 17.8–22.5% relative to short in the hike experiments;
+  short reduced them by 29.0–39.4% relative to long in the cut experiments.
+  Short rolled over 10.4–14.0 times as much principal in the hike runs. Meridia:
+
+  | Shock | Short coupons | Balanced coupons | Long coupons | Short / long refinancing |
+  |---|---|---|---|---|
+  | 2% → 8% | 4.5756 | 3.9574 | 3.5876 | 45.2504 / 3.5849 |
+  | 8% → 2% | 2.1013 | 2.9132 | 3.0916 | 43.1578 / 3.5245 |
+
+  These are mean cumulative flows in units of opening quarterly GDP, on the
+  same schema 49 change and date above. Inherited bonds are laddered to avoid
+  a scripted cliff; old coupons stay fixed, and early retirement pays market
+  value. Counting matched refinancing as new borrowing would create fictitious
+  crowding and bondholder savings, destroying the tradeoff being measured.
+
+- **QE needs remaining duration, not a perpetual inventory or an on/off pace.**
+  A five-year purchase ladder has steady duration weights summing to `(20+1)/2`.
+  Normalize holdings to the corresponding pace and blend 25% announcement with
+  75% held duration. The short credit channel receives 15% of that rate relief;
+  longer costs receive duration-weighted relief. Otherwise stopping a purchase
+  order instantly tightens funding despite an unchanged asset book, or relief
+  grows forever because nothing matures. Exact lots use official GDP only.
+
+- **Measure the bank-capital face again when transmission changes.** The schema
+  49 sweep (12 seeds × six countries × five policies × 400q) measured p99 at
+  59.3% and a maximum of 96.5%. The old 0–50 face pegged 2.7% overall and 21.2%
+  of money-policy prints in Veltravia. Its measured outward-rounded replacement
+  is 0–60; the independent gauge-coverage test passes its 2% pooled and 10%
+  per-country/policy limits. A separate twelve-seed rerun of the worst pairing
+  measures 8.2% pegging at 60%, below its 10% limit. Extreme buffers still peg.
+
 - Unit costs in the price step are computed at NORMAL_UTILIZATION, not realized output —
   otherwise demand dips mechanically raise unit cost and spiral (stagflation death loop).
 - Wages need all three legs: Phillips slack anchor (else drift to 50% unemployment),

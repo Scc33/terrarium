@@ -1,6 +1,6 @@
 # ADR-0038: Central-bank holdings are an exact book
 
-Status: Accepted
+Status: Partially superseded by [0047](0047-yields-price-duration-and-fixed-contracts.md) (maturity and runoff).
 
 ## Decision
 

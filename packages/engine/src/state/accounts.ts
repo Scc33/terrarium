@@ -2,14 +2,16 @@
 import type { TrueState } from './schema'
 
 export function treasuryFinancing(state: TrueState) {
-  const { gov, flows } = state
-  const drawn = Math.max(0, -flows.fundFlow)
+  const { flows } = state
   return {
     fundFlow: flows.fundFlow,
     fiscalRebate: flows.fiscalRebate,
-    bondsIssued: Math.max(0, -gov.budget.balance - drawn - flows.printedThisQtr),
+    bondsIssued: flows.newBondBorrowing,
     debtRepaid: flows.debtPrincipal,
     deficitPrinting: flows.printedThisQtr,
+    debtMaturing: flows.debtMaturing,
+    bondsRefinanced: flows.bondsRefinanced,
+    debtBuybackAdjustment: flows.debtBuybackAdjustment,
   }
 }
 
@@ -20,6 +22,12 @@ export function publicAccountRecord(state: TrueState) {
     ...treasuryFinancing(state),
     centralBankAssets: state.finance.centralBankAssets,
     assetPurchases: flows.assetPurchases,
+    assetRunoff: flows.assetRunoff,
+    yieldCurve: {
+      ...state.finance.yieldCurve,
+      benchmark: { ...state.finance.yieldCurve.benchmark },
+      yields: { ...state.finance.yieldCurve.yields },
+    },
     fxIntervention: flows.fxIntervention,
     revenue: gov.budget.revenue,
     outlays: gov.budget.outlays,

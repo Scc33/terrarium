@@ -26,6 +26,7 @@ function point(tick: number, over: Partial<PolicyPoint> = {}): PolicyPoint {
     spending: { transfers: 4, procurement: 3, investment: 2, research: 1 },
     immigrationLimit: 0.012,
     policyRate: 0.04,
+    debtMaturity: 0.5,
     assetPurchaseRate: 0,
     capitalRequirement: 0.06,
     fxIntervention: 0,
@@ -60,6 +61,7 @@ describe('the minute book files decisions, not consequences', () => {
     const opening = policyChanges(passive).filter((c) => c.tick === 0)
     expect(opening.map((c) => c.key).sort()).toEqual([
       'capitalRequirement',
+      'debtMaturity',
       'immigrationLimit',
       'policyRate',
       'spending.investment',
@@ -223,7 +225,7 @@ describe('reading the dials back', () => {
     // build here until it has been named and faced — which is how
     // `assetPurchaseRate`, `capitalRequirement`, `fxIntervention` and
     // `surplusPayout` all arrived.
-    expect(POLICY_LINES).toHaveLength(4 + 4 + 1 + 1 + 4 + 5 + 4)
+    expect(POLICY_LINES).toHaveLength(4 + 5 + 1 + 1 + 4 + 5 + 4)
     expect(new Set(POLICY_LINES.map((l) => l.key)).size).toBe(POLICY_LINES.length)
   })
 
