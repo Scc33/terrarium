@@ -312,7 +312,12 @@ export function observe(state: TrueState): PublishedState {
       outlaysByProgramme: { ...state.flows.outlaysByProgramme },
     },
     capacity: { ...state.gov.capacity },
-    capacityBuilding: state.gov.pipeline.map((b) => ({ target: b.target, remaining: b.remaining })),
+    capacityBuilding: state.gov.pipeline.map((b) => ({
+      target: b.target,
+      remaining: b.remaining,
+      perQtr: b.perQtr,
+      moneyPerQtr: b.moneyPerQtr,
+    })),
     books: state.stats.record.map((r) => ({
       tick: r.tick,
       revenue: r.revenue,

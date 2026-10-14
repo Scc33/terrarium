@@ -53,7 +53,7 @@ const MODULE_LINE_BASELINE = {
   // legitimacy grade cut, which likewise may live nowhere else. Ratcheted
   // from 2033 by #122: schema 48's `TURBULENCE` table, the setup dial's
   // multipliers, which ADR-0007 says may live nowhere else.
-  // #31 adds schema 49's maturity, dealer-memory and QE-duration coefficients,
+  // #31 adds schema 50's maturity, dealer-memory and QE-duration coefficients,
   // which ADR-0007 requires in this total tuning ledger.
   'packages/engine/src/constants.ts': 2068,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
@@ -95,12 +95,12 @@ const MODULE_LINE_BASELINE = {
   // including two spots that had silently re-typed INCOME_TAX_1946 /
   // CORPORATE_TAX_1946 / POLICY_RATE_1946 as fresh numbers.
   // #221 seeds its new household expectation beside the nominal forecast.
-  // Schema 49 seeds the maturity dial, bond book and settlement flows (#31).
+  // Schema 50 seeds the maturity dial, bond book and settlement flows (#31).
   'packages/engine/src/state/init.ts': 677,
   // Cohesive schema: total state contracts and canonical id lists.
   // Schema 47 adds the hidden household expectation (#221).
   // Schema 48 adds the world's turbulence as a replay input (#122).
-  // Schema 49 declares fixed contracts, quotes and cash/face settlement (#31).
+  // Schema 50 declares fixed contracts, quotes and cash/face settlement (#31).
   'packages/engine/src/state/schema.ts': 1421,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,

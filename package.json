@@ -28,6 +28,7 @@
     "neutral-rate": "tsx tools/measure-neutral-rate.ts",
     "yield-curve": "tsx tools/measure-yield-curve.ts",
     "inflation-expectations": "tsx tools/measure-inflation-expectations.ts",
+    "institution-costs": "tsx tools/measure-institution-costs.ts",
     "capital-returns": "tsx tools/measure-capital-returns.ts",
     "capital-ownership": "tsx tools/measure-capital-ownership.ts",
     "investment-delivery": "tsx tools/measure-investment-delivery.ts",
@@ -57,10 +58,10 @@
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "globals": "^17.12.0",
+    "globals": "^17.13.0",
     "tsx": "^4.23.15",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
-    "typescript-eslint": "^8.70.1",
+    "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.0"
   }
 }

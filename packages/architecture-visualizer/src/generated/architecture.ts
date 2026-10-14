@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "ab9d9e0",
+  "revision": "e3da6e2",
   "repoRoot": "../..",
   "packages": [
     {
@@ -25,7 +25,7 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 5,
-      "lines": 1184
+      "lines": 1195
     },
     {
       "id": "runner",
@@ -38,8 +38,8 @@ export const architecture = {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 122,
-      "lines": 20644
+      "moduleCount": 123,
+      "lines": 20703
     }
   ],
   "modules": [
@@ -4112,6 +4112,7 @@ export const architecture = {
         "packages/runner/src/stability.ts",
         "packages/runner/src/survey.ts",
         "packages/ui/src/App.tsx",
+        "packages/ui/src/capacityFunding.ts",
         "packages/ui/src/census.ts",
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
         "packages/ui/src/components/labels.ts",
@@ -7025,6 +7026,7 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/accounts.ts",
         "packages/ui/src/budgetChart.ts",
+        "packages/ui/src/capacityFunding.ts",
         "packages/ui/src/census.ts",
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
@@ -7168,7 +7170,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
-      "lines": 416,
+      "lines": 421,
       "exports": [
         {
           "name": "observe",
@@ -7194,7 +7196,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 382,
+      "lines": 388,
       "exports": [
         {
           "name": "PolicyPoint",
@@ -8534,6 +8536,31 @@ export const architecture = {
         "packages/ui/src/shell/useCabinetChrome.ts"
       ],
       "path": "packages/ui/src/cabinetNavigation.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/capacityFunding.ts",
+      "label": "capacityFunding",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Size a ministry bid against room left after the cabinet's existing orders. Revenue alone used to bid past full strength, paying for deliveries that fiscal clamps away, and offered FUND even when the engine's in-flight gate refused every bid. Commitments are exact government bo…",
+      "lines": 42,
+      "exports": [
+        {
+          "name": "capacityFunding",
+          "kind": "function",
+          "path": "packages/ui/src/capacityFunding.ts",
+          "line": 16
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/cabinet/CapacityRow.tsx"
+      ],
+      "path": "packages/ui/src/capacityFunding.ts",
       "line": 1
     },
     {
@@ -10834,31 +10861,31 @@ export const architecture = {
           "name": "ManualEntry",
           "kind": "interface",
           "path": "packages/ui/src/manual.ts",
-          "line": 87
+          "line": 85
         },
         {
           "name": "ManualSection",
           "kind": "interface",
           "path": "packages/ui/src/manual.ts",
-          "line": 94
+          "line": 92
         },
         {
           "name": "MANUAL_CHAPTER_IDS",
           "kind": "constant",
           "path": "packages/ui/src/manual.ts",
-          "line": 102
+          "line": 100
         },
         {
           "name": "ManualChapterId",
           "kind": "type",
           "path": "packages/ui/src/manual.ts",
-          "line": 113
+          "line": 111
         },
         {
           "name": "ManualChapter",
           "kind": "interface",
           "path": "packages/ui/src/manual.ts",
-          "line": 115
+          "line": 113
         },
         {
           "name": "MANUAL_CHAPTERS",
@@ -11304,18 +11331,19 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "One capacity programme: eight quarters of funding for a ministry. The statistical office gets the extra line, because it is the one capacity whose return is an instrument appearing on the wall rather than a number moving.",
-      "lines": 81,
+      "lines": 97,
       "exports": [
         {
           "name": "CapacityRow",
           "kind": "function",
           "path": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
-          "line": 15
+          "line": 16
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
+        "packages/ui/src/capacityFunding.ts",
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/levers.ts",
@@ -11648,7 +11676,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The cabinet workspace: one decision domain at a time, with the draft and enact flow pinned below it. It is a right rail on full desktops and the same focused drawer at smaller laptop and tablet widths.",
-      "lines": 357,
+      "lines": 358,
       "exports": [
         {
           "name": "ControlRail",
@@ -15546,6 +15574,16 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/capacityFunding.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/capacityFunding.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/census.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -16303,6 +16341,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
       "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/cabinet/CapacityRow.tsx",
+      "target": "packages/ui/src/capacityFunding.ts",
       "typeOnly": false
     },
     {
@@ -17448,14 +17491,14 @@ export const architecture = {
     {
       "source": "ui",
       "target": "engine",
-      "count": 50,
+      "count": 51,
       "typeOnlyCount": 8
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 67,
-      "typeOnlyCount": 52
+      "count": 68,
+      "typeOnlyCount": 53
     }
   ],
   "pipeline": [

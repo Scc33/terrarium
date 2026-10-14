@@ -321,7 +321,7 @@ export { emissionsPerHead } from './pipeline/environment'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
-  adminEffectiveness,
+  adminEffectiveness, CAPACITY_BUILD_QTRS, CAPACITY_COST_PER_POINT, CAPACITY_MINISTRY_FULL_STRENGTH_GATE,
   ASSET_BUBBLE_AT,
   ASSET_PURCHASE_RATE_MAX,
   CAPITAL_REQUIREMENT_DEFAULT,

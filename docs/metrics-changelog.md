@@ -21,7 +21,7 @@ contract, so it's called out below.
 
 ---
 
-## Schema 49 — duration, fixed coupons and QE runoff (#31)
+## Schema 50 — duration, fixed coupons and QE runoff (#31)
 
 - **Input +**: `dials.debtMaturity`, a 0–1 maturity mix; the cabinet offers short
   (one year), balanced (25% one year, 50% five years, 25% ten years), and long
@@ -44,6 +44,18 @@ contract, so it's called out below.
   RNG draw or pipeline reorder. Old action-log saves replay under these rules.
 - **Evidence**: [ADR-0047](adr/0047-yields-price-duration-and-fixed-contracts.md),
   `pnpm yield-curve`, cash/face conservation tests and all-country baselines.
+
+## Schema 49 — exact ministry commitments and bounded cabinet bids (#50, #48)
+
+- **Outputs +**: each `PublishedState.capacityBuilding` entry includes `perQtr` and
+  `moneyPerQtr`, the deliveries and cash payments the cabinet itself authorized. These exact
+  commitments permit the UI to sum all overlapping programmes and their unpaid bills.
+- The cabinet sizes FUND against capacity remaining after queued deliveries, and marks a
+  ministry already at or building toward the existing absorption gate as fully funded.
+  Revenue-based bids no longer buy points beyond full strength. Cash and PC are shown separately;
+  a half button can resize a draft rejected by the worker's unchanged administration ceiling.
+- No engine arithmetic, action pricing, pipeline order, replay input or survey changes.
+  Existing action logs reconstruct the same economy; only `meta.schemaVersion` moves in goldens.
 
 ## Schema 48 — the world's turbulence is a replay input (#122)
 

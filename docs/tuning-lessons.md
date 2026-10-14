@@ -19,6 +19,9 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
 
   Measured 2026-10-12 on implementation `edc423b` (schema 49), against unmodified
   `ab9d9e062bd70a616ceb5d56630f0bdb5c7b530e` (schema 48), Node 24.20.0/darwin arm64.
+  Integration with `6265aa8` reserves schema 49 for ministry commitments and
+  advances this feature to schema 50. The integration's moved-state diff changes
+  only `meta.schemaVersion`; these economic measurements remain unchanged.
   `pnpm diff-state --moved-only` at the shadow-quote stage moved only the schema
   version. Once fixed contracts were connected, higher new duration coupons and
   market-price buybacks deliberately changed fiscal cash flows. In the final

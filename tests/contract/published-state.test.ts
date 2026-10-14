@@ -14,6 +14,7 @@ import {
   LABOUR_CLASS_IDS,
   LABOUR_MARKET_TABLE_IDS,
   STANDARD_RULES,
+  applyAction,
   init,
   step,
   type TrueState,
@@ -104,6 +105,19 @@ describe('the published-state contract (§1.1)', () => {
     expect(round).toEqual(pub)
     // and it must be plain JSON too (the save/db layer serialises it)
     expect(JSON.parse(JSON.stringify(pub))).toEqual(pub)
+  })
+
+  it('publishes only the cabinet\'s exact delivery and payment commitments', () => {
+    const state = step(applyAction(init(standardCountry, 'contract-ministry'), {
+      kind: 'investCapacity', target: 'tax', amount: 6,
+    }))
+    const pub = observe(state)
+    expect(pub.capacityBuilding).toEqual([{
+      target: 'tax', remaining: 7, perQtr: 0.1 / 8, moneyPerQtr: 0.75,
+    }])
+    expect(pub.capacityBuilding[0]).not.toBe(state.gov.pipeline[0])
+    pub.capacityBuilding[0].moneyPerQtr = 0
+    expect(state.gov.pipeline[0].moneyPerQtr).toBe(0.75)
   })
 
   it('leaks no true state: none of the engine internals cross the fog', () => {

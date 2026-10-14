@@ -202,7 +202,7 @@ export const CAPACITY_COPY: Record<CapacityId, CapacityCopy> = {
   tax: {
     label: 'Tax admin',
     hint: 'How well the government collects the taxes it sets.',
-    effect: 'More of every posted tax rate is actually collected.',
+    effect: 'Raises collections at unchanged tax rates, especially income and profit taxes.',
     detail:
       'The gap between a rate you post and money that reaches the treasury. A poor country with a weak tax office cannot finance itself out of income tax however high the rate goes, which is why the tariff — collected at a port rather than a ledger — is the opening revenue of most postings.',
   },
