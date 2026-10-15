@@ -35,7 +35,6 @@ import {
   INVESTMENT_SLACK_GAIN,
   INVESTMENT_UTIL_GAIN,
   MPC,
-  NATURAL_REAL_RATE,
   NATURAL_UNEMPLOYMENT,
   NOMINAL_GDP_FLOOR_SHARE,
   SAVINGS_DRAWDOWN,
@@ -52,7 +51,7 @@ import {
   effectivePrice,
   potentialOutput,
 } from './derive'
-import { privateRealRate } from './funding'
+import { longNaturalRealRate, privateLongRealRate } from './funding'
 
 export const production: PipelineStep = {
   name: 'production',
@@ -116,7 +115,7 @@ export const production: PipelineStep = {
     })
 
     // --- investment demand (private responds to the real rate) ---
-    const realRate = privateRealRate(state)
+    const realRate = privateLongRealRate(state)
     const avgUtil =
       sectors.reduce((s, x) => s + x.capacityUtilization, 0) / sectors.length
     const replacement = sectors.reduce((s, x) => s + DEPRECIATION_Q * x.capital, 0)
@@ -130,7 +129,7 @@ export const production: PipelineStep = {
       effectiveBlocPower(state, 'industrialists')
     const invFactor = clamp(
       1 +
-        INVESTMENT_RATE_SENSITIVITY * (NATURAL_REAL_RATE - realRate) +
+        INVESTMENT_RATE_SENSITIVITY * (longNaturalRealRate() - realRate) +
         INVESTMENT_UTIL_GAIN * (avgUtil - INVESTMENT_NORMAL_UTILIZATION) +
         CONF_INV_GAIN * (state.ledger.confidence.business - CONF_NEUTRAL) +
         // Open unemployment is the investable quantity here: bumping changes

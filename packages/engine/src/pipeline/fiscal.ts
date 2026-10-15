@@ -34,7 +34,7 @@ import {
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { effectiveBlocPower, financierAnger } from './derive'
-import { sovereignRiskPremium } from './funding'
+import { couponBill, issueBonds, settleDebt } from './bonds'
 
 export const fiscal: PipelineStep = {
   name: 'fiscal',
@@ -75,9 +75,8 @@ export const fiscal: PipelineStep = {
 
     // --- outlays ---
     const debtToGdp = gov.debt / Math.max(4 * flows.nominalGdp, 1e-9)
-    // a capital strike is not a scripted penalty: it is a yield, and it shows
-    // up in the itemised books as a fatter interest line
-    const riskPremium = sovereignRiskPremium(state)
+    // Existing coupons are contracts. A capital strike raises the next
+    // auction's quote, then reaches this bill as debt is issued or refinanced.
     const outlaysByProgramme: OutlaySplit = {
       transfers: gov.dials.spending.transfers,
       procurement: gov.dials.spending.procurement,
@@ -85,7 +84,7 @@ export const fiscal: PipelineStep = {
       research: gov.dials.spending.research,
       subsidies: sumRecord(gov.dials.subsidies),
       capacity: gov.pipeline.reduce((s, b) => s + b.moneyPerQtr, 0),
-      interest: (gov.debt * (gov.dials.policyRate + riskPremium)) / 4,
+      interest: couponBill(gov.bonds),
     }
     const interest = outlaysByProgramme.interest
     const outlays = sumRecord(outlaysByProgramme)
@@ -115,16 +114,23 @@ export const fiscal: PipelineStep = {
         ? 0
         : BOND_MARKET_DEPTH * 4 * flows.nominalGdp * 0.25 * (1 - FIN_FAVOR_DEPTH * moneyAnger)
     /* eslint-enable @typescript-eslint/no-magic-numbers */
-    const printedThisQtr = Math.max(0, deficit - bondCapacity)
-    const borrowed = deficit - printedThisQtr
-    const repaid = Math.min(Math.max(0, balance), gov.debt)
-    const debt = Math.max(0, gov.debt + borrowed - repaid)
+    const operatingPrinting = Math.max(0, deficit - bondCapacity)
+    const borrowed = deficit - operatingPrinting
+    // Refinancing replaces a claim rather than demanding new household
+    // savings. Only net new borrowing consumes the auction's new-money depth.
+    const settlement = settleDebt(gov.bonds, Math.max(0, balance), debtToGdp <= DEBT_CEILING,
+      state.meta.tick, state.finance.yieldCurve)
+    const printedThisQtr = operatingPrinting + settlement.rolloverPrinting
+    const repaid = settlement.cashRepaid
+    const bonds = [...settlement.lots, ...issueBonds(borrowed + settlement.refinanced,
+      gov.dials.debtMaturity, state.meta.tick, state.finance.yieldCurve)]
+    const debt = bonds.reduce((sum, lot) => sum + lot.principal, 0)
 
     // What is left of a surplus once the bondholders have been paid. The dial
     // is a standing order over this residual only, so nothing about bond
     // financing changes at any setting: a country still carrying debt pays it
     // down first whatever the cabinet has decided about surpluses.
-    const residual = Math.max(0, balance) - repaid
+    const residual = settlement.residualSurplus
     // A rebate is a REFUND, so it is gated on there being something to refund:
     // income-tax receipts, not merely a wage bill. A country with the rate at
     // zero (or a tax office that collects none of it) can still run a debt-free
@@ -155,6 +161,7 @@ export const fiscal: PipelineStep = {
         pipeline,
         budget: { revenue, outlays, balance },
         debt,
+        bonds,
         fund,
         printed: gov.printed + printedThisQtr,
       },
@@ -171,6 +178,10 @@ export const fiscal: PipelineStep = {
         printedThisQtr,
         debtInterest: interest,
         debtPrincipal: repaid,
+        debtMaturing: settlement.maturing,
+        bondsRefinanced: settlement.refinanced,
+        debtBuybackAdjustment: settlement.buybackAdjustment,
+        newBondBorrowing: borrowed,
         fiscalRebate: rebate,
         fundFlow,
       },

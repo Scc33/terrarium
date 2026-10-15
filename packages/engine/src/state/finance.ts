@@ -1,11 +1,16 @@
 /** Financial stocks and their opening book. */
 import { BANK_TARGET_RATIO } from '../constants'
 import type { Money, Qtr } from './schema'
+import type { AssetLot, YieldCurve } from './bonds'
+import { initialYieldCurve } from '../pipeline/yields'
 
 // ---------- the financial sector: fragility ----------
 export interface FinanceState {
-  /** Central-bank purchases held at acquisition cost, not private bank equity.
-   * No sale, maturity, coupon or revaluation is modeled (ADR-0038). */
+  yieldCurve: YieldCurve
+  assetHoldings: AssetLot[]
+  /** Acquisition-cost holdings weighted by remaining duration, for QE pricing. */
+  durationHoldings: Money
+  /** Central-bank purchases at acquisition cost, with principal runoff. */
   centralBankAssets: Money
   /** asset valuation per unit of capital — a Tobin's q, 1946 = 1. The bubble
    * variable: departs from its profitability/rate fundamental on credit and
@@ -27,8 +32,9 @@ export interface FinanceState {
   crisisSeverity: number
 }
 
-export function initialFinance(creditOutstanding: number, creditToGdp: number): FinanceState {
-  return { centralBankAssets: 0, assetPrice: 1,
+export function initialFinance(creditOutstanding: number, creditToGdp: number, debtRatio?: number): FinanceState {
+  return { yieldCurve: initialYieldCurve(debtRatio), assetHoldings: [], durationHoldings: 0,
+    centralBankAssets: 0, assetPrice: 1,
     bankCapital: BANK_TARGET_RATIO * creditOutstanding,
     creditOutstanding, creditToGdp, creditGrowth: 0,
     crisisQtrsLeft: 0, crisisSeverity: 0,

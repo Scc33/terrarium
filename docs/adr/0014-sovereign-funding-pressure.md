@@ -1,6 +1,6 @@
 # ADR-0014 — Sovereign funding pressure enters one common private rate
 
-**Status:** Accepted · **Date:** 2026-08-10
+**Status:** Partially superseded by [0047](0047-yields-price-duration-and-fixed-contracts.md) (single-rate transmission) · **Date:** 2026-08-10
 
 ## Context
 

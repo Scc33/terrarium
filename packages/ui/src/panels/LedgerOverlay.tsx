@@ -150,7 +150,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
         )}
         note={(
           <>
-            {side === 'financing' ? 'Surplus = debt repaid + fund saved + rebate paid. Deficit = fund drawn + bonds issued + money printed. Fund returns are revenue, already included in the balance. These savings finance the budget you vote; the central bank’s foreign reserves have a separate job.' : 'Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.'}
+            {side === 'financing' ? 'Balance = cash debt repaid − new borrowing − financing printed + fund saved − fund drawn + rebate. Matched refinancing replaces a maturing claim without changing this cash balance. Early buybacks retire face principal at market prices. Fund returns are already revenue; central-bank reserves have a separate job.' : 'Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.'}
             {t.printed > 0.5 && <span className="mt-1 block font-mono text-[9px] tracking-[0.08em] text-dossier-warn">THE MINT HAS PRINTED {t.printed.toFixed(1)} TO DATE. THE BOND MARKET NOTICED.</span>}
           </>
         )}

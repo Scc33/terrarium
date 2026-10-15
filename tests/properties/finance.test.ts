@@ -107,6 +107,7 @@ describe('sovereign funding pressure', () => {
       flows: {
         ...base.flows,
         printedThisQtr: printed * quarterlyGdp,
+        newBondBorrowing: Math.max(0, bondIssuance - printed) * quarterlyGdp,
       },
       institutions: {
         ...base.institutions,
@@ -139,14 +140,14 @@ describe('sovereign funding pressure', () => {
     const drawn = fundedState({ bondIssuance: 0.04 })
     const fundFinanced: TrueState = {
       ...drawn,
-      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance },
+      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance, newBondBorrowing: 0 },
     }
     expect(bondIssuanceShare(fundFinanced)).toBe(0)
     expect(privateFundingSpread(fundFinanced)).toBe(0)
     // …and a draw that covers half the deficit leaves half an auction
     const half: TrueState = {
       ...drawn,
-      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance / 2 },
+      flows: { ...drawn.flows, fundFlow: drawn.gov.budget.balance / 2, newBondBorrowing: drawn.flows.newBondBorrowing / 2 },
     }
     expect(bondIssuanceShare(half)).toBeCloseTo(0.02, 12)
   })
@@ -247,7 +248,7 @@ describe('the Minsky clock', () => {
 describe('the transmission and the instruments', () => {
   const base = century('fin-t', null)[40]
 
-  it('quantitative easing works past the rate floor through the common private rate', () => {
+  it('quantitative easing works past the rate floor through credit and longer funding', () => {
     const withoutPurchases = {
       ...base,
       gov: {
@@ -262,7 +263,7 @@ describe('the transmission and the instruments', () => {
         dials: { ...withoutPurchases.gov.dials, assetPurchaseRate: 0.1 },
       },
     }
-    expect(privateRealRate(withPurchases)).toBeCloseTo(privateRealRate(withoutPurchases) - 0.02)
+    expect(privateRealRate(withPurchases)).toBeLessThan(privateRealRate(withoutPurchases))
 
     const ordinary = runStep('finance', withoutPurchases)
     const qe = runStep('finance', withPurchases)

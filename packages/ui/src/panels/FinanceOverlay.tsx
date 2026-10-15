@@ -19,6 +19,7 @@ import {
 import type { ChartRule } from '../components/ui'
 import { NAMES } from '../components/labels'
 import { PublicAssetBook } from './PublicAssetBook'
+import { YieldCurveBook } from './YieldCurveBook'
 import {
   LEVERAGE_RAIL,
   VALUATION_RAIL,
@@ -35,7 +36,7 @@ const yearOf = (q: number) => FIRST_YEAR + Math.floor(q / 4)
 const qtrLabel = (q: number) => `${yearOf(q)} Q${(q % 4) + 1}`
 const pct1 = (v: number) => `${v.toFixed(1)}%`
 
-type View = 'position' | 'stance' | 'banks' | 'assets'
+type View = 'position' | 'stance' | 'banks' | 'assets' | 'curve'
 
 const CW = 500
 const CH = 132
@@ -193,15 +194,17 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
             options={[
               { value: 'position', label: 'THE POSITION', title: 'Borrowing against asset valuation. Only the shaded corner is dangerous.' },
               { value: 'stance', label: 'THE STANCE', title: 'The three money dials over the whole run, exactly as they were set.' },
+              { value: 'curve', label: 'YIELD CURVE', title: 'Dealer quotes by maturity, compared with the previous quarter.' },
               { value: 'banks', label: 'THE BANKS', title: 'What the banks can absorb, against the floor you set them.' },
               { value: 'assets', label: 'CENTRAL BANK', title: 'Purchased assets and foreign reserves: what the central bank holds and what it bought or sold.' },
             ]}
           />
         )}
         note={NOTE[view]}
-        footer={view === 'assets' ? 'CENTRAL BANK BOOKS · EXACT · NO SURVEY REQUIRED' : 'THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS'}
+        footer={view === 'curve' ? 'PUBLIC MARKET QUOTES · MATURITIES SPACED EQUALLY' : view === 'assets' ? 'CENTRAL BANK BOOKS · EXACT · NO SURVEY REQUIRED' : 'THE CRASH ALWAYS MAKES THE PAPERS · THE BUILD-UP ONLY MAKES YOURS'}
       >
         {view === 'assets' && <PublicAssetBook pub={pub} book="bank" />}
+        {view === 'curve' && <YieldCurveBook pub={pub} />}
         {view === 'position' && (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
             <div className="flex min-w-0 flex-col gap-1">
@@ -377,11 +380,12 @@ export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose:
  * (`levers.ts`, `NAMES`); nothing here duplicates them.
  */
 const NOTE: Record<View, string> = {
+  curve: 'These quotes price new bonds and refinancing. Existing coupons stay fixed. Compare the curve with Treasury → Savings & Financing before choosing short or long borrowing: lower costs now can mean more debt returning sooner. An inverted curve does not trigger a scripted recession.',
   assets: 'Asset purchases exchange newly created money for assets. Currency defence runs the other way: foreign reserves are sold for domestic money and the reserve book shrinks. Neither holding is the sovereign fund used to finance the budget; the treasury’s savings and financing appear in the ledger.',
   position:
     'A crash needs both at once. High borrowing with cheap capital is a country that owes a lot and can pay; expensive capital with little borrowing is an exuberant market with nothing lent against it. The shaded corner is where the two meet, and the risk climbs with the product of the two excesses rather than with either one.',
   stance:
-    'These are the government’s own minutes: exact, unrevised, and available whether or not a single survey was ever funded. Cheap money and asset purchases work on the same channel and stack; the capital floor works on a different one and can hold lending back while both are running. Compare them against the crisis marks — the crash a government gets is usually the one its own rate cut paid for.',
+    'These are the government’s own minutes: exact, unrevised, and available whether or not a single survey was funded. Rate changes act first on short funding; purchases mostly affect longer costs and leave holdings that mature over time. The capital floor can hold lending back while both are easing. Compare these orders against the curve and the crisis marks.',
   banks:
     'The floor is a share of lending banks must fund with their own money. Above it the rule is slack and does nothing; at it, lending stops growing however cheap money is. That is why it is worth raising in a boom and why it bites hardest just after a crisis has written capital down.',
 }

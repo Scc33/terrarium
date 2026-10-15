@@ -12,6 +12,7 @@ import type {
 } from '../state/schema'
 
 export type DialPath =
+  | 'debtMaturity'
   | 'taxRates.income'
   | 'taxRates.corporate'
   | 'taxRates.tariff'

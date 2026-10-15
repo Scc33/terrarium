@@ -187,7 +187,9 @@ describe('the arithmetic', () => {
   it('asset purchases raise neutral at the engine’s gain, and nothing else moves', () => {
     const eased = monetaryStance({ ...pub, dials: { ...pub.dials, assetPurchaseRate: 0.1 } })!
     expect(eased.neutral - base.neutral).toBeCloseTo(eased.assetPurchases - base.assetPurchases, 12)
-    expect(eased.assetPurchases).toBeCloseTo(0.02, 12)
+    // An announced order begins with a smaller short-rate effect; the
+    // held-duration channel builds only as purchases enter the asset book.
+    expect(eased.assetPurchases - base.assetPurchases).toBeCloseTo(0.00075, 12)
     expect(eased.expectations).toEqual(base.expectations)
     expect(eased.funding).toEqual(base.funding)
   })

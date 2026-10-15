@@ -40,14 +40,17 @@ function Estimate({ stance }: { stance: MonetaryStance }) {
   return (
     <>
       <p className="mt-1 font-dossier text-[11px] leading-snug text-dossier-paper/80">
-        The desk puts neutral {range}, against the {pct1(stance.posted)} posted.
+        The desk puts short-rate neutral {range}, against the {pct1(stance.posted)} posted.
         {stance.belowFloor &&
-          ' That is below the floor of the dial: the rate alone cannot get there, and asset purchases are the instrument that still moves the same private rate.'}
+          ' That is below the floor of the dial; purchases can still ease longer borrowing costs.'}
+      </p>
+      <p className="mt-1 font-dossier text-[11px] leading-snug text-dossier-paper/80">
+        Five-year real funding is estimated at {pct1(stance.longRealRate)}, {stance.longReading} its {pct1(stance.longAnchor)} anchor. Investment and asset values follow this longer rate.
       </p>
       <ul className="mt-1.5 flex flex-col gap-0.5">
         <Driver
           label="Real-rate anchor"
-          content="The real rate at which the bank's own push on credit, asset valuations and private investment is exactly zero. A constant the desk knows; everything else on this list is an estimate."
+          content="The short real-rate anchor for bank credit. Investment and asset values use a separate five-year anchor that includes the normal term premium."
           value={stance.anchor}
         />
         <Driver
@@ -62,7 +65,7 @@ function Estimate({ stance }: { stance: MonetaryStance }) {
         />
         <Driver
           label="Asset purchases"
-          content="Purchases lower the same private rate a cut does, so they raise the posted rate that counts as neutral — a fifth of a point for every one percent of output bought a year."
+          content="The smaller short-rate effect of the purchase order and remaining duration holdings. Purchases act mainly on the long end; stopping orders does not immediately remove their effect."
           value={stance.assetPurchases}
         />
       </ul>
@@ -87,7 +90,7 @@ export function StanceBriefing({ pub }: { pub: PublishedState }) {
       <div className="flex items-baseline justify-between gap-2">
         <TooltipLabel
           label="Monetary stance"
-          content="Neutral is the posted rate at which the bank's own contribution to credit, asset valuations and private investment is zero. It is a rate term, not a growth target: near neutral, the economy still moves with everything else. Above it the bank is leaning against borrowing; below it, pushing."
+          content="Short-rate neutral describes bank credit. The separate five-year estimate describes investment and asset valuation. Both use published inflation and funding estimates; neither is a growth target."
           className="font-mono text-[8px] tracking-[0.12em] text-dossier-paper/45"
         >
           MONETARY STANCE

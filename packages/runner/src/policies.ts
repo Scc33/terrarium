@@ -63,6 +63,7 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
     // this line existed).
     const monetary = pick([
       { path: 'policyRate', min: 0, max: 0.2 },
+      { path: 'debtMaturity', min: 0, max: 1 },
       { path: 'assetPurchaseRate', min: 0, max: 0.2 },
       { path: 'capitalRequirement', min: 0.03, max: 0.25 },
       { path: 'fxIntervention', min: -FX_INTERVENTION_MAX, max: FX_INTERVENTION_MAX },
