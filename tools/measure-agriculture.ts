@@ -39,7 +39,8 @@
  *
  * Arms run with protected tenure and unlimited capital, like `pnpm composition`'s
  * isolated arm: what is measured is the economy, not whether a cabinet lived to
- * see it. `developmental` funds all four capacities every four quarters.
+ * see it. `developmental` funds all four capacities every four quarters and
+ * hands every surplus back (`surplusPayout` 1).
  */
 
 import {
@@ -249,6 +250,11 @@ function run(country: CountryScenarioId, arm: ArmId, seed: string): Run {
   let binding = 0
   for (let t = 0; t < TICKS; t++) {
     let staged = s
+    // …and hands its surpluses back, as the runner's arm does (#319). Capital
+    // is unlimited here, so it can afford the whole dial on the first morning.
+    if (arm === 'developmental' && t === 0) {
+      staged = applyActions(staged, [{ kind: 'setDial', path: 'surplusPayout', value: 1 }])
+    }
     if (arm === 'developmental' && t % 4 === 0) {
       for (const target of CAPACITY_IDS) {
         try {

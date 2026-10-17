@@ -211,8 +211,11 @@ describe('the playable economy through 2050', () => {
     // and procedural seed 4 (q404) now survive (25 -> 27); passive is
     // untouched. The 1000x400q batch agrees: developmental deposition 11% to
     // 6%, Costona 27% to 3%, passive 1% on every country before and after.
+    // #319 makes the developmental arm hand its surpluses back instead of
+    // exporting them on a deflating currency; one more seed survives
+    // (27 -> 28), and the 1000x400q batch goes from 6% deposed to 3%.
     expect(passiveTrend.survivors).toBe(28)
-    expect(developmentalTrend.survivors).toBe(27)
+    expect(developmentalTrend.survivors).toBe(28)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)
     // An already-taught workforce now outlives institutional school decay;
     // staffing allocation and bumping lift this fixed passive sample to 2.86%

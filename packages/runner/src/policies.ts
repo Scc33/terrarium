@@ -17,14 +17,37 @@ export const POLICY_IDS = ['passive', 'developmental', 'random', 'regulated'] as
 export type PolicyId = (typeof POLICY_IDS)[number]
 export type RunnerPolicy = (state: TrueState, rng: Rng, tick: number) => Action[]
 
-/** Capacity-isolation baseline: keep building the four state capacities while
- * leaving the inherited fixed-cash programme rules unchanged. This is useful
- * for attributing capacity effects, but it is not a balanced fiscal policy or
- * a historical debt baseline. Illegal or temporarily unaffordable attempts
- * are skipped by runOne's ordinary lenient-policy behavior. */
-export const developmentalPolicy: RunnerPolicy = (_state, _rng, tick) =>
+/** How far each capacity batch turns `surplusPayout` up, toward handing every
+ * surplus back (ADR-0037). A step, not the whole dial: the dial costs ~94 PC
+ * against the 20 a government opens with, and an arm that waited to afford it
+ * released decades of withheld demand in one quarter — regulated Costona lost
+ * a fifth of its governments to that boom (#319). */
+const SURPLUS_PAYOUT_STEP = 0.1
+
+/** The capacity builders do not hoard what the ministries collect. Left at 0,
+ * the inherited cash programmes shrink to under 1% of GDP while the tax office
+ * collects ~45%, and the surplus has nowhere to go but abroad: developmental
+ * centuries ran current-account surpluses of 10–13% of GDP on a real rate
+ * deflated to a third of parity, which read as development making every
+ * country a food exporter (#319, investigation 0027). */
+function stopHoarding(state: TrueState): Action[] {
+  const payout = state.gov.dials.surplusPayout
+  if (payout >= 1) return []
+  return [{ kind: 'setDial', path: 'surplusPayout', value: Math.min(1, payout + SURPLUS_PAYOUT_STEP) }]
+}
+
+/** Capacity baseline: keep building the four state capacities and hand the
+ * surpluses they produce back to households, leaving the inherited fixed-cash
+ * programme rules unchanged. It is not a historical debt baseline. Illegal or
+ * temporarily unaffordable attempts are skipped by runOne's ordinary
+ * lenient-policy behavior; the payout step comes after the ministries so the
+ * capacity path is the one this arm always had. */
+export const developmentalPolicy: RunnerPolicy = (state, _rng, tick) =>
   tick % 8 === 0
-    ? CAPACITY_IDS.map((target) => ({ kind: 'investCapacity', target, amount: 2 }))
+    ? [
+        ...CAPACITY_IDS.map((target): Action => ({ kind: 'investCapacity', target, amount: 2 })),
+        ...stopHoarding(state),
+      ]
     : []
 
 /** Adversarial exploration, not a model of expert play. Useful for reaching
@@ -113,9 +136,7 @@ export const randomPolicy: RunnerPolicy = (state, rng) => {
  * error, just a baseline quietly measuring nothing.
  */
 export const regulatedPolicy: RunnerPolicy = (state, _rng, tick) => {
-  if (tick % 8 === 0) {
-    return CAPACITY_IDS.map((target) => ({ kind: 'investCapacity', target, amount: 2 }))
-  }
+  if (tick % 8 === 0) return developmentalPolicy(state, _rng, tick)
   // legislate once the ministries exist to enforce anything
   if (tick < 40 || tick % 4 !== 1) return []
   // …but never at the expense of the capacity path this arm shares with
