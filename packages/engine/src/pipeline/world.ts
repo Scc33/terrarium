@@ -16,7 +16,9 @@
  */
 
 import {
+  ENGEL_ELASTICITY,
   EXPORT_DEMAND_WEIGHTS,
+  FARM_GATE_ELASTICITY,
   PARTNER_ACTIVITY_MAX,
   PARTNER_ACTIVITY_MIN,
   PARTNER_BOOM_AT,
@@ -30,6 +32,7 @@ import {
   WORLD_SUPPLY_PRICE_GAIN,
   WORLD_PHASE_COOLDOWN_Q,
   WORLD_SUPPLY_WEIGHTS,
+  WORLD_WORKFORCE_ERAS,
 } from '../constants'
 import { fileDispatch, fileIfNotRecent } from '../events/file'
 import type { EventId } from '../events/ids'
@@ -42,6 +45,23 @@ import {
   type WorldPartner,
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
+import { frontierGrowthAt, scheduledGrowthAt } from './technology'
+
+/** The world's per-head income elasticity of demand for each good: what the
+ * domestic basket does over time (`ENGEL_ELASTICITY`, ADR-0030), and for the
+ * farm what the food margin does to the farm gate's share (ADR-0048). */
+const WORLD_INCOME_ELASTICITY = sectorRecord(
+  (sid: SectorId) => 1 + ENGEL_ELASTICITY[sid] + (sid === 'agri' ? FARM_GATE_ELASTICITY : 0),
+)
+
+/** One quarter of growth in the partners' demand for each good (ADR-0049).
+ * The schedules, not `tech.frontier`: research pushes the frontier, and the
+ * world's appetite for your goods does not answer to your laboratories. */
+export function exportMarketGrowth(tick: number): Record<SectorId, number> {
+  const workforce = scheduledGrowthAt(WORLD_WORKFORCE_ERAS, tick)
+  const perHead = frontierGrowthAt(tick)
+  return sectorRecord((sid: SectorId) => (workforce + WORLD_INCOME_ELASTICITY[sid] * perHead) / 4)
+}
 
 /** Which event each partner's phase raises. The COPY lives in
  * `events/catalogue.ts` with everything else the wire says; this is only the
@@ -136,9 +156,12 @@ export const world: PipelineStep = {
       return clamp(p * (1 + move), WORLD_PRICE_MIN, WORLD_PRICE_MAX)
     })
 
+    const growth = exportMarketGrowth(state.meta.tick)
+    const exportMarket = sectorRecord((sid: SectorId) => external.exportMarket[sid] * (1 + growth[sid]))
+
     return {
       ...state,
-      external: { ...external, worldPrices, world: { partners, exportDemand } },
+      external: { ...external, worldPrices, exportMarket, world: { partners, exportDemand } },
       stats: news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
     }
   },

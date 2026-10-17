@@ -214,6 +214,10 @@ describe('the playable economy through 2050', () => {
     // #319 makes the developmental arm hand its surpluses back instead of
     // exporting them on a deflating currency; one more seed survives
     // (27 -> 28), and the 1000x400q batch goes from 6% deposed to 3%.
+    // ADR-0049 sells exports from the partners' markets, not own capacity;
+    // with ADR-0050 pricing a persistent imbalance the sample keeps all 28;
+    // the 1000x400q batch goes from 3% deposed to 4% (Kestrel 13% -> 16%)
+    // and growth 2.97 -> 2.98.
     expect(passiveTrend.survivors).toBe(28)
     expect(developmentalTrend.survivors).toBe(28)
     expect(passiveTrend.aggregateCagr.p50).toBeGreaterThan(2.3)

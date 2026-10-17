@@ -30,7 +30,7 @@ const SURPLUS_PAYOUT_STEP = 0.1
  * centuries ran current-account surpluses of 10–13% of GDP on a real rate
  * deflated to a third of parity, which read as development making every
  * country a food exporter (#319, investigation 0027). */
-function stopHoarding(state: TrueState): Action[] {
+export function stopHoarding(state: TrueState): Action[] {
   const payout = state.gov.dials.surplusPayout
   if (payout >= 1) return []
   return [{ kind: 'setDial', path: 'surplusPayout', value: Math.min(1, payout + SURPLUS_PAYOUT_STEP) }]
@@ -168,7 +168,8 @@ export const regulatedPolicy: RunnerPolicy = (state, _rng, tick) => {
  * It is not lenient about the thing under test: statutes are re-attempted
  * every year until the book actually reads the top rung, because an enactment
  * that a deposed or broke cabinet silently refused looks exactly like a
- * statute that does nothing (see docs/tuning-lessons.md). */
+ * statute that does nothing (see docs/tuning-lessons.md). Like the builders it
+ * hands its surpluses back rather than banking them (#319). */
 export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
   const actions: Action[] = []
   const gdp = Math.max(state.flows.nominalGdp, 1e-9)
@@ -195,6 +196,7 @@ export const maximalPolicy: RunnerPolicy = (state, _rng, tick) => {
         actions.push({ kind: 'setSpendingRule', programme, mode: 'gdpShare', value: share })
       }
     }
+    actions.push(...stopHoarding(state))
   }
   return actions
 }

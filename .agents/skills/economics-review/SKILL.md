@@ -345,6 +345,15 @@ real rate a third of parity, and every developmental number in this file was par
 of zero, against passive's 1.15–1.24. If a change reopens that gap, a surplus has lost its
 destination again. The arms' other tables above were measured before this; re-measure them.
 
+### Where trade goes (ADR-0049, ADR-0050)
+
+Exports sell from a foothold the world grows, imports follow absorption, and the balance norm
+leaks back toward the inherited balance. 1000 × 400q, `--country all`, on top of #319: passive
+growth 2.86 → 2.85 and 1% deposed either way; developmental and regulated 3% → 4% (Kestrel), growth
+2.98. Use **`pnpm agriculture`** table 3 `net exp.` and **`pnpm currency`** §4. If developmental
+farm net exports climb back above passive, something is scaling trade by capacity again. If a
+deficit sits for decades with the rate flat, the norm has stopped reverting.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
