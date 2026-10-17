@@ -1065,6 +1065,29 @@ export function effectiveConsumptionWeights(
 }
 
 /**
+ * The price of the food bill as households pay it (#289): each cohort's food
+ * money is split by `farmGateShare` between the farm price and the
+ * `FOOD_MARGIN_SECTORS` prices, and cohorts are weighted by the size of that
+ * bill. Where no one buys food it is the farm price, which is also what it
+ * reads wherever the whole bill still reaches the farm.
+ */
+export function householdFoodPrice(state: TrueState): number {
+  const farm = effectivePrice(state, 'agri')
+  let margin = 0
+  for (const sid of SECTOR_IDS) margin += FOOD_MARGIN_SECTORS[sid] * effectivePrice(state, sid)
+  let bill = 0
+  let paid = 0
+  for (const c of state.cohorts) {
+    const food = state.flows.cohortSpend[c.id] * householdBasket(state, c.id).agri
+    if (!(food > 0)) continue
+    const gate = farmGateShare(state, c.id)
+    bill += food
+    paid += food * (gate * farm + (1 - gate) * margin)
+  }
+  return bill > 1e-9 ? paid / bill : farm
+}
+
+/**
  * Household own-basket price level for a cohort (base = 1).
  *
  * Arithmetic over the CURRENT basket, not the CES exact cost-of-living index.

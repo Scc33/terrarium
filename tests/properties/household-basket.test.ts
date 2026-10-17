@@ -30,7 +30,12 @@ import {
 } from '@terrarium/engine'
 import { validate } from '../../packages/engine/src/state/validate'
 import { FARM_GATE_ELASTICITY, FOOD_MARGIN_SECTORS } from '../../packages/engine/src/constants'
-import { farmGateShare, householdBasket } from '../../packages/engine/src/pipeline/derive'
+import {
+  effectivePrice,
+  farmGateShare,
+  householdBasket,
+  householdFoodPrice,
+} from '../../packages/engine/src/pipeline/derive'
 
 /**
  * A capacity-building century with tenure protected, so what is measured is
@@ -245,6 +250,26 @@ describe('where the food bill lands (#289)', () => {
         )
       }
     }
+  })
+
+  it('publishes the price of the bill as demand routes it, not the farm price', () => {
+    // The household food price is a second reading of the same routing, so it
+    // is rebuilt here from the weights demand reads rather than from the gate.
+    const { opening, final } = govern('meridia', 'food-price', 200)
+    expect(householdFoodPrice(opening)).toBe(effectivePrice(opening, 'agri'))
+    const farm = effectivePrice(final, 'agri')
+    const margin = SECTOR_IDS.reduce((sum, sid) => sum + FOOD_MARGIN_SECTORS[sid] * effectivePrice(final, sid), 0)
+    let bill = 0
+    let paid = 0
+    for (const c of final.cohorts) {
+      const food = final.flows.cohortSpend[c.id] * householdBasket(final, c.id).agri
+      const atGate = final.flows.cohortSpend[c.id] * effectiveConsumptionWeights(final, c.id).agri
+      bill += food
+      paid += atGate * farm + (food - atGate) * margin
+    }
+    expect(final.cohorts.some((c) => farmGateShare(final, c.id) < 1)).toBe(true)
+    expect(householdFoodPrice(final)).toBeCloseTo(paid / bill, 12)
+    expect(householdFoodPrice(final)).not.toBeCloseTo(farm, 3)
   })
 
   it('splits the whole margin and none of it to the farm', () => {

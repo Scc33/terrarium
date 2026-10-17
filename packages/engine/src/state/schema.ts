@@ -253,6 +253,9 @@ export const INDICATOR_IDS = [
   'fdi_inflows',
   'inflation',
   'price_food',
+  /** what households pay for food: the farm price and the food margin's
+   * sector prices, routed as ADR-0048 routes each cohort's food bill */
+  'price_food_household',
   'price_fuel',
   'unemployment',
   'labor_force_participation',
@@ -1114,6 +1117,8 @@ export interface StatRecord {
   /** consumer-facing prices off the market boards (fuel includes the excise) */
   priceFood: number
   priceFuel: number
+  /** the food bill's price, farm gate and margin together (ADR-0048) */
+  priceFoodHousehold: number
   /** income Gini across cohorts, 0..1 — what a household survey would find */
   gini: Ratio
   /** real household income per head, population-weighted, base-year units.
@@ -1372,7 +1377,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 50 // v50: yield quotes, fixed-coupon debt, and QE runoff (#31)
+export const SCHEMA_VERSION = 51 // v51: the household food price (#289)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

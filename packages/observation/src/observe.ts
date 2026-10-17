@@ -61,6 +61,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   inflation: { label: 'Inflation', unit: '% / yr' },
   price_food: { label: 'Food price board', unit: '1946=100' },
   price_fuel: { label: 'Fuel price board', unit: '1946=100' },
+  price_food_household: { label: 'Household food prices', unit: '1946=100' },
   unemployment: { label: 'Unemployment', unit: '%' },
   labor_force_participation: { label: 'Labor force participation', unit: '% of population' },
   human_capital: { label: 'Workforce skills', unit: 'idx' },
