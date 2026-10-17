@@ -34,8 +34,8 @@ import { financierAnger } from './derive'
 import { officialNominalGdp } from '../state/spending'
 import { benchmarkYieldAt, effectivePurchaseRateOf, termPremiumAt } from './termStructure'
 
-/** The share of an auction domestic balance sheets carry, by openness — the
- * debt office's one structural fact, published exactly as such. */
+/** Structural domestic funding exposure, by openness, used by the crowding
+ * proxy. Ultimate household subscriptions are recorded separately on the lots. */
 export { domesticBondFundingShare }
 
 /** The premium on scalars: `debtToGdp` is annualized, `anger` is

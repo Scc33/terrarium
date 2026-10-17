@@ -34,6 +34,7 @@ import {
 } from '../state/schema'
 import type { PipelineStep } from './pipeline'
 import { effectiveBlocPower, financierAnger } from './derive'
+import { settleBondOwnership } from './bondOwnership'
 import { couponBill, issueBonds, settleDebt } from './bonds'
 
 export const fiscal: PipelineStep = {
@@ -122,8 +123,10 @@ export const fiscal: PipelineStep = {
       state.meta.tick, state.finance.yieldCurve)
     const printedThisQtr = operatingPrinting + settlement.rolloverPrinting
     const repaid = settlement.cashRepaid
-    const bonds = [...settlement.lots, ...issueBonds(borrowed + settlement.refinanced,
-      gov.dials.debtMaturity, state.meta.tick, state.finance.yieldCurve)]
+    const issued = issueBonds(borrowed + settlement.refinanced,
+      gov.dials.debtMaturity, state.meta.tick, state.finance.yieldCurve)
+    const holders = settleBondOwnership(state, settlement, issued, borrowed)
+    const bonds = [...settlement.lots, ...holders.bonds]
     const debt = bonds.reduce((sum, lot) => sum + lot.principal, 0)
 
     // What is left of a surplus once the bondholders have been paid. The dial
@@ -165,6 +168,7 @@ export const fiscal: PipelineStep = {
         fund,
         printed: gov.printed + printedThisQtr,
       },
+      external: { ...state.external, bondSettlement: state.external.bondSettlement + holders.foreignSettlement },
       ledger: { ...state.ledger, debtToGdp },
       // coupons are bondholder income; redemptions go back into their
       // savings — a surplus is neither money destroyed nor a spending spree.
@@ -177,6 +181,9 @@ export const fiscal: PipelineStep = {
         outlaysByProgramme,
         printedThisQtr,
         debtInterest: interest,
+        bondInterestByHolder: holders.interest,
+        bondRedemptionsByHolder: holders.redeemed,
+        bondPurchasesByHolder: holders.purchases,
         debtPrincipal: repaid,
         debtMaturing: settlement.maturing,
         bondsRefinanced: settlement.refinanced,

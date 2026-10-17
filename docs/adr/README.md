@@ -63,3 +63,4 @@ the old one and update the Status line of both.
 | [0048](0048-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |
 | [0049](0049-trade-follows-markets-not-capacity.md) | Trade follows markets, not capacity: exports sell from a foothold the world grows, imports follow absorption | Accepted |
 | [0050](0050-a-persistent-imbalance-stays-priced.md) | A persistent imbalance stays priced: the balance norm leaks back toward the inherited balance | Accepted; amends 0034 |
+| [0051](0051-wealth-is-a-consolidated-balance-sheet.md) | Wealth is a consolidated balance sheet | Accepted |

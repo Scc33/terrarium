@@ -1,7 +1,9 @@
 # Investigation 0025 — Investment orders are not goods delivery
 
 **Status:** Open — reachability measured for [#85](https://github.com/Scc33/terrarium/issues/85);
-allocation and settlement remain unspecified. Related to
+goods allocation and settlement remain unspecified. Household financial claims
+and capital-payment accounts have since been added in schema 53 (ADR-0051);
+the measurements below remain the schema-48 delivery study. Related to
 [#142](https://github.com/Scc33/terrarium/issues/142).
 **Date:** 2026-10-01 · **Remeasured:** 2026-10-11
 **Measurement:** `8a70415e947837f94c9b41d6c5899ae2a5acfd57`, clean checkout,

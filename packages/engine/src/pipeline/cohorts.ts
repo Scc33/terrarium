@@ -17,7 +17,6 @@ import {
   APPROVAL_JOBLESS_REFERENCE,
   APPROVAL_SHORTAGE_GAIN,
   APPROVAL_TARGET_BASE,
-  BOND_HOLDING,
   CONF_ADAPT,
   CONF_BUSINESS_PROFIT_GAIN,
   CONF_BUSINESS_PROFIT_REFERENCE,
@@ -97,7 +96,7 @@ export const cohorts: PipelineStep = {
       // builds spending budgets, so tax lands exactly once
       const wageIncome = grossWage
       const profitIncome =
-        totalProfitsNet * PROFIT_SHARE[c.id] + flows.debtInterest * BOND_HOLDING[c.id]
+        (totalProfitsNet - flows.bankRetainedMargin + flows.bankDividends) * PROFIT_SHARE[c.id] + flows.bondInterestByHolder[c.id]
       const transferIncome = transfersDelivered * TRANSFER_SHARE[c.id]
       // Not scaled by `adminEff`: the tax office refunds against wages it has
       // already assessed, so unlike a programme there is nothing here to
@@ -118,10 +117,11 @@ export const cohorts: PipelineStep = {
       const income =
         grossWage * (1 - incomeTaxEff) + profitIncome + transferIncome + rebateIncome
 
-      const savings = Math.max(
-        0,
-        c.savings + income - flows.cohortSpend[c.id] + flows.debtPrincipal * BOND_HOLDING[c.id],
-      )
+      const cash = c.savings - c.overdraft + income - flows.cohortSpend[c.id] +
+        flows.bondRedemptionsByHolder[c.id] - flows.bondPurchasesByHolder[c.id] +
+        (flows.businessCreditFlow - flows.privateInvestmentFunding) * PROFIT_SHARE[c.id]
+      const savings = Math.max(0, cash)
+      const overdraft = Math.max(0, -cash)
 
       // --- experienced conditions ---
       const cpi = cohortCpi(state, c.id)
@@ -157,6 +157,7 @@ export const cohorts: PipelineStep = {
         transferIncome,
         rebateIncome,
         savings,
+        overdraft,
         approval,
         // EMA: the standard of living people measure themselves against
         lastRealIncome:

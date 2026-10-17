@@ -19,6 +19,7 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
+import type { InstrumentPresentation } from '../../perPerson'
 import { FACE_MARK, faceScale, gaugeDomain, readNeedle } from '../../domains'
 import {
   complementReading,
@@ -62,12 +63,15 @@ function DeltaChip({ delta, digits }: { delta: number | null; digits: number }) 
 export function AnalogGauge({
   indicator,
   series,
+  presentation,
   now,
 }: {
   indicator: IndicatorId
   series: IndicatorSeries
+  presentation?: InstrumentPresentation
   now: number
 }) {
+  const names = presentation?.names ?? NAMES[indicator]
   const points = shapeSeries(series, 24, now)
   if (points.length === 0) return null
   const latest = points[points.length - 1]
@@ -77,6 +81,7 @@ export function AnalogGauge({
   const domain = gaugeDomain(
     indicator,
     series.points.map((p) => p.value),
+    presentation?.face,
   )
   const { frac: needle, pegged } = readNeedle(domain, latest.value)
   const band = latest.errorBand
@@ -88,14 +93,14 @@ export function AnalogGauge({
   // the revision row can never disagree about how precise this print was
   const digits = readingDigits(latest.value, indicator)
   const ticks = Array.from({ length: 9 }, (_, i) => i / 8)
-  const title = dossierParts(indicator)
+  const title = dossierParts(indicator, names)
   const scale = faceScale(domain)
-  const reading = `${NAMES[indicator].plate}: ${latest.value.toFixed(digits)}${title.unit ? ` ${title.unit.toLowerCase()}` : ''} on a dial from ${scale.lo} to ${scale.hi}${pegged ? `, off the scale ${pegged === 'hi' ? 'high' : 'low'}` : ''}.`
+  const reading = `${names.plate}: ${latest.value.toFixed(digits)}${title.unit ? ` ${title.unit.toLowerCase()}` : ''} on a dial from ${scale.lo} to ${scale.hi}${pegged ? `, off the scale ${pegged === 'hi' ? 'high' : 'low'}` : ''}.`
   const ink = pegged ? 'var(--color-dossier-warn)' : 'var(--color-dossier-ink)'
 
   const header = (
     <div className="flex items-baseline justify-between gap-2 border-b border-dossier-ink/20 px-3 py-1 font-mono text-[10px] font-medium tracking-[0.14em] text-dossier-ink">
-      <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate">
+      <TooltipLabel label={names.plate} content={names.note} className="truncate">
         {title.name}
       </TooltipLabel>
       {latest.levels && (

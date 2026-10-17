@@ -30,8 +30,11 @@ import type {
   SpendingRules,
   Turbulence,
   YieldCurve,
-  BondLot,
+  BondContract,
 } from '@terrarium/engine'
+import type { WealthPrint } from '@terrarium/engine'
+export { HOUSEHOLD_WEALTH_COMPONENT_IDS } from '@terrarium/engine'
+export type { WealthPrint, HouseholdWealth, HouseholdWealthComponentId } from '@terrarium/engine'
 import type { LongRunReading, LongRunRecordId } from './longRun'
 
 
@@ -55,7 +58,7 @@ export {
   TURBULENCE_IDS,
 } from '@terrarium/engine'
 export type { GameRuleId, GameRules, Turbulence } from '@terrarium/engine'
-export type { YieldCurve, YieldId, BondLot } from '@terrarium/engine'
+export type { YieldCurve, YieldId, BondContract as BondLot } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit, TaxRateId } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
@@ -209,6 +212,8 @@ export interface PublishedCampaign {
 }
 
 export interface PublishedState {
+  /** Asset-and-liability survey, lagged, revised and absent until funded. */
+  wealth: WealthPrint[]
   /** Observed market quotes, priced from released information. Dealer beliefs
    * are an extrapolation of the policy record, not household expectations. */
   yieldCurve: YieldCurve
@@ -254,7 +259,7 @@ export interface PublishedState {
   /** the treasury keeps exact books on itself — including *which* tax paid
    * for *which* programme, the question a headline balance cannot answer */
   treasury: {
-    bonds: BondLot[]
+    bonds: BondContract[]
     debtMaturing: number
     bondsRefinanced: number
     debtBuybackAdjustment: number
@@ -273,10 +278,10 @@ export interface PublishedState {
      * are one net position, so the pair reads as a single line. */
     fund: number
     printed: number
-    /** The share of each bond auction that domestic balance sheets absorb,
-     * 0..1. The debt office knows its buyers, so this is exact — and it is the
-     * one structural fact the central-bank desk needs to price its own
-     * auction's claim on private funding (ADR-0043). */
+    /** Structural domestic funding exposure, 0..1, used by the existing
+     * crowding-price proxy (ADR-0043). It is the openness-based target, not
+     * households’ realized ownership share: actual subscriptions and ultimate
+     * holder claims are separate accounts under ADR-0051. */
     domesticBondShare: Ratio
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit

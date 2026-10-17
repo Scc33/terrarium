@@ -66,7 +66,7 @@ const PRESENTATION: Record<IndicatorId, { label: string; unit: string }> = {
   labor_force_participation: { label: 'Labor force participation', unit: '% of population' },
   human_capital: { label: 'Workforce skills', unit: 'idx' },
   payrolls: { label: 'Payrolls ex-agri', unit: 'M jobs' },
-  capital_stock: { label: 'Capital stock', unit: 'index' },
+  capital_stock: { label: 'Capital stock', unit: 'real stock units' },
   productivity: { label: 'Output per worker', unit: '1946=100' },
   technology_attainment: { label: 'Technology attained', unit: '% frontier' },
   conf_consumer: { label: 'Consumer confidence', unit: 'idx' },
@@ -271,6 +271,7 @@ export function observe(state: TrueState): PublishedState {
   }
   return {
     tick: state.meta.tick,
+    wealth: state.stats.wealth,
     appointedAt: state.meta.appointedAt,
     country: state.params.name,
     countryAuthored: state.params.authored === true,
@@ -302,7 +303,7 @@ export function observe(state: TrueState): PublishedState {
     yieldHistory: state.stats.record.map(r => structuredClone(r.yieldCurve)),
     spendingRules: structuredClone(state.gov.spendingRules),
     treasury: {
-      bonds: state.gov.bonds.map(lot => ({ ...lot })),
+      bonds: state.gov.bonds.map(({ principal, coupon, issuedAt, maturesAt }) => ({ principal, coupon, issuedAt, maturesAt })),
       ...treasuryFinancing(state),
       ...state.gov.budget,
       debt: state.gov.debt,

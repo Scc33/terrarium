@@ -30,6 +30,7 @@ export function HeaderBar({
   onIndustry,
   onLabour,
   onHouseholds,
+  onWealth,
   onAtlas,
   onVerdict,
 }: {
@@ -43,6 +44,7 @@ export function HeaderBar({
   onIndustry: () => void
   onLabour: () => void
   onHouseholds: () => void
+  onWealth?: () => void
   onAtlas: () => void
   /** present only once the run has ended and a report card exists */
   onVerdict?: () => void
@@ -129,12 +131,13 @@ export function HeaderBar({
         </HeaderGroup>
       </div>
 
-      {/* Nine offices cost more than the ordinary desktop header can spare
+      {/* The office row costs more than the ordinary desktop header can spare
           before the conditional verdict joins them.
           Keep the direct row to genuinely wide screens so a new office cannot
           silently buy its space by shearing the Treasury figures again. */}
       <nav data-tour="offices" className="hidden items-center justify-end gap-1 min-[2048px]:flex" aria-label="Ministry offices">
         {onVerdict && <Button onClick={onVerdict} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+        {onWealth && <Button onClick={onWealth} variant="secondary" size="compact" title="Household assets and liabilities, public and national net worth, in total and per person.">WEALTH</Button>}
         <Button onClick={onHouseholds} variant="secondary" size="compact" title="See poverty and real household income for every fifth of the population.">HOUSEHOLDS</Button>
         <Button onClick={onIndustry} variant="secondary" size="compact" title="See which industries make the economy’s output and where people work.">INDUSTRY</Button>
         <Button onClick={onLabour} variant="secondary" size="compact" title="See joblessness and work below training across the occupational classes.">LABOUR</Button>
@@ -151,6 +154,7 @@ export function HeaderBar({
         </summary>
         <nav className="absolute right-0 top-full z-40 mt-1 flex min-w-36 flex-col gap-1 border border-dossier-brass bg-[#22382d] p-2 shadow-[6px_8px_0_rgba(0,0,0,0.28)]" aria-label="Ministry offices">
           {onVerdict && <Button onClick={() => openOffice(onVerdict)} variant="danger" size="compact" title="See how historians judge the finished run.">VERDICT</Button>}
+          {onWealth && <Button onClick={() => openOffice(onWealth)} variant="secondary" size="compact" title="Assets, liabilities and net worth in total and per person.">WEALTH</Button>}
           <Button onClick={() => openOffice(onHouseholds)} variant="secondary" size="compact" title="See poverty and income across the population.">HOUSEHOLDS</Button>
           <Button onClick={() => openOffice(onIndustry)} variant="secondary" size="compact" title="See which industries make the economy’s output.">INDUSTRY</Button>
           <Button onClick={() => openOffice(onLabour)} variant="secondary" size="compact" title="See joblessness and work below training by occupational class.">LABOUR</Button>

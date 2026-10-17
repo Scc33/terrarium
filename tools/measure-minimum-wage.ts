@@ -10,7 +10,9 @@
  * on the land and out of the city's job queue, and unemployment falls. On a
  * city wage it is the disemployment argument. `binds` is the share of quarters
  * in each era in which a sector's wage sits on the floor; the deltas are the
- * statute arm against the same seed without it, at the era's last quarter.
+ * statute arm against the same seed without it, averaged over the era. Never
+ * read them at one quarter: a recovery the statute delays by a quarter or two
+ * reads at its midpoint as two points of unemployment.
  *
  * Two arms, because they answer different questions:
  *
@@ -31,6 +33,8 @@ import {
   giniIndex,
   init,
   minimumWageFloor,
+  PC_COST_CAPACITY,
+  politicalCostOfAction,
   statuteForce,
   step,
   type Action,
@@ -78,13 +82,21 @@ const ERAS = [ENACT_AT, 120, 200, 300, 400]
 const BOUND_SECTORS = ['agri', 'manuf', 'transport', 'services'] as const
 const LIVING_WAGE: Action = { kind: 'enact', statute: 'minimum_wage', level: 2 }
 
+/** a whole capacity batch, which legislating may never eat */
+const CAPACITY_RESERVE = PC_COST_CAPACITY * CAPACITY_IDS.length
+
 /** developmental, plus the living wage a rung at a time once there is a civil
- * service to enforce it and capital to spare after the capacity batch */
+ * service to enforce it. An enactment that left the next capacity batch
+ * unaffordable would have the runner skip it, and the arm would measure
+ * missing ministries as well as the statute. */
 const legislating: RunnerPolicy = (state, rng, tick) => {
   if (tick % 8 === 0) return developmentalPolicy(state, rng, tick)
-  if (tick < ENACT_AT || tick % 4 !== 1 || state.politics.politicalCapital < 30) return []
+  if (tick < ENACT_AT || tick % 4 !== 1 || !state.politics.inPower) return []
   const { level } = state.gov.statutes.minimum_wage
-  return level < 2 ? [{ kind: 'enact', statute: 'minimum_wage', level: level + 1 }] : []
+  if (level >= 2) return []
+  const order: Action = { kind: 'enact', statute: 'minimum_wage', level: level + 1 }
+  const left = state.politics.politicalCapital - politicalCostOfAction(state, order)
+  return left >= CAPACITY_RESERVE ? [order] : []
 }
 
 /** one century; `visit` sees the state after every step. Returns whether the
@@ -120,14 +132,22 @@ function century(arm: ArmId, country: CountryScenarioId, seed: string, statute: 
   return false
 }
 
-interface Delta {
-  gini: number
-  unemployment: number
-  farmWage: number
-  rural: number
-  foodPrice: number
-  gdp: number
+const READINGS = ['gini', 'unemployment', 'farmWage', 'rural', 'foodPrice', 'gdp'] as const
+type Reading = Record<(typeof READINGS)[number], number>
+
+function read(s: TrueState): Reading {
+  return {
+    gini: giniIndex(s),
+    unemployment: s.flows.unemployment,
+    farmWage: s.market.wages.agri,
+    rural: s.demography.classShares.rural_workers,
+    foodPrice: s.market.prices.agri / s.market.prices.services,
+    gdp: s.flows.realGdp,
+  }
 }
+
+/** levels compare as differences, wages and prices as ratios */
+const RATIO: ReadonlySet<string> = new Set(['farmWage', 'foodPrice', 'gdp'])
 
 const pct = (x: number, digits = 0) => `${(100 * x).toFixed(digits)}%`
 const signed = (x: number, digits: number) => `${x >= 0 ? '+' : ''}${x.toFixed(digits)}`
@@ -137,18 +157,25 @@ for (const arm of ARMS) {
   console.log(`\n== ${arm} arm: ${SEEDS} seeds × ${TICKS} quarters, living wage from q${ENACT_AT} ==`)
   for (const country of COUNTRIES) {
     const binds = ERAS.map(() => ({ quarters: 0, force: 0, ...Object.fromEntries(BOUND_SECTORS.map((id) => [id, 0])) }))
-    const deltas: Delta[] = ERAS.map(() => ({ gini: 0, unemployment: 0, farmWage: 0, rural: 0, foodPrice: 0, gdp: 0 }))
+    const deltas: Reading[] = ERAS.map(() => Object.fromEntries(READINGS.map((r) => [r, 0])) as Reading)
     const deposed = [0, 0]
     for (let k = 0; k < SEEDS; k++) {
       const seed = `minwage-${country}-${k}`
-      const ends: TrueState[][] = [[], []]
+      const without: Reading[] = []
       for (const statute of [false, true]) {
         const lost = century(arm, country, seed, statute, (s) => {
           const t = s.meta.tick - 1
+          if (!statute) {
+            without[t] = read(s)
+            return
+          }
           const e = ERAS.findIndex(([from, to]) => t >= from && t < to)
           if (e < 0) return
-          if (t === ERAS[e][1] - 1) ends[+statute][e] = s
-          if (!statute) return
+          const [off, on] = [without[t], read(s)]
+          const weight = 1 / ((ERAS[e][1] - ERAS[e][0]) * SEEDS)
+          for (const r of READINGS) {
+            deltas[e][r] += weight * (RATIO.has(r) ? on[r] / off[r] - 1 : on[r] - off[r])
+          }
           const era = binds[e] as Record<string, number>
           era.quarters++
           era.force += statuteForce(s, 'minimum_wage')
@@ -158,21 +185,10 @@ for (const arm of ARMS) {
         })
         if (lost) deposed[+statute]++
       }
-      ERAS.forEach((_, e) => {
-        const [off, on] = [ends[0][e], ends[1][e]]
-        const rel = (s: TrueState) => s.market.prices.agri / s.market.prices.services
-        const d = deltas[e]
-        d.gini += (giniIndex(on) - giniIndex(off)) / SEEDS
-        d.unemployment += (on.flows.unemployment - off.flows.unemployment) / SEEDS
-        d.farmWage += (on.market.wages.agri / off.market.wages.agri - 1) / SEEDS
-        d.rural += (on.demography.classShares.rural_workers - off.demography.classShares.rural_workers) / SEEDS
-        d.foodPrice += (rel(on) / rel(off) - 1) / SEEDS
-        d.gdp += (on.flows.realGdp / off.flows.realGdp - 1) / SEEDS
-      })
     }
     const fell = arm === 'developmental' ? `  deposed ${pct(deposed[0] / SEEDS)} → ${pct(deposed[1] / SEEDS)}` : ''
     console.log(`\n${country}${fell}`)
-    console.log('  era          force   binds: agri  manuf  transp  serv  |  at era end: Gini     u      farm w   rural    food    GDP')
+    console.log('  era          force   binds: agri  manuf  transp  serv  |  era mean:   Gini     u      farm w   rural    food    GDP')
     ERAS.forEach(([from, to], e) => {
       const era = binds[e] as Record<string, number>
       const share = (id: string) => pct(era[id] / era.quarters).padStart(6)

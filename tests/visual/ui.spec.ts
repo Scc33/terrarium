@@ -806,7 +806,8 @@ test('public asset books show opening balances, transactions and history without
   await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
   await expect(page.locator('header').first()).toContainText('1987')
   const count = page.getByRole('dialog', { name: 'THE COUNT' })
-  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+  await expect(count).toBeVisible()
+  await count.getByRole('button', { name: 'Close dialog' }).click()
   await page.getByRole('tab', { name: 'REVENUE 5 CONTROLS' }).click()
   await page.getByRole('slider', { name: 'Surplus rebate', exact: true }).press('End')
   await page.getByRole('button', { name: 'ENACT & ADVANCE' }).click()
@@ -878,7 +879,8 @@ test('the paper sets a front page and files a searchable archive', async ({ page
   // A scenario arrives with a completed election behind it, so the count
   // scene opens over the wall; dismiss it before reaching for the wire.
   const count = page.getByRole('dialog', { name: 'THE COUNT' })
-  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+  await expect(count).toBeVisible()
+  await count.getByRole('button', { name: 'Close dialog' }).click()
 
   await page.getByRole('button', { name: 'Read every dispatch on the news wire' }).click()
   const wire = page.getByRole('dialog', { name: 'THE WIRE' })
@@ -930,7 +932,8 @@ test('household office shows poverty and both quintile views once surveyed', asy
   await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
   await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
   const count = page.getByRole('dialog', { name: 'THE COUNT' })
-  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+  await expect(count).toBeVisible()
+  await count.getByRole('button', { name: 'Close dialog' }).click()
 
   await (await officeButton(page, 'HOUSEHOLDS')).click()
   const households = page.getByRole('dialog', {
@@ -993,7 +996,8 @@ test('labour office separates joblessness from work below training', async ({ pa
   await page.getByRole('button', { name: 'RUN SCENARIO', exact: true }).click()
   await page.getByRole('button', { name: 'Close developer console', exact: true }).click()
   const count = page.getByRole('dialog', { name: 'THE COUNT' })
-  if (await count.isVisible()) await count.getByRole('button', { name: 'Close dialog' }).click()
+  await expect(count).toBeVisible()
+  await count.getByRole('button', { name: 'Close dialog' }).click()
 
   await (await officeButton(page, 'LABOUR')).click()
   const labour = page.getByRole('dialog', {

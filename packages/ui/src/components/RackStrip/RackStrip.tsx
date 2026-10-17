@@ -16,6 +16,7 @@
  */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
+import type { InstrumentPresentation } from '../../perPerson'
 import type { InstrumentAccess } from '../../maturity'
 import { gaugeDomain } from '../../domains'
 import { humanDevelopmentBreakdown, NAMES, readingDigits } from '../labels'
@@ -27,6 +28,7 @@ interface RackStripProps {
   indicator: IndicatorId
   access: InstrumentAccess
   series?: IndicatorSeries
+  presentation?: InstrumentPresentation
   now: number
   pinned: boolean
   /** one-based position on the watch board */
@@ -48,8 +50,8 @@ function Delta({ delta, digits, className }: { delta: number | null; digits: num
   )
 }
 
-export function RackStrip({ indicator, access, series, now, pinned, slot, onPin }: RackStripProps) {
-  const names = NAMES[indicator]
+export function RackStrip({ indicator, access, series, presentation, now, pinned, slot, onPin }: RackStripProps) {
+  const names = presentation?.names ?? NAMES[indicator]
   const { maturity } = access
   const points = series ? shapeSeries(series, 24, now) : []
   const latest = points.length ? points[points.length - 1] : null
@@ -61,7 +63,7 @@ export function RackStrip({ indicator, access, series, now, pinned, slot, onPin 
     ? ''
     : ` Change since the previous quarter: ${reportedDelta > 0 ? 'up' : 'down'} ${Math.abs(reportedDelta).toFixed(digits)}.`
   const stamped = series
-    ? stampWorthyRevision(points, gaugeDomain(indicator, series.points.map((p) => p.value)))
+    ? stampWorthyRevision(points, gaugeDomain(indicator, series.points.map((p) => p.value), presentation?.face))
     : null
 
   // one row, one height, whatever is inside it
