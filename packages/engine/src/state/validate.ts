@@ -168,6 +168,10 @@ export function validate(state: TrueState): void {
   finite(state.external.reserves, 'reserves')
   if (state.external.reserves < 0) throw new InvariantError('reserves < 0')
   finite(state.external.balanceNorm, 'balanceNorm')
+  for (const sid of SECTOR_IDS) {
+    finite(state.external.exportMarket[sid], `exportMarket[${sid}]`)
+    if (state.external.exportMarket[sid] < 0) throw new InvariantError(`exportMarket[${sid}] < 0`)
+  }
   for (const programme of SPENDING_PROGRAM_IDS) {
     const amount = state.gov.dials.spending[programme]
     const rule = state.gov.spendingRules[programme]

@@ -7,7 +7,8 @@
 
 import { initialFinance } from './finance'
 import { initialBonds } from '../pipeline/bonds'
-import type { Seed } from '../rng/rng'
+import { rngFor, type Seed } from '../rng/rng'
+import { production } from '../pipeline/production'
 import { emissionsPerHead } from '../pipeline/environment'
 import {
   DEBT_MATURITY_DEFAULT,
@@ -33,9 +34,7 @@ import {
   RESERVES_INIT_QTRS,
   RISK_PREMIUM_SLOPE,
   TARIFF_1946,
-  TRADE_ELASTICITY,
   EXPORT_BASE_SHARE,
-  EXPORT_CAPACITY_CAP,
   IMPORT_BASE_SHARE,
   INCOME_TAX_1946,
   INIT_APPROVAL_HONEYMOON,
@@ -254,43 +253,21 @@ export function init(
   const adminEff = adminEffectiveness(params.capacities.administrative)
   const taxEff = taxEfficiency(params.capacities.tax)
   // The tariff BASE — pre-tariff, because that is what customs charges duty on.
-  // It is deliberately NOT the import order: `importOrder0` below is, and the
-  // two differ by the relative-price term an importer facing the duty responds
-  // to. The quarter-one revenue estimate stays on this basis because the
+  // It is deliberately NOT the import order `withOpeningTrade` seals the
+  // currency from: the order answers to absorption and to the duty itself. The
+  // quarter-one revenue estimate stays on this basis because the
   // opening budget was calibrated against it, and moving that calibration is a
   // separate question from anything the currency needs.
   const importsValue = SECTOR_IDS.reduce(
     (s, id) => s + IMPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
     0,
   )
-  // The opening trade balance, on the basis `production` will actually order it
-  // on. Used only to seed `balanceNorm` — the external balance the market has
-  // always financed for this country (ADR-0034) — and it has to be computed the
-  // way the first tick computes it, or the market spends its opening years
-  // being surprised by an economy that has not changed. That is the
-  // init-seeding invariant `lastRealIncome` was caught by in v35.
-  //
-  // Which is why this cannot reuse `importsValue` above: that one is the
-  // tariff BASE, deliberately pre-tariff, because it is what customs charges a
-  // duty on. The import ORDER is smaller, by the same relative-price term
-  // `production` applies — an importer facing a 10% duty buys less. Seeding off
-  // the base overstates imports by about 15%, understates the surplus by the
-  // same, and hands the market a permanent 1.6-point surprise on the opening
-  // morning that it then spends a decade appreciating away.
-  const openness = params.openness
-  const importOrderFactor = Math.pow(1 / (1 + TARIFF_1946), TRADE_ELASTICITY)
-  let importOrder0 = 0
-  let exportOrder0 = 0
-  for (const id of SECTOR_IDS) {
-    const potential = gross[id] / UTILIZATION_AT_INIT
-    // The export cap `production` applies, at the opening relative price of 1.
-    exportOrder0 += Math.min(
-      EXPORT_BASE_SHARE[id] * potential * openness,
-      EXPORT_CAPACITY_CAP * potential,
-    )
-    importOrder0 += IMPORT_BASE_SHARE[id] * potential * openness * importOrderFactor
-  }
-  const tradeBalance0 = exportOrder0 - importOrder0
+  // The foothold abroad opens at the 1946 export order (ADR-0049): what
+  // `production` used to sell from the sector's own potential at relative
+  // price 1, which is what the recipes were calibrated on.
+  const exportMarket = sectorRecord(
+    (id) => EXPORT_BASE_SHARE[id] * (gross[id] / UTILIZATION_AT_INIT) * params.openness,
+  )
   const wageBill0 = SECTOR_IDS.reduce((s, id) => s + wages[id] * employment[id], 0)
   const profits0 = (1 - LABOR_SHARE) * gdp0
   const revenue0 =
@@ -584,14 +561,11 @@ export function init(
     },
     external: {
       worldPrices: sectorRecord(() => 1),
-      // Quarters of cover, measured on the same import figure `trade` compares
-      // the book against — `flows.tariffBase`, which is the realized import
-      // ORDER at border prices. `importsValue` above is the pre-tariff BASE and
-      // is ~15% larger, so seeding from it opened every country a sixth above
-      // its own `coverTarget`; and because the top-up is one-sided the bank
-      // would not sell that cushion down, it would just sit there until growth
-      // erased it. Harmless until `coverTarget` existed to be compared against.
-      reserves: importOrder0 * (params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS),
+      // Quarters of cover on the import ORDER, `trade`'s own figure, not the
+      // pre-tariff `importsValue` above: seeded from that, every country opened
+      // a sixth above its `coverTarget` and the one-sided bank never sold it
+      // down. Sealed from the opening order by `withOpeningTrade`.
+      reserves: 0,
       exchangeRate: 1,
       // The real rate this country opens on, measured from the vectors above
       // rather than written as 1 — see the field's own note. `prices` and
@@ -599,7 +573,7 @@ export function init(
       // point is that it would stop being 1 the day either normalisation did,
       // and the parity the rate reverts to would follow without an edit.
       fxParityAnchor: 1,
-      balanceNorm: tradeBalance0 / gdp0,
+      balanceNorm: 0,
       coverTarget: params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
       // The recipe's own reading of the premium it inherits. `trade` re-seals
       // this on the opening quarter against REALIZED output, which is the only
@@ -609,6 +583,7 @@ export function init(
       inheritedRiskPremium:
         Math.max(0, debtToGdp0 - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE,
       foreignOwnedCapital: foreignOwnedCapital0,
+      exportMarket,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
         exportDemand: sectorRecord(() => 1),
@@ -673,5 +648,36 @@ export function init(
     // before its player has done anything.
     environment: { pollution: opening, baseline: opening, emissionsQ: opening },
   }
-  return { ...seeded, institutions: initialInstitutions(seeded) }
+  return withOpeningTrade(
+    { ...seeded, institutions: initialInstitutions(seeded) },
+    gdp0,
+    params.structure?.reserveCoverage ?? RESERVES_INIT_QTRS,
+  )
+}
+
+/**
+ * The trade balance the market has always financed (`balanceNorm`, ADR-0034)
+ * and the reserve book (in quarters of the import ORDER, the figure `trade`
+ * compares it against), sealed from the order `production` places on this
+ * very state. Imports answer to domestic absorption (ADR-0049), which `init`
+ * cannot restate without restating household, state and investment demand, so
+ * it asks the step instead — the opening basis cannot drift from the first
+ * quarter's because it IS the first quarter's, at opening prices.
+ */
+function withOpeningTrade(state: TrueState, gdp0: number, coverage: number): TrueState {
+  const { flows } = production.run(state, rngFor(state.meta.seed, 'init:trade', 0))
+  let exports = 0
+  let imports = 0
+  for (const id of SECTOR_IDS) {
+    exports += state.market.prices[id] * flows.exportsReal[id]
+    imports += state.external.worldPrices[id] * state.external.exchangeRate * flows.importsReal[id]
+  }
+  return {
+    ...state,
+    external: {
+      ...state.external,
+      reserves: imports * coverage,
+      balanceNorm: (exports - imports) / gdp0,
+    },
+  }
 }
