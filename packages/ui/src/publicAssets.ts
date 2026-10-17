@@ -13,7 +13,7 @@ export interface PublicAssetLine {
 export function publicAssetLines(pub: PublishedState, book: 'bank' | 'treasury'): PublicAssetLine[] {
   const lines = book === 'bank' ? [
     { key: 'centralBankAssets' as const, label: 'PURCHASED ASSETS', value: pub.centralBank.assets,
-      note: 'Assets bought with newly created central-bank money, held at purchase cost. Stopping purchases keeps the holdings; no sales, maturities or investment income are modeled.' },
+      note: 'Assets bought with newly created central-bank money, held at purchase cost. Each purchase matures after five years; stopping purchases leaves the remaining holdings working while their duration declines. No sales, revaluation or investment income are modeled.' },
     { key: 'reserves' as const, label: 'FOREIGN RESERVES', value: pub.reserves,
       note: 'Foreign exchange held on the central bank’s domestic-money book. Buying adds to it; defending the currency sells it. The book does not revalue past holdings when the exchange rate moves.' },
   ] : [

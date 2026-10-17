@@ -1,6 +1,6 @@
 # ADR-0017 — Finance levers reuse the existing rate and bank-capital channels
 
-**Status:** Accepted · **Date:** 2026-08-15
+**Status:** Partially superseded by [0047](0047-yields-price-duration-and-fixed-contracts.md) (QE transmission) · **Date:** 2026-08-15
 
 ## Context
 

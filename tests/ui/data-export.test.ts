@@ -43,6 +43,8 @@ describe('published historical data export', () => {
     expect(record.records.treasury).toEqual(pub.books)
     expect(record.records.census).toEqual(pub.census)
     expect(record.records.policy).toEqual(pub.policy)
+    expect(record.records.yields).toEqual(pub.yieldHistory)
+    expect(record.snapshot.yieldCurve).toEqual(pub.yieldCurve)
     expect(record.records.news).toEqual(pub.news)
     expect(record.records.corridor).toEqual(pub.corridor.trail)
 
@@ -75,6 +77,7 @@ describe('published historical data export', () => {
     expect(record.snapshot).not.toHaveProperty('households')
     expect(record.snapshot).not.toHaveProperty('labour')
     expect(record.snapshot).not.toHaveProperty('books')
+    expect(record.snapshot).not.toHaveProperty('yieldHistory')
     expect(record.snapshot.corridor).not.toHaveProperty('trail')
     expect(JSON.parse(JSON.stringify(record))).toEqual(record)
   })

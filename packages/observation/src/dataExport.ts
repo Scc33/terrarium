@@ -49,6 +49,7 @@ type HistoricalPublishedKey =
   | 'policy'
   | 'news'
   | 'corridor'
+  | 'yieldHistory'
 
 /** The desk as it stood when the file was exported. Long records are split
  * into named tables below; only the corridor's current reading stays here. */
@@ -82,6 +83,7 @@ export interface HistoricalDataExport {
     census: PublishedState['census']
     /** The government's own dials and standing rules, one row per quarter. */
     policy: PublishedState['policy']
+    yields: PublishedState['yieldHistory']
     /** Qualitative public events and rumors, in wire order. */
     news: PublishedState['news']
     /** Exact constitutional position, one point per quarter. */
@@ -108,6 +110,7 @@ export function createHistoricalDataExport(
     policy,
     news,
     corridor,
+    yieldHistory,
     ...current
   } = published
   const indicatorReleases: IndicatorRelease[] = []
@@ -145,6 +148,7 @@ export function createHistoricalDataExport(
       treasury: books,
       census,
       policy,
+      yields: yieldHistory,
       news,
       corridor: corridor.trail,
     },

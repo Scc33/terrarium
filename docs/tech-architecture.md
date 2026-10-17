@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 47. The short player-facing design is in
+*How the code is actually arranged, as of schema 50. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -44,7 +44,7 @@ terrarium/
 │   │   │   │   ├── monetary.ts prices.ts
 │   │   │   │   ├── labor.ts cohorts.ts statistics.ts politics.ts
 │   │   │   │   ├── derive.ts     # pure read-models over state (no step owns them)
-│   │   │   │   └── funding.ts    # the one private rate, on state AND on scalars (ADR-0043)
+│   │   │   │   └── funding.ts    # short/long funding, on state AND scalars (ADR-0047)
 │   │   │   ├── events/           # the wire (ADR-0031): a step names an event, this words it
 │   │   │   │   ├── ids.ts        # EVENT_IDS / DESK_IDS — a leaf, so schema.ts can type NewsItem
 │   │   │   │   ├── catalogue.ts  # every dispatch's copy, per press era. The only authored prose
@@ -260,6 +260,12 @@ not from hidden state and not by a second observation draw (ADR-0033).
 
 ### 3.2 Not every fogged output is an indicator
 
+The cabinet's `capacityBuilding` register is also exact: each voted ministry programme carries
+its target, quarters remaining, planned capacity delivery per quarter and cash payment per
+quarter. These are commitments on the government's own orders, not a survey of GDP. The UI sums
+them before quoting another programme so a large revenue-based bid cannot buy capacity that
+fiscal would clamp away. The worker still validates the engine's administration ceiling.
+
 `industry`, `labour`, and `households` are the vector exceptions. The industrial census publishes a
 **vector** — two tables (`INDUSTRY_TABLE_IDS`: `valueAdded`, `employment`) over `SECTOR_IDS` —
 on the office's ordinary clock: the same funding gate (`INDUSTRY_CENSUS_FUNDED_AT`), the same
@@ -396,23 +402,24 @@ order are physical: the bank cannot buy foreign exchange the country did not ear
 sell reserves it does not hold — an order of the second kind that cannot be filled breaks the
 currency and files a dispatch.
 
-Finance has three player inputs that meet in its existing balance sheets (ADR-0017). The policy
-rate prices overnight money; the QE purchase pace lowers the common private funding rate without
-being booked as fiscal printing; and the capital requirement changes the bank-equity ceiling on
-credit. Their inherited settings (4%, zero, and 6%) preserve the passive economy. QE remains
-available at the zero-rate floor but can inflate the same credit/asset pair that raises crisis
-risk, while a tighter capital floor leans directly against that leverage.
+Finance separates short credit funding from five-year investment and valuation funding
+(ADR-0047). `termStructure.ts` shares scalar pricing; `yields.ts` quotes four maturities
+from observed policy history, duration premium, QE relief and public sovereign risk.
+`bonds.ts` settles fixed-coupon contracts and prices early buybacks. The maturity dial
+changes new borrowing/refinancing only. QE announcement and remaining duration holdings
+mostly ease longer costs; the capital requirement still caps credit through bank equity.
 
 The fragility ledger holds two adaptive annualized inflation forecasts (ADR-0044). Monetary
 updates `consumerInflationExpectations` from last quarter's experienced household CPI; labor
 uses it for wage bargains, so compensation follows experience gradually rather than indexing
 to the current price spike. The existing nominal `inflationExpectations` adds fiscal printing
-pressure, feeds price drift and enters the prior-quarter `privateRealRate` read by finance and
-production. Printing therefore reaches household bargains as it changes actual prices. Both
+pressure, feeds price drift and enters real short/long funding. Printing therefore reaches
+household bargains as it changes actual prices. Both
 stocks remain hidden; no official survey or fixed central-bank target is implied.
 
 The central-bank drawer opens with the desk's reading of its stance against the neutral rate
-(ADR-0043) — the posted rate at which that common private real rate reads `NATURAL_REAL_RATE`.
+(ADR-0043, amended by ADR-0047) — the posted rate at which short credit funding reads
+`NATURAL_REAL_RATE`, plus a separate estimate of longer real funding against its duration anchor.
 The engine never publishes expectations or the funding spread; `ui/src/monetaryStance.ts`
 estimates them from the office's prints and the treasury's books by calling the same scalar
 functions `finance` and `production` read the truth through, so there is one formula and the
@@ -422,10 +429,11 @@ only gap between briefing and truth is the fog.
 
 Central-bank holdings have an exact acquisition-cost book (ADR-0038), separate from
 both FX reserves and the sovereign fund. Purchase orders use official GDP so an
-exact transaction cannot disclose hidden output. The posted monetary stance retains
-its existing private-rate effect. Finance shows both central-bank stocks and actual
-purchases/FX fills; the ledger's Savings & Financing view exposes the v44 fund's
-settlement. Both reuse `publicAssets.ts` and `PublicAssetBook` over exact published
+exact transaction cannot disclose hidden output. Purchased lots mature after five years,
+with separate principal runoff and declining duration exposure. Finance shows dealer curves,
+central-bank stocks and purchases/runoff/FX fills; the ledger's Savings & Financing view
+shows locked coupons, maturities, new borrowing and refinancing. Both reuse
+`publicAssets.ts` and `PublicAssetBook` over exact published
 records, which also appear in data exports. `state/accounts.ts` owns the self-account
 projection; `state/finance.ts` owns the financial stock type and opening balances.
 
@@ -644,6 +652,7 @@ a floor to prevent regression; raise it, never lower it to green a build. The UI
 | `pnpm export-share -- --runs 40 --ticks 160` | paired player-policy effects on export levels and final-expenditure share |
 | `pnpm neutral-rate -- --runs 40 --ticks 160` | implied neutral-rate ranges and paired fixed-rate transmission |
 | `pnpm capital-ownership -- --runs 12 --ticks 400` | productive-stock and savings reconciliation, foreign ownership, and isolated financing/valuation probes |
+| `pnpm investment-delivery -- --runs 12 --ticks 400` | input feasibility, generous fixed-mix investment envelopes, paired spending paths and isolated capacity outages |
 | `pnpm fdi -- --runs 20 --ticks 400` | the foreign-investment flow decomposed into its factors, then the marginal and century value of every order that reaches one |
 | `pnpm architecture:scan` | redraw the map of the repository the in-game atlas reads |
 | `pnpm architecture:check` | fail if that map no longer describes the repository (CI runs this) |

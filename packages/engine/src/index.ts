@@ -321,7 +321,7 @@ export { emissionsPerHead } from './pipeline/environment'
 export { electionThreshold } from './pipeline/politics'
 export { reformWindowOpen, vetoMultiplier } from './actions/apply'
 export {
-  adminEffectiveness,
+  adminEffectiveness, CAPACITY_BUILD_QTRS, CAPACITY_COST_PER_POINT, CAPACITY_MINISTRY_FULL_STRENGTH_GATE,
   ASSET_BUBBLE_AT,
   ASSET_PURCHASE_RATE_MAX,
   CAPITAL_REQUIREMENT_DEFAULT,
@@ -434,5 +434,12 @@ export {
 } from './pipeline/technology'
 export type { ResearchAllocation } from './pipeline/technology'
 export { termsOfTrade } from './pipeline/derive'
+export { YIELD_IDS } from './state/bonds'
+export type { YieldId, YieldCurve, BondLot, AssetLot } from './state/bonds'
+export { averageCoupon, bondPrice, couponBill, debtMaturityShares, governmentYieldAt, initialBonds, issueBonds, settleDebt } from './pipeline/bonds'
+export { effectivePurchaseRateOf } from './pipeline/termStructure'
+export { effectivePurchaseRate, longNaturalRealRate, privateLongRealRate, privateLongRealRateOf } from './pipeline/funding'
+export { DEBT_MATURITY_DEFAULT, QE_HOLDING_QTRS, SHORT_QE_TRANSMISSION_SHARE, YIELD_MATURITY_QTRS } from './constants'
+export { benchmarkYieldAt, expectedPolicyRateAt, initialYieldCurve, quoteYieldCurve, termPremiumAt, yieldCurveOf } from './pipeline/yields'
 export { carryYieldSpread, fillableIntervention, settleForeignExchange } from './pipeline/trade'
 export type { FxSettlement } from './pipeline/trade'

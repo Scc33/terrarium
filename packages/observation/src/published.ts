@@ -29,6 +29,8 @@ import type {
   StatuteId,
   SpendingRules,
   Turbulence,
+  YieldCurve,
+  BondLot,
 } from '@terrarium/engine'
 import type { LongRunReading, LongRunRecordId } from './longRun'
 
@@ -53,6 +55,7 @@ export {
   TURBULENCE_IDS,
 } from '@terrarium/engine'
 export type { GameRuleId, GameRules, Turbulence } from '@terrarium/engine'
+export type { YieldCurve, YieldId, BondLot } from '@terrarium/engine'
 export type { OutlayId, OutlaySplit, RevenueSourceId, RevenueSplit, TaxRateId } from '@terrarium/engine'
 export type { SpendingProgramId, SpendingRuleMode } from '@terrarium/engine'
 export type { HumanDevelopmentDimensions, IndicatorId, NewsItem, BlocId, InstitutionId, PlatformId, ElectionResult, PolicyRecord, SectorId } from '@terrarium/engine'
@@ -206,6 +209,10 @@ export interface PublishedCampaign {
 }
 
 export interface PublishedState {
+  /** Observed market quotes, priced from released information. Dealer beliefs
+   * are an extrapolation of the policy record, not household expectations. */
+  yieldCurve: YieldCurve
+  yieldHistory: YieldCurve[]
   tick: Qtr
   /** The quarter the player took office — zero for an ordinary 1946 posting,
    * a later quarter when the years before it were somebody else's (ADR-0021).
@@ -247,6 +254,10 @@ export interface PublishedState {
   /** the treasury keeps exact books on itself — including *which* tax paid
    * for *which* programme, the question a headline balance cannot answer */
   treasury: {
+    bonds: BondLot[]
+    debtMaturing: number
+    bondsRefinanced: number
+    debtBuybackAdjustment: number
     fundFlow: number
     fiscalRebate: number
     bondsIssued: number
@@ -271,11 +282,21 @@ export interface PublishedState {
     outlaysByProgramme: OutlaySplit
   }
   capacity: Record<CapacityId, number>
-  capacityBuilding: Array<{ target: CapacityId; remaining: Qtr }>
+  /** Your own voted programmes: planned deliveries and bills, never a GDP estimate. */
+  capacityBuilding: Array<{
+    target: CapacityId
+    remaining: Qtr
+    perQtr: number
+    moneyPerQtr: number
+  }>
   /** the treasury's own books, every quarter, exact — no fog on yourself */
   books: Array<{
     centralBankAssets: number
     assetPurchases: number
+    assetRunoff: number
+    debtMaturing: number
+    bondsRefinanced: number
+    debtBuybackAdjustment: number
     fxIntervention: number
     fundFlow: number
     fiscalRebate: number
@@ -335,7 +356,7 @@ export interface PublishedState {
   policy: PolicyPoint[]
   reserves: number
   /** Exact acquisition-cost holdings and the last completed quarter's transactions. */
-  centralBank: { assets: number; purchases: number; fxIntervention: number }
+  centralBank: { assets: number; purchases: number; runoff: number; durationHoldings: number; fxIntervention: number }
   exchangeRate: number
   politicalCapital: number
   quartersToElection: number

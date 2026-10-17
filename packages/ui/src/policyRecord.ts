@@ -58,7 +58,7 @@ export type PolicyGroup =
 /** A rate is a percentage and comparable across a century; an appropriation
  * is money, and 4.0 in 1946 is not 4.0 in 2040. The distinction decides how a
  * value prints and whether it can honestly share an axis with its siblings. */
-export type PolicyUnit = 'rate' | 'money' | 'statute'
+export type PolicyUnit = 'rate' | 'money' | 'statute' | 'maturity'
 
 export interface PolicyLine {
   key: string
@@ -136,6 +136,11 @@ type ScalarDialId = Exclude<
 >
 
 const SCALAR_DIAL_FACE: Record<ScalarDialId, { label: string; note: string; group: PolicyGroup }> = {
+  debtMaturity: {
+    label: 'BORROWING MATURITY',
+    note: 'The maturity mix for new borrowing and refinancing. Existing coupons stay fixed.',
+    group: 'TREASURY',
+  },
   policyRate: {
     label: 'POLICY RATE',
     note: 'The main interest rate. Higher rates cool borrowing and investment; lower rates encourage them.',
@@ -195,7 +200,7 @@ export const POLICY_LINES: readonly PolicyLine[] = [
     key: id,
     label: SCALAR_DIAL_FACE[id].label,
     group: SCALAR_DIAL_FACE[id].group,
-    unit: 'rate',
+    unit: id === 'debtMaturity' ? 'maturity' : 'rate',
     note: SCALAR_DIAL_FACE[id].note,
     read: (p) => 100 * p[id],
   })),
@@ -336,6 +341,7 @@ export function formatPolicyValue(
   value: number,
 ): string {
   if (line.unit === 'statute') return statuteLevelName(line.key, value)
+  if (line.unit === 'maturity') return value === 0 ? 'SHORT' : value === 100 ? 'LONG' : value === 50 ? 'BALANCED' : 'MIXED'
   return line.unit === 'rate' ? `${value.toFixed(2)}%` : value.toFixed(2)
 }
 

@@ -32,6 +32,7 @@ import {
   CAPITAL_REQUIREMENT_MAX,
   CAPITAL_REQUIREMENT_MIN,
   DIAL_STANCE,
+  DEBT_MATURITY_DIAL_SCALE,
   FX_INTERVENTION_DIAL_SCALE,
   FX_INTERVENTION_MAX,
   COALITION_FAVOR_GAIN,
@@ -212,6 +213,13 @@ const subsidy = (sid: SectorId): DialSpec => ({
 })
 
 const DIALS: Record<DialPath, DialSpec> = {
+  debtMaturity: {
+    get: (s) => s.gov.dials.debtMaturity,
+    set: (s, v) => ({ ...s, gov: { ...s.gov, dials: { ...s.gov.dials, debtMaturity: v } } }),
+    min: 0,
+    max: () => 1,
+    scale: () => DEBT_MATURITY_DIAL_SCALE,
+  },
   'taxRates.income': rate('income', TAX_RATE_INCOME_MAX),
   'taxRates.corporate': rate('corporate', TAX_RATE_CORPORATE_MAX),
   'taxRates.tariff': rate('tariff', TAX_RATE_TARIFF_MAX),

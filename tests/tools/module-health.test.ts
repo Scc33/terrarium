@@ -52,9 +52,12 @@ const MODULE_LINE_BASELINE = {
   // packages/observation: the one bare coefficient it found was a
   // legitimacy grade cut, which likewise may live nowhere else. Ratcheted
   // from 2033 by #122: schema 48's `TURBULENCE` table, the setup dial's
-  // multipliers, which ADR-0007 says may live nowhere else. Ratcheted from
-  // 2048 by #289: the farm-gate elasticity and the food margin's split.
-  'packages/engine/src/constants.ts': 2064,
+  // multipliers, which ADR-0007 says may live nowhere else.
+  // #31 adds schema 50's maturity, dealer-memory and QE-duration coefficients,
+  // which ADR-0007 requires in this total tuning ledger.
+  // Ratcheted from 2068 by #289: the farm-gate elasticity and the food
+  // margin's split.
+  'packages/engine/src/constants.ts': 2083,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -75,7 +78,8 @@ const MODULE_LINE_BASELINE = {
   // lifted out of observe.ts both have to be published here.
   // Ratcheted from 423 by #122: schema 48's turbulence is a replay input, so
   // `init`, `SaveFile`, `createSave` and `replay` all carry it.
-  'packages/engine/src/index.ts': 439,
+  // #31 exports the schema's contract types and shared downstream pricing.
+  'packages/engine/src/index.ts': 446,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
   // Ratcheted from 1080 by #179: named constants replacing bare literals.
   'packages/engine/src/pipeline/derive.ts': 1090,
@@ -93,11 +97,13 @@ const MODULE_LINE_BASELINE = {
   // including two spots that had silently re-typed INCOME_TAX_1946 /
   // CORPORATE_TAX_1946 / POLICY_RATE_1946 as fresh numbers.
   // #221 seeds its new household expectation beside the nominal forecast.
-  'packages/engine/src/state/init.ts': 670,
+  // Schema 50 seeds the maturity dial, bond book and settlement flows (#31).
+  'packages/engine/src/state/init.ts': 677,
   // Cohesive schema: total state contracts and canonical id lists.
   // Schema 47 adds the hidden household expectation (#221).
   // Schema 48 adds the world's turbulence as a replay input (#122).
-  'packages/engine/src/state/schema.ts': 1406,
+  // Schema 50 declares fixed contracts, quotes and cash/face settlement (#31).
+  'packages/engine/src/state/schema.ts': 1421,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,
   // Analysis tool: export-feedback measures, aggregation, and report formatting.

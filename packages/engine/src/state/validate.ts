@@ -9,7 +9,9 @@ import {
   INFLATION_EXPECTATIONS_MAX,
   INFLATION_EXPECTATIONS_MIN,
   STATUTE_LEVELS,
+  QE_HOLDING_QTRS,
 } from '../constants'
+import { YIELD_IDS } from './bonds'
 import { effectiveConsumptionWeights } from '../pipeline/derive'
 import {
   BLOC_IDS,
@@ -89,6 +91,47 @@ export function validate(state: TrueState): void {
   finite(state.gov.debt, 'debt')
   finite(state.finance.centralBankAssets, 'centralBankAssets')
   if (state.finance.centralBankAssets < 0) throw new InvariantError('centralBankAssets < 0')
+  finite(state.gov.dials.debtMaturity, 'debtMaturity')
+  if (state.gov.dials.debtMaturity < 0 || state.gov.dials.debtMaturity > 1) {
+    throw new InvariantError('debtMaturity out of range')
+  }
+  for (const lot of state.gov.bonds) {
+    finite(lot.principal, 'bond principal')
+    finite(lot.coupon, 'bond coupon')
+    if (lot.principal <= 0 || lot.coupon < 0 || !Number.isInteger(lot.maturesAt) ||
+      !Number.isInteger(lot.issuedAt) || lot.maturesAt < state.meta.tick || lot.issuedAt >= lot.maturesAt) {
+      throw new InvariantError('invalid bond contract')
+    }
+  }
+  const face = state.gov.bonds.reduce((sum, lot) => sum + lot.principal, 0)
+  if (Math.abs(face - state.gov.debt) > 1e-9 * Math.max(1, face)) {
+    throw new InvariantError('bond principal does not match debt')
+  }
+  for (const lot of state.finance.assetHoldings) {
+    finite(lot.amount, 'central-bank asset amount')
+    if (lot.amount <= 0 || !Number.isInteger(lot.maturesAt) || lot.maturesAt < state.meta.tick) {
+      throw new InvariantError('invalid central-bank asset contract')
+    }
+  }
+  const held = state.finance.assetHoldings.reduce((sum, lot) => sum + lot.amount, 0)
+  if (Math.abs(held - state.finance.centralBankAssets) > 1e-9 * Math.max(1, held)) {
+    throw new InvariantError('asset holdings do not match centralBankAssets')
+  }
+  const duration = state.finance.assetHoldings.reduce((sum, lot) =>
+    sum + lot.amount * (lot.maturesAt - state.finance.yieldCurve.tick) / QE_HOLDING_QTRS, 0)
+  finite(state.finance.durationHoldings, 'durationHoldings')
+  if (Math.abs(duration - state.finance.durationHoldings) > 1e-9 * Math.max(1, duration)) {
+    throw new InvariantError('duration holdings do not match asset contracts')
+  }
+  const curve = state.finance.yieldCurve
+  for (const id of YIELD_IDS) {
+    finite(curve.yields[id], `yield[${id}]`)
+    finite(curve.benchmark[id], `benchmark[${id}]`)
+    if (curve.yields[id] < 0 || curve.benchmark[id] < 0) throw new InvariantError('negative nominal market yield')
+  }
+  for (const value of [curve.policyRate, curve.policyAnchor, curve.purchaseEquivalent, curve.sovereignPremium]) {
+    finite(value, 'yield curve input')
+  }
   finite(state.gov.fund, 'fund')
   if (state.gov.fund < 0) throw new InvariantError('fund < 0')
   // The pair is one net position: a surplus redeems debt before it funds

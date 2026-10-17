@@ -399,7 +399,6 @@ describe('the franchise edits your own objective function', () => {
         approval: c.enfranchisement < 0.9 ? 0.1 : 0.9,
       })),
     }
-    const before = approvalIndex(split)
     const widened = step({
       ...split,
       institutions: { ...split.institutions, stocks: { ...split.institutions.stocks, suffrage: 1 } },
@@ -407,7 +406,11 @@ describe('the franchise edits your own objective function', () => {
     expect(enfranchisementIndex(widened)).toBeGreaterThan(enfranchisementIndex(split))
     // the newly-enfranchised are the unhappy ones, so the score moves against
     // the government — extending the vote is a commitment, not a free win
-    expect(approvalIndex(widened)).toBeLessThan(before)
+    // Hold this quarter's opinions and population fixed when measuring who
+    // gets counted; a whole economic quarter also changes those opinions.
+    const oldFranchise = { ...widened, cohorts: widened.cohorts.map(c => ({ ...c,
+      enfranchisement: split.cohorts.find(old => old.id === c.id)!.enfranchisement })) }
+    expect(approvalIndex(widened)).toBeLessThan(approvalIndex(oldFranchise))
   })
 })
 

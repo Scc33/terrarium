@@ -203,7 +203,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // rail is zero because the whole legal range of the `capitalRequirement`
   // floor (3–25) has to fit on the face: "am I above the floor I set" is the
   // reading, and a dial that could not draw the floor could not answer it.
-  bank_capital_ratio: { lo: 0, hi: 50 },
+  bank_capital_ratio: { lo: 0, hi: 60 },
   // Measured with `pnpm ranges` over the funded century: p01–p99 is 66.8–418.2
   // and the extrema are 57.6–477.9. A country that never industrialises sits
   // near its 1946 inheritance at 100; one that industrialises without rules

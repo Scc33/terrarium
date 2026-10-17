@@ -38,9 +38,9 @@
 import {
   APPOINTMENTS,
   BLOC_IDS,
-  CAPACITY_IDS,
+  CAPACITY_IDS, CAPACITY_BUILD_QTRS, CAPACITY_COST_PER_POINT,
   COHORT_IDS,
-  DESK_IDS,
+  DESK_IDS, type DeskId,
   ELECTION_PERIOD,
   END_OF_HISTORY_TICK,
   EVENT_IDS,
@@ -55,11 +55,9 @@ import {
   INSTITUTION_IDS,
   NEWS_REPORT_P,
   NEWS_REPORTS_PER_QTR,
-  PC_START,
-  PRESS_ERAS,
-  REFORM_WINDOW_AT,
+  PC_START, PC_COST_CAPACITY, PC_COST_REFORM, PRESS_ERAS,
+  REFORM_WINDOW_AT, REFORM_WINDOW_DISCOUNT,
   REVOLT_AT,
-  type DeskId,
   STATUTE_IDS,
   STATUTE_LEVELS,
   STATUTE_PHASE_IN_QTRS,
@@ -181,7 +179,8 @@ const cabinetSections = (): ManualSection[] => [
     heading: 'STATE CAPACITY — THE FOUR MINISTRIES',
     body: [
       'Capacity is the slowest and most valuable thing on the desk. A funding programme is paid over eight quarters and arrives over the same eight — an eighth at a time, starting the quarter you enact it, so a little of it is working immediately and none of it is finished for two years. Everything else you do is scaled by what you built.',
-      'It is also the only order on the desk with a FLAT price. Rates, appropriations and reforms are priced by how much the room minds them; building a ministry is quoted at the same handful of points however hostile the blocs are. A government the room has turned against can still build the state.',
+      `Authorization costs a flat ${PC_COST_CAPACITY} PC, separate from the cash bill. Each ten capacity points costs ${CAPACITY_COST_PER_POINT / 10} in total, paid over ${CAPACITY_BUILD_QTRS} quarters. Overlapping programmes add their bills; each bill ends with its programme. There is no standing ministry payroll in these books. Capacity decays, so maintaining it means funding later renewals.`,
+      'The FUND bid starts at four-fifths of one quarter’s receipts, with a small minimum, then shrinks to the room left after all existing deliveries. One unconstrained bid therefore adds a tenth of those receipts to each of the next eight quarterly bills; building all four at once adds four tenths. The row shows the new bid and any payments already committed separately. The half button reduces the draft’s cash bill; use it again to resize a programme the administration cannot absorb. Its PC price stays flat.',
     ],
     entries: CAPACITY_IDS.map((id) => ({
       term: CAPACITY_COPY[id].label,
@@ -206,7 +205,8 @@ const cabinetSections = (): ManualSection[] => [
   {
     heading: 'INSTITUTIONS — THE SLOWEST DRAWER',
     body: [
-      `Reform is generational, contested, and ratcheting. The people who would lose by a reform are, by construction, the people currently holding the veto, which is why one costs more than a decade of ordinary policy.`,
+      `A reform spends political capital, with no direct treasury payment. Its base price is ${PC_COST_REFORM} PC; the blocs that object add a premium according to their effective power. In a reform window the base price falls to ${PC_COST_REFORM * REFORM_WINDOW_DISCOUNT} PC and the objections soften too. These are votes and bargaining power, not money deducted from revenue.`,
+      'Revenue can still change after reform: an angered landed interest reports less of the income and profit tax base, while unhappy financiers raise borrowing costs. Labour rights change wage bargaining; courts and the corridor affect investment, enforcement and the economy that is taxed. Tax administration directly improves collection at unchanged posted rates; other ministries mainly reach revenue through the economy or the information used to govern it.',
       `Unrest past ${REFORM_WINDOW_AT.toFixed(2)} prises a window open, and the window is a DISCOUNT rather than a permission: it cuts the price and softens the veto premium while it lasts. A reform nobody much minds — the courts are the usual example — is affordable in a calm decade to a government that has banked the capital for it. Waiting for a crisis is a way to afford the contested ones, not a condition of reforming at all.`,
       'Institutions are also the y-axis of the corridor. Broadening who may vote, print, organise and sue raises what society can do for itself; repression raises what the state can do to society. Prosperity lives in the band where neither has run away from the other.',
     ],
@@ -593,7 +593,7 @@ const MANUAL_DEFINITION: Record<ManualChapterId, ManualChapter> = {
       {
         heading: 'FINANCE, BUBBLES AND CRISES',
         body: [
-          'Finance → Central Bank shows purchased holdings at acquisition cost and foreign reserves on their own book. Buying adds holdings; currency defence sells reserves. Neither is the sovereign fund that finances treasury deficits. Purchases use official GDP once its first release arrives, while the posted stance affects borrowing costs immediately. Holdings do not mature, earn coupons or revalue, and stopping purchases does not sell them. The wall’s asset figure is a valuation ratio, not the country’s total wealth: market value divided by the cost of replacing its productive assets. At 100 the two are equal, so population, output and the capital stock can all grow while the ratio stays flat. The financial loop wants to ratchet: rising valuation raises collateral, which raises credit, which raises valuation. Two things keep it a cycle rather than a spiral. Valuation reverts toward fundamentals hard enough to out-muscle the collateral feedback at the margin, and the separation between a calm decade and a boom is carried by the real interest rate — so a policy rate cut or a genuine profit surge can inflate a bubble. The crisis you get is the one your own cheap money earned.',
+          'Finance → Yield Curve shows public borrowing quotes at three months, one year, five years and ten years. Dealers learn from the policy rates they have seen; a rising or inverted curve is a market price shape, never a scripted recession. Credit follows short funding; investment and asset valuation follow five-year funding. The borrowing-maturity order changes new bonds and refinancing, while old coupons stay fixed. Treasury → Savings & Financing shows the average coupon and principal due for renewal: short debt usually starts cheaper, long debt locks costs for longer, and neither always wins. Surpluses meet maturities and buy back remaining debt at market prices. Finance → Central Bank separates purchased assets from foreign reserves and the sovereign fund. Purchases use official GDP and mature after five years; stopping orders leaves remaining holdings easing longer funding until their duration runs off. No coupon income, sales or revaluation are modeled. The wall’s asset figure is market value divided by replacement cost, with parity at 100. Valuation raises collateral, credit raises valuation, and reversion toward profitability and longer funding costs keeps the feedback from becoming a one-way spiral. Cheap money can still pay for a bubble and the crisis it earns.',
           'The bank capital floor is deliberately slack in a boom at the level you inherit, and bites only after a crisis has written capital down. That is the forced deleveraging. You can raise the floor until it binds before the crash, and doing so in time is one of the harder good decisions in the game.',
         ],
       },

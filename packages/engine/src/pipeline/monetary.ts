@@ -2,7 +2,7 @@
  * Monetary. Both annualized forecasts adapt to experienced CPI. The nominal
  * forecast also prices money-financed deficits directly; households learn
  * their effects through purchase prices. Finance and production read the
- * nominal forecast through the common private real rate; labor reads the
+ * nominal forecast through short and longer real funding; labor reads the
  * household forecast for wage bargains.
  */
 

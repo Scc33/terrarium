@@ -26,10 +26,10 @@ the old one and update the Status line of both.
 | [0011](0011-countries-are-replayable-recipes.md) | Countries are replayable recipes, not alternate engines | Accepted |
 | [0012](0012-technology-is-a-gap-not-a-tree.md) | Technology is a moving gap, not an unlock tree | Accepted |
 | [0013](0013-invention-is-a-hazard-research-is-a-stock.md) | Invention is a hazard, research is a stock | Accepted |
-| [0014](0014-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Accepted |
+| [0014](0014-sovereign-funding-pressure.md) | Sovereign funding pressure enters one common private rate | Partially superseded by 0047 |
 | [0015](0015-game-modes-are-replay-inputs.md) | Game modes are replay inputs, not UI preferences | Superseded by 0020 |
 | [0016](0016-a-chart-frames-a-dial-face.md) | A chart frames the dial face; only the dial obeys it | Superseded by 0025 |
-| [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Accepted |
+| [0017](0017-finance-levers-reuse-existing-balance-sheets.md) | Finance levers reuse the existing rate and bank-capital channels | Partially superseded by 0047 |
 | [0018](0018-fdi-is-owned-capital.md) | Foreign direct investment is owned capital, not an openness bonus | Accepted |
 | [0019](0019-a-country-is-a-document.md) | A country is a document, and a study is what makes it a claim | Accepted |
 | [0020](0020-the-rules-of-a-run-are-a-set.md) | The rules of a run are a set of independent safeties, not a ladder of modes | Accepted |
@@ -50,13 +50,14 @@ the old one and update the Status line of both.
 | [0035](0035-staffing-is-rationed-against-who-exists.md) | The staffing table is a demand for skills; who fills a post is rationed against who exists | Accepted |
 | [0036](0036-surplus-skill-bumps-joblessness-down.md) | Surplus skill bumps joblessness down; it does not change how many jobs exist | Accepted |
 | [0037](0037-a-surplus-has-a-destination.md) | Every quarter's balance has a destination, and the cabinet chooses between two | Accepted |
-| [0038](0038-central-bank-holdings-are-an-exact-book.md) | Central-bank holdings and transactions are exact books, separate from the sovereign fund | Accepted |
+| [0038](0038-central-bank-holdings-are-an-exact-book.md) | Central-bank holdings and transactions are exact books, separate from the sovereign fund | Partially superseded by 0047 |
 | [0039](0039-the-atlas-is-a-scan-the-game-reads.md) | The atlas is a scan of the repository, and the game is the only thing that draws it | Accepted |
 | [0040](0040-portable-normal-noise.md) | Normal noise is a portable sum of uniforms | Accepted |
 | [0041](0041-engine-has-a-host-free-typecheck.md) | The engine has its own host-free typecheck | Accepted |
 | [0042](0042-import-cycles-are-a-lint-rule.md) | Import cycles are a lint rule, not a scanner assertion | Accepted |
-| [0043](0043-the-neutral-rate-is-estimated-downstream-of-the-fog.md) | The neutral rate is estimated downstream of the fog, by the desk | Accepted |
+| [0043](0043-the-neutral-rate-is-estimated-downstream-of-the-fog.md) | The neutral rate is estimated downstream of the fog, by the desk | Partially superseded by 0047 |
 | [0044](0044-wage-bargains-use-inflation-expectations.md) | Wage bargains use household inflation expectations | Accepted |
 | [0045](0045-the-countryside-empties-toward-expected-income.md) | The countryside empties toward expected city income, not wage parity | Accepted |
 | [0046](0046-the-world-has-a-turbulence-dial.md) | How often the world breaks is a replay input chosen at the posting | Accepted |
-| [0047](0047-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |
+| [0047](0047-yields-price-duration-and-fixed-contracts.md) | Yields price duration; coupons are fixed contracts | Accepted; partially supersedes 0014, 0017, 0038, 0043 |
+| [0048](0048-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |

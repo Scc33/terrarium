@@ -4,6 +4,7 @@
  */
 
 import type { FinanceState } from './finance'
+import type { BondLot, YieldCurve } from './bonds'
 import type { LabourMarketPrint, LabourMarketRecord } from './labour'
 import type { Seed } from '../rng/rng'
 import type { DeskId, EventId, Prominence } from '../events/ids'
@@ -490,6 +491,8 @@ export interface MarketState {
 
 // ---------- government ----------
 export interface DialState {
+  /** Standing mix for new bonds: 0 short, 0.5 balanced, 1 long. */
+  debtMaturity: Ratio
   taxRates: Record<TaxRateId, Ratio>
   spending: { transfers: Money; procurement: Money; investment: Money; research: Money }
   /** maximum annual immigration as a share of the resident population. This
@@ -588,6 +591,8 @@ export interface GovernmentState {
   pipeline: CapacityBuild[]
   budget: { revenue: Money; outlays: Money; balance: Money }
   debt: Money
+  /** Fixed-coupon contracts; `debt` caches their face principal. */
+  bonds: BondLot[]
   /** The sovereign fund: what a surplus becomes once there is no debt left to
    * redeem (ADR-0037). It is the destination that makes the treasury's books
    * close — before it existed a surplus with no debt in front of it was
@@ -1176,11 +1181,16 @@ export interface StatRecord {
   // the treasury's own books — exact, no fog on yourself
   centralBankAssets: Money
   assetPurchases: Money
+  assetRunoff: Money
+  yieldCurve: YieldCurve
   fxIntervention: Money
   fundFlow: Money
   fiscalRebate: Money
   bondsIssued: Money
   debtRepaid: Money
+  debtMaturing: Money
+  bondsRefinanced: Money
+  debtBuybackAdjustment: Money
   deficitPrinting: Money
   revenue: Money
   outlays: Money
@@ -1221,6 +1231,11 @@ export interface StatsOffice {
 export interface TickFlows {
   /** Actual purchases, sized from official GDP, in money this quarter. */
   assetPurchases: Money
+  assetRunoff: Money
+  debtMaturing: Money
+  bondsRefinanced: Money
+  debtBuybackAdjustment: Money
+  newBondBorrowing: Money
   /** final demand by sector, real units */
   finalDemand: Record<SectorId, number>
   /** gross output demanded (Leontief-required), real units */
@@ -1357,7 +1372,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 48 // v48: the world's turbulence is a replay input (#122)
+export const SCHEMA_VERSION = 50 // v50: yield quotes, fixed-coupon debt, and QE runoff (#31)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

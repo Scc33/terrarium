@@ -311,7 +311,7 @@ people nominally employed on capped farms queue for city jobs instead. Do not "f
 Use **`pnpm agriculture`** as the evidence. Table 2 prints `job odds` and `exp. gap`, and
 table 3's `rel prod` checks that the countryside did not empty past the farm's market.
 
-### Where the food bill lands (ADR-0047)
+### Where the food bill lands (ADR-0048)
 
 Moves passive on purpose: the farm-gate share answers to income, and a passive country gets
 rich too. 1000 × 400q, `--country all`, before → after:

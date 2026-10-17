@@ -1,4 +1,4 @@
-# ADR-0047 — The food bill pays a margin, and the farm's share of it falls with income
+# ADR-0048 — The food bill pays a margin, and the farm's share of it falls with income
 
 **Status:** Accepted · **Date:** 2026-10-17
 

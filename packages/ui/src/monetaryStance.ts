@@ -47,6 +47,9 @@ import {
   neutralPolicyRateOf,
   privateFundingSpreadOf,
   sovereignRiskPremiumOf,
+  effectivePurchaseRateOf,
+  longNaturalRealRate,
+  privateLongRealRateOf,
 } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { shapeSeries, type ShapedPoint } from './components/series'
@@ -129,16 +132,17 @@ export interface MonetaryStance {
   high: number
   reading: StanceReading
   confidence: StanceConfidence
-  /** even a rate at the dial's floor reads above neutral: the rate alone
-   * cannot get there, and asset purchases are the instrument that still moves
-   * the same private rate */
+  /** Even the short rate's floor lies above estimated short-rate neutral. */
   belowFloor: boolean
   expectations: ExpectationsEstimate
   funding: FundingEstimate
-  /** the rate-equivalent of the purchase pace, a fraction (raises neutral) */
+  /** short-rate relief from the announcement and held duration, a fraction */
   assetPurchases: number
   /** the anchor every driver is measured from */
   anchor: number
+  longRealRate: number
+  longAnchor: number
+  longReading: StanceReading
 }
 
 const latestPrints = (pub: PublishedState, id: 'inflation' | 'debt_to_gdp'): ShapedPoint[] => {
@@ -275,8 +279,16 @@ export function monetaryStance(pub: PublishedState): MonetaryStance | null {
   if (expectations === null || funding === null) return null
 
   const posted = pub.dials.policyRate
-  const assetPurchases = assetPurchaseRateEquivalent(pub.dials.assetPurchaseRate)
-  const neutral = neutralPolicyRateOf(expectations.value, funding.value, pub.dials.assetPurchaseRate)
+  const purchases = effectivePurchaseRateOf(pub.dials.assetPurchaseRate,
+    pub.centralBank.durationHoldings, latestOfficialNominalGdp(pub)?.value ?? null)
+  const assetPurchases = assetPurchaseRateEquivalent(purchases)
+  const neutral = neutralPolicyRateOf(expectations.value, funding.value, purchases)
+  const longRealRate = privateLongRealRateOf(posted, pub.yieldCurve.policyAnchor,
+    expectations.value, funding.value, purchases)
+  const longAnchor = longNaturalRealRate()
+  const longBand = confidenceBand(expectations, funding)
+  const longReading: StanceReading = longRealRate > longAnchor + longBand + NEAR_NEUTRAL_TOLERANCE
+    ? 'above' : longRealRate < longAnchor - longBand - NEAR_NEUTRAL_TOLERANCE ? 'below' : 'near'
 
   // The filter is only as good as what it has seen. The range is built from
   // confessed bands, so every print still carrying weight has to have one:
@@ -293,10 +305,10 @@ export function monetaryStance(pub: PublishedState): MonetaryStance | null {
   // a wider spread lowers neutral, so the low end pairs the low inflation
   // reading with the high spread, and the high end the reverse
   const low = confidence === 'fair'
-    ? neutralPolicyRateOf(expectations.low, funding.high, pub.dials.assetPurchaseRate)
+    ? neutralPolicyRateOf(expectations.low, funding.high, purchases)
     : neutral
   const high = confidence === 'fair'
-    ? neutralPolicyRateOf(expectations.high, funding.low, pub.dials.assetPurchaseRate)
+    ? neutralPolicyRateOf(expectations.high, funding.low, purchases)
     : neutral
 
   const reading: StanceReading =
@@ -314,5 +326,14 @@ export function monetaryStance(pub: PublishedState): MonetaryStance | null {
     funding,
     assetPurchases,
     anchor: NATURAL_REAL_RATE,
+    longRealRate,
+    longAnchor,
+    longReading,
   }
+}
+
+function confidenceBand(expectations: ExpectationsEstimate, funding: FundingEstimate): number {
+  const memory = Math.min(EXPECTATIONS_MEMORY_QTRS, expectations.throughQtr + 1)
+  return expectations.bandedRun >= memory && expectations.band > 0
+    ? expectations.band + (funding.high - funding.low) / 2 : 0
 }

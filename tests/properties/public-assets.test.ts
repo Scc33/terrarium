@@ -82,8 +82,8 @@ for (const policy of POLICY_IDS) {
             const book = s.stats.record.at(-1)!
             expect(book.balance).toBeCloseTo(book.debtRepaid - book.bondsIssued - book.deficitPrinting + book.fundFlow + book.fiscalRebate, 7)
             expect(s.gov.fund - before.gov.fund).toBeCloseTo(book.fundFlow, 7)
-            expect(s.gov.debt - before.gov.debt).toBeCloseTo(book.bondsIssued - book.debtRepaid, 7)
-            expect(s.finance.centralBankAssets - before.finance.centralBankAssets).toBeCloseTo(book.assetPurchases, 7)
+            expect(s.gov.debt - before.gov.debt).toBeCloseTo(book.bondsIssued - book.debtRepaid + book.debtBuybackAdjustment, 7)
+            expect(s.finance.centralBankAssets - before.finance.centralBankAssets).toBeCloseTo(book.assetPurchases - book.assetRunoff, 7)
             expect(s.external.reserves - before.external.reserves).toBeCloseTo(book.fxIntervention, 7)
             expect(book.assetPurchases).toBeCloseTo(before.gov.dials.assetPurchaseRate * (officialNominalGdp(before) ?? 0), 7)
           },
