@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "0926fd3",
+  "revision": "2ef4825",
   "repoRoot": "../..",
   "packages": [
     {
@@ -32,14 +32,14 @@ export const architecture = {
       "name": "@terrarium/runner",
       "description": "Headless execution and balance sweeps over the same public engine API.",
       "moduleCount": 15,
-      "lines": 3145
+      "lines": 3166
     },
     {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 123,
-      "lines": 20718
+      "lines": 20721
     }
   ],
   "modules": [
@@ -7769,7 +7769,7 @@ export const architecture = {
       "packageId": "runner",
       "category": "Headless runner",
       "summary": "Named runner policies. These are sampling strategies, not engine rules.",
-      "lines": 194,
+      "lines": 215,
       "exports": [
         {
           "name": "POLICY_IDS",
@@ -7793,31 +7793,31 @@ export const architecture = {
           "name": "developmentalPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 25
+          "line": 45
         },
         {
           "name": "randomPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 32
+          "line": 55
         },
         {
           "name": "regulatedPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 115
+          "line": 138
         },
         {
           "name": "maximalPolicy",
           "kind": "constant",
           "path": "packages/runner/src/policies.ts",
-          "line": 151
+          "line": 172
         },
         {
           "name": "policyFor",
           "kind": "function",
           "path": "packages/runner/src/policies.ts",
-          "line": 191
+          "line": 212
         }
       ],
       "imports": [
@@ -10195,7 +10195,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 317,
+      "lines": 320,
       "exports": [
         {
           "name": "Domain",
@@ -10219,31 +10219,31 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 236
+          "line": 239
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 277
+          "line": 280
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 291
+          "line": 294
         },
         {
           "name": "faceScale",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 303
+          "line": 306
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 309
+          "line": 312
         }
       ],
       "imports": [
