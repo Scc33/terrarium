@@ -14,8 +14,9 @@ The `isolated` arm is `tests/properties/statutes.test.ts`'s: protected tenure, u
 capital, the living wage enacted at quarter 40. The `developmental` arm is the runner's
 capacity builder, which also legislates the living wage one rung at a time, whenever the order
 leaves a whole capacity batch affordable. `binds` is the share of an era's quarters in which a
-sector's wage sits on the floor. Deltas are the statute arm against the same seed without it,
-averaged over the era. A single quarter is the wrong reading: Veltravia's unemployment falls
+sector's wage sits on the floor `labor` applied, which the tool finds by replaying the steps
+before `labor`. Deltas are the statute arm against the same seed without it, averaged over the
+era. A quarter counts only while both arms still have a government. A single quarter is the wrong reading: Veltravia's unemployment falls
 from 14% to 3.5% in the four years from 1975. The statute delays that fall by a quarter or two,
 and at its midpoint the delay reads as two points of unemployment. Re-measure before acting on
 any number here.
@@ -26,15 +27,15 @@ Isolated arm, share of quarters on the floor:
 
 | | farm 1976–96 | farm 1996–2021 | manuf / transport 2021–46 |
 |---|---|---|---|
-| meridia | 70% | 80% | 84% / 87% |
-| costona | 34% | 56% | 66% / 53% |
-| veltravia | 52% | 12% | 64% / 74% |
-| oranga | 77% | 80% | 70% / 75% |
-| kestrel | 66% | 68% | 72% / 72% |
-| procedural | 57% | 57% | 71% / 73% |
+| meridia | 98% | 93% | 91% / 96% |
+| costona | 52% | 92% | 83% / 66% |
+| veltravia | 60% | 9% | 64% / 76% |
+| oranga | 98% | 94% | 72% / 81% |
+| kestrel | 97% | 99% | 89% / 91% |
+| procedural | 84% | 76% | 80% / 82% |
 
 The floor binds on every curated farm for part of the century, and then on manufacturing and
-transport everywhere. It never reaches services.
+transport everywhere. It never reaches services or energy.
 
 ## 2. What it buys there
 
@@ -50,16 +51,16 @@ Both halves of the argument appear, and neither is written into the engine (ADR-
 
 ## 3. What a government that wants it gets
 
-The developmental arm. Force before 1976 runs from 0.05 (Costona) to 0.58 (Oranga), depending
-on how soon each civil service can carry the order, and from 1996 it is 0.59–0.74. At 0.7 force
+The developmental arm. Force before 1976 runs from 0.05 (Costona) to 0.60 (Oranga), depending
+on how soon each civil service can carry the order, and from 1996 it is 0.59–0.77. At 0.7 force
 the living wage is a Kaitz ratio of about 0.5 against the mean wage.
 
-- The farm bite comes later and is shallower. 1976–96: Oranga 80%, Kestrel 28%, Meridia 18%,
-  Costona and Veltravia about 0%. No era's farm wage averages more than 5.5% above the arm
+- The farm bite comes later and is shallower. 1976–96: Oranga 87%, Kestrel 30%, Meridia 17%,
+  Costona and Veltravia about 0%. No era's farm wage averages more than 5.8% above the arm
   without the statute.
 - The city bite is the statute's main effect. In 2021–46 manufacturing is on the floor in
-  66–93% of quarters on every curated country. Unemployment is +0.9–1.4pt and the Gini −0.004
-  to −0.013.
+  78–99% of quarters on every curated country. Unemployment is +0.9–1.6pt and the Gini −0.004
+  to −0.018.
 - Deposition moves on one country. Veltravia loses its cabinet in 3 of 24 centuries with the
   statute and in none without it. Elsewhere the arms are within one seed of each other. The
   likeliest channel is the veto players, not the floor: industrialists oppose the statute at
@@ -94,7 +95,7 @@ re-run `pnpm minimum-wage`, because the late city bite will move with it.
    arm, and does so in play on Oranga, Kestrel, Meridia and Costona. Where it binds decides which
    argument the player gets, and both arguments are reachable.
 2. **Raise `MINIMUM_WAGE_ANCHOR`** — rejected. The farm no longer needs it. It would deepen the
-   late city bite, which already costs up to 1.4pt of unemployment, and it would push the Kaitz
+   late city bite, which already costs up to 1.6pt of unemployment, and it would push the Kaitz
    ratio above the historical range.
 3. **A rural rung, or a farm-wage anchor** — rejected for now. It would duplicate a channel that
    already binds. A separately set agricultural minimum stays a reasonable future statute if
