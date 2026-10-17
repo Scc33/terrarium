@@ -280,34 +280,29 @@ const LIVING_WAGE: Action = { kind: 'enact', statute: 'minimum_wage', level: 2 }
  * Harris–Todaro's: a dearer farm keeps people on the land and out of the queue
  * for city jobs, and unemployment falls.
  *
- * Costona carried the farm claims until ADR-0045. Its farm wage sat under the
- * floor while the countryside could not empty (at `9c71caf`, 1976, six seeds:
- * farm wage +38%, Gini 0.484 → 0.444, food 18% dearer against services,
- * unemployment +0.7pt). Once it can empty, the farm wage outruns the floor and
- * the living wage reaches no curated farm. The farm claims run instead on the
- * one procedural draft in two hundred whose farm it still reaches, where at
- * 1976 it moves the farm wage +4.0%, the Gini −0.006, food 2.7% against
- * services, the rural labour force +1.5pt and unemployment −0.38pt.
+ * Which wage it reaches moves with the decade: the farm's from the 1970s, when
+ * agriculture is still the lowest wage, then manufacturing's and transport's
+ * once services pull the average away from them. `pnpm minimum-wage` reads
+ * where it binds; investigation 0028 is why the claims are timed as they are.
+ * Every curated farm has been out of reach once (ADR-0045) and back within
+ * reach since (#289, #290), so if one of these stops holding, re-measure
+ * before moving it.
  */
 describe('minimum wage → the argument about minimum wages, unscripted', () => {
   const costona = createCountryParams('costona', 'minwage-costona')
-  // a draft whose farm the living wage reaches. Until #290 proc-160 was the one
-  // in proc-0 … proc-199; once exports stopped scaling with the farm's own
-  // capacity its wage fell, and about half of them qualify. proc-10 is the one
-  // in proc-0 … proc-59 with the widest margin (1.2% on its tightest seed and
-  // reading). If this stops being true, find the next one.
-  const agrarian = createCountryParams('procedural', 'proc-10')
-  // a draft whose city wages the floor reaches. Veltravia was until the food
-  // margin (#289), then Oranga until #290 took its transport sector's export
-  // demand off its capacity; no curated country binds there now.
-  const urban = createCountryParams('procedural', 'proc-2')
+  // Meridia's farm wage sits on the floor in about three quarters of 1976–96
+  const agrarian = createCountryParams('meridia', 'minwage-meridia')
+  const FARM_QTRS = 160
+  // Veltravia's manufacturing and transport wages do by 1996
+  const urban = createCountryParams('veltravia', 'minwage-veltravia')
+  const CITY_QTRS = 200
 
   let farmRuns: Array<{ seed: string; off: TrueState; on: TrueState }> | undefined
   const onTheFarm = () =>
     (farmRuns ??= SEEDS.map((seed) => ({
       seed,
-      off: govern(agrarian, seed, 120, null),
-      on: govern(agrarian, seed, 120, LIVING_WAGE),
+      off: govern(agrarian, seed, FARM_QTRS, null),
+      on: govern(agrarian, seed, FARM_QTRS, LIVING_WAGE),
     })))
 
   it('puts a floor under every sector', () => {
@@ -343,8 +338,8 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
   it('where it binds on city wages, costs jobs with no disemployment term anywhere in the engine', () => {
     let costlier = 0
     for (const seed of SEEDS) {
-      const off = govern(urban, seed, 120, null)
-      const on = govern(urban, seed, 120, LIVING_WAGE)
+      const off = govern(urban, seed, CITY_QTRS, null)
+      const on = govern(urban, seed, CITY_QTRS, LIVING_WAGE)
       if (on.flows.unemployment > off.flows.unemployment) costlier++
     }
     expect(costlier).toBeGreaterThanOrEqual(5)
@@ -354,9 +349,7 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
     // A floor at roughly half the average wage reaches nobody in a country
     // whose lowest-paid sector already earns more than that. The statute is
     // still on the books, still enforced, and simply has nothing to do.
-    // Veltravia at q120. Meridia's farm wage reaches the floor by the 1980s
-    // once its market shrinks with the food margin (#289), and Kestrel's once
-    // its exports stop scaling with its farm (#290).
+    // Veltravia at q120, a decade before its city wages fall to the floor.
     const veltravia = createCountryParams('veltravia', 'minwage-veltravia')
     const off = govern(veltravia, 'mw-b', 120, null)
     const on = govern(veltravia, 'mw-b', 120, LIVING_WAGE)
