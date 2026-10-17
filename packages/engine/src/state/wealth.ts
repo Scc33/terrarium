@@ -1,6 +1,6 @@
 /** Balance sheets cover the assets and liabilities modeled by this engine.
  * Households include their directly owned businesses; banks and the monetary
- * authority remain separate counterparties. See ADR-0049. */
+ * authority remain separate counterparties. See ADR-0051. */
 import type { CohortId, Qtr } from './schema'
 
 export type BondHolderId = CohortId | 'foreign'

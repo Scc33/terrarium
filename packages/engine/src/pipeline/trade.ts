@@ -47,6 +47,7 @@
 import {
   DEPRECIATION_WHEN_BROKE,
   FX_BALANCE_NORM_ADAPT,
+  FX_BALANCE_NORM_REVERT,
   FX_BALANCE_TILT,
   FX_CARRY_TILT,
   FX_COVER_ADJUST,
@@ -284,7 +285,9 @@ export const trade: PipelineStep = {
     // in and turn the dial off after a few years.
     const balanceShare = currentAccount / Math.max(flows.nominalGdp, 1e-9)
     const balanceNorm =
-      external.balanceNorm + FX_BALANCE_NORM_ADAPT * (balanceShare - external.balanceNorm)
+      external.balanceNorm +
+      FX_BALANCE_NORM_ADAPT * (balanceShare - external.balanceNorm) +
+      FX_BALANCE_NORM_REVERT * (external.inheritedBalance - external.balanceNorm)
 
     // A broken defence is a FACT and it always files: the reserve book is the
     // treasury's own arithmetic and importers find out at the counter, so it

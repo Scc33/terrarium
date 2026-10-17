@@ -44,3 +44,12 @@ export function wealthHistory(pub: PublishedState, basis: PopulationBasis): Weal
 export function householdWealthBand(point: WealthPrint): number {
   return point.errorBand * HOUSEHOLD_WEALTH_COMPONENT_IDS.reduce((sum, id) => sum + Math.abs(point.household[id]), 0)
 }
+
+/** Absolute uncertainty follows every historical release, including after
+ * per-person conversion. Unknown bands stay zero and are omitted by the painter. */
+export function wealthChart(history: readonly WealthPrint[], kind: 'household' | 'public' | 'national') {
+  return history.map(point => ({ tick: point.forQtr,
+    value: kind === 'household' ? point.household.netWorth : kind === 'public' ? point.publicNetWorth : point.nationalNetWorth,
+    band: kind === 'household' ? householdWealthBand(point) : kind === 'public' ? point.publicErrorBand : point.nationalErrorBand,
+  }))
+}

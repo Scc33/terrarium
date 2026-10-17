@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 52. The short player-facing design is in
+*How the code is actually arranged, as of schema 53. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -675,10 +675,10 @@ a floor to prevent regression; raise it, never lower it to green a build. The UI
 - `AGENTS.md` (root, `packages/engine/`, `packages/ui/`) — the always-true rules for agents, and
   `.agents/skills/` — the procedures. Each `CLAUDE.md` is an import of the `AGENTS.md` beside it.
 
-### Wealth accounts (schema 52)
+### Wealth accounts (schema 53)
 
 `pipeline/wealth.ts` consolidates household businesses, banks, government and foreign
 claims; `pipeline/bondOwnership.ts` settles securities and `wealthSurvey.ts` publishes
 the asset survey. `state/wealth.ts` owns their data shapes. The census denominator
-for every per-person view comes from the same measured quarter. ADR-0049 records
+for every per-person view comes from the same measured quarter. ADR-0051 records
 ownership, valuation, monetary accommodation and the national consolidation identity.

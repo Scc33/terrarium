@@ -3,7 +3,8 @@
  * come from the wire even when the surveys behind a plot are unfunded. */
 
 import { FINANCE_NOTE } from '../financeCopy'
-import { loadPopulationBasis, treasuryBasis, type PopulationBasis } from '../perPerson'
+import { treasuryBasis } from '../perPerson'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
 import { useState } from 'react'
 import { FIRST_YEAR } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
@@ -132,7 +133,7 @@ function MarketChart({
 
 export function FinanceOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [view, setView] = useState<View>('position')
-  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const [basis, setBasis] = usePopulationBasis()
   const assets = treasuryBasis(pub, basis)
   const reading = readFinance(pub)
   const trail = fragilityTrail(pub)

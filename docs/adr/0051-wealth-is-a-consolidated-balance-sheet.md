@@ -1,6 +1,6 @@
-# ADR-0049 — Wealth is a consolidated balance sheet
+# ADR-0051 — Wealth is a consolidated balance sheet
 
-**Status:** Accepted · **Date:** 2026-10-17 · **Schema:** 52
+**Status:** Accepted · **Date:** 2026-10-17 · **Schema:** 53
 
 ## Decision
 
@@ -31,7 +31,8 @@ Housing, land and pension promises have no assets or liabilities in this model.
 - Every issued sovereign lot records its holders. The inherited book preserves
   the existing all-domestic `BOND_HOLDING` settlement. New net subscriptions use
   the existing domestic funding-share target, limited by households' uncommitted
-  deposits; nonresident investors take the remainder within the existing auction
+  deposits after reserving consumption, existing overdrafts and the businesses'
+  net investment cash requirement; nonresident investors take the remainder within the existing auction
   capacity. Funding quotes retain the existing openness-based structural
   crowding exposure (`domesticBondShare`), rather than substituting ultimate
   household ownership for underwriting demand. It is a pricing proxy, not the
@@ -96,6 +97,9 @@ unavailable. Flows retain their period; stocks are not annualized. Rates,
 sentiment indices, and existing per-person accounts are not divided again.
 View preferences are outside saves. Wealth releases join export format v1 as
 an additive table; older replay saves rebuild the new accounts from their log.
+Every office saves the same population basis and updates the mounted wall.
+Wealth charts retain a series-specific absolute uncertainty band for each
+historical point, with unknown bands omitted rather than painted as precision.
 
 ## Alternatives and consequences
 
@@ -109,13 +113,13 @@ The benefit is an auditable modeled household net-worth measure and a reusable
 population basis. The cost is a deliberate economic change: capital purchases,
 credit changes, foreign coupons and bank distributions now affect household
 cash. Replays and balance distributions change and require economic review;
-schema 52 is not an inert presentation-only addition.
+schema 53 is not an inert presentation-only addition.
 
 ## Evidence
 
-Against schema 51 (including the food margin), the paired passive 40-quarter
-replay moves real GDP from 97.58 to 98.66, nominal GDP from 97.03 to 87.33,
-and sovereign face debt from 103.87 to 143.29.
+Against schema 52 (including market-based trade and the revised sampler arms),
+the paired passive 40-quarter replay moves real GDP from 97.50 to 97.58, nominal GDP from 96.84 to 85.93,
+and sovereign face debt from 99.52 to 136.32.
 Paying for investment and subscriptions reduces liquid demand; changed credit,
 bank distributions and actual coupon ownership feed back through prices and
 revenues. This is a financing change, not a calibration of long-run growth.
@@ -124,9 +128,9 @@ All-country validation of the final accounting rules:
 
 | Policy | Runs × quarters | Median growth/yr | Mean inflation, median | Deposed |
 |---|---:|---:|---:|---:|
-| Passive | 1000 × 400 | 2.91% | −0.02% | 4% |
-| Developmental | 1000 × 400 | 3.12% | −0.46% | 8% |
-| Random | 1000 × 120 | 4.37% | −0.06% | 28% |
+| Passive | 1000 × 400 | 2.90% | −0.19% | 2% |
+| Developmental | 1000 × 400 | 3.04% | −0.03% | 4% |
+| Random | 1000 × 120 | 4.35% | −0.30% | 25% |
 
 All three batches have zero non-finite runs and zero price explosions. The
 full stability sweep (120 × 416 quarters for each of four policies) also has
@@ -140,12 +144,23 @@ zero accounting failures. That stress test includes quarters after deposition:
 its extreme asset levels are not estimates of player-reachable welfare. It
 checks identities and finite values, not guessed bounds on wealth per head.
 
-One historical income test's endpoint no longer describes the same economy.
-On seed `redistribution`, adding three to quarterly transfers at appointment
-now moves the Gini at Q60 from 0.42637 to 0.42677. The relative grouped median
-is still an unreliable inequality signal: at Q12 the same order lowers the
-Gini from 0.46595 to 0.44594 while median/mean falls from 0.46553 to 0.45422,
-and mean real income rises. The test retains that measured counterexample at
-three years rather than requiring the financing model to preserve the old
-15-year distribution. It makes no claim that every transfer order improves
-inequality at every later date.
+The relative grouped median remains an unreliable inequality signal. On seed
+`redistribution`, adding three to quarterly transfers at appointment lowers
+Q60 Gini from 0.42717 to 0.42484 while median/mean falls from 0.75545 to 0.72002,
+and mean real income rises from 3.05161 to 3.13648. The 15-year counterexample
+is retained; no financing constant is adjusted to force its result. It makes
+no claim that every transfer order improves inequality at every later date.
+
+The city-wage mechanism test uses an authored Veltravia with twice the inherited
+manufacturing employment weight at the same output mix. It verifies that the
+counterfactual floor exceeds the untreated manufacturing wage before asserting
+job losses. The former `proc-2` fixture no longer binds in cities under paid
+investment. In the new fixture, all six seeds have higher unemployment by
+1.2–2.4 percentage points; the existing five-of-six assertion is retained.
+
+A drafted copy's derived pyramid and written institutional defaults can differ
+from the catalogue by one floating-point ulp. Independent decimal rounding in a
+hash can put those near-identical values on opposite sides of a boundary on one
+host. The country-editor equivalence test compares every field with relative
+numeric tolerance 1e-12 and exact structure/metadata, tighter than the hash's ten
+significant digits. Engine hashing and deterministic replay checks are unchanged.

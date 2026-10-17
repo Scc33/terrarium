@@ -1,7 +1,7 @@
 # 0024 — Capital stock is not household wealth
 
-**Status:** Resolved as an answered spike. Schema 52 adds modeled household, bank,
-public and foreign balance sheets under [ADR-0049](../adr/0049-wealth-is-a-consolidated-balance-sheet.md)
+**Status:** Resolved as an answered spike. Schema 53 adds modeled household, bank,
+public and foreign balance sheets under [ADR-0051](../adr/0051-wealth-is-a-consolidated-balance-sheet.md)
 and #85. The stamped measurements below describe the earlier model.
 
 **Raised by:** [#86](https://github.com/Scc33/terrarium/issues/86): is capital per person

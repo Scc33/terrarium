@@ -51,6 +51,7 @@ test('per-person capital and the wealth balance sheet use the published census w
     return latest.household.netWorth / population;
   })()`)
   await expect(dialog.locator('tfoot td').first()).toHaveText(expected.toFixed(2))
+  await expect(dialog.locator('svg path[opacity="0.1"]')).toHaveCount(3)
   await page.screenshot({ path: testInfo.outputPath('wealth-per-person.png') })
   const bounds = await dialog.boundingBox()
   expect(bounds!.y).toBeGreaterThanOrEqual(0)
@@ -79,4 +80,34 @@ test('per-person capital and the wealth balance sheet use the published census w
   await scenario(page, '0.35')
   await expect(page.getByText('CAPITAL PER PERSON', { exact: true })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('per-person-dossier.png') })
+})
+
+test('every office saves the population basis and updates the mounted wall', async ({ page }) => {
+  test.setTimeout(60_000)
+  await page.addInitScript({ content: `localStorage.setItem(${JSON.stringify(BRIEFED_KEY)}, '1')` })
+  await page.goto('/?seed=basis-preference-review')
+  await expect(page.getByRole('button', { name: 'ADVANCE QUARTER' })).toBeVisible()
+  await scenario(page, '1')
+  const wall = page.getByRole('button', { name: 'Show eligible totals per person' })
+  const open = async (name: string) => {
+    if (name === 'LEDGER') await page.getByRole('button', { name: 'Open the full treasury ledger', exact: true }).click()
+    else await office(page, name)
+    if (name === 'FINANCE') await page.getByRole('button', { name: 'CENTRAL BANK', exact: true }).click()
+  }
+  for (const view of [
+    { office: 'WEALTH', group: 'Wealth population basis', choice: 'PER PERSON', perPerson: true },
+    { office: 'INDUSTRY', group: 'Industry population basis', choice: 'TOTALS', perPerson: false },
+    { office: 'FINANCE', group: 'Central-bank population basis', choice: 'PER PERSON', perPerson: true },
+    { office: 'LEDGER', group: 'Chart mode', choice: 'LEVELS', perPerson: false },
+  ]) {
+    await open(view.office)
+    await page.getByRole('group', { name: view.group, exact: true }).getByRole('button', { name: view.choice, exact: true }).click()
+    await page.getByRole('button', { name: 'Close dialog', exact: true }).click()
+    await expect(wall).toHaveAttribute('aria-pressed', String(view.perPerson))
+    await open(view.office)
+    await expect(page.getByRole('group', { name: view.group, exact: true }).getByRole('button', { name: view.choice, exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { name: 'Close dialog', exact: true }).click()
+  }
+  await page.reload()
+  await expect(wall).toHaveAttribute('aria-pressed', 'false')
 })

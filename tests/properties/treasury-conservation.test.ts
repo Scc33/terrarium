@@ -38,6 +38,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyActions,
+  CAPACITY_IDS,
   createCountryParams,
   init,
   IllegalActionError,
@@ -187,13 +188,18 @@ describe('the defect this closes was reachable in ordinary play', () => {
   it('hands the surplus back rather than banking it when the dial says so', () => {
     // Both arms under the same rules, so the only difference between them is
     // the order itself. The room's objection to that order is not a confound
-    // to be paired away — it is what the order costs.
+    // to be paired away — it is what the order costs. Capacity alone, because
+    // the runner's developmental arm turns the dial up itself (#319).
     const rules = { unlimitedCapital: true }
-    const banked = books('conserve-split', TICKS, developmentalPolicy, [], rules)
+    const buildOnly: RunnerPolicy = (_s, _rng, tick) =>
+      tick % 8 === 0
+        ? CAPACITY_IDS.map((target): Action => ({ kind: 'investCapacity', target, amount: 2 }))
+        : []
+    const banked = books('conserve-split', TICKS, buildOnly, [], rules)
     const returned = books(
       'conserve-split',
       TICKS,
-      developmentalPolicy,
+      buildOnly,
       [{ kind: 'setDial', path: 'surplusPayout', value: 1 }],
       rules,
     )

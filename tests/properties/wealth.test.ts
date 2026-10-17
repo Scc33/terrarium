@@ -75,6 +75,24 @@ describe('modeled household net worth and its counterparties', () => {
     }
   })
 
+  it('reserves cash for unfunded investment and loan repayments before buying bonds', () => {
+    for (const businessCreditFlow of [20, -10]) {
+      const state = opening()
+      state.gov.bonds = []
+      state.cohorts = state.cohorts.map(c => ({ ...c, savings: c.id === 'business_owners' ? 10 : 0, overdraft: 0 }))
+      state.flows.cohortSpend = Object.fromEntries(state.cohorts.map(c => [c.id, c.id === 'business_owners' ? 2 : 0])) as TrueState['flows']['cohortSpend']
+      state.flows.privateInvestmentFunding = businessCreditFlow === 20 ? 30 : 0
+      state.flows.businessCreditFlow = businessCreditFlow
+      const settlement = settleDebt([], 0, true, 0, state.finance.yieldCurve)
+      const placed = settleBondOwnership(state, settlement, issueBonds(100, 0.5, 0, state.finance.yieldCurve), 100)
+      expect(placed.purchases.business_owners).toBeCloseTo(0.5, 12)
+      expect(placed.purchases.foreign).toBeCloseTo(99.5, 12)
+      const closingCash = 10 - 2 + (businessCreditFlow - state.flows.privateInvestmentFunding) * PROFIT_SHARE.business_owners - placed.purchases.business_owners
+      expect(closingCash).toBeCloseTo(0, 12)
+      expect(sum(Object.values(placed.purchases))).toBeCloseTo(100, 12)
+    }
+  })
+
   it('allocates coupons, maturity and discounted buybacks to the recorded holders', () => {
     const state = opening()
     state.gov.bonds = [{ principal: 10, coupon: 0.08, issuedAt: -4, maturesAt: 0,

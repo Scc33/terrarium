@@ -281,7 +281,7 @@ export interface PublishedState {
     /** Structural domestic funding exposure, 0..1, used by the existing
      * crowding-price proxy (ADR-0043). It is the openness-based target, not
      * households’ realized ownership share: actual subscriptions and ultimate
-     * holder claims are separate accounts under ADR-0049. */
+     * holder claims are separate accounts under ADR-0051. */
     domesticBondShare: Ratio
     revenueBySource: RevenueSplit
     outlaysByProgramme: OutlaySplit

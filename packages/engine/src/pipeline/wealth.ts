@@ -1,4 +1,4 @@
-/** Complete balance sheets within the modeled asset perimeter (ADR-0049).
+/** Complete balance sheets within the modeled asset perimeter (ADR-0051).
  * Financial claims cancel against named liabilities. Productive capital is
  * counted once in national wealth, irrespective of how it is financed. */
 import { PROFIT_SHARE } from '../constants'

@@ -25,7 +25,6 @@ import {
   GOV_RESEARCH_SERVICES_SHARE,
   IND_FAVOR_INVEST,
   IMPORT_BASE_SHARE,
-  EXPORT_BASE_SHARE,
   INVESTMENT_DEMAND_MANUF_SHARE,
   INVESTMENT_DEMAND_SERVICES_SHARE,
   INVESTMENT_FACTOR_MAX,
@@ -40,6 +39,7 @@ import {
   SAVINGS_DRAWDOWN,
   taxEfficiency,
   TRADE_ELASTICITY,
+  UTILIZATION_AT_INIT,
 } from '../constants'
 import { clamp, leontiefGross, sectorRecord } from '../math'
 import { SECTOR_IDS, type CohortId } from '../state/schema'
@@ -173,7 +173,10 @@ export const production: PipelineStep = {
           : 0,
     )
 
-    // --- trade demand at relative prices ---
+    // --- trade demand at relative prices (ADR-0049) ---
+    // Exports are what the partners will buy: a foothold the world's demand
+    // grows, priced against theirs. Own capacity only caps it — a sector that
+    // grows sells more abroad by getting cheaper, never by being bigger.
     const fx = external.exchangeRate
     const tariff = gov.dials.taxRates.tariff
     const exportsReal = sectorRecord((sid, i) => {
@@ -182,29 +185,40 @@ export const production: PipelineStep = {
       // Partner demand: a foreign recession buys less, whatever the price
       const foreignDemand = external.world.exportDemand[sid]
       return Math.min(
-        EXPORT_BASE_SHARE[sid] *
-          qPot[i] *
-          state.params.openness *
-          foreignDemand *
-          Math.pow(ratio, TRADE_ELASTICITY),
+        external.exportMarket[sid] * foreignDemand * Math.pow(ratio, TRADE_ELASTICITY),
         EXPORT_CAP_SHARE_OF_POTENTIAL * qPot[i],
       )
     })
+    // A foreign-financed factory often arrives partly as imported plant.
+    // It remains capital formation and joins the stock in labor, but the
+    // imported machinery is not a domestic order and must hit the external
+    // account. Services/construction stay local.
+    const importedCapital = FDI_IMPORTED_CAPITAL_SHARE * foreignInvReal
+    // Imports answer to what the country USES of each good — final demand at
+    // home and everything it takes to make that, the Leontief requirement —
+    // so a farm that falls behind its own country's appetite is made up
+    // abroad, not the other way round. The plant already bought abroad is
+    // not used again here.
+    const absorption = leontiefGross(
+      io.coeff,
+      SECTOR_IDS.map(
+        (sid) =>
+          householdDemand[sid] +
+          procurementReal[sid] +
+          researchReal[sid] +
+          invDemand[sid] -
+          (sid === 'manuf' ? importedCapital : 0),
+      ),
+    )
     const importsReal = sectorRecord((sid, i) => {
       const worldP = external.worldPrices[sid] * fx * (1 + tariff)
       const ratio = market.prices[sid] / worldP
       const ordinaryImports =
         IMPORT_BASE_SHARE[sid] *
-        qPot[i] *
+        (absorption[i] / UTILIZATION_AT_INIT) *
         state.params.openness *
         Math.pow(ratio, TRADE_ELASTICITY)
-      // A foreign-financed factory often arrives partly as imported plant.
-      // It remains capital formation and joins the stock in labor, but the
-      // imported machinery is not a domestic order and must hit the external
-      // account. Services/construction stay local.
-      const importedCapital =
-        sid === 'manuf' ? FDI_IMPORTED_CAPITAL_SHARE * foreignInvReal : 0
-      return ordinaryImports + importedCapital
+      return ordinaryImports + (sid === 'manuf' ? importedCapital : 0)
     })
 
     // --- final demand and the Leontief solve ---

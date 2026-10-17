@@ -16,7 +16,8 @@ import { FUND_YIELD } from '@terrarium/engine'
 import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
 import { DonutChart, EmptyState, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
-import { loadPopulationBasis, treasuryBasis } from '../perPerson'
+import { treasuryBasis } from '../perPerson'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
 import { PublicAssetBook } from './PublicAssetBook'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 import { OUTLAY_CHART_FACE, OUTLAY_CHART_IDS, outlayChartValues } from '../budgetChart'
@@ -52,8 +53,13 @@ type Mode = 'money' | 'share' | 'perPerson'
 
 export function LedgerOverlay({ pub: source, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [side, setSide] = useState<Side>('revenue')
-  const [mode, setMode] = useState<Mode>(() => loadPopulationBasis() === 'perPerson' ? 'perPerson' : 'money')
-  const basis = mode === 'perPerson' ? 'perPerson' : 'total'
+  const [basis, setBasis] = usePopulationBasis()
+  const [showShares, setShares] = useState(false)
+  const mode: Mode = showShares ? 'share' : basis === 'perPerson' ? 'perPerson' : 'money'
+  const setMode = (next: Mode) => {
+    setShares(next === 'share')
+    if (next !== 'share') setBasis(next === 'perPerson' ? 'perPerson' : 'total')
+  }
   const money = (value: number) => value.toFixed(basis === 'perPerson' ? 2 : 1)
   const pub = treasuryBasis(source, basis)
   if (!pub) return <Modal title="THE TREASURY LEDGER" onClose={onClose}><EmptyState title="CENSUS UNAVAILABLE">The books need a population count for the same quarter before a per-person reading can be made.</EmptyState></Modal>
@@ -141,7 +147,7 @@ export function LedgerOverlay({ pub: source, onClose }: { pub: PublishedState; o
               { value: 'financing', label: 'SAVINGS & FINANCING', title: 'Where surpluses go and how deficits are covered.' },
             ]}
           />
-          {side === 'financing' && <SegmentedControl label="Financing population basis" value={mode === 'perPerson' ? 'perPerson' : 'money'} onChange={setMode}
+          {side === 'financing' && <SegmentedControl label="Financing population basis" value={basis === 'perPerson' ? 'perPerson' : 'money'} onChange={setMode}
             options={[{ value: 'money', label: 'TOTALS' }, { value: 'perPerson', label: 'PER PERSON' }]} />}
           {side !== 'financing' && <SegmentedControl
             label="Chart mode"

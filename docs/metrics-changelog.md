@@ -21,16 +21,17 @@ contract, so it's called out below.
 
 ---
 
-## Schema 52 — Wealth and per-person accounts
+## Schema 53 — Wealth and per-person accounts
 
 - **State +**: household overdrafts; sovereign-lot holder claims; public productive
   stock built since 1946; commercial-bank foreign sovereign-settlement position.
   Holder-level coupons, purchases and cash redemptions; private investment cash
   funding, net credit advances, loan write-offs, bank margin and dividends.
 - **Behavior**: subscriptions debit deposits; redemption credits actual holders;
-  rollover is a claim swap. Private capital formation is paid from business cash,
+  rollover is a claim swap. Auctions reserve consumption, outstanding overdrafts
+  and net investment cash requirements before buying paper. Private capital formation is paid from business cash,
   credit creation supplies cash, and write-offs extinguish matching debt. Cash
-  shortfalls become overdrafts. See ADR-0049 for the balance-sheet perimeter.
+  shortfalls become overdrafts. See ADR-0051 for the balance-sheet perimeter.
 - **Outputs +**: `PublishedState.wealth` / `records.wealthReleases`, a **fogged**
   asset-and-liability vector survey, unlock **0.55**. Ordinary historical gates,
   lags, noise and revisions. Components: deposits, sovereign bonds, owned domestic
@@ -43,10 +44,29 @@ contract, so it's called out below.
   stock units. Reusable per-person views match the census of each measured quarter
   and scale each release's band. Payrolls use jobs per 100 residents; industry
   output remains a quarterly real flow. Existing rates and per-person series
-  retain their interpretation. View preferences do not enter saves.
+  retain their interpretation. All offices and the wall share the saved basis;
+  wealth histories retain their absolute uncertainty ribbons. View preferences do not enter saves.
 - No pipeline reordering or economic RNG draws. Replay inputs are unchanged;
   valid older saves rebuild the new accounts. Export v1 gains an additive table.
 
+
+## Schema 52 — exports follow partner markets, imports follow absorption (#290)
+
+- **State +**: `external.exportMarket`, per sector: how much the partners will buy at relative
+  price 1 and normal activity. Seeded at the 1946 export order, grown by `world` with the world's
+  workforce (`WORLD_WORKFORCE_ERAS`) and its income per head (the frontier schedule) times each
+  good's income elasticity (`1 + ENGEL_ELASTICITY`, plus `FARM_GATE_ELASTICITY` for the farm).
+- **Behaviour**: exports sell from that foothold rather than from the sector's own potential,
+  which now only caps them. Imports scale with domestic absorption (the Leontief requirement of
+  household, state and investment demand), not with own potential; FDI's imported plant is not
+  counted twice. `init` seals `balanceNorm` and the reserve book from `production`'s own opening
+  order. `EXPORT_CAPACITY_CAP`, `init`'s mirror of the export cap, is gone.
+- **State +**: `external.inheritedBalance`, the balance `balanceNorm` opened on, sealed by `init`.
+  `balanceNorm` now also leaks back toward it at `FX_BALANCE_NORM_REVERT`, so a persistent
+  imbalance stays partly priced ([ADR-0050](adr/0050-a-persistent-imbalance-stays-priced.md)).
+- No new instrument, RNG draw or pipeline reorder. Every trade flow moves from the first quarter.
+- **Evidence**: [ADR-0049](adr/0049-trade-follows-markets-not-capacity.md), investigation 0027,
+  `pnpm agriculture`, `pnpm currency`, `pnpm export-share`, the all-country batches.
 
 ## Schema 51 — the household food price (#289)
 
@@ -425,7 +445,7 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position. `treasury.domesticBondShare` *(ADR-0043)* is the openness-based domestic underwriting target used by the crowding-price proxy. Actual household subscriptions and holder claims are separate accounts *(v52, ADR-0049)* |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position. `treasury.domesticBondShare` *(ADR-0043)* is the openness-based domestic underwriting target used by the crowding-price proxy. Actual household subscriptions and holder claims are separate accounts *(v53, ADR-0051)* |
 | ↳ `revenueBySource` | v11 | receipts per source: `income`, `corporate`, `tariff`, `fuel` after capacity-gated collection, plus `fund` *(v44)* — the return on the sovereign fund, the one line that is not a tax and posts no rate |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |

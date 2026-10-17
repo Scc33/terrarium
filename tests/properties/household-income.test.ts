@@ -176,12 +176,8 @@ describe('why the median is measured but not published', () => {
     // inequality genuinely improves. A dial that worsens when the player
     // redistributes is worse than no dial.
     const seed = 'redistribution'
-    // The first three years remain a counterexample with paid investment,
-    // actual bond ownership and the food margin. At 60 quarters these rules
-    // also change the Gini's sign; that old endpoint no longer isolates this
-    // claim about the grouped median (ADR-0049).
-    const base = century(seed, 12)
-    const generous = century(seed, 12, (s, t) =>
+    const base = century(seed, 60)
+    const generous = century(seed, 60, (s, t) =>
       t === 0
         ? applyAction(s, {
             kind: 'setDial',

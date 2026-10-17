@@ -15,8 +15,8 @@
  * paint outside its slot the way the old uniform grid did.
  */
 
-import { useState } from 'react'
-import { instrumentView, loadPopulationBasis, savePopulationBasis, type PopulationBasis } from '../perPerson'
+import { instrumentView } from '../perPerson'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { countInstrumentStatuses, deriveInstrumentAccess, instrumentStatusSummary } from '../maturity'
 import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
@@ -36,11 +36,10 @@ export function Instruments({
   onLedger: () => void
   onOpenCapacity: () => void
 }) {
-  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const [basis, setBasis] = usePopulationBasis()
   const changeBasis = () => {
     const next = basis === 'total' ? 'perPerson' : 'total'
     setBasis(next)
-    savePopulationBasis(next)
   }
   const access = deriveInstrumentAccess(pub)
   const pinned = useGame((s) => s.pinned)

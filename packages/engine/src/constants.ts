@@ -1037,10 +1037,31 @@ export const LEGITIMACY_SUPPRESSION_CAPS: Array<{ atLeast: number; grade: 'D' | 
 ] // none taken: no cap
 
 // ---------- trade ----------
+/**
+ * What the partners' markets grow with (#290, ADR-0049). A country's foothold
+ * abroad, `external.exportMarket`, opens at its 1946 export order and then grows
+ * with the WORLD's demand for each good, not with its own capacity: workforce
+ * growth from this table, plus the frontier schedule's growth per head times
+ * the sector's income elasticity — `1 + ENGEL_ELASTICITY`, and for the farm the
+ * farm-gate share's too. Annual, switching on the quarter like `FRONTIER_ERAS`;
+ * roughly the UN's growth of the world's working-age population.
+ */
+export const WORLD_WORKFORCE_ERAS: Array<{ fromYear: number; growthPerYear: number }> = [
+  { fromYear: 1946, growthPerYear: 0.018 },
+  { fromYear: 1973, growthPerYear: 0.019 },
+  { fromYear: 1995, growthPerYear: 0.016 },
+  { fromYear: 2005, growthPerYear: 0.011 },
+  { fromYear: 2035, growthPerYear: 0.004 },
+]
 export const TRADE_ELASTICITY = 1.5
 /** exports cannot exceed this share of a sector's potential output, however
  * favorable the relative price */
 export const EXPORT_CAP_SHARE_OF_POTENTIAL = 0.5
+/** The 1946 export order and import propensity, as shares of a sector's
+ * potential output at relative price 1 and `openness` 1. Exports read them
+ * once, to seed the foothold; imports read them every quarter against
+ * domestic absorption, which an economy opening at `UTILIZATION_AT_INIT`
+ * spends that share of its potential on. */
 export const EXPORT_BASE_SHARE: Record<SectorId, number> = {
   agri: 0.14,
   manuf: 0.1,
@@ -1055,10 +1076,6 @@ export const IMPORT_BASE_SHARE: Record<SectorId, number> = {
   services: 0.02,
   transport: 0,
 }
-/** the ceiling on how much of a sector's potential output can be sold abroad
- * in one quarter — `production` applies it to realized exports, and `init`
- * mirrors it to seed the opening trade balance on the same basis */
-export const EXPORT_CAPACITY_CAP = 0.5
 export const RESERVES_INIT_QTRS = 2 // starting reserves ≈ this many quarters of imports
 /** public debt a country inherits when its recipe names no opening balance
  * sheet. Was a literal in `init`; it moved here once the country editor needed
@@ -1174,6 +1191,13 @@ export const FX_BALANCE_TILT = 3.0
  * norm that learned the residual would quietly price a standing peg in and
  * switch the lever off after a few years, which is not what a peg does. */
 export const FX_BALANCE_NORM_ADAPT = 0.055
+/** …and how fast it forgets that again, back toward the balance the country
+ * inherited (ADR-0050). With the norm only chasing, a deficit held for sixty
+ * years was the norm for fifty-seven of them and never moved the rate: the
+ * maximal builder ran 4–5% of GDP short with exports at 1% of GDP and the
+ * currency at 0.95. At the steady state a persistent gap from the inheritance
+ * stays priced in the share `REVERT / (ADAPT + REVERT)`. */
+export const FX_BALANCE_NORM_REVERT = 0.055
 
 /** …and how dear a yield makes it, per point of risk-adjusted spread over the
  * rate the country inherited. The issue's "currency value going up in high

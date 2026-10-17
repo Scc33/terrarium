@@ -17,7 +17,7 @@
  * The arithmetic lives in `../industry`; this file is a painter.
  */
 
-import { loadPopulationBasis, type PopulationBasis } from '../perPerson'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
 import { useState } from 'react'
 import { INDUSTRY_CENSUS_FUNDED_AT } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
@@ -71,7 +71,7 @@ const LENS_COPY: Record<IndustryLens, { label: string; unit: string; title: stri
 
 export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [lens, setLens] = useState<IndustryLens>('valueAdded')
-  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const [basis, setBasis] = usePopulationBasis()
   const release = readIndustry(pub, basis)
 
   // Three states, not two. A commissioned census with nothing published yet

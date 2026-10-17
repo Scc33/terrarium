@@ -112,10 +112,20 @@ export function treasuryBasis(pub: PublishedState, basis: PopulationBasis): Publ
     centralBank: split(pub.centralBank) }
 }
 
-const BASIS_KEY = 'terrarium:population-basis'
+export const POPULATION_BASIS_KEY = 'terrarium:population-basis'
+const basisListeners = new Set<() => void>()
+let sessionBasis: PopulationBasis = 'total'
 export function loadPopulationBasis(): PopulationBasis {
-  try { return localStorage.getItem(BASIS_KEY) === 'perPerson' ? 'perPerson' : 'total' } catch { return 'total' }
+  try { return localStorage.getItem(POPULATION_BASIS_KEY) === 'perPerson' ? 'perPerson' : 'total' } catch { return sessionBasis }
 }
 export function savePopulationBasis(basis: PopulationBasis): void {
-  try { localStorage.setItem(BASIS_KEY, basis) } catch { /* the current view still works */ }
+  sessionBasis = basis
+  try { localStorage.setItem(POPULATION_BASIS_KEY, basis) } catch { /* the current view still works */ }
+  for (const listener of basisListeners) listener()
+}
+
+/** Share changes with mounted offices and the wall. */
+export function subscribePopulationBasis(listener: () => void): () => void {
+  basisListeners.add(listener)
+  return () => { basisListeners.delete(listener) }
 }

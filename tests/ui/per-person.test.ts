@@ -1,11 +1,12 @@
 import { perPersonDiagnostics } from '../../packages/runner/src/perPerson'
 import { sampleCountry, runCountryFuzzCase } from '../../packages/runner/src/country-fuzz'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createCountryParams, init, step } from '@terrarium/engine'
 import { observe, type PublishedState } from '@terrarium/observation'
-import { instrumentView, perPerson, populationRows, treasuryBasis } from '../../packages/ui/src/perPerson'
+import { instrumentView, perPerson, populationRows, treasuryBasis, loadPopulationBasis,
+  savePopulationBasis, subscribePopulationBasis } from '../../packages/ui/src/perPerson'
 import { shapeSeries, rollingAverage } from '../../packages/ui/src/components/series'
-import { householdWealthBand, wealthHistory } from '../../packages/ui/src/wealth'
+import { householdWealthBand, wealthChart, wealthHistory } from '../../packages/ui/src/wealth'
 
 function published(): PublishedState {
   let state = init(createCountryParams('meridia', 'per-person'), 'per-person', { fullInstrumentation: true })
@@ -78,6 +79,53 @@ describe('per-person views read each measured quarter’s census', () => {
     point.household = { deposits: 100, bonds: 0, productiveAssets: 0, bankEquity: 0, businessLoans: 100, overdrafts: 0, netWorth: 0 }
     point.errorBand = 0.1
     expect(householdWealthBand(point)).toBe(20)
+  })
+
+  it('keeps series-specific uncertainty on every wealth history point', () => {
+    const pub = published()
+    pub.wealth = pub.wealth.map(point => {
+      const known = { ...point, errorBand: 0.1, publicErrorBand: 3 }
+      return { ...known, nationalErrorBand: householdWealthBand(known) + known.publicErrorBand }
+    })
+    for (const basis of ['total', 'perPerson'] as const) {
+      const history = wealthHistory(pub, basis)
+      for (const kind of ['household', 'public', 'national'] as const) {
+        const trace = wealthChart(history, kind)
+        expect(trace.length).toBe(history.length)
+        trace.forEach((point, i) => {
+          const source = history[i]
+          expect(point.tick).toBe(source.forQtr)
+          expect(point.band).toBe(kind === 'household' ? householdWealthBand(source) : kind === 'public' ? source.publicErrorBand : source.nationalErrorBand)
+          expect(point.band).toBeGreaterThan(0)
+        })
+      }
+    }
+    const unknown = { ...pub.wealth[0], errorBand: 0, publicErrorBand: 0, nationalErrorBand: 0 }
+    for (const kind of ['household', 'public', 'national'] as const) expect(wealthChart([unknown], kind)[0].band).toBe(0)
+  })
+
+  it('persists the shared preference and notifies mounted readers even without storage', () => {
+    const values = new Map<string, string>()
+    const listener = vi.fn()
+    vi.stubGlobal('localStorage', { getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value) })
+    const unsubscribe = subscribePopulationBasis(listener)
+    try {
+      savePopulationBasis('perPerson')
+      expect(loadPopulationBasis()).toBe('perPerson')
+      expect([...values.values()]).toEqual(['perPerson'])
+      expect(listener).toHaveBeenCalledOnce()
+      vi.stubGlobal('localStorage', { getItem() { throw new Error('blocked') }, setItem() { throw new Error('blocked') } })
+      savePopulationBasis('total')
+      expect(loadPopulationBasis()).toBe('total')
+      savePopulationBasis('perPerson')
+      expect(loadPopulationBasis()).toBe('perPerson')
+      expect(listener).toHaveBeenCalledTimes(3)
+    } finally {
+      unsubscribe()
+      savePopulationBasis('total')
+      vi.unstubAllGlobals()
+    }
   })
 })
 

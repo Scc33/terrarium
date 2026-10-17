@@ -1,10 +1,9 @@
-import { useState } from 'react'
 import { WEALTH_SURVEY_FUNDED_AT } from '@terrarium/engine'
 import { HOUSEHOLD_WEALTH_COMPONENT_IDS, type PublishedState } from '@terrarium/observation'
 import { ChartFrame, EmptyState, Metric, Modal, OverlayLayout, SegmentedControl, TimeSeriesChart } from '../components/ui'
 import { qtrLabel } from '../components/series'
-import { loadPopulationBasis, type PopulationBasis } from '../perPerson'
-import { householdWealthBand, wealthAvailability, wealthHistory, WEALTH_FACE } from '../wealth'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
+import { householdWealthBand, wealthAvailability, wealthHistory, wealthChart, WEALTH_FACE } from '../wealth'
 
 const number = (value: number) => value.toFixed(2)
 const uncertainty = (value: number) => value > 0 && value < 0.005 ? '±<0.01' : `±${number(value)}`
@@ -15,7 +14,7 @@ const SERIES = [
 ] as const
 
 export function WealthOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
-  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const [basis, setBasis] = usePopulationBasis()
   const history = wealthHistory(pub, basis)
   const latest = history.at(-1)
   if (!latest) return <Modal title="WEALTH — ASSETS AND THEIR CLAIMS" onClose={onClose} size="wide">
@@ -27,8 +26,6 @@ export function WealthOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
   </Modal>
   const units = basis === 'perPerson' ? 'CURRENT MONEY / PERSON' : 'CURRENT MONEY · TOTAL'
   const readings = { household: latest.household.netWorth, public: latest.publicNetWorth, national: latest.nationalNetWorth }
-  const trace = (key: typeof SERIES[number]['key']) => history.map(point => ({ tick: point.forQtr,
-    value: key === 'household' ? point.household.netWorth : key === 'public' ? point.publicNetWorth : point.nationalNetWorth }))
   const band = householdWealthBand(latest)
   const bands = { household: band, public: latest.publicErrorBand, national: latest.nationalErrorBand }
   return <Modal title="WEALTH — ASSETS AND THEIR CLAIMS" onClose={onClose} size="wide">
@@ -41,7 +38,8 @@ export function WealthOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
       note={<>Current money: capital at today’s prices and valuation; bonds at quoted yields; deposits and loans at book value. Domestic claims cancel in national wealth. Housing, land and pensions have no stocks in this model.</>}>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {SERIES.map(series => <ChartFrame key={series.key} title={series.label} detail={units} summary={`${series.label}, ${number(readings[series.key])} at the latest survey.`}>
-          <TimeSeriesChart width={300} height={130} traces={[{ key: series.key, points: trace(series.key), color: series.ink, lead: true }]}
+          <TimeSeriesChart width={300} height={130} traces={[{ key: series.key, points: wealthChart(history, series.key), color: series.ink, lead: true }]}
+            ribbon={{ points: wealthChart(history, series.key).filter(point => point.band > 0), color: series.ink }}
             include={[0]} formatTick={qtrLabel} formatReading={number} hover summary={`${series.label} across the published history.`} />
         </ChartFrame>)}
       </div>

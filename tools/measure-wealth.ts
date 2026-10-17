@@ -27,7 +27,7 @@ async function main() {
       const final: ReturnType<typeof perPersonDiagnostics>[] = []
       let quarters = 0
       for (let index = 0; index < cases; index++) {
-        const sample = sampleCountry(profile, index, 'wealth-52')
+        const sample = sampleCountry(profile, index, 'wealth-53')
         let last: ReturnType<typeof perPersonDiagnostics> | undefined
         const outcome = runCountryFuzzCase(sample, { ticks, policy,
           checkState(state) { last = perPersonDiagnostics(state); quarters++ } })

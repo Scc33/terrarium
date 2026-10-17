@@ -326,6 +326,34 @@ The growth cost is Baumol: demand leaves the farm for services. **Deposition doe
 any country**; if a retune moves it, the margin has become a political shock. Use **`pnpm
 agriculture`**: `hh direct` falls while `food %` holds, and `rel prod` must stay near 1.
 
+### The capacity builders stop hoarding (#319)
+
+From #319 the `developmental` and `regulated` arms turn `surplusPayout` up 0.1 per capacity batch.
+Before that they collected ~45% of GDP and spent under 1%, so the surplus left as exports on a
+real rate a third of parity, and every developmental number in this file was partly that
+(investigation 0027). A sampler change: passive and random are untouched. 1000 × 400q,
+`--country all`, before → after:
+
+| | developmental | regulated |
+|---|---|---|
+| growth %/yr | 3.07 → **2.97** | 3.06 → **2.97** |
+| mean inflation %/yr | −0.37 → **+0.33** | −0.37 → **+0.32** |
+| unemployment % | 12.73 → **11.77** | 12.49 → **11.67** |
+| deposed | 6% → **3%** | 8% → **3%** |
+
+`pnpm currency` §4 is the evidence: developmental real rates 1.09–1.21 and balances within a point
+of zero, against passive's 1.15–1.24. If a change reopens that gap, a surplus has lost its
+destination again. The arms' other tables above were measured before this; re-measure them.
+
+### Where trade goes (ADR-0049, ADR-0050)
+
+Exports sell from a foothold the world grows, imports follow absorption, and the balance norm
+leaks back toward the inherited balance. 1000 × 400q, `--country all`, on top of #319: passive
+growth 2.86 → 2.85 and 1% deposed either way; developmental and regulated 3% → 4% (Kestrel), growth
+2.98. Use **`pnpm agriculture`** table 3 `net exp.` and **`pnpm currency`** §4. If developmental
+farm net exports climb back above passive, something is scaling trade by capacity again. If a
+deficit sits for decades with the rate flat, the norm has stopped reverting.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a

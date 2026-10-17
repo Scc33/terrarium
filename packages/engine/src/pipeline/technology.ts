@@ -36,12 +36,20 @@ import { FIRST_YEAR, SECTOR_IDS, type NewsItem, type SectorId, type TrueState } 
 import type { PipelineStep } from './pipeline'
 import { creativeDestruction } from './derive'
 
+/** the annual growth an era schedule has in force at a given quarter */
+export function scheduledGrowthAt(
+  eras: ReadonlyArray<{ fromYear: number; growthPerYear: number }>,
+  tick: number,
+): number {
+  const year = FIRST_YEAR + tick / 4
+  let g = eras[0].growthPerYear
+  for (const era of eras) if (year >= era.fromYear) g = era.growthPerYear
+  return g
+}
+
 /** annual frontier growth in force at a given quarter */
 export function frontierGrowthAt(tick: number): number {
-  const year = FIRST_YEAR + tick / 4
-  let g = FRONTIER_ERAS[0].growthPerYear
-  for (const era of FRONTIER_ERAS) if (year >= era.fromYear) g = era.growthPerYear
-  return g
+  return scheduledGrowthAt(FRONTIER_ERAS, tick)
 }
 
 /**

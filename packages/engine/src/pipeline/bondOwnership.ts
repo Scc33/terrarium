@@ -1,6 +1,6 @@
 /** Holder-level settlement: a purchase swaps deposits for a security;
  * redemption reverses it, coupons are income, and rollover is neither. */
-import { BOND_HOLDING, domesticBondFundingShare } from '../constants'
+import { BOND_HOLDING, PROFIT_SHARE, domesticBondFundingShare } from '../constants'
 import { COHORT_IDS, type TrueState } from '../state/schema'
 import type { BondLot } from '../state/bonds'
 import type { BondHoldings } from '../state/wealth'
@@ -43,8 +43,10 @@ export function settleBondOwnership(state: TrueState, settlement: DebtSettlement
   const desiredDomestic = borrowed * domesticBondFundingShare(state.params.openness)
   let unplaced = borrowed
   for (const cohort of state.cohorts) {
-    // Buying paper cannot spend deposits already committed to consumption.
-    const available = Math.max(0, cohort.savings - state.flows.cohortSpend[cohort.id])
+    // Reserve consumption, existing overdrafts and the cash the businesses
+    // must supply after bank advances (including net loan repayments).
+    const investmentCash = Math.max(0, state.flows.privateInvestmentFunding - state.flows.businessCreditFlow) * PROFIT_SHARE[cohort.id]
+    const available = Math.max(0, cohort.savings - cohort.overdraft - state.flows.cohortSpend[cohort.id] - investmentCash)
     purchases[cohort.id] = Math.min(unplaced, available, desiredDomestic * BOND_HOLDING[cohort.id])
     unplaced -= purchases[cohort.id]
   }
