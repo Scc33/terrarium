@@ -1926,10 +1926,9 @@ export const SCHOOLING_ATTAINMENT_GAIN = 0.65
  * a half-enforced subsistence floor near a quarter of it, which is the range
  * real minimum wages have occupied.
  *
- * It binds on agriculture first and hardest, because that is where the low
- * wages and most of the workers are in a poor country — which is the argument
- * about minimum wages in a developing economy, arrived at rather than written
- * down.
+ * It binds on agriculture first, where a poor country's low wages and most of
+ * its workers are: the developing-economy argument, arrived at. Late in the
+ * century it binds on manufacturing and transport (investigation 0028).
  */
 export const MINIMUM_WAGE_ANCHOR = 0.75
 

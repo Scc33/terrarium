@@ -382,10 +382,11 @@ approval through the channels that were already there. On the hardest country in
 the statute book's payoff is survival, not output — which is the correct shape for a political
 economy game and was not designed in.
 
-*That payoff ended with ADR-0045.* Once Costona's countryside can empty, its farm wage outruns
-the floor, so the living wage reaches no curated farm. Costona's developmental deposition is
-already 3%, against 5% regulated. The rescue the table shows came from the poverty trap the
-floor was compensating for.
+*That payoff ended with ADR-0045.* The rescue the table shows came from the poverty trap the
+floor was compensating for. The food margin and markets-led trade later brought every curated
+farm back within the floor's reach, for part of the century, and late in the century it binds on
+manufacturing and transport instead. Neither moves deposition (investigation 0028,
+`pnpm minimum-wage`).
 
 The competition act alone, against `developmental`, was +0.01–0.05 pp/yr per country with the
 right ordering (most captured gains most). That is **much smaller than the mechanism test
