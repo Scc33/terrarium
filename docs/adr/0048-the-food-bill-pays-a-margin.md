@@ -37,7 +37,10 @@ w[s]    += basket[agri] × (1 − gate) × FOOD_MARGIN_SECTORS[s]   manuf 0.25 �
   energy demand is the fuel excise's base. The fuel-tax properties are load-bearing.
 - **"Food %" still means food.** Option 1 on the issue (steepen `ENGEL_ELASTICITY.agri` and read
   the weight as farm-gate spending) was cheaper but would have stopped the basket meaning
-  anything a player can name. `pnpm agriculture` now prints both the food share and `farm gate`.
+  anything a player can name. `pnpm agriculture` now prints both the food share and `hh direct`,
+  the part households buy from the farm themselves. Processors' own farm purchases sit in
+  `interm.` (`IO_COEFF` gives manufacturing 5% and services 1% farm inputs), so the farm's whole
+  take from the food bill falls somewhat less than the gate.
 
 It shipped inert first: at elasticity 0 the routing returns the basket object itself, and
 `pnpm diff-state --moved-only` reported nothing moved on all three goldens.
@@ -86,7 +89,8 @@ and the farm-gate share is a fact about income, not policy.
   stopped binding on Veltravia's manufacturing and transport. The statute tests moved to Oranga
   (disemployment) and Kestrel (no bite). This partly answers #295.
 - `price_food` and `export_share` were re-faced (`pnpm ranges`): food got cheaper and the farm
-  surplus goes abroad.
+  surplus goes abroad. `price_food` is the farm price, not what a household pays for food
+  (the harvest-glut rule reads it as such); its note now says so.
 
-Evidence for any retune: `pnpm agriculture` (`food %`, `farm gate`, `net exp.`, `rel prod`),
+Evidence for any retune: `pnpm agriculture` (`food %`, `hh direct`, `interm.`, `net exp.`, `rel prod`),
 `pnpm composition`, and the batches above.

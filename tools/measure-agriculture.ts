@@ -27,7 +27,9 @@
  *    agriculture's share of demand can pay for — so this table, not table 2,
  *    sets where the share comes to rest. Shares are of gross DEMAND; `met` is
  *    how much of it the farm actually produced. `food %` is the whole food
- *    bill and `farm gate` the part of it that reaches agriculture (#289).
+ *    bill and `hh direct` the part households buy from agriculture themselves
+ *    (#289). What the margin's processors buy from farms is in `interm.`, so
+ *    the farm's whole take from the food bill is somewhat larger.
  *
  * Each table reads the quarter at the point its own step does, never the end of
  * the tick: `demography` runs before anything sets this quarter's wages,
@@ -124,8 +126,8 @@ interface Reading {
   urbanizationMax: number
   /** the food bill, margins included, as a share of household spending */
   foodShare: number
-  /** the share of that bill paid at the farm gate */
-  farmGate: number
+  /** the share of that bill households pay to agriculture directly */
+  directFarm: number
   household: number
   intermediate: number
   netExports: number
@@ -223,7 +225,7 @@ function read(q: Quarter): Reading {
     urbanization: (4 * (ruralBefore - ruralAfter)) / Math.max(ruralBefore, 1e-9),
     urbanizationMax: 4 * URBANIZATION_GAIN * jobsPull,
     foodShare: foodBill / Math.max(spend, 1e-9),
-    farmGate: (p.flows.householdDemand.agri * p.market.prices.agri) / Math.max(foodBill, 1e-9),
+    directFarm: (p.flows.householdDemand.agri * p.market.prices.agri) / Math.max(foodBill, 1e-9),
     household: p.flows.householdDemand.agri / gross,
     intermediate: (p.flows.grossDemand.agri - p.flows.finalDemand.agri) / gross,
     netExports: (p.flows.exportsReal.agri - p.flows.importsReal.agri) / gross,
@@ -310,7 +312,7 @@ const TABLES: Array<{ title: string; columns: Column[] }> = [
     title: '3. THE DESTINATION — where the demand for farm output comes from, and what it is worth',
     columns: [
       ['food %', (r) => r.foodShare, pct],
-      ['farm gate', (r) => r.farmGate, ratio],
+      ['hh direct', (r) => r.directFarm, ratio],
       ['household', (r) => r.household, ratio],
       ['interm.', (r) => r.intermediate, ratio],
       ['net exp.', (r) => r.netExports, ratio],

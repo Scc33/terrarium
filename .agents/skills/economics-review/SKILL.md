@@ -324,7 +324,7 @@ rich too. 1000 × 400q, `--country all`, before → after:
 
 The growth cost is Baumol: demand leaves the farm for services. **Deposition does not move on
 any country**; if a retune moves it, the margin has become a political shock. Use **`pnpm
-agriculture`**: `farm gate` falls while `food %` holds, and `rel prod` must stay near 1.
+agriculture`**: `hh direct` falls while `food %` holds, and `rel prod` must stay near 1.
 
 ### The statute book (`--policy regulated`)
 
