@@ -37,6 +37,7 @@
     "class-structure": "tsx tools/measure-class-structure.ts",
     "labour-market": "tsx tools/measure-labour-market.ts",
     "agriculture": "tsx tools/measure-agriculture.ts",
+    "minimum-wage": "tsx tools/measure-minimum-wage.ts",
     "bless": "tsx tools/bless.ts",
     "diff-state": "tsx tools/diff-state.ts",
     "replay": "tsx tools/replay-save.ts",
