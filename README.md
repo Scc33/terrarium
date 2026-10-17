@@ -19,7 +19,7 @@ imported as JSON.
 
 ## Play it
 
-Requires Node.js 24 or later and pnpm 10.
+Requires Node.js 24 or later and pnpm 11.
 
 ```sh
 pnpm install
