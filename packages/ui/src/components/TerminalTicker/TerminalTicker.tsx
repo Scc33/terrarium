@@ -81,12 +81,13 @@ type TickerPoint = ShapedPoint & { tick: number }
 
 /** Base-year references that are part of the quantity, not the gauge face.
  * FACE_MARK supplies rule/threshold references such as zero or the frontier;
- * these five series additionally define 100 as their inherited 1946 level.
+ * these six series additionally define 100 as their inherited 1946 level.
  * Asset valuation is not on this list: its 100 means market value equals
  * replacement cost, while FACE_MARK supplies its crisis-risk rail at 110. */
 const INDEX_BASELINE: Partial<Record<IndicatorId, { at: number; label: string }>> = {
   price_food: { at: 100, label: '1946 BASE' },
   price_fuel: { at: 100, label: '1946 BASE' },
+  price_food_household: { at: 100, label: '1946 BASE' },
   productivity: { at: 100, label: '1946 BASE' },
   income_real: { at: 100, label: '1946 BASE' },
   terms_of_trade: { at: 100, label: '1946 BASE' },

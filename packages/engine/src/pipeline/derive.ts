@@ -1065,6 +1065,22 @@ export function effectiveConsumptionWeights(
 }
 
 /**
+ * The price of the food bill as households pay it (#289): the farm price on
+ * what `production` routed to the farm gate, the `FOOD_MARGIN_SECTORS` prices
+ * on the margin. Where no one buys food it is the farm price, which is also
+ * what it reads wherever the whole bill still reaches the farm.
+ */
+export function householdFoodPrice(state: TrueState): number {
+  const farm = effectivePrice(state, 'agri')
+  const { farmGate, margin } = state.flows.foodBill
+  const bill = farmGate + margin
+  if (!(bill > 1e-9)) return farm
+  let marginPrice = 0
+  for (const sid of SECTOR_IDS) marginPrice += FOOD_MARGIN_SECTORS[sid] * effectivePrice(state, sid)
+  return (farmGate * farm + margin * marginPrice) / bill
+}
+
+/**
  * Household own-basket price level for a cohort (base = 1).
  *
  * Arithmetic over the CURRENT basket, not the CES exact cost-of-living index.

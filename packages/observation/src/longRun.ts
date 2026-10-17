@@ -34,6 +34,7 @@ export const LONG_RUN_FORM: Record<IndicatorId, LongRunForm> = {
   inflation: 'mean',
   price_food: 'growth',
   price_fuel: 'growth',
+  price_food_household: 'growth',
   unemployment: 'mean',
   labor_force_participation: 'mean',
   human_capital: 'mean',

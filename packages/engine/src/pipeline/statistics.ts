@@ -45,6 +45,7 @@ import type { PipelineStep } from './pipeline'
 import {
   approvalIndex,
   effectivePrice,
+  householdFoodPrice,
   householdIncomeDistribution,
   householdSavingRate,
   lifeExpectancyAtBirth,
@@ -123,6 +124,7 @@ function recordOf(state: TrueState): StatRecord {
     approvalIndex: approvalIndex(state),
     priceFood: effectivePrice(state, 'agri'),
     priceFuel: effectivePrice(state, 'energy'),
+    priceFoodHousehold: householdFoodPrice(state),
     gini: households.gini,
     incomeMeanReal: households.mean,
     povertyRate: households.povertyRate,

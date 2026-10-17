@@ -56,8 +56,8 @@ const MODULE_LINE_BASELINE = {
   // #31 adds schema 50's maturity, dealer-memory and QE-duration coefficients,
   // which ADR-0007 requires in this total tuning ledger.
   // Ratcheted from 2068 by #289: the farm-gate elasticity and the food
-  // margin's split.
-  'packages/engine/src/constants.ts': 2083,
+  // margin's split. Schema 51 gates the household food price (#289).
+  'packages/engine/src/constants.ts': 2087,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -82,7 +82,8 @@ const MODULE_LINE_BASELINE = {
   'packages/engine/src/index.ts': 446,
   // Cohesive derivation library: shared read models consumed across the ordered pipeline.
   // Ratcheted from 1080 by #179: named constants replacing bare literals.
-  'packages/engine/src/pipeline/derive.ts': 1090,
+  // Schema 51 prices the routed food bill beside `cohortCpi` (#289).
+  'packages/engine/src/pipeline/derive.ts': 1098,
   // Executable hotspot: institution power, compliance, and appointment updates.
   // Ratcheted from 435 by #179: the bloc-favor formulas' ~30 coefficients
   // are now named constants instead of bare literals.
@@ -98,12 +99,14 @@ const MODULE_LINE_BASELINE = {
   // CORPORATE_TAX_1946 / POLICY_RATE_1946 as fresh numbers.
   // #221 seeds its new household expectation beside the nominal forecast.
   // Schema 50 seeds the maturity dial, bond book and settlement flows (#31).
-  'packages/engine/src/state/init.ts': 677,
+  // Schema 51 seeds the routed food bill (#289).
+  'packages/engine/src/state/init.ts': 678,
   // Cohesive schema: total state contracts and canonical id lists.
   // Schema 47 adds the hidden household expectation (#221).
   // Schema 48 adds the world's turbulence as a replay input (#122).
   // Schema 50 declares fixed contracts, quotes and cash/face settlement (#31).
-  'packages/engine/src/state/schema.ts': 1421,
+  // Schema 51 adds the household food price and the food bill it reads (#289).
+  'packages/engine/src/state/schema.ts': 1429,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,
   // Analysis tool: export-feedback measures, aggregation, and report formatting.

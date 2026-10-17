@@ -127,6 +127,12 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // procedural country under the money government sat under 25 for 24% of
   // its century from 2021, so the floor goes to 20.
   price_fuel: { lo: 20, hi: 175 },
+  // Schema 51, `pnpm ranges` (12 seeds × 6 countries × 5 governments × 400q):
+  // p01 36.3, p99 219.1, extrema 28.5–281.7. It runs above the farm board
+  // because the margin is priced in services, and cannot share
+  // the farm board's face. On 30–250 it pegs 0.1% pooled, and 1.7% of the
+  // worst century (the maximal builder in the procedural country).
+  price_food_household: { lo: 30, hi: 250 },
   unemployment: { lo: 0, hi: 25 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema

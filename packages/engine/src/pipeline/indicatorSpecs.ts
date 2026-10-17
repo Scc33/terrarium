@@ -367,4 +367,14 @@ export const INDICATOR_SPECS: IndicatorSpecsById = {
     trueValue: (h, q) => h[q].labourUnderuse * 100,
     baseSd: 2.5,
   },
+  price_food_household: {
+    // The shop price beside the farm-gate board. Priced from the same boards
+    // but weighted by what each household's food money buys, which only the
+    // household-budget schedules say, so it waits for the office rather than
+    // reading off the market same-quarter.
+    id: 'price_food_household',
+    trueValue: (h, q) => h[q].priceFoodHousehold * 100,
+    baseSd: 0.04,
+    relativeSd: true,
+  },
 }

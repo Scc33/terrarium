@@ -444,6 +444,7 @@ export function init(
       (typeof COHORT_IDS)[number],
       number
     >,
+    foodBill: { farmGate: 0, margin: 0 },
     investmentReal: 0,
     foreignDirectInvestmentReal: 0,
     foreignDirectInvestmentValue: 0,

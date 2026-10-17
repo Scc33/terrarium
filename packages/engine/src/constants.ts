@@ -388,8 +388,9 @@ export const domesticBondFundingShare = (openness: number): number =>
 export const CAPACITY_COST_PER_POINT = 60 // money per 1.0 of capacity
 export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
 /** The household-budget survey is the statistical office's most demanding
- * return. Poverty, inequality and the quintile books unlock together because
- * they are three readings of the same enumerators' schedules. */
+ * return. Poverty, inequality, the quintile books and the household food price
+ * unlock together because they are readings of the same enumerators'
+ * schedules. */
 export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
 export const LABOUR_SURVEY_FUNDED_AT = 0.45 // labour-force survey + employers' returns
 /** Terrarium Human Development Index goalposts (ADR-0033). Health retains
@@ -426,6 +427,9 @@ export const INDICATOR_FUNDED_AT: Record<IndicatorId, number> = {
   inflation: 0.08,
   price_food: 0.2,
   price_fuel: 0.2,
+  // The bureau quotes the boards at 0.20; what the household's food money
+  // buys, farm gate against margin, is in the household-budget schedules.
+  price_food_household: HOUSEHOLD_SURVEY_FUNDED_AT,
   unemployment: 0.35,
   labor_force_participation: 0.35,
   // School completion records reconciled against the labour-force survey.

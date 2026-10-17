@@ -49,6 +49,7 @@ import {
   effectiveBlocPower,
   effectiveConsumptionWeights,
   effectivePrice,
+  householdBasket,
   potentialOutput,
 } from './derive'
 import { longNaturalRealRate, privateLongRealRate } from './funding'
@@ -68,6 +69,7 @@ export const production: PipelineStep = {
     const corporateTaxEff = gov.dials.taxRates.corporate * taxEfficiency(gov.capacity.tax)
     const cohortSpend = {} as Record<CohortId, number>
     const householdDemand = sectorRecord(() => 0)
+    const foodBill = { farmGate: 0, margin: 0 }
     for (const c of state.cohorts) {
       const disposable =
         c.wageIncome * (1 - incomeTaxEff) + c.profitIncome + c.transferIncome + c.rebateIncome
@@ -87,6 +89,10 @@ export const production: PipelineStep = {
       for (const sid of SECTOR_IDS) {
         householdDemand[sid] += (budget * weights[sid]) / effectivePrice(state, sid)
       }
+      // filed for the household food price: `cohorts` moves the income the
+      // routing reads before `statistics` can re-derive it
+      foodBill.farmGate += budget * weights.agri
+      foodBill.margin += budget * (householdBasket(state, c.id).agri - weights.agri)
     }
 
     // --- government demand ---
@@ -286,6 +292,7 @@ export const production: PipelineStep = {
         profits,
         householdDemand,
         cohortSpend,
+        foodBill,
         investmentReal,
         foreignProfitRemittances,
         publicInvestmentReal: govInvReal,
