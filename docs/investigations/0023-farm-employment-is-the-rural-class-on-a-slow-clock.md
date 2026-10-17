@@ -8,7 +8,9 @@ changes it points at are split out as [#288](https://github.com/Scc33/terrarium/
 stopped at wage parity and drained Costona past the farm's market, so it shipped with an
 expected-income stopping rule. #289 is [ADR-0048](../adr/0048-the-food-bill-pays-a-margin.md):
 a farm-gate share of the food bill that falls with income takes developmental 2046 farm
-employment to 11–13%. #290 (food trade) is still open, and is what holds it there.
+employment to 11–13%. #290 (food trade) is still open, and is what holds it there. It is built
+and parked: [0027](0027-food-exports-follow-prices-once-they-stop-following-capacity.md) measured
+the exports coming back through prices, which is #319.
 
 **Raised by:** #151, "even in a very wealthy, highly educated, and industrial society the
 employment rate of agriculture is very high." The comment on that issue measured the basket fix
