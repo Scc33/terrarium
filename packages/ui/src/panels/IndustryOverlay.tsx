@@ -17,6 +17,7 @@
  * The arithmetic lives in `../industry`; this file is a painter.
  */
 
+import { loadPopulationBasis, type PopulationBasis } from '../perPerson'
 import { useState } from 'react'
 import { INDUSTRY_CENSUS_FUNDED_AT } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
@@ -70,7 +71,8 @@ const LENS_COPY: Record<IndustryLens, { label: string; unit: string; title: stri
 
 export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [lens, setLens] = useState<IndustryLens>('valueAdded')
-  const release = readIndustry(pub)
+  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const release = readIndustry(pub, basis)
 
   // Three states, not two. A commissioned census with nothing published yet
   // looks exactly like a census that does not exist, and telling a player to
@@ -99,12 +101,13 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
     )
   }
 
-  const copy = LENS_COPY[lens]
+  const original = LENS_COPY[lens]
+  const copy = basis === 'total' ? original : { ...original, unit: lens === 'employment' ? 'JOBS / 100 RESIDENTS' : 'REAL OUTPUT / PERSON / QTR', format: (value: number) => value.toFixed(2) }
   const readings = release[lens]
   const output = release.valueAdded
   const jobs = release.employment
-  const growth = industryGrowth(pub, lens)
-  const rows = industryRows(pub, lens)
+  const growth = industryGrowth(pub, lens, basis)
+  const rows = industryRows(pub, lens, basis)
   const measured = release.forQtr
 
   return (
@@ -124,6 +127,7 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
           </div>
         )}
         toolbar={(
+          <>
           <SegmentedControl
             label="Census table"
             value={lens}
@@ -133,12 +137,15 @@ export function IndustryOverlay({ pub, onClose }: { pub: PublishedState; onClose
               { value: 'employment', label: 'BY EMPLOYMENT', title: LENS_COPY.employment.title },
             ]}
           />
+          <SegmentedControl label="Industry population basis" value={basis} onChange={setBasis}
+            options={[{ value: 'total', label: 'TOTALS' }, { value: 'perPerson', label: 'PER PERSON' }]} />
+          </>
         )}
         note={(
           <>
             Each industry is surveyed separately, so the five figures do not add up to the
             published GDP; the shares here are of the census’s own total. Output is at 1946
-            prices, so no price rise can make an industry look bigger. A big share of the jobs
+            prices, so no price rise can make an industry look bigger. Per-person values use the census of the quarter measured; output remains a quarterly flow and jobs are per 100 residents. A big share of the jobs
             against a small share of the output is where a poor country keeps its people.
           </>
         )}

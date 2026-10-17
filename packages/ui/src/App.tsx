@@ -10,23 +10,12 @@ import { HeaderBar } from './panels/HeaderBar'
 import { Instruments } from './panels/Instruments'
 import { ControlRail } from './panels/ControlRail'
 import { NewsWire } from './panels/NewsWire'
-import { LedgerOverlay } from './panels/LedgerOverlay'
-import { PolicyOverlay } from './panels/PolicyOverlay'
-import { AccountsOverlay } from './panels/AccountsOverlay'
-import { IndustryOverlay } from './panels/IndustryOverlay'
-import { HouseholdOverlay } from './panels/HouseholdOverlay'
-import { LabourOverlay } from './panels/LabourOverlay'
-import { WireOverlay } from './panels/WireOverlay'
-import { StudyOverlay } from './panels/StudyOverlay'
+import { PAPERWORK } from './shell/paperwork'
 import { SettingsOverlay } from './panels/SettingsOverlay'
 import { ManualOverlay } from './panels/ManualOverlay'
 import { AtlasOverlay } from './panels/AtlasOverlay'
 import { Walkthrough } from './panels/Walkthrough'
 import { ReportCardOverlay } from './panels/ReportCardOverlay'
-import { CensusOverlay } from './panels/CensusOverlay'
-import { FinanceOverlay } from './panels/FinanceOverlay'
-import { ElectionOverlay } from './panels/ElectionOverlay'
-import { ElectionResultOverlay } from './panels/ElectionResultOverlay'
 import { DevConsole } from './panels/DevConsole'
 import { CountrySelect } from './panels/CountrySelect'
 import { DraftingRoom } from './panels/DraftingRoom'
@@ -40,17 +29,6 @@ import { useCabinetChrome } from './shell/useCabinetChrome'
 import { useGlobalShortcuts } from './shell/useGlobalShortcuts'
 import { usePostingTerms } from './shell/usePostingTerms'
 import { useSceneOverlays } from './shell/useSceneOverlays'
-/**
- * The paperwork that is only ever `(pub, onClose)` — a table, so opening a new
- * office is a word here rather than a line in a union and a line in the render
- * that have to agree. The overlays below the table are the ones that ask for
- * something else: a report card, a posting, a chapter, a scan.
- */
-const PAPERWORK = {
-  ledger: LedgerOverlay, policy: PolicyOverlay, accounts: AccountsOverlay, industry: IndustryOverlay,
-  households: HouseholdOverlay, wire: WireOverlay, study: StudyOverlay, census: CensusOverlay,
-  labour: LabourOverlay, finance: FinanceOverlay, election: ElectionOverlay, count: ElectionResultOverlay,
-} as const
 
 type OverlayKind = keyof typeof PAPERWORK | 'settings' | 'verdict' | 'country' | 'manual' | 'atlas' | null
 
@@ -197,6 +175,7 @@ export default function App() {
         onIndustry={() => setOverlay('industry')}
         onLabour={() => setOverlay('labour')}
         onHouseholds={() => setOverlay('households')}
+        onWealth={() => setOverlay('wealth')}
         onVerdict={published.reportCard ? () => setOverlay('verdict') : undefined}
       />
       <div

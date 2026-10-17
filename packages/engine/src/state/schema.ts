@@ -3,6 +3,10 @@
  * structured-clone-able, hashable, diffable. Reserved fields ship at zero.
  */
 
+import type { IndustryPrint } from './industry'
+export { INDUSTRY_TABLE_IDS, type IndustryTableId } from './industry'
+export type { IndustryPrint }
+import type { BondHoldings, WealthPrint, WealthRecord } from './wealth'
 import type { FinanceState } from './finance'
 import type { BondLot, YieldCurve } from './bonds'
 import type { LabourMarketPrint, LabourMarketRecord } from './labour'
@@ -434,6 +438,8 @@ export interface Cohort {
    * EMA on a different basis from the step that recomputes it. */
   rebateIncome: Money
   savings: Money
+  /** Bank overdraft; positive cash first pays this down. Never erase a cash shortfall at a zero floor. */
+  overdraft: Money
   /** the basket this cohort was AUTHORED with — the recipe, not what it buys.
    * `effectiveConsumptionWeights` is what the economy is subject to; read that
    * (ADR-0030). Sums to 1. */
@@ -596,6 +602,8 @@ export interface GovernmentState {
   debt: Money
   /** Fixed-coupon contracts; `debt` caches their face principal. */
   bonds: BondLot[]
+  /** Public works accumulated since 1946, real productive stock, depreciated with the sector stock. */
+  publicCapital: Money
   /** The sovereign fund: what a surplus becomes once there is no debt left to
    * redeem (ADR-0037). It is the destination that makes the treasury's books
    * close — before it existed a surplus with no debt in front of it was
@@ -693,6 +701,8 @@ export interface ExternalState {
    * It depreciates with the rest of the capital stock; new FDI adds to it and
    * the foreign share of after-tax profits leaves through the external account. */
   foreignOwnedCapital: Money
+  /** Commercial banks' net foreign settlement claim from sovereign subscriptions, coupons and redemption. Signed. */
+  bondSettlement: Money
   /** the rest of world: partner cycles that drive prices and export demand */
   world: WorldState
   /** the crisis clock's live wires */
@@ -963,55 +973,6 @@ export interface NewsItem {
   body: string
 }
 
-/** The two tables one census release carries. A `const` tuple like every
- * other id list here, so the band record, the noise table in `statistics.ts`
- * and the overlay's lens all index the same keys — a table added without a
- * noise constant or a printed name fails the build rather than borrowing its
- * neighbour's band. */
-export const INDUSTRY_TABLE_IDS = ['valueAdded', 'employment'] as const
-export type IndustryTableId = (typeof INDUSTRY_TABLE_IDS)[number]
-
-/**
- * One quarter of the industrial census, exactly as the office released it —
- * the PRODUCTION side of the same output the headline measures. `gdp_growth`
- * says the economy grew; this says which industries grew it and who they put
- * to work, which is the only form in which the question "what kind of country
- * is this becoming" can be asked.
- *
- * It is a vector rather than a family of indicators on purpose. Five sectors
- * times two tables is ten dials, and the wall has room for six more strips in
- * total; more to the point, a sector share has no honest FIXED dial face
- * (ADR-0006) when the countries in the catalogue open anywhere between 5% and
- * 60% agricultural. The census is paperwork, so it is read as paperwork.
- *
- * Each industry is estimated separately, so the parts do NOT sum to the
- * published GDP and the employment column does not sum to the published
- * payrolls — the same confession the expenditure accounts make. The
- * composition views renormalize rather than pretend otherwise.
- */
-export interface IndustryPrint {
-  forQtr: Qtr // period measured
-  publishedAt: Qtr // period released
-  revision: number // 0 = first print
-  /** Half-width the office confesses on each table, as a FRACTION of each
-   * figure — the industries differ by an order of magnitude in size, so one
-   * absolute band honest about services would print energy negative. 0 means
-   * the office cannot even estimate its error, which is a shrug and must
-   * never be shown as certainty.
-   *
-   * ONE BAND PER TABLE, because the two are surveyed to different accuracy: an
-   * enumerator can count heads at a factory gate and has to estimate what the
-   * factory made. A single band would overstate the employment survey's
-   * uncertainty by half at every capacity — the office confessing an error it
-   * did not make. */
-  errorBand: Record<IndustryTableId, number>
-  /** real value added at base prices, by industry. The truth behind this sums
-   * exactly to real GDP; these estimates do not. */
-  valueAdded: Record<SectorId, Money>
-  /** people at work, millions, by industry */
-  employment: Record<SectorId, number>
-}
-
 /**
  * One household-budget survey release. The poverty-rate headline is a normal
  * scalar indicator on the wall; this vector is the paperwork behind it: how
@@ -1047,6 +1008,7 @@ export interface HouseholdSurveyPrint {
  * revises against THIS worksheet later — and the capacity that existed when
  * the quarter happened decides forever whether it was surveyed at all. */
 export interface StatRecord {
+  wealth: WealthRecord
   tick: Qtr
   realGdp: Money
   nominalGdp: Money
@@ -1229,11 +1191,21 @@ export interface StatsOffice {
   /** household-budget survey releases, in publication order. Quintiles are a
    * vector rather than five separate wall indicators (ADR-0030). */
   households: HouseholdSurveyPrint[]
+  wealth: WealthPrint[]
   news: NewsItem[]
 }
 
 // ---------- per-tick flows (scratch, recomputed every tick; kept for inspectability) ----------
 export interface TickFlows {
+  /** Private capital purchases are paid from business cash; net loan advances supply cash, write-offs do not. */
+  privateInvestmentFunding: Money
+  businessCreditFlow: Money
+  loanWriteoffs: Money
+  bankRetainedMargin: Money
+  bankDividends: Money
+  bondInterestByHolder: BondHoldings
+  bondRedemptionsByHolder: BondHoldings
+  bondPurchasesByHolder: BondHoldings
   /** Actual purchases, sized from official GDP, in money this quarter. */
   assetPurchases: Money
   assetRunoff: Money
@@ -1380,7 +1352,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 51 // v51: the household food price (#289)
+export const SCHEMA_VERSION = 52 // v52: owned capital, household balance sheets and per-person views (#82–86)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

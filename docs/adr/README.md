@@ -61,3 +61,4 @@ the old one and update the Status line of both.
 | [0046](0046-the-world-has-a-turbulence-dial.md) | How often the world breaks is a replay input chosen at the posting | Accepted |
 | [0047](0047-yields-price-duration-and-fixed-contracts.md) | Yields price duration; coupons are fixed contracts | Accepted; partially supersedes 0014, 0017, 0038, 0043 |
 | [0048](0048-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |
+| [0049](0049-wealth-is-a-consolidated-balance-sheet.md) | Wealth is a consolidated balance sheet | Accepted |

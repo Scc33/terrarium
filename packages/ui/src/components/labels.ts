@@ -52,7 +52,7 @@ export const NAMES: Record<IndicatorId, IndicatorNames> = {
   labor_force_participation: { dossier: 'LABOUR FORCE · % POP', terminal: 'LAB.FORCE %POP', plate: 'LABOUR FORCE PARTICIPATION', short: 'LF / POP', needs: 'LABOUR FORCE SURVEY', note: 'The share of the whole population who are working or looking for work.' },
   human_capital: { dossier: 'WORKFORCE SKILLS · IDX', terminal: 'WORK.SKILL IDX', plate: 'WORKFORCE SKILLS', short: 'SKILLS', needs: 'EDUCATION CENSUS', note: 'Skills carried by the workforce. Schools raise them slowly as taught generations enter work; they help the country use better technology and staff research.' },
   payrolls: { dossier: 'PAYROLLS EX-AGRI · M', terminal: 'PAYROLL.XA M', plate: 'PAYROLLS', short: 'PAYROLLS', needs: 'ESTABLISHMENT SURVEY', note: 'People in paid work outside farming, in millions. It tracks the move into wage-paying jobs.' },
-  capital_stock: { dossier: 'CAPITAL STOCK · IDX', terminal: 'CAP.STOCK IDX', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY', note: 'The country’s productive buildings, machines and infrastructure compared with 1946.' },
+  capital_stock: { dossier: 'CAPITAL STOCK · REAL', terminal: 'CAP.STOCK REAL', plate: 'CAPITAL STOCK', short: 'CAP. STOCK', needs: 'CENSUS OF INDUSTRY', note: 'The country’s productive buildings, machines and infrastructure, in real stock units. This is a total, not a 1946-relative index.' },
   productivity: { dossier: 'OUTPUT PER WORKER · IDX', terminal: 'PROD.LAB IDX', plate: 'OUTPUT PER WORKER', short: 'OUTPUT/WKR', needs: 'LABOUR PRODUCTIVITY ACCOUNTS', note: 'Output per worker compared with 1946. Better tools, skills and jobs raise it.' },
   technology_attainment: { dossier: 'TECHNOLOGY ATTAINED · % FRONTIER', terminal: 'TECH.ATTAIN %FRT', plate: 'TECHNOLOGY ATTAINED', short: 'TECH LEVEL', needs: 'PRODUCTIVITY ACCOUNTS', note: 'How close local production methods are to today’s world best. Research helps the country catch up.' },
   conf_consumer: { dossier: 'CONSUMER CONFIDENCE', terminal: 'CONF.CONS IDX', plate: 'CONSUMER CONFIDENCE', short: 'CONS. CONF', needs: 'SENTIMENT SURVEYS', note: 'How hopeful households feel about their finances and the economy. Low confidence can reduce spending.' },
@@ -119,8 +119,8 @@ export function humanDevelopmentBreakdown(
  * is printed on the dial, where a real gauge prints its scale. In the header
  * the unit was the first thing the ellipsis took — `CAPITAL FORMATION · % …`
  * named the instrument and dropped what its needle measured. */
-export function dossierParts(indicator: IndicatorId): { name: string; unit: string | null } {
-  const [name, ...unit] = NAMES[indicator].dossier.split(' · ')
+export function dossierParts(indicator: IndicatorId, names = NAMES[indicator]): { name: string; unit: string | null } {
+  const [name, ...unit] = names.dossier.split(' · ')
   return { name, unit: unit.length > 0 ? unit.join(' · ') : null }
 }
 

@@ -1,3 +1,5 @@
+export { HOUSEHOLD_WEALTH_COMPONENT_IDS } from './published'
+export type { WealthPrint, HouseholdWealth, HouseholdWealthComponentId } from './published'
 export { observe } from './observe'
 export {
   LONG_RUN_FORM,

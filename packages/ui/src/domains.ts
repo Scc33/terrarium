@@ -91,11 +91,14 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // spending from one to the other, and on the old 65–85 and 0–10 faces it
   // spent 58% and 64% of its century against the rails. Capital formation
   // takes 0–25 rather than 0–20: at 20 the maximal builder still pegged 9%.
-  consumption_share: { lo: 50, hi: 85 },
+  // Schema 52: 12 seeds × 6 countries × 5 governments, p01–p99 47.3–79.7.
+  // The 45–85 face pegs 0.1% pooled, 1.1% in the worst country/government.
+  consumption_share: { lo: 45, hi: 85 },
   investment_share: { lo: 0, hi: 25 },
   // #289: a cheaper farm sells its surplus abroad (#290), and the money
   // government in Kestrel pegged the old 30 rail 10% of its century.
   // Measured p99 29.3, maximum 35.6.
+  // Schema 52 p99 33.2, maximum 41.8; 35 pegs the worst century 4.3%.
   export_share: { lo: 5, hi: 35 },
   // Schema 24 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
   // Exceptional small-country surges should peg; ordinary dependence should
@@ -115,6 +118,7 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // cheaper again — p01 26.3, minimum 20.1, and a quarter of a procedural
   // money century under the old 25 rail. The ceiling comes in to match:
   // p99 129.6, maximum 161.1.
+  // Schema 52 minimum 16.5, p01–p99 21.5–123.4, maximum 161.0: still fits.
   price_food: { lo: 15, hi: 165 },
   // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190):
   // fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel board
@@ -126,14 +130,21 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // from the 1970s: p01 28.7 → 26.5, minimum 19.8. The gauge-domains test's
   // procedural country under the money government sat under 25 for 24% of
   // its century from 2021, so the floor goes to 20.
-  price_fuel: { lo: 20, hi: 175 },
+  // Schema 52 p01–p99 20.7–115.1, extremes 15.0–174.5. Extend the floor
+  // for the cheaper fuel the paid-investment financing path now produces.
+  price_fuel: { lo: 15, hi: 175 },
   // Schema 51, `pnpm ranges` (12 seeds × 6 countries × 5 governments × 400q):
   // p01 36.3, p99 219.1, extrema 28.5–281.7. It runs above the farm board
   // because the margin is priced in services, and cannot share
   // the farm board's face. On 30–250 it pegs 0.1% pooled, and 1.7% of the
   // worst century (the maximal builder in the procedural country).
-  price_food_household: { lo: 30, hi: 250 },
-  unemployment: { lo: 0, hi: 25 },
+  // Schema 52 p01–p99 31.0–139.9, extremes 23.4–174.8 in the full survey.
+  // Paid investment and bond subscriptions lower liquid demand.
+  // The exact money-arm audit reaches 26.9 (Costona) and 27.5 (procedural),
+  // pegging the old 30 rail 12.8% and 33.7%. Keep the separate food-bill face.
+  price_food_household: { lo: 20, hi: 250 },
+  // Schema 52 p99 26.9, maximum 36.7; a 30 rail pegs the worst century 2.2%.
+  unemployment: { lo: 0, hi: 30 },
   // Schema 28 migration broadens the late demographic paths. Measured across
   // 12 seeds × 6 countries × 400 quarters: p01–p99 44.0–59.3, extrema
   // 41.3–60.7. Keep room for exceptional participation without flattening
@@ -192,7 +203,9 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // growth p01–p99 −30.8–46.7, extrema −38.3–274.1. Both were cut where no
   // money dial had moved: free money put the asset market past 140 for a
   // quarter of the century and a credit boom past +30.
-  asset_prices: { lo: 50, hi: 200 },
+  // Schema 52 p01–p99 59.4–198.4; 40–225 pegs 0.1% pooled, 0.6% worst.
+  // Leave room for both crisis losses and credit booms.
+  asset_prices: { lo: 40, hi: 225 },
   credit_growth: { lo: -40, hi: 60 },
   // The face #190 generalised. It was set by hand, wider than the survey,
   // because that survey never touched the money dials and a separate sweep
@@ -209,7 +222,9 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // rail is zero because the whole legal range of the `capitalRequirement`
   // floor (3–25) has to fit on the face: "am I above the floor I set" is the
   // reading, and a dial that could not draw the floor could not answer it.
-  bank_capital_ratio: { lo: 0, hi: 60 },
+  // Schema 52 p99 53.3; at 80 every audited country/government clears the
+  // 10% limit (0.2% pooled, 2.6% in the worst century).
+  bank_capital_ratio: { lo: 0, hi: 80 },
   // Measured with `pnpm ranges` over the funded century: p01–p99 is 66.8–418.2
   // and the extrema are 57.6–477.9. A country that never industrialises sits
   // near its 1946 inheritance at 100; one that industrialises without rules
@@ -224,7 +239,8 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // 8.6–29.6%, extrema 6.2–40.1. Zero is the honest lower rail for a rate;
   // the 30% upper rail covers the middle 98% and lets exceptional mismatch
   // peg visibly.
-  labour_underuse: { lo: 0, hi: 30 },
+  // Schema 52 p99 34.7, maximum 46.7; at 35 the worst century pegs 4.0%.
+  labour_underuse: { lo: 0, hi: 35 },
 }
 
 /**
@@ -288,8 +304,7 @@ export function niceBounds(lo: number, hi: number): Domain {
  * history, not a window — for ratcheting faces that is exactly what makes the
  * result monotone, and for fixed faces it is ignored.
  */
-export function gaugeDomain(indicator: IndicatorId, values: readonly number[]): Domain {
-  const face = INDICATOR_FACE[indicator]
+export function gaugeDomain(indicator: IndicatorId, values: readonly number[], face: Domain | 'ratchet' = INDICATOR_FACE[indicator]): Domain {
   if (face !== 'ratchet') return face
   const finite = values.filter((v) => Number.isFinite(v))
   if (finite.length === 0) return { lo: 0, hi: 1 }

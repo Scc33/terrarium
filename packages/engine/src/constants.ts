@@ -391,7 +391,7 @@ export const CAPACITY_BUILD_QTRS = 8 // arrives over 2 years
  * return. Poverty, inequality, the quintile books and the household food price
  * unlock together because they are readings of the same enumerators'
  * schedules. */
-export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55
+export const HOUSEHOLD_SURVEY_FUNDED_AT = 0.55, WEALTH_SURVEY_FUNDED_AT = 0.55, WEALTH_SURVEY_RELATIVE_SD = 0.08
 export const LABOUR_SURVEY_FUNDED_AT = 0.45 // labour-force survey + employers' returns
 /** Terrarium Human Development Index goalposts (ADR-0033). Health retains
  * UNDP's canonical 20–85-year range. Income uses engine units, not PPP dollars:

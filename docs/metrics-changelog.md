@@ -21,6 +21,33 @@ contract, so it's called out below.
 
 ---
 
+## Schema 52 — Wealth and per-person accounts
+
+- **State +**: household overdrafts; sovereign-lot holder claims; public productive
+  stock built since 1946; commercial-bank foreign sovereign-settlement position.
+  Holder-level coupons, purchases and cash redemptions; private investment cash
+  funding, net credit advances, loan write-offs, bank margin and dividends.
+- **Behavior**: subscriptions debit deposits; redemption credits actual holders;
+  rollover is a claim swap. Private capital formation is paid from business cash,
+  credit creation supplies cash, and write-offs extinguish matching debt. Cash
+  shortfalls become overdrafts. See ADR-0049 for the balance-sheet perimeter.
+- **Outputs +**: `PublishedState.wealth` / `records.wealthReleases`, a **fogged**
+  asset-and-liability vector survey, unlock **0.55**. Ordinary historical gates,
+  lags, noise and revisions. Components: deposits, sovereign bonds, owned domestic
+  business assets, bank equity, business loans, overdrafts. Household net worth
+  is assets less loans; national net worth is household plus public net worth.
+  All amounts are **current domestic money**, including negative net positions.
+  Net-worth bands sum surveyed gross component bands, preserving uncertainty
+  when assets and liabilities offset; public/national bands are absolute amounts.
+- **Presentation**: capital stock units corrected from misleading `index` to real
+  stock units. Reusable per-person views match the census of each measured quarter
+  and scale each release's band. Payrolls use jobs per 100 residents; industry
+  output remains a quarterly real flow. Existing rates and per-person series
+  retain their interpretation. View preferences do not enter saves.
+- No pipeline reordering or economic RNG draws. Replay inputs are unchanged;
+  valid older saves rebuild the new accounts. Export v1 gains an additive table.
+
+
 ## Schema 51 — the household food price (#289)
 
 - **Output +**: `price_food_household`, *Household food prices*, `1946=100`, **fogged**,
@@ -287,7 +314,7 @@ Ordered by the statistical capacity that unlocks them — the ladder a governmen
 | `approval` | % | 0.25 | v3 | enfranchisement-weighted approval |
 | `consumption_per_capita` | real / head / yr | 0.25 | v15 | annualized household spend, own-basket deflated, ÷ population |
 | `payrolls` | M jobs | 0.30 | v1.5 | ex-agri employment |
-| `capital_stock` | index | 0.30 | v1.5 | total capital stock |
+| `capital_stock` | real stock units | 0.30 | v1.5 | total capital stock |
 | `life_expectancy` | years at birth | 0.30 | v38 | period life expectancy from today's age-specific mortality schedule |
 | `net_migration` | per 1000/yr | 0.30 | v29 | arrivals minus departures, annualized per 1,000 residents |
 | `birth_rate` | per 1000/yr | 0.30 | v8 | crude birth rate |
@@ -398,7 +425,7 @@ reconciled to the separately noised `income_real` headline.
 | `mode` | v21 | exact opening rule, `standard` or `god` |
 | `dials` | v1 | your own lever settings, including the v29 immigration ceiling |
 | `spendingRules` | v17 | your exact standing appropriations; fixed, CPI-indexed, or official-GDP-share |
-| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position. `treasury.domesticBondShare` *(ADR-0043, no schema bump)* is the share of each auction domestic balance sheets carry — the debt office knows its buyers — and is the one structural input the central-bank desk's stance briefing takes from the books |
+| `treasury` + `books[]` | v1 | revenue, outlays, balance, debt, **the sovereign fund** *(v44)*, printed, reserves, **the posted exchange rate** *(v42)* — current + full history. Debt and fund are never both positive; they are one net position. `treasury.domesticBondShare` *(ADR-0043)* is the openness-based domestic underwriting target used by the crowding-price proxy. Actual household subscriptions and holder claims are separate accounts *(v52, ADR-0049)* |
 | ↳ `revenueBySource` | v11 | receipts per source: `income`, `corporate`, `tariff`, `fuel` after capacity-gated collection, plus `fund` *(v44)* — the return on the sovereign fund, the one line that is not a tax and posts no rate |
 | ↳ `outlaysByProgramme` | v11 | outlays per line: `transfers`, `procurement`, `investment`, `research` (v18), `subsidies`, `capacity`, `interest` — **as booked**, before delivery leakage |
 | `politics` | v1 | political capital, quarters to election, in-power, elections won (+ `electionsSuppressed`, v12) |

@@ -3,15 +3,15 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "0926fd3",
+  "revision": "b0b37d0",
   "repoRoot": "../..",
   "packages": [
     {
       "id": "engine",
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
-      "moduleCount": 55,
-      "lines": 17206
+      "moduleCount": 62,
+      "lines": 17533
     },
     {
       "id": "fixtures",
@@ -25,21 +25,21 @@ export const architecture = {
       "name": "@terrarium/observation",
       "description": "Presentation-only projection from engine prints to the player-visible contract.",
       "moduleCount": 5,
-      "lines": 1197
+      "lines": 1209
     },
     {
       "id": "runner",
       "name": "@terrarium/runner",
       "description": "Headless execution and balance sweeps over the same public engine API.",
-      "moduleCount": 15,
-      "lines": 3145
+      "moduleCount": 16,
+      "lines": 3177
     },
     {
       "id": "ui",
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
-      "moduleCount": 123,
-      "lines": 20718
+      "moduleCount": 128,
+      "lines": 21022
     }
   ],
   "modules": [
@@ -676,6 +676,18 @@ export const architecture = {
         },
         {
           "name": "HOUSEHOLD_SURVEY_FUNDED_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 394
+        },
+        {
+          "name": "WEALTH_SURVEY_FUNDED_AT",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 394
+        },
+        {
+          "name": "WEALTH_SURVEY_RELATIVE_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
           "line": 394
@@ -3295,6 +3307,7 @@ export const architecture = {
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/interregnum.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/bonds.ts",
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
@@ -3320,11 +3333,14 @@ export const architecture = {
         "packages/engine/src/pipeline/technology.ts",
         "packages/engine/src/pipeline/termStructure.ts",
         "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
         "packages/engine/src/pipeline/world.ts",
         "packages/engine/src/pipeline/yields.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/finance.ts",
         "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/openingFlows.ts",
         "packages/engine/src/state/validate.ts"
       ],
       "path": "packages/engine/src/constants.ts",
@@ -4010,49 +4026,49 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "The whole engine is three functions (§2):",
-      "lines": 446,
+      "lines": 407,
       "exports": [
         {
           "name": "init",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 29
+          "line": 33
         },
         {
           "name": "applyActions",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 39
+          "line": 43
         },
         {
           "name": "step",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 43
+          "line": 47
         },
         {
           "name": "InvalidSaveError",
           "kind": "class",
           "path": "packages/engine/src/index.ts",
-          "line": 50
+          "line": 54
         },
         {
           "name": "SaveFile",
           "kind": "interface",
           "path": "packages/engine/src/index.ts",
-          "line": 57
+          "line": 61
         },
         {
           "name": "createSave",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 79
+          "line": 83
         },
         {
           "name": "replay",
           "kind": "function",
           "path": "packages/engine/src/index.ts",
-          "line": 112
+          "line": 116
         }
       ],
       "imports": [
@@ -4093,7 +4109,9 @@ export const architecture = {
         "packages/engine/src/pipeline/termStructure.ts",
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/wealth.ts",
         "packages/engine/src/pipeline/yields.ts",
+        "packages/engine/src/readModels.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/accounts.ts",
@@ -4103,7 +4121,9 @@ export const architecture = {
         "packages/engine/src/state/labour.ts",
         "packages/engine/src/state/schema.ts",
         "packages/engine/src/state/schema.ts",
-        "packages/engine/src/state/validate.ts"
+        "packages/engine/src/state/validate.ts",
+        "packages/engine/src/state/wealth.ts",
+        "packages/engine/src/state/wealth.ts"
       ],
       "importedBy": [
         "packages/fixtures/countries/standard.ts",
@@ -4118,6 +4138,7 @@ export const architecture = {
         "packages/runner/src/debt.ts",
         "packages/runner/src/export-feedback-cli.ts",
         "packages/runner/src/export-feedback.ts",
+        "packages/runner/src/perPerson.ts",
         "packages/runner/src/policies.ts",
         "packages/runner/src/run.ts",
         "packages/runner/src/stability-cli.ts",
@@ -4158,6 +4179,7 @@ export const architecture = {
         "packages/ui/src/panels/PublicAssetBook.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
         "packages/ui/src/panels/YieldCurveBook.tsx",
         "packages/ui/src/panels/cabinet/CapacityRow.tsx",
@@ -4170,6 +4192,7 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/turbulence.ts",
+        "packages/ui/src/wealth.ts",
         "packages/ui/src/worker/protocol.ts",
         "packages/ui/src/worker/sim.worker.ts",
         "packages/ui/src/worker/trial.ts",
@@ -4291,9 +4314,60 @@ export const architecture = {
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/world.ts",
         "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/openingFlows.ts",
         "packages/engine/src/state/spending.ts"
       ],
       "path": "packages/engine/src/math.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/bondOwnership.ts",
+      "label": "bondOwnership",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Holder-level settlement: a purchase swaps deposits for a security; redemption reverses it, coupons are income, and rollover is neither.",
+      "lines": 63,
+      "exports": [
+        {
+          "name": "emptyHoldings",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/bondOwnership.ts",
+          "line": 9
+        },
+        {
+          "name": "initialHolders",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/bondOwnership.ts",
+          "line": 13
+        },
+        {
+          "name": "holdersOf",
+          "kind": "constant",
+          "path": "packages/engine/src/pipeline/bondOwnership.ts",
+          "line": 22
+        },
+        {
+          "name": "settleBondOwnership",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/bondOwnership.ts",
+          "line": 25
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/bonds.ts",
+        "packages/engine/src/state/bonds.ts",
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/wealth.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/openingFlows.ts",
+        "packages/engine/src/state/validate.ts"
+      ],
+      "path": "packages/engine/src/pipeline/bondOwnership.ts",
       "line": 1
     },
     {
@@ -4366,7 +4440,9 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/fiscal.ts",
+        "packages/engine/src/pipeline/wealth.ts",
         "packages/engine/src/state/init.ts"
       ],
       "path": "packages/engine/src/pipeline/bonds.ts",
@@ -4378,13 +4454,13 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 7 — cohorts. Incomes land, savings absorb the difference, and approval drifts toward *experienced* conditions: real income growth (loss-averse), own-basket inflation, joblessness, and queues for goods that never arrived. Whatever the statistics office printed, the bread l…",
-      "lines": 255,
+      "lines": 256,
       "exports": [
         {
           "name": "cohorts",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/cohorts.ts",
-          "line": 51
+          "line": 50
         }
       ],
       "imports": [
@@ -4782,6 +4858,7 @@ export const architecture = {
         "packages/engine/src/pipeline/technology.ts",
         "packages/engine/src/pipeline/trade.ts",
         "packages/engine/src/pipeline/yields.ts",
+        "packages/engine/src/readModels.ts",
         "packages/engine/src/state/init.ts",
         "packages/engine/src/state/validate.ts"
       ],
@@ -4829,7 +4906,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 3.5 — the financial sector. The credit cycle is the amplifier and the crisis clock in one. Each quarter: • banks set a credit target from the real rate, collateral (asset prices), and animal spirits — capped by their capital; credit adjusts toward it; • asset prices (a To…",
-      "lines": 241,
+      "lines": 249,
       "exports": [
         {
           "name": "finance",
@@ -4860,18 +4937,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 3 — fiscal. Tax collection is capacity-gated: the state taxes what it can see, not true GDP. Spending executes with leakage. Deficits the bond market won't absorb are monetized — the printing press is not a button the player pushes, it's what happens when the arithmetic f…",
-      "lines": 191,
+      "lines": 198,
       "exports": [
         {
           "name": "fiscal",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/fiscal.ts",
-          "line": 39
+          "line": 40
         }
       ],
       "imports": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/bonds.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/pipeline/pipeline.ts",
@@ -5152,7 +5230,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 6 — labor & capital. Employment chases demanded output with friction; wages respond to labor-market tightness plus expected inflation. Investment goods bought this tick become capital, allocated where utilization is pressing against the ceiling.",
-      "lines": 157,
+      "lines": 161,
       "exports": [
         {
           "name": "labor",
@@ -5288,7 +5366,8 @@ export const architecture = {
       "importedBy": [
         "packages/engine/src/pipeline/industrySurvey.ts",
         "packages/engine/src/pipeline/labourSurvey.ts",
-        "packages/engine/src/pipeline/statistics.ts"
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts"
       ],
       "path": "packages/engine/src/pipeline/measurement.ts",
       "line": 1
@@ -5475,7 +5554,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1 — production. Builds this tick's demand from last tick's incomes and prices, solves the Leontief system for required gross output, and produces up to capacity. Excess demand is recorded for the price step; nothing here is a hand-authored effect arrow — a fuel tax reache…",
-      "lines": 308,
+      "lines": 309,
       "exports": [
         {
           "name": "production",
@@ -5583,19 +5662,19 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 8 — statistics. The office measures the quarter, files the worksheet, and releases whatever falls due: first prints after a lag, revisions at +2 and +5 quarters. Noise draws come from `obs:*` substreams keyed by (indicator, measured quarter, revision) — orthogonal to the…",
-      "lines": 505,
+      "lines": 510,
       "exports": [
         {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 319
+          "line": 322
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 446
+          "line": 449
         }
       ],
       "imports": [
@@ -5610,6 +5689,8 @@ export const architecture = {
         "packages/engine/src/pipeline/labourSurvey.ts",
         "packages/engine/src/pipeline/measurement.ts",
         "packages/engine/src/pipeline/pipeline.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/accounts.ts",
         "packages/engine/src/state/schema.ts"
@@ -5789,6 +5870,72 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/engine/src/pipeline/wealth.ts",
+      "label": "wealth",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Complete balance sheets within the modeled asset perimeter (ADR-0049). Financial claims cancel against named liabilities. Productive capital is counted once in national wealth, irrespective of how it is financed.",
+      "lines": 62,
+      "exports": [
+        {
+          "name": "householdNetWorth",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/wealth.ts",
+          "line": 10
+        },
+        {
+          "name": "wealthAccounts",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/wealth.ts",
+          "line": 14
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
+        "packages/engine/src/pipeline/bonds.ts",
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/wealth.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
+        "packages/engine/src/state/validate.ts"
+      ],
+      "path": "packages/engine/src/pipeline/wealth.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "label": "wealthSurvey",
+      "packageId": "engine",
+      "category": "Pipeline",
+      "summary": "Assets and liabilities are surveyed on the ordinary publication clock. Net worth is computed from the same surveyed components, never drawn again.",
+      "lines": 41,
+      "exports": [
+        {
+          "name": "wealthPrintsDue",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/wealthSurvey.ts",
+          "line": 11
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/measurement.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/rng/rng.ts",
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/wealth.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/pipeline/statistics.ts"
+      ],
+      "path": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "line": 1
+    },
+    {
       "id": "packages/engine/src/pipeline/world.ts",
       "label": "world",
       "packageId": "engine",
@@ -5862,6 +6009,23 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/engine/src/readModels.ts",
+      "label": "readModels",
+      "packageId": "engine",
+      "category": "Engine core",
+      "summary": "Public, pure queries over engine state. State runners remain in index.ts.",
+      "lines": 46,
+      "exports": [],
+      "imports": [
+        "packages/engine/src/pipeline/derive.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts"
+      ],
+      "path": "packages/engine/src/readModels.ts",
+      "line": 1
+    },
+    {
       "id": "packages/engine/src/rng/rng.ts",
       "label": "rng",
       "packageId": "engine",
@@ -5902,6 +6066,7 @@ export const architecture = {
         "packages/engine/src/pipeline/labourSurvey.ts",
         "packages/engine/src/pipeline/pipeline.ts",
         "packages/engine/src/pipeline/statistics.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
         "packages/engine/src/state/init.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -5946,46 +6111,54 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Public market prices and the government's own contracts. None are surveys.",
-      "lines": 31,
+      "lines": 37,
       "exports": [
         {
           "name": "YIELD_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/bonds.ts",
-          "line": 4
+          "line": 5
         },
         {
           "name": "YieldId",
           "kind": "type",
           "path": "packages/engine/src/state/bonds.ts",
-          "line": 5
+          "line": 6
         },
         {
           "name": "YieldCurve",
           "kind": "interface",
           "path": "packages/engine/src/state/bonds.ts",
-          "line": 7
+          "line": 8
+        },
+        {
+          "name": "BondContract",
+          "kind": "interface",
+          "path": "packages/engine/src/state/bonds.ts",
+          "line": 21
         },
         {
           "name": "BondLot",
           "kind": "interface",
           "path": "packages/engine/src/state/bonds.ts",
-          "line": 20
+          "line": 28
         },
         {
           "name": "AssetLot",
           "kind": "interface",
           "path": "packages/engine/src/state/bonds.ts",
-          "line": 27
+          "line": 33
         }
       ],
       "imports": [
-        "packages/engine/src/state/schema.ts"
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/wealth.ts"
       ],
       "importedBy": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/bonds.ts",
         "packages/engine/src/pipeline/yields.ts",
         "packages/engine/src/state/finance.ts",
@@ -6030,12 +6203,49 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/engine/src/state/industry.ts",
+      "label": "industry",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "",
+      "lines": 51,
+      "exports": [
+        {
+          "name": "INDUSTRY_TABLE_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/industry.ts",
+          "line": 8
+        },
+        {
+          "name": "IndustryTableId",
+          "kind": "type",
+          "path": "packages/engine/src/state/industry.ts",
+          "line": 9
+        },
+        {
+          "name": "IndustryPrint",
+          "kind": "interface",
+          "path": "packages/engine/src/state/industry.ts",
+          "line": 29
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/state/schema.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "path": "packages/engine/src/state/industry.ts",
+      "line": 1
+    },
+    {
       "id": "packages/engine/src/state/init.ts",
       "label": "init",
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (ADR-0011); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 678,
+      "lines": 633,
       "exports": [
         {
           "name": "synthPyramid",
@@ -6054,6 +6264,7 @@ export const architecture = {
         "packages/engine/src/constants.ts",
         "packages/engine/src/countries.ts",
         "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/bonds.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
@@ -6061,6 +6272,7 @@ export const architecture = {
         "packages/engine/src/pipeline/institutions.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/finance.ts",
+        "packages/engine/src/state/openingFlows.ts",
         "packages/engine/src/state/schema.ts"
       ],
       "importedBy": [
@@ -6126,612 +6338,627 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/engine/src/state/openingFlows.ts",
+      "label": "openingFlows",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "Opening flow worksheet, kept separate from country calibration.",
+      "lines": 75,
+      "exports": [
+        {
+          "name": "openingBankDistribution",
+          "kind": "function",
+          "path": "packages/engine/src/state/openingFlows.ts",
+          "line": 10
+        },
+        {
+          "name": "openingFlows",
+          "kind": "function",
+          "path": "packages/engine/src/state/openingFlows.ts",
+          "line": 16
+        }
+      ],
+      "imports": [
+        "packages/engine/src/constants.ts",
+        "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/state/init.ts"
+      ],
+      "path": "packages/engine/src/state/openingFlows.ts",
+      "line": 1
+    },
+    {
       "id": "packages/engine/src/state/schema.ts",
       "label": "schema",
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 1429,
+      "lines": 1401,
       "exports": [
         {
           "name": "Qtr",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 12
+          "line": 16
         },
         {
           "name": "Money",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 13
+          "line": 17
         },
         {
           "name": "Ratio",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 14
+          "line": 18
         },
         {
           "name": "GAME_RULE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 27
+          "line": 31
         },
         {
           "name": "GameRuleId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 28
+          "line": 32
         },
         {
           "name": "GameRules",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 29
+          "line": 33
         },
         {
           "name": "STANDARD_RULES",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 32
+          "line": 36
         },
         {
           "name": "GameMode",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 44
+          "line": 48
         },
         {
           "name": "gameRules",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 48
+          "line": 52
         },
         {
           "name": "TURBULENCE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 61
+          "line": 65
         },
         {
           "name": "Turbulence",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 62
+          "line": 66
         },
         {
           "name": "ORDINARY_TURBULENCE",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 63
+          "line": 67
         },
         {
           "name": "turbulenceLevel",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 69
+          "line": 73
         },
         {
           "name": "SECTOR_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 73
+          "line": 77
         },
         {
           "name": "SectorId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 74
+          "line": 78
         },
         {
           "name": "COHORT_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 76
+          "line": 80
         },
         {
           "name": "CohortId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 83
+          "line": 87
         },
         {
           "name": "INCOME_QUINTILE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 88
+          "line": 92
         },
         {
           "name": "IncomeQuintileId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 89
+          "line": 93
         },
         {
           "name": "WORKING_CLASS_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 92
+          "line": 96
         },
         {
           "name": "WorkingClassId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 98
+          "line": 102
         },
         {
           "name": "CAPACITY_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 100
+          "line": 104
         },
         {
           "name": "CapacityId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 101
+          "line": 105
         },
         {
           "name": "REVENUE_SOURCE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 113
+          "line": 117
         },
         {
           "name": "RevenueSourceId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 114
+          "line": 118
         },
         {
           "name": "RevenueSplit",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 115
+          "line": 119
         },
         {
           "name": "TAX_RATE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 127
+          "line": 131
         },
         {
           "name": "TaxRateId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 129
+          "line": 133
         },
         {
           "name": "OUTLAY_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 135
+          "line": 139
         },
         {
           "name": "OutlayId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 144
+          "line": 148
         },
         {
           "name": "OutlaySplit",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 145
+          "line": 149
         },
         {
           "name": "SPENDING_PROGRAM_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 149
+          "line": 153
         },
         {
           "name": "SpendingProgramId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 150
+          "line": 154
         },
         {
           "name": "SpendingRule",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 161
+          "line": 165
         },
         {
           "name": "SpendingRuleMode",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 165
+          "line": 169
         },
         {
           "name": "SpendingRules",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 166
+          "line": 170
         },
         {
           "name": "STATUTE_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 185
+          "line": 189
         },
         {
           "name": "StatuteId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 191
+          "line": 195
         },
         {
           "name": "Statute",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 199
+          "line": 203
         },
         {
           "name": "StatuteBook",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 205
+          "line": 209
         },
         {
           "name": "INSTITUTION_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 211
+          "line": 215
         },
         {
           "name": "InstitutionId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 212
+          "line": 216
         },
         {
           "name": "BLOC_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 217
+          "line": 221
         },
         {
           "name": "BlocId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 218
+          "line": 222
         },
         {
           "name": "PLATFORM_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 224
+          "line": 228
         },
         {
           "name": "PlatformId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 225
+          "line": 229
         },
         {
           "name": "INDICATOR_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 227
+          "line": 231
         },
         {
           "name": "IndicatorId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 319
+          "line": 323
         },
         {
           "name": "PARTNER_IDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 322
+          "line": 326
         },
         {
           "name": "PartnerId",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 323
+          "line": 327
         },
         {
           "name": "CountryParams",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 326
+          "line": 330
         },
         {
           "name": "CountryStructure",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 360
+          "line": 364
         },
         {
           "name": "AGE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 373
+          "line": 377
         },
         {
           "name": "RETIREMENT_BAND",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 376
+          "line": 380
         },
         {
           "name": "WORKING_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 378
+          "line": 382
         },
         {
           "name": "FERTILE_BANDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 380
+          "line": 384
         },
         {
           "name": "DemographyState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 382
+          "line": 386
         },
         {
           "name": "Cohort",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 420
+          "line": 424
         },
         {
           "name": "Sector",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 464
+          "line": 470
         },
         {
           "name": "IOTable",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 477
+          "line": 483
         },
         {
           "name": "MarketState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 483
+          "line": 489
         },
         {
           "name": "DialState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 496
+          "line": 502
         },
         {
           "name": "PolicyRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 552
+          "line": 558
         },
         {
           "name": "CapacityBuild",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 576
+          "line": 582
         },
         {
           "name": "GovernmentState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 583
+          "line": 589
         },
         {
           "name": "WorldPartner",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 623
+          "line": 631
         },
         {
           "name": "WorldState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 628
+          "line": 636
         },
         {
           "name": "ExternalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 635
+          "line": 643
         },
         {
           "name": "EnvironmentState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 728
+          "line": 738
         },
         {
           "name": "TechState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 754
+          "line": 764
         },
         {
           "name": "Bloc",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 779
+          "line": 789
         },
         {
           "name": "InstitutionState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 786
+          "line": 796
         },
         {
           "name": "ElectionResult",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 808
+          "line": 818
         },
         {
           "name": "PoliticalState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 824
+          "line": 834
         },
         {
           "name": "FragilityLedger",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 844
+          "line": 854
         },
         {
           "name": "StatPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 853
+          "line": 863
         },
         {
           "name": "HumanDevelopmentDimensions",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 867
+          "line": 877
         },
         {
           "name": "NEWS_KINDS",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 886
+          "line": 896
         },
         {
           "name": "NewsKind",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 927
+          "line": 937
         },
         {
           "name": "NewsTone",
           "kind": "type",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 929
+          "line": 939
         },
         {
           "name": "NewsItem",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 945
-        },
-        {
-          "name": "INDUSTRY_TABLE_IDS",
-          "kind": "constant",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 971
-        },
-        {
-          "name": "IndustryTableId",
-          "kind": "type",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 972
-        },
-        {
-          "name": "IndustryPrint",
-          "kind": "interface",
-          "path": "packages/engine/src/state/schema.ts",
-          "line": 992
+          "line": 955
         },
         {
           "name": "HouseholdSurveyPrint",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1027
+          "line": 988
         },
         {
           "name": "StatRecord",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1049
+          "line": 1010
         },
         {
           "name": "StatsOffice",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1220
+          "line": 1182
         },
         {
           "name": "TickFlows",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1236
+          "line": 1199
         },
         {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1329
+          "line": 1301
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1383
+          "line": 1355
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1384
+          "line": 1356
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1385
+          "line": 1357
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1388
+          "line": 1360
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1390
+          "line": 1362
         },
         {
           "name": "FIRST_YEAR",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1395
+          "line": 1367
         },
         {
           "name": "yearOfTick",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1397
+          "line": 1369
         },
         {
           "name": "tickForYear",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1401
+          "line": 1373
         },
         {
           "name": "LAST_APPOINTMENT_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1406
+          "line": 1378
         },
         {
           "name": "appointmentTick",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1421
+          "line": 1393
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1426
+          "line": 1398
         }
       ],
       "imports": [
@@ -6739,7 +6966,10 @@ export const architecture = {
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/bonds.ts",
         "packages/engine/src/state/finance.ts",
-        "packages/engine/src/state/labour.ts"
+        "packages/engine/src/state/industry.ts",
+        "packages/engine/src/state/industry.ts",
+        "packages/engine/src/state/labour.ts",
+        "packages/engine/src/state/wealth.ts"
       ],
       "importedBy": [
         "packages/engine/src/actions/apply.ts",
@@ -6758,6 +6988,7 @@ export const architecture = {
         "packages/engine/src/index.ts",
         "packages/engine/src/interregnum.ts",
         "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/cohorts.ts",
         "packages/engine/src/pipeline/demography.ts",
         "packages/engine/src/pipeline/derive.ts",
@@ -6780,14 +7011,19 @@ export const architecture = {
         "packages/engine/src/pipeline/statistics.ts",
         "packages/engine/src/pipeline/technology.ts",
         "packages/engine/src/pipeline/trade.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
         "packages/engine/src/pipeline/world.ts",
         "packages/engine/src/pipeline/yields.ts",
         "packages/engine/src/state/accounts.ts",
         "packages/engine/src/state/bonds.ts",
         "packages/engine/src/state/finance.ts",
+        "packages/engine/src/state/industry.ts",
         "packages/engine/src/state/init.ts",
+        "packages/engine/src/state/openingFlows.ts",
         "packages/engine/src/state/spending.ts",
-        "packages/engine/src/state/validate.ts"
+        "packages/engine/src/state/validate.ts",
+        "packages/engine/src/state/wealth.ts"
       ],
       "path": "packages/engine/src/state/schema.ts",
       "line": 1
@@ -6857,24 +7093,26 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Invariant checks (dev builds and test suites). Throws with a pointed message — a violated invariant is a bug in a step, never a shrug.",
-      "lines": 272,
+      "lines": 298,
       "exports": [
         {
           "name": "InvariantError",
           "kind": "class",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 25
+          "line": 27
         },
         {
           "name": "validate",
           "kind": "function",
           "path": "packages/engine/src/state/validate.ts",
-          "line": 31
+          "line": 33
         }
       ],
       "imports": [
         "packages/engine/src/constants.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/derive.ts",
+        "packages/engine/src/pipeline/wealth.ts",
         "packages/engine/src/state/bonds.ts",
         "packages/engine/src/state/schema.ts"
       ],
@@ -6882,6 +7120,72 @@ export const architecture = {
         "packages/engine/src/index.ts"
       ],
       "path": "packages/engine/src/state/validate.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/engine/src/state/wealth.ts",
+      "label": "wealth",
+      "packageId": "engine",
+      "category": "State",
+      "summary": "Balance sheets cover the assets and liabilities modeled by this engine. Households include their directly owned businesses; banks and the monetary authority remain separate counterparties. See ADR-0049.",
+      "lines": 43,
+      "exports": [
+        {
+          "name": "BondHolderId",
+          "kind": "type",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 6
+        },
+        {
+          "name": "BondHoldings",
+          "kind": "type",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 7
+        },
+        {
+          "name": "HOUSEHOLD_WEALTH_COMPONENT_IDS",
+          "kind": "constant",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 8
+        },
+        {
+          "name": "HouseholdWealthComponentId",
+          "kind": "type",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 11
+        },
+        {
+          "name": "HouseholdWealth",
+          "kind": "type",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 12
+        },
+        {
+          "name": "WealthRecord",
+          "kind": "interface",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 14
+        },
+        {
+          "name": "WealthPrint",
+          "kind": "interface",
+          "path": "packages/engine/src/state/wealth.ts",
+          "line": 30
+        }
+      ],
+      "imports": [
+        "packages/engine/src/state/schema.ts"
+      ],
+      "importedBy": [
+        "packages/engine/src/index.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
+        "packages/engine/src/state/bonds.ts",
+        "packages/engine/src/state/schema.ts"
+      ],
+      "path": "packages/engine/src/state/wealth.ts",
       "line": 1
     },
     {
@@ -6990,7 +7294,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "The portable record of a run.",
-      "lines": 157,
+      "lines": 161,
       "exports": [
         {
           "name": "DATA_EXPORT_FORMAT",
@@ -7014,19 +7318,19 @@ export const architecture = {
           "name": "PublishedSnapshot",
           "kind": "type",
           "path": "packages/observation/src/dataExport.ts",
-          "line": 56
+          "line": 57
         },
         {
           "name": "HistoricalDataExport",
           "kind": "interface",
           "path": "packages/observation/src/dataExport.ts",
-          "line": 60
+          "line": 61
         },
         {
           "name": "createHistoricalDataExport",
           "kind": "function",
           "path": "packages/observation/src/dataExport.ts",
-          "line": 99
+          "line": 101
         }
       ],
       "imports": [
@@ -7045,12 +7349,13 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "",
-      "lines": 78,
+      "lines": 80,
       "exports": [],
       "imports": [
         "packages/observation/src/dataExport.ts",
         "packages/observation/src/longRun.ts",
         "packages/observation/src/observe.ts",
+        "packages/observation/src/published.ts",
         "packages/observation/src/published.ts"
       ],
       "importedBy": [
@@ -7099,6 +7404,7 @@ export const architecture = {
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
         "packages/ui/src/panels/YieldCurveBook.tsx",
         "packages/ui/src/panels/cabinet/BlocRow.tsx",
@@ -7110,6 +7416,7 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/StanceBriefing.tsx",
         "packages/ui/src/panels/cabinet/StatuteRow.tsx",
         "packages/ui/src/panels/cabinet/dials.ts",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/policyRecord.ts",
         "packages/ui/src/publicAssets.ts",
         "packages/ui/src/shell/useSceneOverlays.ts",
@@ -7119,6 +7426,7 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/wallPlan.ts",
+        "packages/ui/src/wealth.ts",
         "packages/ui/src/worker/protocol.ts",
         "packages/ui/src/worker/sim.worker.ts",
         "packages/ui/src/yieldCurve.ts"
@@ -7200,7 +7508,7 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "observe() — a pure projection of what the government can see (ADR-0003). The fog itself (lag, noise, revisions, funding gates) lives in the engine's statistics step, because politics now reads the prints too; this function only attaches presentation and assembles the desk: pub…",
-      "lines": 422,
+      "lines": 423,
       "exports": [
         {
           "name": "observe",
@@ -7226,91 +7534,91 @@ export const architecture = {
       "packageId": "observation",
       "category": "Published projection",
       "summary": "PublishedState — the ONLY types the ui package may import (§3.1). Everything here is what a government of the period could actually know: its own dials and books exactly, the economy only through its statistical apparatus, plus rumors. The prints themselves are made in the eng…",
-      "lines": 388,
+      "lines": 393,
       "exports": [
         {
           "name": "PolicyPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 72
+          "line": 75
         },
         {
           "name": "IndicatorPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 75
+          "line": 78
         },
         {
           "name": "IndicatorSeries",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 77
+          "line": 80
         },
         {
           "name": "IndustryPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 89
+          "line": 92
         },
         {
           "name": "LabourMarketPoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 92
+          "line": 95
         },
         {
           "name": "HouseholdIncomePoint",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 95
+          "line": 98
         },
         {
           "name": "Grade",
           "kind": "type",
           "path": "packages/observation/src/published.ts",
-          "line": 97
+          "line": 100
         },
         {
           "name": "LongRunLine",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 102
+          "line": 105
         },
         {
           "name": "ReportCard",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 109
+          "line": 112
         },
         {
           "name": "PublishedStatute",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 152
+          "line": 155
         },
         {
           "name": "PublishedBloc",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 177
+          "line": 180
         },
         {
           "name": "PublishedCorridor",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 189
+          "line": 192
         },
         {
           "name": "PublishedCampaign",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 201
+          "line": 204
         },
         {
           "name": "PublishedState",
           "kind": "interface",
           "path": "packages/observation/src/published.ts",
-          "line": 211
+          "line": 214
         }
       ],
       "imports": [
@@ -7320,6 +7628,7 @@ export const architecture = {
       ],
       "importedBy": [
         "packages/observation/src/dataExport.ts",
+        "packages/observation/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/observation/src/observe.ts"
       ],
@@ -7761,6 +8070,28 @@ export const architecture = {
         "packages/runner/src/stability.ts"
       ],
       "path": "packages/runner/src/metrics.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/runner/src/perPerson.ts",
+      "label": "perPerson",
+      "packageId": "runner",
+      "category": "Headless runner",
+      "summary": "Independent true-state oracle for country fuzzing. It checks worksheets against the country measured, not against a display helper's own inverse.",
+      "lines": 32,
+      "exports": [
+        {
+          "name": "perPersonDiagnostics",
+          "kind": "function",
+          "path": "packages/runner/src/perPerson.ts",
+          "line": 5
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts"
+      ],
+      "importedBy": [],
+      "path": "packages/runner/src/perPerson.ts",
       "line": 1
     },
     {
@@ -8265,13 +8596,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The war room, on one screen: header letterhead, the instrument wall with the ledger and corridor docked, the control rail, and the wire along the bottom. Overlays are ministry paperwork on top — the ledger's full books, the wire's spike, the study, the records office.",
-      "lines": 349,
+      "lines": 328,
       "exports": [
         {
           "name": "App",
           "kind": "function",
           "path": "packages/ui/src/App.tsx",
-          "line": 57
+          "line": 35
         }
       ],
       "imports": [
@@ -8279,30 +8610,19 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/countryDraft.ts",
         "packages/ui/src/manual.ts",
-        "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/AtlasOverlay.tsx",
-        "packages/ui/src/panels/CensusOverlay.tsx",
         "packages/ui/src/panels/ControlRail.tsx",
         "packages/ui/src/panels/CountrySelect.tsx",
         "packages/ui/src/panels/DevConsole.tsx",
         "packages/ui/src/panels/DraftingRoom.tsx",
-        "packages/ui/src/panels/ElectionOverlay.tsx",
-        "packages/ui/src/panels/ElectionResultOverlay.tsx",
-        "packages/ui/src/panels/FinanceOverlay.tsx",
         "packages/ui/src/panels/HeaderBar.tsx",
-        "packages/ui/src/panels/HouseholdOverlay.tsx",
-        "packages/ui/src/panels/IndustryOverlay.tsx",
         "packages/ui/src/panels/Instruments.tsx",
-        "packages/ui/src/panels/LabourOverlay.tsx",
-        "packages/ui/src/panels/LedgerOverlay.tsx",
         "packages/ui/src/panels/ManualOverlay.tsx",
         "packages/ui/src/panels/NewsWire.tsx",
-        "packages/ui/src/panels/PolicyOverlay.tsx",
         "packages/ui/src/panels/ReportCardOverlay.tsx",
         "packages/ui/src/panels/SettingsOverlay.tsx",
-        "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/Walkthrough.tsx",
-        "packages/ui/src/panels/WireOverlay.tsx",
+        "packages/ui/src/shell/paperwork.ts",
         "packages/ui/src/shell/useBootSequence.ts",
         "packages/ui/src/shell/useCabinetChrome.ts",
         "packages/ui/src/shell/useGlobalShortcuts.ts",
@@ -8692,13 +9012,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Dossier-era instrument: an analog gauge on manila, brass-rimmed, with the latest figure rubber-stamped beneath. The needle can only tell you so much — that vagueness is the statistical office's actual competence, not a styling choice.",
-      "lines": 311,
+      "lines": 316,
       "exports": [
         {
           "name": "AnalogGauge",
           "kind": "function",
           "path": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
-          "line": 62
+          "line": 63
         }
       ],
       "imports": [
@@ -8707,7 +9027,8 @@ export const architecture = {
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/series.ts",
         "packages/ui/src/components/ui/index.ts",
-        "packages/ui/src/domains.ts"
+        "packages/ui/src/domains.ts",
+        "packages/ui/src/perPerson.ts"
       ],
       "importedBy": [
         "packages/ui/src/components/Gauge/Gauge.tsx",
@@ -8776,13 +9097,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "The maturity switch — one instrument identity, rendered at its current era.",
-      "lines": 39,
+      "lines": 41,
       "exports": [
         {
           "name": "Gauge",
           "kind": "function",
           "path": "packages/ui/src/components/Gauge/Gauge.tsx",
-          "line": 18
+          "line": 20
         }
       ],
       "imports": [
@@ -8790,7 +9111,8 @@ export const architecture = {
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
         "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-        "packages/ui/src/maturity.ts"
+        "packages/ui/src/maturity.ts",
+        "packages/ui/src/perPerson.ts"
       ],
       "importedBy": [
         "packages/ui/src/panels/Instruments.tsx"
@@ -8930,7 +9252,8 @@ export const architecture = {
         "packages/ui/src/panels/cabinet/CapacityRow.tsx",
         "packages/ui/src/panels/cabinet/IncidenceNote.tsx",
         "packages/ui/src/panels/cabinet/ReformRow.tsx",
-        "packages/ui/src/panels/cabinet/StatuteRow.tsx"
+        "packages/ui/src/panels/cabinet/StatuteRow.tsx",
+        "packages/ui/src/perPerson.ts"
       ],
       "path": "packages/ui/src/components/labels.ts",
       "line": 1
@@ -8995,13 +9318,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "One instrument, compressed to a single line — the rack's unit.",
-      "lines": 137,
+      "lines": 139,
       "exports": [
         {
           "name": "RackStrip",
           "kind": "function",
           "path": "packages/ui/src/components/RackStrip/RackStrip.tsx",
-          "line": 51
+          "line": 53
         }
       ],
       "imports": [
@@ -9011,6 +9334,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/domains.ts",
         "packages/ui/src/maturity.ts",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/wallPlan.ts"
       ],
       "importedBy": [
@@ -9102,6 +9426,7 @@ export const architecture = {
         "packages/ui/src/monetaryStance.ts",
         "packages/ui/src/panels/AccountsOverlay.tsx",
         "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
         "packages/ui/src/panels/cabinet/StanceBriefing.tsx"
       ],
       "path": "packages/ui/src/components/series.ts",
@@ -9113,13 +9438,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Components",
       "summary": "Terminal-era instrument: dense phosphor line on near-black, tight bands, live-feeling readout. Superseded first prints stay on screen with a strikethrough beside the reprint — the machine remembers what it told you. No shadows, no gradients, no rounding: hairlines only.",
-      "lines": 372,
+      "lines": 376,
       "exports": [
         {
           "name": "TerminalTicker",
           "kind": "function",
           "path": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
-          "line": 126
+          "line": 127
         }
       ],
       "imports": [
@@ -9129,7 +9454,8 @@ export const architecture = {
         "packages/ui/src/components/labels.ts",
         "packages/ui/src/components/series.ts",
         "packages/ui/src/components/ui/index.ts",
-        "packages/ui/src/domains.ts"
+        "packages/ui/src/domains.ts",
+        "packages/ui/src/perPerson.ts"
       ],
       "importedBy": [
         "packages/ui/src/components/Gauge/Gauge.tsx",
@@ -9358,6 +9684,7 @@ export const architecture = {
         "packages/ui/src/panels/StudyOverlay.tsx",
         "packages/ui/src/panels/StudyReport.tsx",
         "packages/ui/src/panels/Walkthrough.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
         "packages/ui/src/panels/WireOverlay.tsx",
         "packages/ui/src/panels/YieldCurveBook.tsx",
         "packages/ui/src/panels/cabinet/BlocRow.tsx",
@@ -10195,7 +10522,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 317,
+      "lines": 332,
       "exports": [
         {
           "name": "Domain",
@@ -10219,31 +10546,31 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 236
+          "line": 252
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 277
+          "line": 293
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 291
+          "line": 307
         },
         {
           "name": "faceScale",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 303
+          "line": 318
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 309
+          "line": 324
         }
       ],
       "imports": [
@@ -10253,7 +10580,8 @@ export const architecture = {
       "importedBy": [
         "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
         "packages/ui/src/components/RackStrip/RackStrip.tsx",
-        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx"
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/perPerson.ts"
       ],
       "path": "packages/ui/src/domains.ts",
       "line": 1
@@ -10398,6 +10726,28 @@ export const architecture = {
         "packages/ui/src/panels/FinanceOverlay.tsx"
       ],
       "path": "packages/ui/src/finance.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/financeCopy.ts",
+      "label": "financeCopy",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "The reading note under each view. One paragraph, and each states a fact the figure above it cannot state on its own — never a restatement of the axes. The words for individual levers and instruments live in the handbook (`levers.ts`, `NAMES`); nothing here duplicates them.",
+      "lines": 17,
+      "exports": [
+        {
+          "name": "FINANCE_NOTE",
+          "kind": "constant",
+          "path": "packages/ui/src/financeCopy.ts",
+          "line": 7
+        }
+      ],
+      "imports": [],
+      "importedBy": [
+        "packages/ui/src/panels/FinanceOverlay.tsx"
+      ],
+      "path": "packages/ui/src/financeCopy.ts",
       "line": 1
     },
     {
@@ -10590,78 +10940,79 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The industrial census, arranged for reading — which industries make the economy, and who they employ.",
-      "lines": 256,
+      "lines": 261,
       "exports": [
         {
           "name": "SECTOR_FACE",
           "kind": "constant",
           "path": "packages/ui/src/industry.ts",
-          "line": 43
+          "line": 44
         },
         {
           "name": "IndustryLens",
           "kind": "type",
           "path": "packages/ui/src/industry.ts",
-          "line": 75
+          "line": 76
         },
         {
           "name": "CensusAvailability",
           "kind": "type",
           "path": "packages/ui/src/industry.ts",
-          "line": 90
+          "line": 91
         },
         {
           "name": "censusAvailability",
           "kind": "function",
           "path": "packages/ui/src/industry.ts",
-          "line": 92
+          "line": 93
         },
         {
           "name": "IndustryReading",
           "kind": "interface",
           "path": "packages/ui/src/industry.ts",
-          "line": 99
+          "line": 100
         },
         {
           "name": "IndustryRelease",
           "kind": "interface",
           "path": "packages/ui/src/industry.ts",
-          "line": 127
+          "line": 128
         },
         {
           "name": "readIndustry",
           "kind": "function",
           "path": "packages/ui/src/industry.ts",
-          "line": 158
+          "line": 159
         },
         {
           "name": "toShares",
           "kind": "function",
           "path": "packages/ui/src/industry.ts",
-          "line": 204
+          "line": 206
         },
         {
           "name": "industryRows",
           "kind": "function",
           "path": "packages/ui/src/industry.ts",
-          "line": 218
+          "line": 220
         },
         {
           "name": "GROWTH_MIN_QTRS",
           "kind": "constant",
           "path": "packages/ui/src/industry.ts",
-          "line": 238
+          "line": 242
         },
         {
           "name": "industryGrowth",
           "kind": "function",
           "path": "packages/ui/src/industry.ts",
-          "line": 240
+          "line": 244
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
@@ -11261,7 +11612,7 @@ export const architecture = {
         "packages/ui/src/stateFootprint.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/AccountsOverlay.tsx",
       "line": 1
@@ -11695,7 +12046,7 @@ export const architecture = {
         "packages/ui/src/plot.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/CensusOverlay.tsx",
       "line": 1
@@ -11843,7 +12194,7 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/ElectionOverlay.tsx",
       "line": 1
@@ -11869,7 +12220,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/ElectionResultOverlay.tsx",
       "line": 1
@@ -11880,13 +12231,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The financial system: fogged market positions and private-bank buffers, exact policy minutes, and the central bank's own asset book. Crisis marks come from the wire even when the surveys behind a plot are unfunded.",
-      "lines": 392,
+      "lines": 383,
       "exports": [
         {
           "name": "FinanceOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/FinanceOverlay.tsx",
-          "line": 131
+          "line": 133
         }
       ],
       "imports": [
@@ -11896,11 +12247,13 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/finance.ts",
+        "packages/ui/src/financeCopy.ts",
         "packages/ui/src/panels/PublicAssetBook.tsx",
-        "packages/ui/src/panels/YieldCurveBook.tsx"
+        "packages/ui/src/panels/YieldCurveBook.tsx",
+        "packages/ui/src/perPerson.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/FinanceOverlay.tsx",
       "line": 1
@@ -11911,7 +12264,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "Thin ministry letterhead: who you are, when it is, what you can spend — and the treasury's exact books inline (the only numbers you get raw).",
-      "lines": 168,
+      "lines": 172,
       "exports": [
         {
           "name": "HeaderBar",
@@ -11955,7 +12308,7 @@ export const architecture = {
         "packages/ui/src/households.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/HouseholdOverlay.tsx",
       "line": 1
@@ -11966,23 +12319,24 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The industrial census, opened out — what the economy is MADE of.",
-      "lines": 266,
+      "lines": 273,
       "exports": [
         {
           "name": "IndustryOverlay",
           "kind": "function",
           "path": "packages/ui/src/panels/IndustryOverlay.tsx",
-          "line": 71
+          "line": 72
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/components/ui/index.ts",
-        "packages/ui/src/industry.ts"
+        "packages/ui/src/industry.ts",
+        "packages/ui/src/perPerson.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/IndustryOverlay.tsx",
       "line": 1
@@ -11993,13 +12347,13 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The instrument wall — the home view, in three bands.",
-      "lines": 114,
+      "lines": 127,
       "exports": [
         {
           "name": "Instruments",
           "kind": "function",
           "path": "packages/ui/src/panels/Instruments.tsx",
-          "line": 28
+          "line": 30
         }
       ],
       "imports": [
@@ -12010,6 +12364,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/maturity.ts",
         "packages/ui/src/panels/LedgerPanel.tsx",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/store/gameStore.ts",
         "packages/ui/src/wallPlan.ts"
       ],
@@ -12041,7 +12396,7 @@ export const architecture = {
         "packages/ui/src/labour.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/LabourOverlay.tsx",
       "line": 1
@@ -12052,7 +12407,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "The treasury ledger, opened out. Everything here is EXACT — these are the government's books on itself, the one corner of the world that arrives on time, unrevised and true — so it is drawn flat in ink, with no error band and no revision stamp anywhere.",
-      "lines": 212,
+      "lines": 219,
       "exports": [
         {
           "name": "LedgerOverlay",
@@ -12068,10 +12423,11 @@ export const architecture = {
         "packages/ui/src/budgetChart.ts",
         "packages/ui/src/components/ui/index.ts",
         "packages/ui/src/panels/PublicAssetBook.tsx",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/LedgerOverlay.tsx",
       "line": 1
@@ -12176,7 +12532,7 @@ export const architecture = {
         "packages/ui/src/shares.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/PolicyOverlay.tsx",
       "line": 1
@@ -12219,19 +12575,20 @@ export const architecture = {
       "packageId": "ui",
       "category": "Panels",
       "summary": "",
-      "lines": 63,
+      "lines": 64,
       "exports": [
         {
           "name": "PublicAssetBook",
           "kind": "function",
           "path": "packages/ui/src/panels/PublicAssetBook.tsx",
-          "line": 8
+          "line": 9
         }
       ],
       "imports": [
         "packages/engine/src/index.ts",
         "packages/observation/src/index.ts",
         "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/perPerson.ts",
         "packages/ui/src/publicAssets.ts",
         "packages/ui/src/yieldCurve.ts"
       ],
@@ -12318,7 +12675,7 @@ export const architecture = {
         "packages/ui/src/components/ui/index.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/StudyOverlay.tsx",
       "line": 1
@@ -12383,6 +12740,35 @@ export const architecture = {
       "line": 1
     },
     {
+      "id": "packages/ui/src/panels/WealthOverlay.tsx",
+      "label": "WealthOverlay",
+      "packageId": "ui",
+      "category": "Panels",
+      "summary": "",
+      "lines": 62,
+      "exports": [
+        {
+          "name": "WealthOverlay",
+          "kind": "function",
+          "path": "packages/ui/src/panels/WealthOverlay.tsx",
+          "line": 17
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/series.ts",
+        "packages/ui/src/components/ui/index.ts",
+        "packages/ui/src/perPerson.ts",
+        "packages/ui/src/wealth.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/shell/paperwork.ts"
+      ],
+      "path": "packages/ui/src/panels/WealthOverlay.tsx",
+      "line": 1
+    },
+    {
       "id": "packages/ui/src/panels/WireOverlay.tsx",
       "label": "WireOverlay",
       "packageId": "ui",
@@ -12404,7 +12790,7 @@ export const architecture = {
         "packages/ui/src/newspaper.ts"
       ],
       "importedBy": [
-        "packages/ui/src/App.tsx"
+        "packages/ui/src/shell/paperwork.ts"
       ],
       "path": "packages/ui/src/panels/WireOverlay.tsx",
       "line": 1
@@ -12434,6 +12820,97 @@ export const architecture = {
         "packages/ui/src/panels/FinanceOverlay.tsx"
       ],
       "path": "packages/ui/src/panels/YieldCurveBook.tsx",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/perPerson.ts",
+      "label": "perPerson",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Per-person views of quantities already on the desk. A print belongs to its measured quarter, not its release date or today's census. Convert every vintage before shaping, smoothing or calculating growth, so revisions and bands describe the same quantity as the headline. This m…",
+      "lines": 122,
+      "exports": [
+        {
+          "name": "PopulationBasis",
+          "kind": "type",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 11
+        },
+        {
+          "name": "InstrumentPresentation",
+          "kind": "interface",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 12
+        },
+        {
+          "name": "PER_PERSON_INSTRUMENTS",
+          "kind": "constant",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 19
+        },
+        {
+          "name": "censusByQuarter",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 34
+        },
+        {
+          "name": "perPerson",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 39
+        },
+        {
+          "name": "instrumentView",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 45
+        },
+        {
+          "name": "populationRows",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 68
+        },
+        {
+          "name": "treasuryBasis",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 90
+        },
+        {
+          "name": "loadPopulationBasis",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 116
+        },
+        {
+          "name": "savePopulationBasis",
+          "kind": "function",
+          "path": "packages/ui/src/perPerson.ts",
+          "line": 119
+        }
+      ],
+      "imports": [
+        "packages/observation/src/index.ts",
+        "packages/ui/src/components/labels.ts",
+        "packages/ui/src/domains.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+        "packages/ui/src/components/Gauge/Gauge.tsx",
+        "packages/ui/src/components/RackStrip/RackStrip.tsx",
+        "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+        "packages/ui/src/industry.ts",
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/IndustryOverlay.tsx",
+        "packages/ui/src/panels/Instruments.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/PublicAssetBook.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
+        "packages/ui/src/wealth.ts"
+      ],
+      "path": "packages/ui/src/perPerson.ts",
       "line": 1
     },
     {
@@ -12818,6 +13295,42 @@ export const architecture = {
         "packages/ui/src/plot.ts"
       ],
       "path": "packages/ui/src/shares.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/shell/paperwork.ts",
+      "label": "paperwork",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Offices with the shared (published state, close) contract.",
+      "lines": 21,
+      "exports": [
+        {
+          "name": "PAPERWORK",
+          "kind": "constant",
+          "path": "packages/ui/src/shell/paperwork.ts",
+          "line": 16
+        }
+      ],
+      "imports": [
+        "packages/ui/src/panels/AccountsOverlay.tsx",
+        "packages/ui/src/panels/CensusOverlay.tsx",
+        "packages/ui/src/panels/ElectionOverlay.tsx",
+        "packages/ui/src/panels/ElectionResultOverlay.tsx",
+        "packages/ui/src/panels/FinanceOverlay.tsx",
+        "packages/ui/src/panels/HouseholdOverlay.tsx",
+        "packages/ui/src/panels/IndustryOverlay.tsx",
+        "packages/ui/src/panels/LabourOverlay.tsx",
+        "packages/ui/src/panels/LedgerOverlay.tsx",
+        "packages/ui/src/panels/PolicyOverlay.tsx",
+        "packages/ui/src/panels/StudyOverlay.tsx",
+        "packages/ui/src/panels/WealthOverlay.tsx",
+        "packages/ui/src/panels/WireOverlay.tsx"
+      ],
+      "importedBy": [
+        "packages/ui/src/App.tsx"
+      ],
+      "path": "packages/ui/src/shell/paperwork.ts",
       "line": 1
     },
     {
@@ -13424,6 +13937,50 @@ export const architecture = {
         "packages/ui/src/store/gameStore.ts"
       ],
       "path": "packages/ui/src/wallPlan.ts",
+      "line": 1
+    },
+    {
+      "id": "packages/ui/src/wealth.ts",
+      "label": "wealth",
+      "packageId": "ui",
+      "category": "UI core",
+      "summary": "Read the asset-and-liability survey as released. Never add liquid claims to productive capital to manufacture a national total: the office has consolidated the counterparties before publication.",
+      "lines": 47,
+      "exports": [
+        {
+          "name": "WEALTH_FACE",
+          "kind": "constant",
+          "path": "packages/ui/src/wealth.ts",
+          "line": 9
+        },
+        {
+          "name": "wealthAvailability",
+          "kind": "function",
+          "path": "packages/ui/src/wealth.ts",
+          "line": 18
+        },
+        {
+          "name": "wealthHistory",
+          "kind": "function",
+          "path": "packages/ui/src/wealth.ts",
+          "line": 23
+        },
+        {
+          "name": "householdWealthBand",
+          "kind": "function",
+          "path": "packages/ui/src/wealth.ts",
+          "line": 44
+        }
+      ],
+      "imports": [
+        "packages/engine/src/index.ts",
+        "packages/observation/src/index.ts",
+        "packages/ui/src/perPerson.ts"
+      ],
+      "importedBy": [
+        "packages/ui/src/panels/WealthOverlay.tsx"
+      ],
+      "path": "packages/ui/src/wealth.ts",
       "line": 1
     },
     {
@@ -14095,7 +14652,17 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/pipeline/wealth.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
       "target": "packages/engine/src/pipeline/yields.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/readModels.ts",
       "typeOnly": false
     },
     {
@@ -14149,6 +14716,16 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/wealth.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/index.ts",
+      "target": "packages/engine/src/state/wealth.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/engine/src/interregnum.ts",
       "target": "packages/engine/src/actions/apply.ts",
       "typeOnly": false
@@ -14187,6 +14764,31 @@ export const architecture = {
       "source": "packages/engine/src/math.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/bondOwnership.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/bondOwnership.ts",
+      "target": "packages/engine/src/pipeline/bonds.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/bondOwnership.ts",
+      "target": "packages/engine/src/state/bonds.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/bondOwnership.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/bondOwnership.ts",
+      "target": "packages/engine/src/state/wealth.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/engine/src/pipeline/bonds.ts",
@@ -14341,6 +14943,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/pipeline/fiscal.ts",
       "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/fiscal.ts",
+      "target": "packages/engine/src/pipeline/bondOwnership.ts",
       "typeOnly": false
     },
     {
@@ -14840,6 +15447,16 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/pipeline/wealth.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
+      "target": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/statistics.ts",
       "target": "packages/engine/src/rng/rng.ts",
       "typeOnly": false
     },
@@ -14924,6 +15541,61 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/engine/src/pipeline/wealth.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealth.ts",
+      "target": "packages/engine/src/pipeline/bondOwnership.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealth.ts",
+      "target": "packages/engine/src/pipeline/bonds.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealth.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealth.ts",
+      "target": "packages/engine/src/state/wealth.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/pipeline/measurement.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/pipeline/wealth.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/rng/rng.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/pipeline/wealthSurvey.ts",
+      "target": "packages/engine/src/state/wealth.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/engine/src/pipeline/world.ts",
       "target": "packages/engine/src/constants.ts",
       "typeOnly": false
@@ -14989,6 +15661,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/engine/src/readModels.ts",
+      "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/engine/src/rng/rng.ts",
       "target": "packages/engine/src/constants.ts",
       "typeOnly": false
@@ -15001,6 +15678,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/state/bonds.ts",
       "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/state/bonds.ts",
+      "target": "packages/engine/src/state/wealth.ts",
       "typeOnly": true
     },
     {
@@ -15024,6 +15706,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/engine/src/state/industry.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/engine/src/state/init.ts",
       "target": "packages/engine/src/constants.ts",
       "typeOnly": false
@@ -15036,6 +15723,11 @@ export const architecture = {
     {
       "source": "packages/engine/src/state/init.ts",
       "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/pipeline/bondOwnership.ts",
       "typeOnly": false
     },
     {
@@ -15075,6 +15767,31 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/state/openingFlows.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/init.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/openingFlows.ts",
+      "target": "packages/engine/src/constants.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/openingFlows.ts",
+      "target": "packages/engine/src/math.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/openingFlows.ts",
+      "target": "packages/engine/src/pipeline/bondOwnership.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/openingFlows.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
     },
@@ -15100,7 +15817,22 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/state/schema.ts",
+      "target": "packages/engine/src/state/industry.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/state/schema.ts",
+      "target": "packages/engine/src/state/industry.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/schema.ts",
       "target": "packages/engine/src/state/labour.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/engine/src/state/schema.ts",
+      "target": "packages/engine/src/state/wealth.ts",
       "typeOnly": true
     },
     {
@@ -15120,7 +15852,17 @@ export const architecture = {
     },
     {
       "source": "packages/engine/src/state/validate.ts",
+      "target": "packages/engine/src/pipeline/bondOwnership.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/validate.ts",
       "target": "packages/engine/src/pipeline/derive.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/validate.ts",
+      "target": "packages/engine/src/pipeline/wealth.ts",
       "typeOnly": false
     },
     {
@@ -15132,6 +15874,11 @@ export const architecture = {
       "source": "packages/engine/src/state/validate.ts",
       "target": "packages/engine/src/state/schema.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/engine/src/state/wealth.ts",
+      "target": "packages/engine/src/state/schema.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/fixtures/countries/standard.ts",
@@ -15182,6 +15929,11 @@ export const architecture = {
       "source": "packages/observation/src/index.ts",
       "target": "packages/observation/src/published.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/observation/src/index.ts",
+      "target": "packages/observation/src/published.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/observation/src/longRun.ts",
@@ -15319,6 +16071,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/runner/src/perPerson.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/runner/src/policies.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -15435,17 +16192,7 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/AccountsOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/AtlasOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/CensusOverlay.tsx",
       "typeOnly": false
     },
     {
@@ -15470,47 +16217,12 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/ElectionOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/ElectionResultOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/FinanceOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/HeaderBar.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/HouseholdOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/IndustryOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/Instruments.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/LabourOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/LedgerOverlay.tsx",
       "typeOnly": false
     },
     {
@@ -15525,11 +16237,6 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/PolicyOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/ReportCardOverlay.tsx",
       "typeOnly": false
     },
@@ -15540,17 +16247,12 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/StudyOverlay.tsx",
-      "typeOnly": false
-    },
-    {
-      "source": "packages/ui/src/App.tsx",
       "target": "packages/ui/src/panels/Walkthrough.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/App.tsx",
-      "target": "packages/ui/src/panels/WireOverlay.tsx",
+      "target": "packages/ui/src/shell/paperwork.ts",
       "typeOnly": false
     },
     {
@@ -15664,6 +16366,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/components/AnalogGauge/AnalogGauge.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/components/BlankPlate/BlankPlate.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": true
@@ -15724,6 +16431,11 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/components/Gauge/Gauge.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/components/labels.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": true
@@ -15766,6 +16478,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
       "target": "packages/ui/src/maturity.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/components/RackStrip/RackStrip.tsx",
+      "target": "packages/ui/src/perPerson.ts",
       "typeOnly": true
     },
     {
@@ -15817,6 +16534,11 @@ export const architecture = {
       "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
       "target": "packages/ui/src/domains.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/components/TerminalTicker/TerminalTicker.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/ui/src/components/ui/Button/Button.tsx",
@@ -16146,6 +16868,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/industry.ts",
       "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/industry.ts",
+      "target": "packages/ui/src/perPerson.ts",
       "typeOnly": false
     },
     {
@@ -16860,12 +17587,22 @@ export const architecture = {
     },
     {
       "source": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "target": "packages/ui/src/financeCopy.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/FinanceOverlay.tsx",
       "target": "packages/ui/src/panels/PublicAssetBook.tsx",
       "typeOnly": false
     },
     {
       "source": "packages/ui/src/panels/FinanceOverlay.tsx",
       "target": "packages/ui/src/panels/YieldCurveBook.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "target": "packages/ui/src/perPerson.ts",
       "typeOnly": false
     },
     {
@@ -16934,6 +17671,11 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/panels/IndustryOverlay.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/Instruments.tsx",
       "target": "packages/observation/src/index.ts",
       "typeOnly": false
@@ -16966,6 +17708,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/Instruments.tsx",
       "target": "packages/ui/src/panels/LedgerPanel.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/Instruments.tsx",
+      "target": "packages/ui/src/perPerson.ts",
       "typeOnly": false
     },
     {
@@ -17026,6 +17773,11 @@ export const architecture = {
     {
       "source": "packages/ui/src/panels/LedgerOverlay.tsx",
       "target": "packages/ui/src/panels/PublicAssetBook.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "target": "packages/ui/src/perPerson.ts",
       "typeOnly": false
     },
     {
@@ -17127,6 +17879,11 @@ export const architecture = {
       "source": "packages/ui/src/panels/PublicAssetBook.tsx",
       "target": "packages/ui/src/components/ui/index.ts",
       "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/PublicAssetBook.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": true
     },
     {
       "source": "packages/ui/src/panels/PublicAssetBook.tsx",
@@ -17234,6 +17991,36 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/ui/src/components/series.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/ui/src/components/ui/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/panels/WealthOverlay.tsx",
+      "target": "packages/ui/src/wealth.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/panels/WireOverlay.tsx",
       "target": "packages/engine/src/index.ts",
       "typeOnly": false
@@ -17274,6 +18061,21 @@ export const architecture = {
       "typeOnly": false
     },
     {
+      "source": "packages/ui/src/perPerson.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": true
+    },
+    {
+      "source": "packages/ui/src/perPerson.ts",
+      "target": "packages/ui/src/components/labels.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/perPerson.ts",
+      "target": "packages/ui/src/domains.ts",
+      "typeOnly": true
+    },
+    {
       "source": "packages/ui/src/plot.ts",
       "target": "packages/ui/src/shares.ts",
       "typeOnly": false
@@ -17296,6 +18098,71 @@ export const architecture = {
     {
       "source": "packages/ui/src/saveFile.ts",
       "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/AccountsOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/CensusOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/ElectionOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/ElectionResultOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/FinanceOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/HouseholdOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/IndustryOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/LabourOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/LedgerOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/PolicyOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/StudyOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/WealthOverlay.tsx",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/shell/paperwork.ts",
+      "target": "packages/ui/src/panels/WireOverlay.tsx",
       "typeOnly": false
     },
     {
@@ -17434,6 +18301,21 @@ export const architecture = {
       "typeOnly": true
     },
     {
+      "source": "packages/ui/src/wealth.ts",
+      "target": "packages/engine/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/wealth.ts",
+      "target": "packages/observation/src/index.ts",
+      "typeOnly": false
+    },
+    {
+      "source": "packages/ui/src/wealth.ts",
+      "target": "packages/ui/src/perPerson.ts",
+      "typeOnly": false
+    },
+    {
       "source": "packages/ui/src/worker/protocol.ts",
       "target": "packages/engine/src/index.ts",
       "typeOnly": true
@@ -17515,20 +18397,20 @@ export const architecture = {
     {
       "source": "runner",
       "target": "engine",
-      "count": 10,
+      "count": 11,
       "typeOnlyCount": 1
     },
     {
       "source": "ui",
       "target": "engine",
-      "count": 51,
+      "count": 53,
       "typeOnlyCount": 8
     },
     {
       "source": "ui",
       "target": "observation",
-      "count": 68,
-      "typeOnlyCount": 53
+      "count": 71,
+      "typeOnlyCount": 54
     }
   ],
   "pipeline": [
@@ -17928,6 +18810,7 @@ export const architecture = {
       "moduleId": "packages/engine/src/pipeline/fiscal.ts",
       "summary": "Step 3 — fiscal. Tax collection is capacity-gated: the state taxes what it can see, not true GDP. Spending executes with leakage. Deficits the bond market won't absorb are monetized — the printing press is not a button the player pushes, it's what happens when the arithmetic f…",
       "stateAreas": [
+        "external",
         "finance",
         "flows",
         "gov",
@@ -17941,6 +18824,7 @@ export const architecture = {
       "dependencies": [
         "packages/engine/src/constants.ts",
         "packages/engine/src/math.ts",
+        "packages/engine/src/pipeline/bondOwnership.ts",
         "packages/engine/src/pipeline/bonds.ts",
         "packages/engine/src/pipeline/derive.ts",
         "packages/engine/src/state/schema.ts"
@@ -17950,11 +18834,11 @@ export const architecture = {
           "name": "fiscal",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/fiscal.ts",
-          "line": 39
+          "line": 40
         }
       ],
       "path": "packages/engine/src/pipeline/fiscal.ts",
-      "line": 39
+      "line": 40
     },
     {
       "order": 11,
@@ -18033,6 +18917,7 @@ export const architecture = {
       "stateAreas": [
         "external",
         "flows",
+        "gov",
         "institutions",
         "ledger",
         "market",
@@ -18084,11 +18969,11 @@ export const architecture = {
           "name": "cohorts",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/cohorts.ts",
-          "line": 51
+          "line": 50
         }
       ],
       "path": "packages/engine/src/pipeline/cohorts.ts",
-      "line": 51
+      "line": 50
     },
     {
       "order": 15,
@@ -18156,6 +19041,8 @@ export const architecture = {
         "packages/engine/src/pipeline/labourMarket.ts",
         "packages/engine/src/pipeline/labourSurvey.ts",
         "packages/engine/src/pipeline/measurement.ts",
+        "packages/engine/src/pipeline/wealth.ts",
+        "packages/engine/src/pipeline/wealthSurvey.ts",
         "packages/engine/src/rng/rng.ts",
         "packages/engine/src/state/accounts.ts",
         "packages/engine/src/state/schema.ts"
@@ -18165,17 +19052,17 @@ export const architecture = {
           "name": "humanDevelopmentPrintsDue",
           "kind": "function",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 319
+          "line": 322
         },
         {
           "name": "statistics",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 446
+          "line": 449
         }
       ],
       "path": "packages/engine/src/pipeline/statistics.ts",
-      "line": 446
+      "line": 449
     },
     {
       "order": 17,
@@ -18233,7 +19120,7 @@ export const architecture = {
       "locations": [
         {
           "path": "packages/engine/src/pipeline/statistics.ts",
-          "line": 447
+          "line": 450
         },
         {
           "path": "packages/engine/src/pipeline/politics.ts",

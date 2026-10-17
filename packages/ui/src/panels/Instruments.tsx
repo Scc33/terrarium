@@ -15,6 +15,8 @@
  * paint outside its slot the way the old uniform grid did.
  */
 
+import { useState } from 'react'
+import { instrumentView, loadPopulationBasis, savePopulationBasis, type PopulationBasis } from '../perPerson'
 import { INDICATOR_IDS, type PublishedState } from '@terrarium/observation'
 import { countInstrumentStatuses, deriveInstrumentAccess, instrumentStatusSummary } from '../maturity'
 import { CorridorPlot } from '../components/CorridorPlot/CorridorPlot'
@@ -34,6 +36,12 @@ export function Instruments({
   onLedger: () => void
   onOpenCapacity: () => void
 }) {
+  const [basis, setBasis] = useState<PopulationBasis>(loadPopulationBasis)
+  const changeBasis = () => {
+    const next = basis === 'total' ? 'perPerson' : 'total'
+    setBasis(next)
+    savePopulationBasis(next)
+  }
   const access = deriveInstrumentAccess(pub)
   const pinned = useGame((s) => s.pinned)
   const togglePin = useGame((s) => s.togglePin)
@@ -46,7 +54,12 @@ export function Instruments({
       <SectionBar
         title="WATCH BOARD"
         detail="The four instruments the cabinet is flying by"
-        aside={boardStatus}
+        aside={<span className="flex items-center gap-2"><span>{boardStatus}</span><button type="button"
+          aria-label="Show eligible totals per person" aria-pressed={basis === 'perPerson'} onClick={changeBasis}
+          title="Convert capital and non-farm jobs using each measured quarter's census. Rates, indices and existing per-person accounts keep their own units."
+          className="border border-dossier-brass/50 px-1 font-mono text-[8px] text-dossier-paper hover:text-dossier-brass focus-visible:outline-2 focus-visible:outline-dossier-brass">
+          {basis === 'perPerson' ? 'PER PERSON' : 'TOTALS'}
+        </button></span>}
         hint="Your four large gauges. Choose which ones appear here from the rack below."
         inverted
       />
@@ -66,7 +79,7 @@ export function Instruments({
             key={id}
             indicator={id}
             access={access[id]}
-            series={pub.indicators[id]}
+            {...instrumentView(pub, id, basis)}
             now={pub.tick}
             appointedAt={pub.appointedAt}
             onOpenCapacity={access[id].availability === 'unfunded' ? onOpenCapacity : undefined}
@@ -91,7 +104,7 @@ export function Instruments({
             key={id}
             indicator={id}
             access={access[id]}
-            series={pub.indicators[id]}
+            {...instrumentView(pub, id, basis)}
             now={pub.tick}
             pinned={plan.board.includes(id)}
             slot={plan.board.includes(id) ? plan.board.indexOf(id) + 1 : undefined}

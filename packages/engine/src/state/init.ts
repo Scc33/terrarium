@@ -5,6 +5,8 @@
  * tick 1 doesn't open with a shock.
  */
 
+import { initialHolders } from '../pipeline/bondOwnership'
+import { openingBankDistribution, openingFlows } from './openingFlows'
 import { initialFinance } from './finance'
 import { initialBonds } from '../pipeline/bonds'
 import type { Seed } from '../rng/rng'
@@ -48,7 +50,6 @@ import {
   INIT_TARIFF_CAPACITY_FLOOR,
   INIT_TARIFF_CAPACITY_GAIN,
   INIT_TRANSFERS_SHARE,
-  INIT_UNEMPLOYMENT,
   TATONNEMENT,
   TRANSFER_SHARE,
   UTILIZATION_AT_INIT,
@@ -79,7 +80,6 @@ import {
   type Qtr,
   type SectorId,
   type StatuteBook,
-  type TickFlows,
   type TrueState,
   type Turbulence,
 } from './schema'
@@ -353,6 +353,7 @@ export function init(
     SECTOR_IDS.map((sid) => ({ id: sid, employment: employment[sid] })),
     openingLaborForce,
   )
+  const bankDistribution = openingBankDistribution(creditOutstanding0)
   const cohorts: Cohort[] = COHORT_IDS.map((cid) => {
     const employedIn: Cohort['employedIn'] = {}
     let wageIncome = 0
@@ -371,7 +372,7 @@ export function init(
     // for business owners and 8-28% too LOW for retirees, who hold paper and
     // earn no wages. Opposite signs, same bug as the wage leg below.
     const profitIncome =
-      (profitTotal * (1 - CORPORATE_TAX_1946 * taxEff) - remittances0) * PROFIT_SHARE[cid] +
+      (profitTotal * (1 - CORPORATE_TAX_1946 * taxEff) - remittances0 - bankDistribution.bankRetainedMargin + bankDistribution.bankDividends) * PROFIT_SHARE[cid] +
       interest0 * BOND_HOLDING[cid]
     const size = params.cohortSizes[cid]
     // The habitual standard of living, and every leg of it must be seeded on
@@ -409,7 +410,8 @@ export function init(
       // on a basis the step does not reproduce — the trap the block above
       // exists to warn about.
       rebateIncome: 0,
-      savings, // retirees hold war bonds
+      savings,
+      overdraft: 0,
 
       consumptionWeights: { ...CONSUMPTION_WEIGHTS[cid] },
       // Sealed from the SAME expression the Engel shift reads each quarter —
@@ -432,56 +434,7 @@ export function init(
     }
   })
 
-  const flows: TickFlows = {
-    finalDemand: sectorRecord(() => 0),
-    grossDemand: { ...gross },
-    satisfied: sectorRecord(() => 1),
-    exportsReal: sectorRecord(() => 0),
-    importsReal: sectorRecord(() => 0),
-    profits: sectorRecord((id) => (1 - LABOR_SHARE) * valueAdded[id]),
-    householdDemand: sectorRecord(() => 0),
-    cohortSpend: Object.fromEntries(COHORT_IDS.map((c) => [c, 0])) as Record<
-      (typeof COHORT_IDS)[number],
-      number
-    >,
-    foodBill: { farmGate: 0, margin: 0 },
-    investmentReal: 0,
-    foreignDirectInvestmentReal: 0,
-    foreignDirectInvestmentValue: 0,
-    foreignProfitRemittances: 0,
-    publicInvestmentReal: 0,
-    privateDomesticDemandReal: 0,
-    governmentDomesticDemandReal: 0,
-    tariffBase: 0,
-    currentAccount: 0,
-    fxIntervention: 0,
-    assetPurchases: 0,
-    assetRunoff: 0,
-    debtMaturing: 0,
-    bondsRefinanced: 0,
-    debtBuybackAdjustment: 0,
-    newBondBorrowing: 0,
-    subsidyDelivered: sectorRecord(() => 0),
-    revenueBySource: { income: 0, corporate: 0, tariff: 0, fuel: 0, fund: 0 },
-    outlaysByProgramme: {
-      transfers: 0,
-      procurement: 0,
-      investment: 0,
-      research: 0,
-      subsidies: 0,
-      capacity: 0,
-      interest: interest0,
-    },
-    debtInterest: interest0,
-    debtPrincipal: 0,
-    fiscalRebate: 0,
-    fundFlow: 0,
-    nominalGdp: gdp0,
-    realGdp: gdp0,
-    inflationQ: 0,
-    unemployment: INIT_UNEMPLOYMENT,
-    printedThisQtr: 0,
-  }
+  const flows = openingFlows(gross, valueAdded, interest0, gdp0, creditOutstanding0)
 
 
   // the constitution is opened last, against the economy this function just
@@ -575,7 +528,8 @@ export function init(
       pipeline: [],
       budget: { revenue: 0, outlays: 0, balance: 0 },
       debt: debt0,
-      bonds: initialBonds(debt0),
+      bonds: initialBonds(debt0).map(lot => ({ ...lot, holders: initialHolders(lot.principal) })),
+      publicCapital: 0,
       // Nobody inherits a fund. A country opens with whatever debt its recipe
       // gave it, and the fund is what its own surpluses build — the two are
       // never both positive (ADR-0037).
@@ -609,6 +563,7 @@ export function init(
       inheritedRiskPremium:
         Math.max(0, debtToGdp0 - DEBT_RISK_PREMIUM_AT) * RISK_PREMIUM_SLOPE,
       foreignOwnedCapital: foreignOwnedCapital0,
+      bondSettlement: 0,
       world: {
         partners: PARTNER_IDS.map((id) => ({ id, activity: 1 })),
         exportDemand: sectorRecord(() => 1),
@@ -647,7 +602,7 @@ export function init(
       debtToGdp: debtToGdp0,
       confidence: { consumer: CONF_NEUTRAL, business: CONF_NEUTRAL },
     },
-    stats: { record: [], series: {}, industry: [], labour: [], households: [], news: [] },
+    stats: { record: [], series: {}, industry: [], labour: [], households: [], wealth: [], news: [] },
     score: {
       discountedWelfare: 0,
       discountWeight: 0,

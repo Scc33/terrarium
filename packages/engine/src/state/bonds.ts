@@ -1,5 +1,6 @@
 /** Public market prices and the government's own contracts. None are surveys. */
 import type { Money, Qtr } from './schema'
+import type { BondHoldings } from './wealth'
 
 export const YIELD_IDS = ['three_month', 'one_year', 'five_year', 'ten_year'] as const
 export type YieldId = (typeof YIELD_IDS)[number]
@@ -17,11 +18,16 @@ export interface YieldCurve {
   yields: Record<YieldId, number>
 }
 
-export interface BondLot {
+export interface BondContract {
   principal: Money
   coupon: number
   issuedAt: Qtr
   maturesAt: Qtr
+}
+
+export interface BondLot extends BondContract {
+  /** Principal claims by holder. Old diagnostic fixtures default to the inherited domestic split. */
+  holders?: BondHoldings
 }
 
 export interface AssetLot {

@@ -3,6 +3,8 @@
  * message — a violated invariant is a bug in a step, never a shrug.
  */
 
+import { wealthAccounts } from '../pipeline/wealth'
+import { holdersOf } from '../pipeline/bondOwnership'
 import {
   FX_INTERVENTION_MAX,
   IMMIGRATION_LIMIT_MAX,
@@ -29,6 +31,17 @@ function finite(x: number, what: string): void {
 }
 
 export function validate(state: TrueState): void {
+  const close = (actual: number, expected: number, label: string) => {
+    finite(actual, label)
+    if (Math.abs(actual - expected) > 1e-9 * Math.max(1, Math.abs(expected))) throw new InvariantError(label)
+  }
+  finite(state.gov.publicCapital, 'public capital')
+  finite(state.external.bondSettlement, 'foreign bond settlement')
+  const stock = state.sectors.reduce((sum, sector) => sum + sector.capital, 0)
+  if (state.gov.publicCapital < 0 || state.gov.publicCapital + state.external.foreignOwnedCapital > stock + 1e-9 * Math.max(1, stock)) {
+    throw new InvariantError('productive ownership exceeds the stock')
+  }
+
   for (const sid of SECTOR_IDS) {
     finite(state.market.prices[sid], `price[${sid}]`)
     finite(state.market.wages[sid], `wage[${sid}]`)
@@ -42,6 +55,9 @@ export function validate(state: TrueState): void {
     finite(s.credit, `credit[${s.id}]`)
     if (s.credit < 0) throw new InvariantError(`credit[${s.id}] < 0`)
   }
+  finite(state.finance.creditOutstanding, 'finance.creditOutstanding')
+  if (state.finance.creditOutstanding < 0) throw new InvariantError('negative aggregate credit')
+  close(state.sectors.reduce((sum, sector) => sum + sector.credit, 0), state.finance.creditOutstanding, 'sector loans do not match bank assets')
   finite(state.finance.assetPrice, 'finance.assetPrice')
   finite(state.finance.creditToGdp, 'finance.creditToGdp')
   finite(state.finance.bankCapital, 'finance.bankCapital')
@@ -56,6 +72,8 @@ export function validate(state: TrueState): void {
     throw new InvariantError('demography.humanCapital out of [0,1]')
   }
   for (const c of state.cohorts) {
+    finite(c.overdraft, `overdraft[${c.id}]`)
+    if (c.overdraft < 0 || (c.overdraft > 0 && c.savings > 0)) throw new InvariantError('invalid household cash account')
     finite(c.savings, `savings[${c.id}]`)
     finite(c.approval, `approval[${c.id}]`)
     if (c.savings < 0) throw new InvariantError(`savings[${c.id}] < 0`)
@@ -96,6 +114,12 @@ export function validate(state: TrueState): void {
     throw new InvariantError('debtMaturity out of range')
   }
   for (const lot of state.gov.bonds) {
+    const holders = holdersOf(lot)
+    for (const held of Object.values(holders)) {
+      finite(held, 'bond holding')
+      if (held < 0) throw new InvariantError('negative bond holding')
+    }
+    close(Object.values(holders).reduce((sum, held) => sum + held, 0), lot.principal, 'bond holders do not own the issued principal')
     finite(lot.principal, 'bond principal')
     finite(lot.coupon, 'bond coupon')
     if (lot.principal <= 0 || lot.coupon < 0 || !Number.isInteger(lot.maturesAt) ||
@@ -123,6 +147,8 @@ export function validate(state: TrueState): void {
   if (Math.abs(duration - state.finance.durationHoldings) > 1e-9 * Math.max(1, duration)) {
     throw new InvariantError('duration holdings do not match asset contracts')
   }
+  const accounts = wealthAccounts(state)
+  close(accounts.nationalNetWorth, accounts.productiveCapital + accounts.netForeignAssets, 'national balance sheet does not consolidate')
   const curve = state.finance.yieldCurve
   for (const id of YIELD_IDS) {
     finite(curve.yields[id], `yield[${id}]`)

@@ -167,7 +167,7 @@ describe('the claim the level is on the wall to make', () => {
 })
 
 describe('why the median is measured but not published', () => {
-  it('median over mean moves AGAINST the Gini under redistribution', () => {
+  it('median over mean can move against the Gini during redistribution', () => {
     // This is the reason `income_median` is not an indicator, pinned so that
     // nobody re-adds the obvious companion gauge without meeting the evidence.
     // Transfers land on retirees and the rural and urban poor, the bottom of
@@ -176,8 +176,12 @@ describe('why the median is measured but not published', () => {
     // inequality genuinely improves. A dial that worsens when the player
     // redistributes is worse than no dial.
     const seed = 'redistribution'
-    const base = century(seed, 60)
-    const generous = century(seed, 60, (s, t) =>
+    // The first three years remain a counterexample with paid investment,
+    // actual bond ownership and the food margin. At 60 quarters these rules
+    // also change the Gini's sign; that old endpoint no longer isolates this
+    // claim about the grouped median (ADR-0049).
+    const base = century(seed, 12)
+    const generous = century(seed, 12, (s, t) =>
       t === 0
         ? applyAction(s, {
             kind: 'setDial',
@@ -190,6 +194,7 @@ describe('why the median is measured but not published', () => {
       const { mean, median } = realIncomePerHead(s)
       return median / mean
     }
+    expect(realIncomePerHead(generous).mean).toBeGreaterThan(realIncomePerHead(base).mean)
     expect(giniIndex(generous)).toBeLessThan(giniIndex(base)) // inequality fell
     expect(ratio(generous)).toBeLessThan(ratio(base)) // …and the ratio says otherwise
   })

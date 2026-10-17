@@ -44,6 +44,7 @@ type HistoricalPublishedKey =
   | 'industry'
   | 'labour'
   | 'households'
+  | 'wealth'
   | 'books'
   | 'census'
   | 'policy'
@@ -75,6 +76,7 @@ export interface HistoricalDataExport {
     labourReleases: PublishedState['labour']
     /** Income by population fifth from the household-budget survey. */
     householdReleases: PublishedState['households']
+    wealthReleases: PublishedState['wealth']
     /** Exact government books, one row per quarter. */
     treasury: PublishedState['books']
     /** Exact head counts, age pyramids and the rural/urban split, one row per
@@ -105,6 +107,7 @@ export function createHistoricalDataExport(
     industry,
     labour,
     households,
+    wealth,
     books,
     census,
     policy,
@@ -145,6 +148,7 @@ export function createHistoricalDataExport(
       industryReleases: industry,
       labourReleases: labour,
       householdReleases: households,
+      wealthReleases: wealth,
       treasury: books,
       census,
       policy,

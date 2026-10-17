@@ -23,6 +23,7 @@ import {
   SECTOR_IDS,
   settleForeignExchange,
   step,
+  sovereignRiskPremium,
   TICK_ORDER,
   type TrueState,
 } from '@terrarium/engine'
@@ -104,7 +105,8 @@ describe('the exchange rate is a price with a fundamental', () => {
   })
 
   it('strengthens the currency when the posted rate rises above the settlement', () => {
-    const base = played()
+    const playedBase = played()
+    const base = { ...playedBase, external: { ...playedBase.external, inheritedRiskPremium: sovereignRiskPremium(playedBase) } }
     expect(carryYieldSpread(base)).toBeCloseTo(base.gov.dials.policyRate - POLICY_RATE_1946, 6)
     const tight = {
       ...base,
@@ -113,13 +115,16 @@ describe('the exchange rate is a price with a fundamental', () => {
     expect(settleForeignExchange(tight).target).toBeLessThan(settleForeignExchange(base).target)
   })
 
-  it('does not move the currency for a rate the country never changed', () => {
+  it('does not move the currency when both the rate and sovereign risk are unchanged', () => {
     // The centre is the 1946 settlement, not zero and not the natural rate.
     // Against either of those a do-nothing government would be running a
     // permanent appreciation it never ordered, and a passive century would
     // deflate for a hundred years getting out from under it.
     const base = played()
-    expect(carryYieldSpread(base)).toBeCloseTo(0, 12)
+    // Paid subscriptions can change the passive debt path. Isolate the carry
+    // channel at unchanged risk rather than assuming that path never borrows.
+    const unchanged = { ...base, external: { ...base.external, inheritedRiskPremium: sovereignRiskPremium(base) } }
+    expect(carryYieldSpread(unchanged)).toBeCloseTo(0, 12)
   })
 })
 

@@ -294,6 +294,7 @@ export const production: PipelineStep = {
         cohortSpend,
         foodBill,
         investmentReal,
+        privateInvestmentFunding: domesticPrivateInvReal * ((market.prices.manuf + market.prices.services) / 2),
         foreignProfitRemittances,
         publicInvestmentReal: govInvReal,
         privateDomesticDemandReal,

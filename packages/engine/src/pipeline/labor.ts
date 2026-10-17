@@ -148,6 +148,10 @@ export const labor: PipelineStep = {
     return {
       ...state,
       sectors,
+      gov: { ...state.gov, publicCapital: Math.min(
+        Math.max(0, capitalTotal - foreignOwnedCapital),
+        state.gov.publicCapital * (1 - DEPRECIATION_Q) + flows.publicInvestmentReal,
+      ) },
       external: { ...state.external, foreignOwnedCapital },
       market: { ...market, wages: newWages },
       flows: { ...flows, unemployment },

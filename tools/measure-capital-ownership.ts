@@ -21,8 +21,8 @@ import {
   type TrueState,
 } from '../packages/engine/src/index'
 import {
-  BOND_HOLDING,
   DEPRECIATION_Q,
+  PROFIT_SHARE,
   INVESTMENT_ALLOCATION_NEUTRAL_UTILIZATION,
   INVESTMENT_ALLOCATION_PRESSURE_FLOOR,
   SAVINGS_DRAWDOWN,
@@ -184,15 +184,22 @@ export function auditQuarter(before: TrueState, after: TrueState, audit: ReturnT
     const old = before.cohorts.find((c) => c.id === cohort.id)!
     const income = cohort.wageIncome * (1 - incomeTax) +
       cohort.profitIncome + cohort.transferIncome + cohort.rebateIncome
-    const unfloored = old.savings + income - after.flows.cohortSpend[cohort.id] +
-      after.flows.debtPrincipal * BOND_HOLDING[cohort.id]
+    const unfloored = old.savings - old.overdraft + income - after.flows.cohortSpend[cohort.id] +
+      after.flows.bondRedemptionsByHolder[cohort.id] - after.flows.bondPurchasesByHolder[cohort.id] +
+      (after.flows.businessCreditFlow - after.flows.privateInvestmentFunding) * PROFIT_SHARE[cohort.id]
     const expected = Math.max(0, unfloored)
+    close(cohort.overdraft, Math.max(0, -unfloored), `household overdraft accumulation [${cohort.id}]`)
     close(cohort.savings, expected, `household savings accumulation [${cohort.id}]`)
     audit.maxSavingsStockResidual = Math.max(audit.maxSavingsStockResidual, Math.abs(cohort.savings - expected))
     savingsFloorCorrection += Math.max(0, -unfloored)
     netIncome += income
   }
-  const expectedSavings = savings(before) + netIncome - budget(after) + after.flows.debtPrincipal
+  // The historical floor columns now count explicit overdraft balances;
+  // the shortfall remains a liability rather than disappearing from the book.
+  const oldOverdrafts = sum(before.cohorts.map(c => c.overdraft))
+  const bondCash = sum(after.cohorts.map(c => after.flows.bondRedemptionsByHolder[c.id] - after.flows.bondPurchasesByHolder[c.id]))
+  const expectedSavings = savings(before) - oldOverdrafts + netIncome - budget(after) + bondCash +
+    after.flows.businessCreditFlow - after.flows.privateInvestmentFunding
   const savingsResidual = savings(after) - expectedSavings
   close(savings(after), expectedSavings + savingsFloorCorrection, 'aggregate household savings accumulation')
   if (savingsFloorCorrection > 0) {
