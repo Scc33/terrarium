@@ -30,12 +30,15 @@ contract, so it's called out below.
   cohorts are weighted by the size of that bill. Relative noise 4%; it waits for the office
   rather than reading off the board same-quarter. Face 30–250: it runs above the farm board,
   because the margin is priced in services.
+- **State +**: `flows.foodBill` (`farmGate`, `margin`), the food bill as `production` routed it.
+  The price weights read it rather than re-deriving the routing at `statistics`, because
+  `cohorts` has moved the income it reads by then.
 - **Worksheet +**: `StatRecord.priceFoodHousehold`. Portable exports gain the series; format
   version stays 1 (additive).
 - `price_food` is unchanged: still the farm price, still a fast-lag board, and still what the
   harvest-glut rule reads.
 - No behaviour, RNG draw or pipeline change. The goldens move `meta.schemaVersion` and add the
-  worksheet field, nothing else.
+  two fields, nothing else.
 
 ## Schema 50 — duration, fixed coupons and QE runoff (#31)
 

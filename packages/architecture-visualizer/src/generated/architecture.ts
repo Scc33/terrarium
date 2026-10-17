@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "640eed7",
+  "revision": "0926fd3",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 55,
-      "lines": 17202
+      "lines": 17206
     },
     {
       "id": "fixtures",
@@ -4466,7 +4466,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Shared derived quantities used by several steps. Pure reads, no mutation.",
-      "lines": 1105,
+      "lines": 1098,
       "exports": [
         {
           "name": "periodLifeExpectancy",
@@ -4748,13 +4748,13 @@ export const architecture = {
           "name": "householdFoodPrice",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 1074
+          "line": 1073
         },
         {
           "name": "cohortCpi",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 1099
+          "line": 1092
         }
       ],
       "imports": [
@@ -5475,13 +5475,13 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Step 1 — production. Builds this tick's demand from last tick's incomes and prices, solves the Leontief system for required gross output, and produces up to capacity. Excess demand is recorded for the price step; nothing here is a hand-authored effect arrow — a fuel tax reache…",
-      "lines": 301,
+      "lines": 308,
       "exports": [
         {
           "name": "production",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/production.ts",
-          "line": 56
+          "line": 57
         }
       ],
       "imports": [
@@ -6035,7 +6035,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "Country generation. A country is a parameter vector (ADR-0011); init() calibrates a TrueState from it so the economy starts near equilibrium — tfp is solved from target outputs rather than guessed, so tick 1 doesn't open with a shock.",
-      "lines": 677,
+      "lines": 678,
       "exports": [
         {
           "name": "synthPyramid",
@@ -6131,7 +6131,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "State",
       "summary": "State schema (§3 of the architecture doc). One root object, plain data — structured-clone-able, hashable, diffable. Reserved fields ship at zero.",
-      "lines": 1426,
+      "lines": 1429,
       "exports": [
         {
           "name": "Qtr",
@@ -6665,73 +6665,73 @@ export const architecture = {
           "name": "TrueState",
           "kind": "interface",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1326
+          "line": 1329
         },
         {
           "name": "SCHEMA_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1380
+          "line": 1383
         },
         {
           "name": "ENGINE_VERSION",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1381
+          "line": 1384
         },
         {
           "name": "ELECTION_PERIOD",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1382
+          "line": 1385
         },
         {
           "name": "CAMPAIGN_WINDOW",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1385
+          "line": 1388
         },
         {
           "name": "END_OF_HISTORY_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1387
+          "line": 1390
         },
         {
           "name": "FIRST_YEAR",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1392
+          "line": 1395
         },
         {
           "name": "yearOfTick",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1394
+          "line": 1397
         },
         {
           "name": "tickForYear",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1398
+          "line": 1401
         },
         {
           "name": "LAST_APPOINTMENT_TICK",
           "kind": "constant",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1403
+          "line": 1406
         },
         {
           "name": "appointmentTick",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1418
+          "line": 1421
         },
         {
           "name": "sectorIndex",
           "kind": "function",
           "path": "packages/engine/src/state/schema.ts",
-          "line": 1423
+          "line": 1426
         }
       ],
       "imports": [
@@ -17830,11 +17830,11 @@ export const architecture = {
           "name": "production",
           "kind": "constant",
           "path": "packages/engine/src/pipeline/production.ts",
-          "line": 56
+          "line": 57
         }
       ],
       "path": "packages/engine/src/pipeline/production.ts",
-      "line": 56
+      "line": 57
     },
     {
       "order": 8,

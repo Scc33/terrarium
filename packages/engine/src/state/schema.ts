@@ -1254,6 +1254,9 @@ export interface TickFlows {
   householdDemand: Record<SectorId, number>
   /** nominal spend per cohort this tick (for savings identity) */
   cohortSpend: Record<CohortId, number>
+  /** the food bill as this tick's demand routed it (ADR-0048): what reached
+   * the farm gate and what went to the margin, nominal */
+  foodBill: { farmGate: Money; margin: Money }
   /** private + public investment demand, real */
   investmentReal: number
   /** the foreign-financed part of investment, in real capital-goods units */
