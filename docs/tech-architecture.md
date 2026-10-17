@@ -1,6 +1,6 @@
 # Terrarium — Technical Architecture
 
-*How the code is actually arranged, as of schema 50. The short player-facing design is in
+*How the code is actually arranged, as of schema 53. The short player-facing design is in
 `game-description.md`; accepted structural rationale lives in `docs/adr/`.*
 
 Country recipe and calibration workflow: `docs/country-scenarios.md`.
@@ -238,6 +238,7 @@ interface PublishedState {
                                    // sector, fogged. A VECTOR release, not an indicator (§3.2)
   labour: LabourMarketPoint[]      // joblessness + underemployment by occupational class,
                                    // fogged independently from the underuse headline (§3.2)
+  wealth: WealthPrint[]             // asset-and-liability survey, including signed net positions
   households: HouseholdIncomePoint[] // household quintiles + poverty gap, fogged (§3.2)
   dials: DialState                 // you always know your own settings
   spendingRules: SpendingRules     // fixed, CPI-indexed, or official-GDP-share
@@ -673,3 +674,11 @@ a floor to prevent regression; raise it, never lower it to green a build. The UI
 - `tuning-lessons.md` — calibration knowledge: the failure each constant's value prevents.
 - `AGENTS.md` (root, `packages/engine/`, `packages/ui/`) — the always-true rules for agents, and
   `.agents/skills/` — the procedures. Each `CLAUDE.md` is an import of the `AGENTS.md` beside it.
+
+### Wealth accounts (schema 53)
+
+`pipeline/wealth.ts` consolidates household businesses, banks, government and foreign
+claims; `pipeline/bondOwnership.ts` settles securities and `wealthSurvey.ts` publishes
+the asset survey. `state/wealth.ts` owns their data shapes. The census denominator
+for every per-person view comes from the same measured quarter. ADR-0051 records
+ownership, valuation, monetary accommodation and the national consolidation identity.

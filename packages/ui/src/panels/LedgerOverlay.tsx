@@ -15,7 +15,9 @@ import { useState } from 'react'
 import { FUND_YIELD } from '@terrarium/engine'
 import { REVENUE_SOURCE_IDS, TAX_RATE_IDS, type RevenueSourceId, type TaxRateId } from '@terrarium/observation'
 import type { PublishedState } from '@terrarium/observation'
-import { DonutChart, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
+import { DonutChart, EmptyState, LineChart, Metric, Modal, OverlayLayout, SegmentedControl, StackedAreaChart, TooltipLabel } from '../components/ui'
+import { treasuryBasis } from '../perPerson'
+import { usePopulationBasis } from '../shell/usePopulationBasis'
 import { PublicAssetBook } from './PublicAssetBook'
 import { SHARE_INKS, type Share, type StackRow } from '../shares'
 import { OUTLAY_CHART_FACE, OUTLAY_CHART_IDS, outlayChartValues } from '../budgetChart'
@@ -33,7 +35,6 @@ const REVENUE_FACE: Record<RevenueSourceId, { label: string; ink: string; note: 
   fund: { label: 'Fund return', ink: SHARE_INKS[4], note: `The return on the sovereign fund — the one revenue line no tax office collects, and the one no rate is posted for. It pays ${(FUND_YIELD * 100).toFixed(0)}% a year on the stock, which is less than the state pays on its own paper: that is why a surplus redeems debt before it banks anything.` },
 }
 
-const money = (v: number) => v.toFixed(1)
 const yearOf = (q: number) => 1946 + Math.floor(q / 4)
 
 /** Both faces are total records over their id list, so this stays exhaustive
@@ -48,11 +49,20 @@ function sharesOf<K extends string>(
 }
 
 type Side = 'revenue' | 'outlays' | 'financing'
-type Mode = 'money' | 'share'
+type Mode = 'money' | 'share' | 'perPerson'
 
-export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: () => void }) {
+export function LedgerOverlay({ pub: source, onClose }: { pub: PublishedState; onClose: () => void }) {
   const [side, setSide] = useState<Side>('revenue')
-  const [mode, setMode] = useState<Mode>('money')
+  const [basis, setBasis] = usePopulationBasis()
+  const [showShares, setShares] = useState(false)
+  const mode: Mode = showShares ? 'share' : basis === 'perPerson' ? 'perPerson' : 'money'
+  const setMode = (next: Mode) => {
+    setShares(next === 'share')
+    if (next !== 'share') setBasis(next === 'perPerson' ? 'perPerson' : 'total')
+  }
+  const money = (value: number) => value.toFixed(basis === 'perPerson' ? 2 : 1)
+  const pub = treasuryBasis(source, basis)
+  if (!pub) return <Modal title="THE TREASURY LEDGER" onClose={onClose}><EmptyState title="CENSUS UNAVAILABLE">The books need a population count for the same quarter before a per-person reading can be made.</EmptyState></Modal>
   const books = pub.books
   const t = pub.treasury
 
@@ -97,11 +107,11 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             tone={t.balance < 0 ? 'danger' : undefined}
             title="Revenue minus spending. A deficit draws the sovereign fund before borrowing or printing. A surplus repays debt, then splits between the fund and household rebates."
           />
-          <Metric label="DEBT" value={t.debt.toFixed(0)} title="Money the government still owes." />
+          <Metric label="DEBT" value={basis === 'perPerson' ? money(t.debt) : t.debt.toFixed(0)} title="Money the government still owes." />
           {t.fund > 0 && (
             <Metric
               label="SOVEREIGN FUND"
-              value={t.fund.toFixed(0)}
+              value={basis === 'perPerson' ? money(t.fund) : t.fund.toFixed(0)}
               title="Surpluses banked once the national debt was gone. It earns a return that shows up as its own revenue line, and it is spent before the government borrows again."
             />
           )}
@@ -120,7 +130,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
           <Metric
             label="PRINTED"
             value={t.printed.toFixed(1)}
-            tone={t.printed > 0.5 ? 'danger' : undefined}
+            tone={source.treasury.printed > 0.5 ? 'danger' : undefined}
             title="New money created because lenders would not cover the deficit. Too much can raise inflation."
           />
           </div>
@@ -137,6 +147,8 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
               { value: 'financing', label: 'SAVINGS & FINANCING', title: 'Where surpluses go and how deficits are covered.' },
             ]}
           />
+          {side === 'financing' && <SegmentedControl label="Financing population basis" value={basis === 'perPerson' ? 'perPerson' : 'money'} onChange={setMode}
+            options={[{ value: 'money', label: 'TOTALS' }, { value: 'perPerson', label: 'PER PERSON' }]} />}
           {side !== 'financing' && <SegmentedControl
             label="Chart mode"
             value={mode}
@@ -144,6 +156,7 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
             options={[
               { value: 'money', label: 'LEVELS', title: 'Money per quarter, stacked — how much there was.' },
               { value: 'share', label: 'SHARES', title: 'Each quarter normalised to its own total — how the mix shifted, even as the totals grew tenfold.' },
+              { value: 'perPerson', label: 'PER PERSON', title: 'Each quarter divided by that quarter’s census. Flows remain per quarter; debt and funds remain stocks.' },
             ]}
           />}
           </>
@@ -151,12 +164,12 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
         note={(
           <>
             {side === 'financing' ? 'Balance = cash debt repaid − new borrowing − financing printed + fund saved − fund drawn + rebate. Matched refinancing replaces a maturing claim without changing this cash balance. Early buybacks retire face principal at market prices. Fund returns are already revenue; central-bank reserves have a separate job.' : 'Your own books are the only numbers in this building that arrive on time, unrevised, and true. Everything else on the wall is an estimate. These are sums voted and paid, not sums that arrived: delivery still depends on the civil service.'}
-            {t.printed > 0.5 && <span className="mt-1 block font-mono text-[9px] tracking-[0.08em] text-dossier-warn">THE MINT HAS PRINTED {t.printed.toFixed(1)} TO DATE. THE BOND MARKET NOTICED.</span>}
+            {source.treasury.printed > 0.5 && <span className="mt-1 block font-mono text-[9px] tracking-[0.08em] text-dossier-warn">THE MINT HAS PRINTED {t.printed.toFixed(1)} TO DATE. THE BOND MARKET NOTICED.</span>}
           </>
         )}
-        footer="EXACT TREASURY BOOKS · QUARTERLY · NEVER REVISED"
+        footer={`EXACT TREASURY BOOKS · ${basis === 'perPerson' ? 'MONEY / PERSON · FLOWS / QTR' : 'QUARTERLY'} · NEVER REVISED`}
       >
-        {side === 'financing' ? <PublicAssetBook pub={pub} book="treasury" /> : <div className="flex flex-col gap-3">
+        {side === 'financing' ? <PublicAssetBook pub={pub} book="treasury" basis={basis} /> : <div className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[352px_minmax(0,1fr)]">
           <div className="flex flex-col gap-1">
             <div className="flex items-baseline justify-between font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
@@ -182,9 +195,9 @@ export function LedgerOverlay({ pub, onClose }: { pub: PublishedState; onClose: 
 
           <div className="flex min-w-0 flex-col gap-1">
             <div className="font-mono text-[9px] tracking-[0.2em] text-dossier-ink/60">
-              {mode === 'share' ? 'THE MIX, QUARTER BY QUARTER' : 'THE LEVELS, QUARTER BY QUARTER'}
+              {mode === 'share' ? 'THE MIX, QUARTER BY QUARTER' : mode === 'perPerson' ? 'PER PERSON · MONEY / QTR' : 'THE LEVELS, QUARTER BY QUARTER'}
             </div>
-            <StackedAreaChart rows={rows} keys={shares} mode={mode} markTick={pub.tick} format={money} height={158} />
+            <StackedAreaChart rows={rows} keys={shares} mode={mode === 'share' ? 'share' : 'money'} markTick={pub.tick} format={money} height={158} />
           </div>
         </div>
 

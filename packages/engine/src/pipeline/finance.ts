@@ -119,7 +119,7 @@ export const finance: PipelineStep = {
     // banks can only lend so far on their capital
     const maxRatio = fin.bankCapital / (gov.dials.capitalRequirement * annualGdp)
     targetRatio = clamp(Math.min(targetRatio, maxRatio), CREDIT_RATIO_MIN, CREDIT_RATIO_MAX)
-    const creditToGdp = clamp(
+    let creditToGdp = clamp(
       prevRatio + CREDIT_ADJUST * (targetRatio - prevRatio),
       CREDIT_RATIO_MIN,
       CREDIT_RATIO_MAX,
@@ -138,12 +138,14 @@ export const finance: PipelineStep = {
     )
 
     // --- bank capital: retained interest margin, minus a trickle of bad loans ---
-    const creditOutstanding = creditToGdp * annualGdp
+    let creditOutstanding = creditToGdp * annualGdp
     const interestRetained =
       (BANK_MARGIN * creditOutstanding * (gov.dials.policyRate + BANK_SPREAD)) / 4
-    let bankCapital = fin.bankCapital + interestRetained - LOAN_LOSS_BASE_Q * creditOutstanding
+    let loanWriteoffs = LOAN_LOSS_BASE_Q * creditOutstanding
+    let bankCapital = fin.bankCapital + interestRetained - loanWriteoffs
     const targetCapital = BANK_TARGET_RATIO * creditOutstanding
-    if (bankCapital > targetCapital) bankCapital -= BANK_DIVIDEND_Q * (bankCapital - targetCapital)
+    const bankDividends = bankCapital > targetCapital ? BANK_DIVIDEND_Q * (bankCapital - targetCapital) : 0
+    bankCapital -= bankDividends
 
     // --- the Minsky clock ---
     let { crisisQtrsLeft, crisisSeverity } = fin
@@ -178,8 +180,10 @@ export const finance: PipelineStep = {
         // the balance-sheet hit: bad loans write down bank capital, which then
         // caps lending — credit runs off gradually over the crisis (the
         // in-crisis target cut), not vanishing overnight
+        const crisisLoss = Math.min(creditOutstanding - loanWriteoffs, creditOutstanding * CRISIS_WRITEOFF * crisisSeverity)
+        loanWriteoffs += crisisLoss
         bankCapital = Math.max(
-          bankCapital - creditOutstanding * CRISIS_WRITEOFF * crisisSeverity,
+          bankCapital - crisisLoss,
           BANK_CAPITAL_FLOOR,
         )
         // a panic: confidence craters, and the ordinary channels do the rest
@@ -206,7 +210,10 @@ export const finance: PipelineStep = {
       }
     }
 
-    const creditGrowth = dRatio * 4 // annualized change in credit/GDP (points/yr as a ratio)
+    creditOutstanding = Math.max(0, creditOutstanding - loanWriteoffs)
+    creditToGdp = creditOutstanding / annualGdp
+    const businessCreditFlow = creditOutstanding - fin.creditOutstanding + loanWriteoffs
+    const creditGrowth = (creditToGdp - prevRatio) * 4 // annualized change in credit/GDP (points/yr as a ratio)
 
     return {
       ...state,
@@ -225,7 +232,8 @@ export const finance: PipelineStep = {
         crisisSeverity,
       },
       ledger: confidence === ledger.confidence ? ledger : { ...ledger, confidence },
-      flows: { ...flows, assetPurchases, assetRunoff },
+      flows: { ...flows, assetPurchases, assetRunoff, businessCreditFlow, loanWriteoffs,
+        bankRetainedMargin: interestRetained, bankDividends },
       stats: news.length > 0 ? { ...state.stats, news: [...state.stats.news, ...news] } : state.stats,
     }
   },

@@ -297,10 +297,12 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
   // in proc-0 … proc-59 with the widest margin (1.2% on its tightest seed and
   // reading). If this stops being true, find the next one.
   const agrarian = createCountryParams('procedural', 'proc-10')
-  // a draft whose city wages the floor reaches. Veltravia was until the food
-  // margin (#289), then Oranga until #290 took its transport sector's export
-  // demand off its capacity; no curated country binds there now.
-  const urban = createCountryParams('procedural', 'proc-2')
+  // Isolate a low-wage city industry by concentrating more workers in the
+  // same inherited manufacturing output. The old proc-2 fixture no longer
+  // binds in cities once household investment is paid from cash (ADR-0051).
+  const urbanBase = createCountryParams('veltravia', 'minwage-urban')
+  const urban = { ...urbanBase, structure: { ...urbanBase.structure!,
+    employmentMix: { ...urbanBase.structure!.employmentMix, manuf: 2 * urbanBase.structure!.employmentMix.manuf } } }
 
   let farmRuns: Array<{ seed: string; off: TrueState; on: TrueState }> | undefined
   const onTheFarm = () =>
@@ -345,6 +347,8 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
     for (const seed of SEEDS) {
       const off = govern(urban, seed, 120, null)
       const on = govern(urban, seed, 120, LIVING_WAGE)
+      const counterfactual = { ...off, gov: { ...off.gov, statutes: { ...off.gov.statutes, minimum_wage: on.gov.statutes.minimum_wage } } }
+      expect(off.market.wages.manuf, `${seed}: the city floor never bound`).toBeLessThan(minimumWageFloor(counterfactual))
       if (on.flows.unemployment > off.flows.unemployment) costlier++
     }
     expect(costlier).toBeGreaterThanOrEqual(5)

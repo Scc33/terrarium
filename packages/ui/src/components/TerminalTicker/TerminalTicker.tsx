@@ -39,6 +39,7 @@
  */
 
 import { useState } from 'react'
+import type { InstrumentPresentation } from '../../perPerson'
 import { FIRST_YEAR } from '@terrarium/engine'
 import {
   LONG_RUN_FORM,
@@ -126,15 +127,18 @@ type TermPoint = { tick: number; value: number; quarters: number }
 export function TerminalTicker({
   indicator,
   series,
+  presentation,
   now,
   appointedAt,
 }: {
   indicator: IndicatorId
   series: IndicatorSeries
+  presentation?: InstrumentPresentation
   now: number
   /** the first quarter of the player's term — the TERM view's origin (ADR-0021) */
   appointedAt: number
 }) {
+  const names = presentation?.names ?? NAMES[indicator]
   const [chartView, setChartView] = useState<ChartView>('recent')
   const allPoints = shapeSeries(series, Number.MAX_SAFE_INTEGER, now)
   if (allPoints.length < 2) return null
@@ -186,7 +190,7 @@ export function TerminalTicker({
     ...plotted.filter((point) => point.visiblyRevised).map((point) => point.firstPrint),
   ]
   const banded = plotted.filter((p) => p.errorBand > 0).map((p) => ({ ...p, band: p.errorBand }))
-  const chartSummary = `${NAMES[indicator].plate}. ${viewTitle}. Drag across the chart to compare two releases. The readout below remains the latest raw published figure.`
+  const chartSummary = `${names.plate}. ${viewTitle}. Drag across the chart to compare two releases. The readout below remains the latest raw published figure.`
 
   // Both bands: `minmax(0,1fr)` for the half that may truncate, `auto` for the
   // half that must not. Spelled out as literals — Tailwind scans source text,
@@ -201,8 +205,8 @@ export function TerminalTicker({
 
   const header = (
     <div className={`${BAND} border-b border-terminal-grid`}>
-      <TooltipLabel label={NAMES[indicator].plate} content={NAMES[indicator].note} className="truncate font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
-        {NAMES[indicator].terminal}
+      <TooltipLabel label={names.plate} content={names.note} className="truncate font-mono text-[10px] font-medium tracking-[0.15em] text-terminal-primary">
+        {names.terminal}
       </TooltipLabel>
       <Tooltip content={`${viewTitle}. Select to cycle ${VIEW_CYCLE}.`}>
         <button

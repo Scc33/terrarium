@@ -104,7 +104,7 @@ export function settleDebt(lots: readonly BondLot[], surplus: number, marketOpen
     cashRepaid += spent
     faceRetired += face
     buybackAdjustment += spent - face
-    if (face < lot.principal) remaining.push({ ...lot, principal: lot.principal - face })
+    if (face < lot.principal) remaining.push({ ...lot, principal: lot.principal - face, ...(lot.holders ? { holders: Object.fromEntries(Object.entries(lot.holders).map(([id, held]) => [id, held * (lot.principal - face) / lot.principal])) as typeof lot.holders } : {}) })
   }
   return { lots: remaining, maturing, refinanced, cashRepaid, faceRetired, buybackAdjustment,
     residualSurplus: cash, rolloverPrinting }

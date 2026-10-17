@@ -15,7 +15,6 @@ import {
   countryFromDocument,
   createCountryParams,
   createSave,
-  hashState,
   init,
   parseCountryDocument,
   replay,
@@ -131,8 +130,12 @@ describe('opening a curated country as a draft', () => {
       // the vector itself is part of hashed state and is meant to differ
       // (a draft is stamped `authored`), so only the economy is compared
       const economy = (params: typeof original) =>
-        hashState({ ...replay(createSave(params, 'fork', [], 80)), params: null })
-      expect(economy(drafted), `${id} changed by being opened as a draft`).toBe(economy(original))
+        ({ ...replay(createSave(params, 'fork', [], 80)), params: null })
+      // Written defaults and the rebuilt pyramid can differ by an ulp.
+      // Comparing independently rounded hashes can turn that into a failure
+      // at a decimal boundary on one host. Compare the actual distance at
+      // tighter precision than the hash, preserving every field and its type.
+      expect(economyDifference(economy(original), economy(drafted)), `${id} changed by being opened as a draft`).toBeNull()
     }
   })
 
@@ -151,6 +154,23 @@ describe('opening a curated country as a draft', () => {
     expect(draftPopulation(draftFrom('meridia'))).toBeCloseTo(27.5, 6)
   })
 })
+
+function economyDifference(a: unknown, b: unknown, path = 'state'): string | null {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-12 * Math.max(1, Math.abs(a), Math.abs(b))
+      ? null : `${path}: ${a} != ${b}`
+  }
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const left = a as Record<string, unknown>, right = b as Record<string, unknown>
+    if (Array.isArray(a) !== Array.isArray(b) || JSON.stringify(Object.keys(left)) !== JSON.stringify(Object.keys(right))) return `${path}: different shape`
+    for (const key of Object.keys(left)) {
+      const difference = economyDifference(left[key], right[key], `${path}.${key}`)
+      if (difference) return difference
+    }
+    return null
+  }
+  return a === b ? null : `${path}: ${String(a)} != ${String(b)}`
+}
 
 describe('what changed', () => {
   it('reports only the fields that actually moved', () => {

@@ -8,7 +8,7 @@
  * field on `TrueState` can never quietly ride across.
  */
 
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   INDICATOR_IDS,
   LABOUR_CLASS_IDS,
@@ -46,6 +46,10 @@ function collectKeys(value: unknown, out = new Set<string>()): Set<string> {
 }
 
 describe('the published-state contract (§1.1)', () => {
+  it('does not give components a holder registry through the bond contract type', () => {
+    expectTypeOf<keyof PublishedState['treasury']['bonds'][number]>().toEqualTypeOf<'principal' | 'coupon' | 'issuedAt' | 'maturesAt'>()
+  })
+
   it('is shape-complete: observe() always fills every required field', () => {
     const pub = observe(play('contract-shape', 24))
     const required: Array<keyof PublishedState> = [
@@ -56,6 +60,7 @@ describe('the published-state contract (§1.1)', () => {
       'industry',
       'labour',
       'households',
+      'wealth',
       'dials',
       'spendingRules',
       'statutes',
@@ -129,6 +134,10 @@ describe('the published-state contract (§1.1)', () => {
     const forbidden = [
       'assetPrice',
       'bankCapital',
+      'holders',
+      'bondSettlement',
+      'bankSettlement',
+      'centralBankNetWorth',
       'creditOutstanding',
       'creditToGdp',
       'creditGrowth',

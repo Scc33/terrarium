@@ -22,6 +22,7 @@
  *    what a minister actually reads them as.
  */
 
+import { censusByQuarter, populationRows, type PopulationBasis } from './perPerson'
 import { INDUSTRY_CENSUS_FUNDED_AT } from '@terrarium/engine'
 import {
   SECTOR_IDS,
@@ -155,8 +156,9 @@ function settled(points: PublishedState['industry']): PublishedState['industry']
   return [...best.values()].sort((a, b) => a.forQtr - b.forQtr)
 }
 
-export function readIndustry(pub: PublishedState): IndustryRelease | null {
-  const history = settled(pub.industry)
+export function readIndustry(pub: PublishedState, basis: PopulationBasis = 'total'): IndustryRelease | null {
+  const census = basis === 'perPerson' ? censusByQuarter(pub) : new Map<number, number>()
+  const history = settled(pub.industry).filter(p => basis === 'total' || census.has(p.forQtr))
   const latest = history[history.length - 1]
   const first = history[0]
   if (!latest) return null
@@ -182,7 +184,7 @@ export function readIndustry(pub: PublishedState): IndustryRelease | null {
       return {
         key: id,
         ...SECTOR_FACE[id],
-        value,
+        value: basis === 'perPerson' ? value * (lens === 'employment' ? 100 : 1) / census.get(latest.forQtr)! : value,
         share,
         sinceFirst: 100 * (share - before),
         subsidy: pub.dials.subsidies[id] ?? 0,
@@ -196,7 +198,7 @@ export function readIndustry(pub: PublishedState): IndustryRelease | null {
     errorBand: { ...latest.errorBand },
     valueAdded: read('valueAdded'),
     employment: read('employment'),
-    totals,
+    totals: basis === 'total' ? totals : { valueAdded: totals.valueAdded / census.get(latest.forQtr)!, employment: 100 * totals.employment / census.get(latest.forQtr)! },
   }
 }
 
@@ -215,14 +217,16 @@ export function toShares(readings: readonly IndustryReading[]): Share[] {
  * cannot arrive either — the engine floors the census at zero, because a wedge
  * below zero is dropped rather than drawn.
  */
-export function industryRows(pub: PublishedState, lens: IndustryLens): StackRow[] {
-  return settled(pub.industry).map((p) => ({
+export function industryRows(pub: PublishedState, lens: IndustryLens, basis: PopulationBasis = 'total'): StackRow[] {
+  const rows = settled(pub.industry).map((p) => ({
     tick: p.forQtr,
     values: SECTOR_IDS.reduce<Record<string, number>>((acc, id) => {
       acc[id] = Math.max(0, p[lens][id])
       return acc
     }, {}),
   }))
+  if (basis === 'total') return rows
+  return populationRows(rows, pub).map(row => ({ ...row, values: Object.fromEntries(Object.entries(row.values).map(([id, value]) => [id, value * (lens === 'employment' ? 100 : 1)])) }))
 }
 
 /**
@@ -240,8 +244,9 @@ export const GROWTH_MIN_QTRS = 8
 export function industryGrowth(
   pub: PublishedState,
   lens: IndustryLens,
+  basis: PopulationBasis = 'total',
 ): Record<SectorId, number> | null {
-  const history = settled(pub.industry)
+  const history = industryRows(pub, lens, basis).map(row => ({ forQtr: row.tick, [lens]: row.values })) as Array<{ forQtr: number } & Record<IndustryLens, Record<SectorId, number>>>
   const first = history[0]
   const last = history[history.length - 1]
   if (!first || !last || last.forQtr - first.forQtr < GROWTH_MIN_QTRS) return null

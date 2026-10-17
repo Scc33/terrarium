@@ -10,6 +10,8 @@
  * What is measured lives next door in `indicatorSpecs.ts`; this file is how.
  */
 
+import { wealthAccounts } from './wealth'
+import { wealthPrintsDue } from './wealthSurvey'
 import { publicAccountRecord } from '../state/accounts'
 import { rngFor, type Seed } from '../rng/rng'
 import {
@@ -84,6 +86,7 @@ function recordOf(state: TrueState): StatRecord {
   const shareOf = (part: number) => (finalExpenditure > 1e-9 ? part / finalExpenditure : 0)
   return {
     tick: state.meta.tick,
+    wealth: wealthAccounts(state),
     realGdp: flows.realGdp,
     nominalGdp: flows.nominalGdp,
     realGdpPerCapita: population > 1e-9 ? (4 * flows.realGdp) / population : 0,
@@ -497,8 +500,10 @@ export const statistics: PipelineStep = {
     // The desk reads the country AFTER the office has written this quarter's
     // worksheet, so a condition reports on the quarter it describes rather
     // than on the one before it.
+    const wealthDue = wealthPrintsDue(record, releaseDate, seed, state.meta.rules.fullInstrumentation)
+    const wealth = wealthDue.length > 0 ? [...state.stats.wealth, ...wealthDue] : state.stats.wealth
     const filed = conditionDispatches(state, record)
     const news = filed.length > 0 ? [...state.stats.news, ...filed] : state.stats.news
-    return { ...state, stats: { record, series, industry, labour, households, news } }
+    return { ...state, stats: { record, series, industry, labour, households, wealth, news } }
   },
 }

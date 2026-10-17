@@ -1,6 +1,7 @@
 /** The maturity switch — one instrument identity, rendered at its current era. */
 
 import type { IndicatorId, IndicatorSeries } from '@terrarium/observation'
+import type { InstrumentPresentation } from '../../perPerson'
 import type { InstrumentAccess } from '../../maturity'
 import { AnalogGauge } from '../AnalogGauge/AnalogGauge'
 import { BlankPlate } from '../BlankPlate/BlankPlate'
@@ -10,12 +11,13 @@ interface GaugeProps {
   indicator: IndicatorId
   access: InstrumentAccess
   series?: IndicatorSeries
+  presentation?: InstrumentPresentation
   now: number
   appointedAt: number
   onOpenCapacity?: () => void
 }
 
-export function Gauge({ indicator, access, series, now, appointedAt, onOpenCapacity }: GaugeProps) {
+export function Gauge({ indicator, access, series, presentation, now, appointedAt, onOpenCapacity }: GaugeProps) {
   if (access.availability !== 'reporting') {
     return (
       <BlankPlate
@@ -31,8 +33,8 @@ export function Gauge({ indicator, access, series, now, appointedAt, onOpenCapac
     case 'unmeasured':
       return null
     case 'dossier':
-      return <AnalogGauge indicator={indicator} series={series!} now={now} />
+      return <AnalogGauge indicator={indicator} series={series!} presentation={presentation} now={now} />
     case 'terminal':
-      return <TerminalTicker indicator={indicator} series={series!} now={now} appointedAt={appointedAt} />
+      return <TerminalTicker indicator={indicator} series={series!} presentation={presentation} now={now} appointedAt={appointedAt} />
   }
 }

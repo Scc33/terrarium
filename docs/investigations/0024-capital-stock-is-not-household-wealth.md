@@ -1,7 +1,8 @@
 # 0024 — Capital stock is not household wealth
 
-**Status:** Resolved as an answered spike; a complete ownership/wealth model remains
-future work under [#85](https://github.com/Scc33/terrarium/issues/85).
+**Status:** Resolved as an answered spike. Schema 53 adds modeled household, bank,
+public and foreign balance sheets under [ADR-0051](../adr/0051-wealth-is-a-consolidated-balance-sheet.md)
+and #85. The stamped measurements below describe the earlier model.
 
 **Raised by:** [#86](https://github.com/Scc33/terrarium/issues/86): is capital per person
 the same as assets owned per person, and does asset ownership match capital formation?

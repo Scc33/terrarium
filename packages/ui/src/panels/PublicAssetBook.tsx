@@ -1,3 +1,4 @@
+import type { PopulationBasis } from '../perPerson'
 import { FIRST_YEAR } from '@terrarium/engine'
 import type { PublishedState } from '@terrarium/observation'
 import { ChartFrame, EmptyState, Metric, TimeSeriesChart } from '../components/ui'
@@ -5,7 +6,7 @@ import { publicAssetLines } from '../publicAssets'
 import { readDebtSchedule } from '../yieldCurve'
 
 /** Shared asset-book painter for the central bank and the treasury. */
-export function PublicAssetBook({ pub, book }: { pub: PublishedState; book: 'bank' | 'treasury' }) {
+export function PublicAssetBook({ pub, book, basis = 'total' }: { pub: PublishedState; book: 'bank' | 'treasury'; basis?: PopulationBasis }) {
   const schedule = readDebtSchedule(pub)
   const flows = book === 'bank' ? [
     { label: 'ASSETS BOUGHT', value: pub.centralBank.purchases, note: 'Paid with new central-bank money, outside the treasury budget. Sized from the latest official GDP; purchases wait for its first release.' },
@@ -25,7 +26,7 @@ export function PublicAssetBook({ pub, book }: { pub: PublishedState; book: 'ban
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {publicAssetLines(pub, book).map((line) => (
           <div key={line.key} className="min-w-0">
-            <ChartFrame title={line.label} detail="DOMESTIC MONEY · EXACT BOOK" value={line.value.toFixed(1)} summary={line.note}>
+            <ChartFrame title={line.label} detail={`${basis === 'perPerson' ? 'MONEY / PERSON' : 'DOMESTIC MONEY'} · EXACT BOOK`} value={line.value.toFixed(1)} summary={line.note}>
               {line.points.length > 0 ? (
                 <TimeSeriesChart width={500} height={140}
                   traces={[{ key: line.key, points: line.points, color: 'var(--color-dossier-felt)', lead: true }]}
