@@ -150,8 +150,12 @@ describe('foreign direct investment accounting', () => {
   for (let tick = 0; tick < 12; tick++) base = step(base)
 
   it('enters the ordinary investment order book', () => {
+    // Closed to ordinary trade, so what is left of the import bill is the
+    // plant itself: the factory's domestic order draws ordinary imports as
+    // absorption, like any other order (ADR-0049).
+    const closed = { ...base, params: { ...base.params, openness: 0 } }
     const noFdi = runStep('production', {
-      ...base,
+      ...closed,
       flows: {
         ...base.flows,
         foreignDirectInvestmentReal: 0,
@@ -159,7 +163,7 @@ describe('foreign direct investment accounting', () => {
       },
     })
     const withFdi = runStep('production', {
-      ...base,
+      ...closed,
       flows: {
         ...base.flows,
         foreignDirectInvestmentReal: 2,

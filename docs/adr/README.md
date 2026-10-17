@@ -46,7 +46,7 @@ the old one and update the Status line of both.
 | [0031](0031-an-event-is-a-name-the-catalogue-words.md) | An event is a name; the catalogue words it | Accepted |
 | [0032](0032-schools-decide-who-can-be-a-professional.md) | Schools set the ceiling on the professional class; the shortage decides who crosses | Accepted |
 | [0033](0033-human-development-is-a-published-proxy-composite.md) | Human development is a proxy composite of aligned published returns | Accepted |
-| [0034](0034-the-exchange-rate-clears-a-market.md) | The exchange rate is a price that clears a market, and the cabinet can stand in it | Accepted |
+| [0034](0034-the-exchange-rate-clears-a-market.md) | The exchange rate is a price that clears a market, and the cabinet can stand in it | Accepted; balance norm amended by 0050 |
 | [0035](0035-staffing-is-rationed-against-who-exists.md) | The staffing table is a demand for skills; who fills a post is rationed against who exists | Accepted |
 | [0036](0036-surplus-skill-bumps-joblessness-down.md) | Surplus skill bumps joblessness down; it does not change how many jobs exist | Accepted |
 | [0037](0037-a-surplus-has-a-destination.md) | Every quarter's balance has a destination, and the cabinet chooses between two | Accepted |
@@ -61,3 +61,5 @@ the old one and update the Status line of both.
 | [0046](0046-the-world-has-a-turbulence-dial.md) | How often the world breaks is a replay input chosen at the posting | Accepted |
 | [0047](0047-yields-price-duration-and-fixed-contracts.md) | Yields price duration; coupons are fixed contracts | Accepted; partially supersedes 0014, 0017, 0038, 0043 |
 | [0048](0048-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |
+| [0049](0049-trade-follows-markets-not-capacity.md) | Trade follows markets, not capacity: exports sell from a foothold the world grows, imports follow absorption | Accepted |
+| [0050](0050-a-persistent-imbalance-stays-priced.md) | A persistent imbalance stays priced: the balance norm leaks back toward the inherited balance | Accepted; amends 0034 |

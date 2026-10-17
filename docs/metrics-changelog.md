@@ -21,6 +21,24 @@ contract, so it's called out below.
 
 ---
 
+## Schema 52 — exports follow partner markets, imports follow absorption (#290)
+
+- **State +**: `external.exportMarket`, per sector: how much the partners will buy at relative
+  price 1 and normal activity. Seeded at the 1946 export order, grown by `world` with the world's
+  workforce (`WORLD_WORKFORCE_ERAS`) and its income per head (the frontier schedule) times each
+  good's income elasticity (`1 + ENGEL_ELASTICITY`, plus `FARM_GATE_ELASTICITY` for the farm).
+- **Behaviour**: exports sell from that foothold rather than from the sector's own potential,
+  which now only caps them. Imports scale with domestic absorption (the Leontief requirement of
+  household, state and investment demand), not with own potential; FDI's imported plant is not
+  counted twice. `init` seals `balanceNorm` and the reserve book from `production`'s own opening
+  order. `EXPORT_CAPACITY_CAP`, `init`'s mirror of the export cap, is gone.
+- **State +**: `external.inheritedBalance`, the balance `balanceNorm` opened on, sealed by `init`.
+  `balanceNorm` now also leaks back toward it at `FX_BALANCE_NORM_REVERT`, so a persistent
+  imbalance stays partly priced ([ADR-0050](adr/0050-a-persistent-imbalance-stays-priced.md)).
+- No new instrument, RNG draw or pipeline reorder. Every trade flow moves from the first quarter.
+- **Evidence**: [ADR-0049](adr/0049-trade-follows-markets-not-capacity.md), investigation 0027,
+  `pnpm agriculture`, `pnpm currency`, `pnpm export-share`, the all-country batches.
+
 ## Schema 51 — the household food price (#289)
 
 - **Output +**: `price_food_household`, *Household food prices*, `1946=100`, **fogged**,

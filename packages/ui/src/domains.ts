@@ -91,12 +91,18 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // spending from one to the other, and on the old 65–85 and 0–10 faces it
   // spent 58% and 64% of its century against the rails. Capital formation
   // takes 0–25 rather than 0–20: at 20 the maximal builder still pegged 9%.
-  consumption_share: { lo: 50, hi: 85 },
+  // #319: the capacity builders hand their surpluses back, and the money arm
+  // is built on them — consumption p01–p99 52.6–88.5, maximum 94.1, and on 85
+  // the money arm in Costona spent 88% of its century against the rail.
+  consumption_share: { lo: 50, hi: 95 },
   investment_share: { lo: 0, hi: 25 },
   // #289: a cheaper farm sells its surplus abroad (#290), and the money
   // government in Kestrel pegged the old 30 rail 10% of its century.
   // Measured p99 29.3, maximum 35.6.
-  export_share: { lo: 5, hi: 35 },
+  // ADR-0049: exports sell from the partners' markets, not from capacity, so a
+  // fast grower's share falls — p01–p99 1.5–16.0, maximum 22.5, and the
+  // maximal builder in Costona spent 70% of its century under the old 5.
+  export_share: { lo: 0, hi: 25 },
   // Schema 24 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
   // Exceptional small-country surges should peg; ordinary dependence should
   // use the face rather than disappear into a generic 0–5 scale.
@@ -115,7 +121,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // cheaper again — p01 26.3, minimum 20.1, and a quarter of a procedural
   // money century under the old 25 rail. The ceiling comes in to match:
   // p99 129.6, maximum 161.1.
-  price_food: { lo: 15, hi: 165 },
+  // ADR-0049/#319: the extractive arm hands back the 68% of GDP it used to
+  // bank, behind a 40% tariff — p99 173.9, maximum 265.8, and Veltravia spent
+  // 32% of its century over 165.
+  price_food: { lo: 15, hi: 225 },
   // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190):
   // fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel board
   // past the old 130 rail; food stays on its face. 175 rather than 150

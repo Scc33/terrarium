@@ -41,7 +41,7 @@ import {
   type SpendingProgramId,
   type TrueState,
 } from '@terrarium/engine'
-import { developmentalPolicy, maximalPolicy, type RunnerPolicy } from './policies'
+import { developmentalPolicy, maximalPolicy, stopHoarding, type RunnerPolicy } from './policies'
 
 export const SURVEY_ARM_IDS = ['developmental', 'welfare', 'maximal', 'money', 'extractive'] as const
 export type SurveyArmId = (typeof SURVEY_ARM_IDS)[number]
@@ -81,12 +81,14 @@ const ramp = (tick: number, from: number, to: number, span: number) =>
  * 27% of GDP and the income tax 26% → 75% over sixty-five years. It is the arm
  * that reaches the living standard a good player reaches, which is where
  * `life_expectancy`, the per-capita accounts and the expenditure shares leave
- * the capacity builder's dial.
+ * the capacity builder's dial. Like the builders it hands its surpluses back:
+ * a 60% tax take banked deflates food to a tenth of its 1946 price once
+ * exports stop scaling with capacity (ADR-0049).
  */
 export const welfarePolicy: RunnerPolicy = (state, _rng, tick) => {
   const actions: Action[] = []
   if (tick % 4 === 0) {
-    actions.push(...buildMinistries(state, CAPACITY_IDS, 0.03))
+    actions.push(...buildMinistries(state, CAPACITY_IDS, 0.03), ...stopHoarding(state))
     for (const statute of STATUTE_IDS) {
       const top = STATUTE_LEVELS[statute].length - 1
       if (state.gov.statutes[statute].level < top) actions.push({ kind: 'enact', statute, level: top })
@@ -163,11 +165,16 @@ const HARD_CAPITAL_FLOOR = 0.15
  * press narrowed and the police widened; tariffs that protect incumbents and a
  * light tax on their profits; nothing spent on transfers or research. Its job
  * is the OTHER rail of every dial the builders push one way — a stalled skill
- * base, poverty, emigration, unrest, approval on the floor.
+ * base, poverty, emigration, unrest, approval on the floor. What it collects it
+ * hands back rather than banking: a 68% tax take banked ran a current-account
+ * surplus of 15% of GDP on a currency deflated to half its parity, which is
+ * the hoarding builders' pathology, not extraction (#319).
  */
 export const extractivePolicy: RunnerPolicy = (state, _rng, tick) => {
   const actions: Action[] = []
-  if (tick % 8 === 0) actions.push(...buildMinistries(state, ['tax', 'statistical', 'administrative'], 0.02))
+  if (tick % 8 === 0) {
+    actions.push(...buildMinistries(state, ['tax', 'statistical', 'administrative'], 0.02), ...stopHoarding(state))
+  }
   if (tick % 16 === 0) {
     actions.push(
       { kind: 'reform', institution: 'suffrage', direction: -1 },

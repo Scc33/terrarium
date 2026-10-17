@@ -1,6 +1,6 @@
 # ADR-0034 — The exchange rate is a price that clears a market, and the cabinet can stand in it
 
-**Status:** Accepted · **Date:** 2026-08-29 · **Issue:** [#152](https://github.com/Scc33/terrarium/issues/152)
+**Status:** Accepted; the balance norm amended by [ADR-0050](0050-a-persistent-imbalance-stays-priced.md) · **Date:** 2026-08-29 · **Issue:** [#152](https://github.com/Scc33/terrarium/issues/152)
 
 ## Context
 

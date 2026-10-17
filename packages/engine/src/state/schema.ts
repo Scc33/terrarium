@@ -671,6 +671,11 @@ export interface ExternalState {
    * by `(1 + tariff) ^ −TRADE_ELASTICITY`. Seeding off the base understated the
    * surplus by 15 %, and the opening decade spent that appreciating away. */
   balanceNorm: number
+  /** The balance `balanceNorm` opened on, sealed by `init` and never written
+   * again (ADR-0050). The norm leaks back toward it, so a balance the country
+   * has drifted into stays partly a surprise and the currency keeps pricing it,
+   * while the one it was handed in 1946 never is. */
+  inheritedBalance: number
   /** Quarters of import cover the central bank means to hold — the reserve
    * book the country inherited, sealed by `init` from its own recipe. The bank
    * closes the gap to it slowly whatever the dial says, because a bank that
@@ -689,6 +694,12 @@ export interface ExternalState {
    * `BLOC_FAVOR_BASE` and `environment.baseline` — a country answers for what
    * it does, not for what it was given. */
   inheritedRiskPremium: number
+  /** How much of each good the partners will buy from this country at
+   * relative price 1 and normal partner activity, real units (#290, ADR-0049).
+   * Seeded by `init` at the 1946 export order and grown by `world` with the
+   * world's demand for the good, never with the country's own capacity:
+   * selling more abroad takes being cheaper, not being bigger. */
+  exportMarket: Record<SectorId, number>
   /** productive capital owned abroad, in the same real units as Sector.capital.
    * It depreciates with the rest of the capital stock; new FDI adds to it and
    * the foreign share of after-tax profits leaves through the external account. */
@@ -1380,7 +1391,7 @@ export interface TrueState {
 // flight; politics-as-a-game therefore becomes v12.
 // …and v41 was the human development index, which landed on master while the
 // currency was in flight, so the exchange rate becomes v42.
-export const SCHEMA_VERSION = 51 // v51: the household food price (#289)
+export const SCHEMA_VERSION = 52 // v52: exports follow partner markets, imports follow absorption (#290)
 export const ENGINE_VERSION = '0.1.0'
 export const ELECTION_PERIOD = 16 // quarters
 /** the campaign opens this many quarters before the vote: the scene needs a

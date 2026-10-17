@@ -1,10 +1,9 @@
 # 0027 — Food exports follow prices once they stop following capacity
 
-**Status:** Open — the spike for [#290](https://github.com/Scc33/terrarium/issues/290), parked on
-[#319](https://github.com/Scc33/terrarium/issues/319). The trade change #290 asks for is built on
-branch `claude/terrarium-290-trade-demand` (`16b0cf0`) and not merged. It removes the channel #290
-names, and developmental exports come back through another one: traded-goods prices that fall
-about 90% in a century against a flat world. That is #319, and #290 lands after it.
+**Status:** Resolved — §5. The price channel in §2–§4 was the closure for a surplus the
+`developmental` and `regulated` arms never spent, not a missing anchor in the engine. #319 makes
+those arms hand their surpluses back (`22cfd9e`), and #290's trade change lands on top of it.
+§1–§4 are kept as measured; read §3's causal claim through §5.
 
 **Raised by:** #290 and [0023](0023-farm-employment-is-the-rural-class-on-a-slow-clock.md) §3,
 "food trade scales with the farm's own capacity".
@@ -94,6 +93,8 @@ away; it changed channel.
 
 ## 3 — The prices fall because wages do not follow productivity
 
+*Superseded by §5: the wage and the currency are how the closure shows up, not its cause.*
+
 Sector boards in 2045 (1946 = 1) and the manufacturing wage, same probe:
 
 | | agri | manuf | energy | services | transport | wage (manuf) | fx |
@@ -136,6 +137,47 @@ It removes the deflation, and it undoes what #290 is for. In 2046, Costona's dev
 net exports reach **0.50**. Passive farm employment rises: Meridia 12.6 → 14.3%, Costona 15.6 →
 19.3%. Whatever lets a developer sell more abroad without deflating also sells more food abroad.
 
+## 5 — The anchor was the arm: it taxed and never spent
+
+Measured at `b0b37d0` with the same probes, adding the treasury. Developmental Meridia in 2045
+collects ~45% of GDP, spends **0.8%** (the inherited fixed-cash programmes never grow), runs a
+budget surplus of **44% of GDP**, and holds a fund of 14 years' output. Costona: 39% surplus.
+Even passive banks 5–8%. A country that saves that much has to export the difference at whatever
+real rate clears it, which is §2's price and §3's wage. `developmentalPolicy`'s own comment said
+it was "not a balanced fiscal policy"; every developmental number in 0023 and here is partly that.
+
+Handing the surplus back (`surplusPayout` 1, ADR-0037) on the same probe, one seed, 2045:
+
+| | budget hoarded → returned | current account %GDP | farm price | farm net exp. |
+|---|---|---|---|---|
+| meridia, base engine | 44.1 → 16.7 | 11.4 → **−0.4** | 0.42 → 0.83 | 0.37 → **0.16** |
+| costona, base engine | 38.6 → 16.7 | 13.0 → **−0.1** | 0.27 → 0.68 | 0.42 → **0.15** |
+| costona, with #290 | 47.2 → 16.6 | 11.7 → **−1.4** | 0.12 → 0.46 | 0.47 → **0.18** |
+
+Holding spending at its 1946 share of GDP instead (`setSpendingRule … gdpShare`) closes only half
+of it: Costona's current account 13.0 → 7.8%.
+
+The arms ramp the dial (`22cfd9e`): the whole dial costs ~94 PC against an opening 20, and an arm
+that waited to afford it released decades of withheld demand in one quarter — regulated Costona
+lost 12 of 60 governments to that boom, against 2 of 60 on a 0.1 ramp. 1000 × 400q,
+`--country all`, base → #319:
+
+| | developmental | regulated |
+|---|---|---|
+| deposed | 6% → **3%** | 8% → **3%** |
+| Kestrel / Costona deposed | 25% / 4% → **13% / 2%** | 28% / 5% → **12% / 2%** |
+| mean inflation %/yr | −0.37 → **+0.33** | −0.37 → **+0.32** |
+| growth %/yr | 3.07 → 2.97 | 3.06 → 2.97 |
+
+The early losses are not the ramp's: Kestrel loses 18 of 166 governments before q60 either way;
+the ramp removes the late ones (27 → 8). Growth gives back 0.1 pt/yr, ADR-0037's century cost of
+a payout. `pnpm currency` §4: developmental real rates 1.09–1.21, balances −0.8 to +0.5% of GDP,
+against passive's 1.15–1.24 and 1.1–1.9% — the 2–3× divergence is gone.
+
+The farm (`pnpm agriculture`, developmental, 2046, base → #319): net exports 0.37–0.44 →
+**0.14–0.27**, farm employment 10.7–12.8% → **8.6–9.1%**. Most of what #290 asked for came from
+the arm, not the trade equations.
+
 ## What this implies
 
 #290's diagnosis was right, but its fix is not sufficient alone. With exports tied to capacity
@@ -144,7 +186,8 @@ behind the capacity term. Any demand-based trade model hits it, because a develo
 makes every traded good about ten times cheaper at home than abroad.
 
 The order is therefore forced again, as 0023 found for #288 and #289. The anchor (#319) comes
-first, and the parked branch is then re-measured on top of it. Shipping the change now would buy
+first, and the parked branch is then re-measured on top of it. (§5: the anchor turned out to be
+the arm.) Shipping the change now would buy
 three points of developmental deposition and half a point a year of extra deflation, to move food
 exports in three of five countries.
 

@@ -57,7 +57,9 @@ const MODULE_LINE_BASELINE = {
   // which ADR-0007 requires in this total tuning ledger.
   // Ratcheted from 2068 by #289: the farm-gate elasticity and the food
   // margin's split. Schema 51 gates the household food price (#289).
-  'packages/engine/src/constants.ts': 2087,
+  // Schema 52's world workforce schedule, what the partners' markets grow
+  // with (#290, ADR-0049), and the balance norm's reversion (ADR-0050).
+  'packages/engine/src/constants.ts': 2111,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.
@@ -100,13 +102,16 @@ const MODULE_LINE_BASELINE = {
   // #221 seeds its new household expectation beside the nominal forecast.
   // Schema 50 seeds the maturity dial, bond book and settlement flows (#31).
   // Schema 51 seeds the routed food bill (#289).
-  'packages/engine/src/state/init.ts': 678,
+  // Schema 52 seeds the export foothold and seals the opening trade from
+  // `production`'s own first order (#290), and the inherited balance (ADR-0050).
+  'packages/engine/src/state/init.ts': 686,
   // Cohesive schema: total state contracts and canonical id lists.
   // Schema 47 adds the hidden household expectation (#221).
   // Schema 48 adds the world's turbulence as a replay input (#122).
   // Schema 50 declares fixed contracts, quotes and cash/face settlement (#31).
   // Schema 51 adds the household food price and the food bill it reads (#289).
-  'packages/engine/src/state/schema.ts': 1429,
+  // Schema 52 adds the export foothold (#290) and the inherited balance.
+  'packages/engine/src/state/schema.ts': 1440,
   // Analysis tool: whole-validator country sampling and stability reporting.
   'packages/runner/src/country-fuzz.ts': 507,
   // Analysis tool: export-feedback measures, aggregation, and report formatting.
