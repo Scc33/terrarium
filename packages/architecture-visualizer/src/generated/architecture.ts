@@ -3,7 +3,7 @@ import type { ArchitectureSnapshot } from '../model'
 // Generated from the repository by scripts/generate.ts. Do not edit by hand.
 export const architecture = {
   "version": 1,
-  "revision": "e3da6e2",
+  "revision": "b60df83",
   "repoRoot": "../..",
   "packages": [
     {
@@ -11,7 +11,7 @@ export const architecture = {
       "name": "@terrarium/engine",
       "description": "Pure deterministic simulation, action legality, state, and the ordered quarterly tick.",
       "moduleCount": 55,
-      "lines": 17101
+      "lines": 17158
     },
     {
       "id": "fixtures",
@@ -39,7 +39,7 @@ export const architecture = {
       "name": "@terrarium/ui",
       "description": "War-room interface; the worker is its only engine host and components consume published state.",
       "moduleCount": 123,
-      "lines": 20703
+      "lines": 20710
     }
   ],
   "modules": [
@@ -150,7 +150,7 @@ export const architecture = {
       "packageId": "engine",
       "category": "Engine core",
       "summary": "Tuning knobs. Every behavioral constant in the sim lives here so balance work happens in one file. Values target a stable passive run for a mid-poor 1946 economy (the long-run stability criterion).",
-      "lines": 2067,
+      "lines": 2083,
       "exports": [
         {
           "name": "NORMAL_UNIFORM_DRAWS",
@@ -453,2818 +453,2830 @@ export const architecture = {
           "line": 269
         },
         {
+          "name": "FARM_GATE_ELASTICITY",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 278
+        },
+        {
+          "name": "FOOD_MARGIN_SECTORS",
+          "kind": "constant",
+          "path": "packages/engine/src/constants.ts",
+          "line": 279
+        },
+        {
           "name": "PROFIT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 272
+          "line": 288
         },
         {
           "name": "BOND_HOLDING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 281
+          "line": 297
         },
         {
           "name": "TRANSFER_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 290
+          "line": 306
         },
         {
           "name": "HABITUAL_INCOME_EMA_PERSISTENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 302
+          "line": 318
         },
         {
           "name": "HABITUAL_INCOME_EMA_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 303
+          "line": 319
         },
         {
           "name": "POVERTY_LINE_REAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 309
+          "line": 325
         },
         {
           "name": "taxEfficiency",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 313
+          "line": 329
         },
         {
           "name": "adminEffectiveness",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 315
+          "line": 331
         },
         {
           "name": "TARIFF_EFF_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 318
+          "line": 334
         },
         {
           "name": "TARIFF_EFF_CAPACITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 319
+          "line": 335
         },
         {
           "name": "FUEL_EFF_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 322
+          "line": 338
         },
         {
           "name": "FUEL_EFF_CAPACITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 323
+          "line": 339
         },
         {
           "name": "BOND_MARKET_DEPTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 325
+          "line": 341
         },
         {
           "name": "DEBT_CEILING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 327
+          "line": 343
         },
         {
           "name": "DEBT_RISK_PREMIUM_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 329
+          "line": 345
         },
         {
           "name": "RISK_PREMIUM_SLOPE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 330
+          "line": 346
         },
         {
           "name": "SOVEREIGN_PRIVATE_PREMIUM_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 332
+          "line": 348
         },
         {
           "name": "FUND_YIELD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 347
+          "line": 363
         },
         {
           "name": "BOND_CROWDING_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 350
+          "line": 366
         },
         {
           "name": "YIELD_MATURITY_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 352
+          "line": 368
         },
         {
           "name": "YIELD_POLICY_MEMORY_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 356
+          "line": 372
         },
         {
           "name": "YIELD_POLICY_REVERSION_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 357
+          "line": 373
         },
         {
           "name": "YIELD_TERM_PREMIUM_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 358
+          "line": 374
         },
         {
           "name": "YIELD_TERM_PREMIUM_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 359
+          "line": 375
         },
         {
           "name": "QE_HOLDING_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 360
+          "line": 376
         },
         {
           "name": "QE_ANNOUNCEMENT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 361
+          "line": 377
         },
         {
           "name": "SHORT_QE_TRANSMISSION_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 362
+          "line": 378
         },
         {
           "name": "DEBT_MATURITY_DEFAULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 363
+          "line": 379
         },
         {
           "name": "DEBT_BALANCED_SHORT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 364
+          "line": 380
         },
         {
           "name": "DEBT_BALANCED_MEDIUM_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 365
+          "line": 381
         },
         {
           "name": "DEBT_BALANCED_LONG_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 366
+          "line": 382
         },
         {
           "name": "DEBT_MATURITY_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 367
+          "line": 383
         },
         {
           "name": "domesticBondFundingShare",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 368
+          "line": 384
         },
         {
           "name": "CAPACITY_COST_PER_POINT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 372
+          "line": 388
         },
         {
           "name": "CAPACITY_BUILD_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 373
+          "line": 389
         },
         {
           "name": "HOUSEHOLD_SURVEY_FUNDED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 377
+          "line": 393
         },
         {
           "name": "LABOUR_SURVEY_FUNDED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 378
+          "line": 394
         },
         {
           "name": "HUMAN_DEVELOPMENT_LIFE_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 384
+          "line": 400
         },
         {
           "name": "HUMAN_DEVELOPMENT_LIFE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 385
+          "line": 401
         },
         {
           "name": "HUMAN_DEVELOPMENT_INCOME_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 386
+          "line": 402
         },
         {
           "name": "HUMAN_DEVELOPMENT_INCOME_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 387
+          "line": 403
         },
         {
           "name": "INDICATOR_FUNDED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 391
+          "line": 407
         },
         {
           "name": "INDUSTRY_CENSUS_FUNDED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 477
+          "line": 493
         },
         {
           "name": "INDUSTRY_VALUE_ADDED_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 485
+          "line": 501
         },
         {
           "name": "INDUSTRY_EMPLOYMENT_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 487
+          "line": 503
         },
         {
           "name": "LABOUR_JOBLESS_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 488
+          "line": 504
         },
         {
           "name": "LABOUR_UNDEREMPLOYED_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 489
+          "line": 505
         },
         {
           "name": "HOUSEHOLD_INCOME_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 492
+          "line": 508
         },
         {
           "name": "HOUSEHOLD_POVERTY_GAP_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 496
+          "line": 512
         },
         {
           "name": "STAT_REVISION_SETTLING_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 504
+          "line": 520
         },
         {
           "name": "STAT_NOISE_CAPACITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 509
+          "line": 525
         },
         {
           "name": "STAT_FAST_LAG_CAPACITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 512
+          "line": 528
         },
         {
           "name": "STAT_ERROR_BAND_CAPACITY_GATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 516
+          "line": 532
         },
         {
           "name": "STAT_ERROR_BAND_Z",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 519
+          "line": 535
         },
         {
           "name": "STAT_GDP_LEVEL_RELATIVE_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 523
+          "line": 539
         },
         {
           "name": "STAT_REVISION_DELAYS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 526
+          "line": 542
         },
         {
           "name": "STAT_LAGS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 528
+          "line": 544
         },
         {
           "name": "CAPACITY_DECAY_BY_ID",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 532
+          "line": 548
         },
         {
           "name": "CONF_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 540
+          "line": 556
         },
         {
           "name": "CONF_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 541
+          "line": 557
         },
         {
           "name": "CONF_MPC_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 542
+          "line": 558
         },
         {
           "name": "CONF_INV_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 543
+          "line": 559
         },
         {
           "name": "CONF_CONSUMER_TREND_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 546
+          "line": 562
         },
         {
           "name": "CONF_CONSUMER_UNEMPLOYMENT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 547
+          "line": 563
         },
         {
           "name": "CONF_BUSINESS_UTILIZATION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 550
+          "line": 566
         },
         {
           "name": "CONF_BUSINESS_PROFIT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 551
+          "line": 567
         },
         {
           "name": "CONF_BUSINESS_PROFIT_REFERENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 552
+          "line": 568
         },
         {
           "name": "EXPECTATION_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 555
+          "line": 571
         },
         {
           "name": "PRINT_PRICE_PRESSURE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 556
+          "line": 572
         },
         {
           "name": "INFLATION_EXPECTATIONS_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 557
+          "line": 573
         },
         {
           "name": "INFLATION_EXPECTATIONS_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 558
+          "line": 574
         },
         {
           "name": "INVESTMENT_RATE_SENSITIVITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 559
+          "line": 575
         },
         {
           "name": "NATURAL_REAL_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 560
+          "line": 576
         },
         {
           "name": "INVESTMENT_SLACK_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 564
+          "line": 580
         },
         {
           "name": "INVESTMENT_NORMAL_UTILIZATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 568
+          "line": 584
         },
         {
           "name": "INVESTMENT_UTIL_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 569
+          "line": 585
         },
         {
           "name": "INVESTMENT_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 570
+          "line": 586
         },
         {
           "name": "INVESTMENT_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 571
+          "line": 587
         },
         {
           "name": "FDI_BASE_ANNUAL_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 578
+          "line": 594
         },
         {
           "name": "FDI_REFERENCE_POPULATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 582
+          "line": 598
         },
         {
           "name": "FDI_SIZE_ELASTICITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 583
+          "line": 599
         },
         {
           "name": "FDI_OPENNESS_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 585
+          "line": 601
         },
         {
           "name": "FDI_OPENNESS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 586
+          "line": 602
         },
         {
           "name": "FDI_CATCHUP_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 587
+          "line": 603
         },
         {
           "name": "FDI_CATCHUP_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 588
+          "line": 604
         },
         {
           "name": "FDI_CATCHUP_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 590
+          "line": 606
         },
         {
           "name": "FDI_CATCHUP_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 591
+          "line": 607
         },
         {
           "name": "FDI_NORMAL_AFTER_TAX_PROFIT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 594
+          "line": 610
         },
         {
           "name": "FDI_RETURN_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 595
+          "line": 611
         },
         {
           "name": "FDI_RETURN_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 597
+          "line": 613
         },
         {
           "name": "FDI_RETURN_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 598
+          "line": 614
         },
         {
           "name": "FDI_CONFIDENCE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 599
+          "line": 615
         },
         {
           "name": "FDI_CONFIDENCE_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 601
+          "line": 617
         },
         {
           "name": "FDI_CONFIDENCE_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 602
+          "line": 618
         },
         {
           "name": "FDI_EXPORT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 603
+          "line": 619
         },
         {
           "name": "FDI_REFERENCE_EXPORT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 606
+          "line": 622
         },
         {
           "name": "FDI_EXPORT_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 607
+          "line": 623
         },
         {
           "name": "FDI_EXPORT_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 608
+          "line": 624
         },
         {
           "name": "FDI_IMPORTED_CAPITAL_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 611
+          "line": 627
         },
         {
           "name": "FDI_PRICE_INSTABILITY_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 615
+          "line": 631
         },
         {
           "name": "FDI_PRICE_INSTABILITY_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 616
+          "line": 632
         },
         {
           "name": "FDI_MACRO_STABILITY_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 618
+          "line": 634
         },
         {
           "name": "FDI_OWNERSHIP_SATURATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 621
+          "line": 637
         },
         {
           "name": "FDI_OPENING_OWNERSHIP_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 622
+          "line": 638
         },
         {
           "name": "FDI_CRISIS_MULTIPLIER",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 625
+          "line": 641
         },
         {
           "name": "FDI_PROFIT_REMIT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 628
+          "line": 644
         },
         {
           "name": "FDI_ADMIN_FACTOR_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 631
+          "line": 647
         },
         {
           "name": "FDI_ADMIN_FACTOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 632
+          "line": 648
         },
         {
           "name": "FDI_TARIFF_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 635
+          "line": 651
         },
         {
           "name": "FDI_TARIFF_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 636
+          "line": 652
         },
         {
           "name": "FDI_CYCLE_WEIGHT_FINANCIAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 640
+          "line": 656
         },
         {
           "name": "FDI_CYCLE_WEIGHT_MANUFACTURING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 641
+          "line": 657
         },
         {
           "name": "FDI_CYCLE_WEIGHT_REGIONAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 642
+          "line": 658
         },
         {
           "name": "FDI_CYCLE_FACTOR_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 643
+          "line": 659
         },
         {
           "name": "FDI_CYCLE_FACTOR_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 644
+          "line": 660
         },
         {
           "name": "fdiStructuralAttraction",
           "kind": "function",
           "path": "packages/engine/src/constants.ts",
-          "line": 650
+          "line": 666
         },
         {
           "name": "EMISSION_INTENSITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 676
+          "line": 692
         },
         {
           "name": "EMISSION_TECH_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 687
+          "line": 703
         },
         {
           "name": "POLLUTION_REFERENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 695
+          "line": 711
         },
         {
           "name": "POLLUTION_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 702
+          "line": 718
         },
         {
           "name": "POLLUTION_MORTALITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 707
+          "line": 723
         },
         {
           "name": "POLLUTION_DROUGHT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 715
+          "line": 731
         },
         {
           "name": "POLLUTION_DROUGHT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 717
+          "line": 733
         },
         {
           "name": "TURBULENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 727
+          "line": 743
         },
         {
           "name": "ENERGY_SHOCK_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 735
+          "line": 751
         },
         {
           "name": "ENERGY_SHOCK_JUMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 736
+          "line": 752
         },
         {
           "name": "DROUGHT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 738
+          "line": 754
         },
         {
           "name": "DROUGHT_SEVERITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 739
+          "line": 755
         },
         {
           "name": "DROUGHT_EXTRA_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 740
+          "line": 756
         },
         {
           "name": "WORLD_PRICE_REVERT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 743
+          "line": 759
         },
         {
           "name": "FRONTIER_ERAS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 749
+          "line": 765
         },
         {
           "name": "TECH_EXPOSURE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 758
+          "line": 774
         },
         {
           "name": "CATCHUP_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 766
+          "line": 782
         },
         {
           "name": "ABSORB_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 770
+          "line": 786
         },
         {
           "name": "ABSORB_EDU_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 771
+          "line": 787
         },
         {
           "name": "ABSORB_OPENNESS_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 772
+          "line": 788
         },
         {
           "name": "ABSORB_OPENNESS_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 774
+          "line": 790
         },
         {
           "name": "FRONTIER_OWN_DRIFT_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 776
+          "line": 792
         },
         {
           "name": "TECH_ATTAINED_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 780
+          "line": 796
         },
         {
           "name": "TECH_ATTAINED_DEV_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 781
+          "line": 797
         },
         {
           "name": "RESEARCH_EFFECTIVE_SHARE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 787
+          "line": 803
         },
         {
           "name": "RESEARCH_SKILL_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 788
+          "line": 804
         },
         {
           "name": "RESEARCH_CATCHUP_GAIN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 792
+          "line": 808
         },
         {
           "name": "RESEARCH_FRONTIER_GAIN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 797
+          "line": 813
         },
         {
           "name": "RESEARCH_FRONTIER_START",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 803
+          "line": 819
         },
         {
           "name": "RESEARCH_STOCK_DECAY_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 815
+          "line": 831
         },
         {
           "name": "BREAKTHROUGH_SIZE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 827
+          "line": 843
         },
         {
           "name": "BREAKTHROUGH_HAZARD_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 828
+          "line": 844
         },
         {
           "name": "FERT_EDU_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 833
+          "line": 849
         },
         {
           "name": "EDUCATION_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 834
+          "line": 850
         },
         {
           "name": "HUMAN_CAPITAL_ADJUST_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 838
+          "line": 854
         },
         {
           "name": "LIVING_STANDARD_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 844
+          "line": 860
         },
         {
           "name": "LIVING_STANDARD_LOG_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 849
+          "line": 865
         },
         {
           "name": "MEAN_LOG_CONSUMPTION_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 853
+          "line": 869
         },
         {
           "name": "MORT_BASE_ANNUAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 857
+          "line": 873
         },
         {
           "name": "MORT_INCOME_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 862
+          "line": 878
         },
         {
           "name": "MORT_SECULAR_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 864
+          "line": 880
         },
         {
           "name": "MORT_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 865
+          "line": 881
         },
         {
           "name": "MORT_CEILING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 868
+          "line": 884
         },
         {
           "name": "FERT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 872
+          "line": 888
         },
         {
           "name": "FERT_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 873
+          "line": 889
         },
         {
           "name": "FERT_INCOME_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 874
+          "line": 890
         },
         {
           "name": "FERT_URBAN_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 875
+          "line": 891
         },
         {
           "name": "FERT_URBAN_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 878
+          "line": 894
         },
         {
           "name": "FERT_SURVIVAL_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 881
+          "line": 897
         },
         {
           "name": "FERT_SECULAR_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 882
+          "line": 898
         },
         {
           "name": "FERTILE_YEARS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 883
+          "line": 899
         },
         {
           "name": "MIG_WORLD_FRONTIER_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 890
+          "line": 906
         },
         {
           "name": "MIG_PERFORMANCE_GAIN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 892
+          "line": 908
         },
         {
           "name": "MIG_PERFORMANCE_GAP_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 894
+          "line": 910
         },
         {
           "name": "MIG_LABOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 896
+          "line": 912
         },
         {
           "name": "MIG_EMIGRATION_CAP_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 899
+          "line": 915
         },
         {
           "name": "IMMIGRATION_LIMIT_DEFAULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 902
+          "line": 918
         },
         {
           "name": "IMMIGRATION_LIMIT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 903
+          "line": 919
         },
         {
           "name": "MIG_LAND_FAVOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 908
+          "line": 924
         },
         {
           "name": "MIG_INDUSTRIAL_FAVOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 909
+          "line": 925
         },
         {
           "name": "MIG_UNION_FAVOR_LOSS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 910
+          "line": 926
         },
         {
           "name": "MIG_UNREST_FREE_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 911
+          "line": 927
         },
         {
           "name": "UNREST_IMMIGRATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 912
+          "line": 928
         },
         {
           "name": "SUBSISTENCE_ABSORPTION_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 919
+          "line": 935
         },
         {
           "name": "SUBSISTENCE_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 922
+          "line": 938
         },
         {
           "name": "URBANIZATION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 925
+          "line": 941
         },
         {
           "name": "JOBS_PULL_UNEMPLOYMENT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 930
+          "line": 946
         },
         {
           "name": "PROFESSIONAL_SCHOOLING_ELASTICITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 952
+          "line": 968
         },
         {
           "name": "PROFESSIONAL_SHARE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 965
+          "line": 981
         },
         {
           "name": "SCHOOLING_BASELINE_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 977
+          "line": 993
         },
         {
           "name": "PROFESSIONALIZATION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 982
+          "line": 998
         },
         {
           "name": "BASE_WORKER_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 985
+          "line": 1001
         },
         {
           "name": "WELFARE_DISCOUNT_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 989
+          "line": 1005
         },
         {
           "name": "PROSPERITY_GRADE_CUTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 998
+          "line": 1014
         },
         {
           "name": "LEGITIMACY_GRADE_ELECTIONS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1007
+          "line": 1023
         },
         {
           "name": "LEGITIMACY_SUPPRESSION_CAPS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1014
+          "line": 1030
         },
         {
           "name": "TRADE_ELASTICITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1020
+          "line": 1036
         },
         {
           "name": "EXPORT_CAP_SHARE_OF_POTENTIAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1023
+          "line": 1039
         },
         {
           "name": "EXPORT_BASE_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1024
+          "line": 1040
         },
         {
           "name": "IMPORT_BASE_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1031
+          "line": 1047
         },
         {
           "name": "EXPORT_CAPACITY_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1041
+          "line": 1057
         },
         {
           "name": "RESERVES_INIT_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1042
+          "line": 1058
         },
         {
           "name": "DEBT_TO_GDP_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1046
+          "line": 1062
         },
         {
           "name": "INCOME_TAX_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1053
+          "line": 1069
         },
         {
           "name": "CORPORATE_TAX_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1054
+          "line": 1070
         },
         {
           "name": "TARIFF_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1055
+          "line": 1071
         },
         {
           "name": "DEPRECIATION_WHEN_BROKE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1056
+          "line": 1072
         },
         {
           "name": "INIT_TRANSFERS_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1061
+          "line": 1077
         },
         {
           "name": "INIT_PROCUREMENT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1062
+          "line": 1078
         },
         {
           "name": "INIT_INVESTMENT_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1063
+          "line": 1079
         },
         {
           "name": "INIT_BUDGET_DEFICIT_FACTOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1065
+          "line": 1081
         },
         {
           "name": "INIT_TARIFF_CAPACITY_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1068
+          "line": 1084
         },
         {
           "name": "INIT_TARIFF_CAPACITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1069
+          "line": 1085
         },
         {
           "name": "FDI_OPENING_OWNERSHIP_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1072
+          "line": 1088
         },
         {
           "name": "INIT_RETIREE_SAVINGS_MULTIPLE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1075
+          "line": 1091
         },
         {
           "name": "INIT_HABIT_INCOME_DISCOUNT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1082
+          "line": 1098
         },
         {
           "name": "INIT_APPROVAL_HONEYMOON",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1083
+          "line": 1099
         },
         {
           "name": "INIT_INFLATION_EXPECTATIONS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1084
+          "line": 1100
         },
         {
           "name": "INIT_UNEMPLOYMENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1085
+          "line": 1101
         },
         {
           "name": "FX_TARGET_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1108
+          "line": 1124
         },
         {
           "name": "FX_PARITY_PASSTHROUGH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1125
+          "line": 1141
         },
         {
           "name": "FX_BALANCE_TILT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1147
+          "line": 1163
         },
         {
           "name": "FX_BALANCE_NORM_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1156
+          "line": 1172
         },
         {
           "name": "FX_CARRY_TILT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1178
+          "line": 1194
         },
         {
           "name": "POLICY_RATE_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1185
+          "line": 1201
         },
         {
           "name": "FX_TILT_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1190
+          "line": 1206
         },
         {
           "name": "FX_TILT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1191
+          "line": 1207
         },
         {
           "name": "FX_WOBBLE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1196
+          "line": 1212
         },
         {
           "name": "FX_COVER_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1208
+          "line": 1224
         },
         {
           "name": "FX_RATE_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1217
+          "line": 1233
         },
         {
           "name": "FX_RATE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1218
+          "line": 1234
         },
         {
           "name": "FX_INTERVENTION_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1224
+          "line": 1240
         },
         {
           "name": "WORLD_PRICE_VOL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1226
+          "line": 1242
         },
         {
           "name": "PARTNER_CYCLE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1240
+          "line": 1256
         },
         {
           "name": "PARTNER_ACTIVITY_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1253
+          "line": 1269
         },
         {
           "name": "PARTNER_ACTIVITY_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1254
+          "line": 1270
         },
         {
           "name": "PARTNER_BOOM_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1255
+          "line": 1271
         },
         {
           "name": "PARTNER_SLUMP_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1256
+          "line": 1272
         },
         {
           "name": "EXPORT_DEMAND_WEIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1260
+          "line": 1276
         },
         {
           "name": "WORLD_SUPPLY_WEIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1270
+          "line": 1286
         },
         {
           "name": "WORLD_SUPPLY_PRICE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1279
+          "line": 1295
         },
         {
           "name": "WORLD_PRICE_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1281
+          "line": 1297
         },
         {
           "name": "WORLD_PRICE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1282
+          "line": 1298
         },
         {
           "name": "ASSET_REVERT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1299
+          "line": 1315
         },
         {
           "name": "ASSET_FUND_PROFIT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1300
+          "line": 1316
         },
         {
           "name": "ASSET_NORMAL_PROFIT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1301
+          "line": 1317
         },
         {
           "name": "ASSET_FUND_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1302
+          "line": 1318
         },
         {
           "name": "ASSET_FUND_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1305
+          "line": 1321
         },
         {
           "name": "ASSET_FUND_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1306
+          "line": 1322
         },
         {
           "name": "ASSET_CREDIT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1311
+          "line": 1327
         },
         {
           "name": "ASSET_SPIRITS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1312
+          "line": 1328
         },
         {
           "name": "ASSET_VOL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1313
+          "line": 1329
         },
         {
           "name": "ASSET_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1314
+          "line": 1330
         },
         {
           "name": "ASSET_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1315
+          "line": 1331
         },
         {
           "name": "ASSET_BUBBLE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1316
+          "line": 1332
         },
         {
           "name": "CREDIT_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1319
+          "line": 1335
         },
         {
           "name": "CREDIT_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1320
+          "line": 1336
         },
         {
           "name": "CREDIT_COLLATERAL_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1321
+          "line": 1337
         },
         {
           "name": "CREDIT_SPIRITS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1322
+          "line": 1338
         },
         {
           "name": "CREDIT_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1323
+          "line": 1339
         },
         {
           "name": "CREDIT_RATIO_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1326
+          "line": 1342
         },
         {
           "name": "CREDIT_RATIO_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1327
+          "line": 1343
         },
         {
           "name": "CAPITAL_REQUIREMENT_DEFAULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1331
+          "line": 1347
         },
         {
           "name": "CAPITAL_REQUIREMENT_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1332
+          "line": 1348
         },
         {
           "name": "CAPITAL_REQUIREMENT_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1333
+          "line": 1349
         },
         {
           "name": "BANK_TARGET_RATIO",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1334
+          "line": 1350
         },
         {
           "name": "BANK_MARGIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1335
+          "line": 1351
         },
         {
           "name": "BANK_SPREAD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1336
+          "line": 1352
         },
         {
           "name": "LOAN_LOSS_BASE_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1337
+          "line": 1353
         },
         {
           "name": "BANK_DIVIDEND_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1338
+          "line": 1354
         },
         {
           "name": "ASSET_PURCHASE_RATE_DEFAULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1343
+          "line": 1359
         },
         {
           "name": "ASSET_PURCHASE_RATE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1344
+          "line": 1360
         },
         {
           "name": "ASSET_PURCHASE_PRIVATE_RATE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1345
+          "line": 1361
         },
         {
           "name": "CRISIS_LEVERAGE_SAFE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1350
+          "line": 1366
         },
         {
           "name": "CRISIS_ASSET_SAFE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1351
+          "line": 1367
         },
         {
           "name": "CRISIS_BASE_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1352
+          "line": 1368
         },
         {
           "name": "CRISIS_FRAGILITY_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1353
+          "line": 1369
         },
         {
           "name": "CRISIS_IMPORT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1356
+          "line": 1372
         },
         {
           "name": "FINANCIAL_ACTIVITY_SAFE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1359
+          "line": 1375
         },
         {
           "name": "CRISIS_DURATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1360
+          "line": 1376
         },
         {
           "name": "CRISIS_SEVERITY_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1361
+          "line": 1377
         },
         {
           "name": "CRISIS_SEVERITY_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1362
+          "line": 1378
         },
         {
           "name": "CRISIS_SEVERITY_IMPORT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1363
+          "line": 1379
         },
         {
           "name": "CRISIS_SEVERITY_MIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1364
+          "line": 1380
         },
         {
           "name": "CRISIS_ASSET_CRASH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1365
+          "line": 1381
         },
         {
           "name": "CRISIS_WRITEOFF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1366
+          "line": 1382
         },
         {
           "name": "BANK_CAPITAL_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1368
+          "line": 1384
         },
         {
           "name": "CRISIS_CREDIT_CRUNCH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1369
+          "line": 1385
         },
         {
           "name": "CRISIS_CONF_SHOCK",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1370
+          "line": 1386
         },
         {
           "name": "CRISIS_SUDDEN_STOP_IMPORT_PRESSURE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1373
+          "line": 1389
         },
         {
           "name": "FIN_INVEST_Q_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1377
+          "line": 1393
         },
         {
           "name": "FIN_CRUNCH_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1378
+          "line": 1394
         },
         {
           "name": "APPROVAL_DRIFT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1381
+          "line": 1397
         },
         {
           "name": "LOSS_AVERSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1382
+          "line": 1398
         },
         {
           "name": "APPROVAL_TARGET_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1390
+          "line": 1406
         },
         {
           "name": "APPROVAL_GROWTH_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1391
+          "line": 1407
         },
         {
           "name": "APPROVAL_GROWTH_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1392
+          "line": 1408
         },
         {
           "name": "APPROVAL_INFLATION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1393
+          "line": 1409
         },
         {
           "name": "APPROVAL_INFLATION_REFERENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1394
+          "line": 1410
         },
         {
           "name": "APPROVAL_JOBLESS_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1395
+          "line": 1411
         },
         {
           "name": "APPROVAL_JOBLESS_REFERENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1396
+          "line": 1412
         },
         {
           "name": "APPROVAL_SHORTAGE_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1397
+          "line": 1413
         },
         {
           "name": "PC_INCOME_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1398
+          "line": 1414
         },
         {
           "name": "PC_INCOME_APPROVAL_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1399
+          "line": 1415
         },
         {
           "name": "PC_INCOME_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1400
+          "line": 1416
         },
         {
           "name": "PC_HEADLINE_SALIENCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1403
+          "line": 1419
         },
         {
           "name": "PC_HEADLINE_CAP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1404
+          "line": 1420
         },
         {
           "name": "ELECTION_WIN_THRESHOLD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1405
+          "line": 1421
         },
         {
           "name": "ELECTION_WIN_THRESHOLD_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1407
+          "line": 1423
         },
         {
           "name": "ELECTION_OUTCOME_NOISE_SD",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1409
+          "line": 1425
         },
         {
           "name": "PC_START",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1410
+          "line": 1426
         },
         {
           "name": "PC_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1411
+          "line": 1427
         },
         {
           "name": "PC_REPRESSION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1415
+          "line": 1431
         },
         {
           "name": "PC_UNREST_DRAG",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1417
+          "line": 1433
         },
         {
           "name": "PC_COST_DIAL_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1420
+          "line": 1436
         },
         {
           "name": "PC_COST_DIAL_SLOPE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1421
+          "line": 1437
         },
         {
           "name": "PC_COST_CAPACITY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1422
+          "line": 1438
         },
         {
           "name": "PC_COST_REFORM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1425
+          "line": 1441
         },
         {
           "name": "PC_COST_CAMPAIGN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1426
+          "line": 1442
         },
         {
           "name": "TAX_RATE_INCOME_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1433
+          "line": 1449
         },
         {
           "name": "TAX_RATE_CORPORATE_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1434
+          "line": 1450
         },
         {
           "name": "TAX_RATE_TARIFF_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1435
+          "line": 1451
         },
         {
           "name": "TAX_RATE_FUEL_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1436
+          "line": 1452
         },
         {
           "name": "SPENDING_DIAL_MAX_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1438
+          "line": 1454
         },
         {
           "name": "SPENDING_DIAL_SCALE_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1439
+          "line": 1455
         },
         {
           "name": "SUBSIDY_DIAL_MAX_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1440
+          "line": 1456
         },
         {
           "name": "SUBSIDY_DIAL_SCALE_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1441
+          "line": 1457
         },
         {
           "name": "IMMIGRATION_LIMIT_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1442
+          "line": 1458
         },
         {
           "name": "POLICY_RATE_DIAL_MAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1443
+          "line": 1459
         },
         {
           "name": "POLICY_RATE_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1444
+          "line": 1460
         },
         {
           "name": "ASSET_PURCHASE_RATE_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1445
+          "line": 1461
         },
         {
           "name": "FX_INTERVENTION_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1451
+          "line": 1467
         },
         {
           "name": "SURPLUS_PAYOUT_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1455
+          "line": 1471
         },
         {
           "name": "CAPITAL_REQUIREMENT_DIAL_SCALE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1456
+          "line": 1472
         },
         {
           "name": "CAPACITY_INVESTMENT_MAX_GDP_SHARE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1458
+          "line": 1474
         },
         {
           "name": "CAPACITY_MINISTRY_FULL_STRENGTH_GATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1461
+          "line": 1477
         },
         {
           "name": "Stance",
           "kind": "type",
           "path": "packages/engine/src/constants.ts",
-          "line": 1467
+          "line": 1483
         },
         {
           "name": "SUBSIDY_STANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1469
+          "line": 1485
         },
         {
           "name": "DIAL_STANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1477
+          "line": 1493
         },
         {
           "name": "REFORM_STANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1521
+          "line": 1537
         },
         {
           "name": "SOC_ADJUST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1536
+          "line": 1552
         },
         {
           "name": "SOC_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1537
+          "line": 1553
         },
         {
           "name": "SOC_FRANCHISE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1538
+          "line": 1554
         },
         {
           "name": "SOC_PRESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1539
+          "line": 1555
         },
         {
           "name": "SOC_LABOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1540
+          "line": 1556
         },
         {
           "name": "SOC_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1541
+          "line": 1557
         },
         {
           "name": "SOC_EDU",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1542
+          "line": 1558
         },
         {
           "name": "SOC_URBAN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1543
+          "line": 1559
         },
         {
           "name": "SOC_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1544
+          "line": 1560
         },
         {
           "name": "SOC_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1545
+          "line": 1561
         },
         {
           "name": "SOC_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1546
+          "line": 1562
         },
         {
           "name": "STATE_CAPACITY_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1551
+          "line": 1567
         },
         {
           "name": "STATE_REPRESSION_WEIGHT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1552
+          "line": 1568
         },
         {
           "name": "CORRIDOR_HALF_WIDTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1555
+          "line": 1571
         },
         {
           "name": "REPRESSION_DECAY_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1559
+          "line": 1575
         },
         {
           "name": "INSTITUTION_EROSION_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1560
+          "line": 1576
         },
         {
           "name": "REFORM_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1561
+          "line": 1577
         },
         {
           "name": "REFORM_WINDOW_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1564
+          "line": 1580
         },
         {
           "name": "REFORM_WINDOW_DISCOUNT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1565
+          "line": 1581
         },
         {
           "name": "REFORM_WINDOW_VETO_RELIEF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1566
+          "line": 1582
         },
         {
           "name": "INSTITUTIONS_1946",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1570
+          "line": 1586
         },
         {
           "name": "UNREST_ADAPT_UP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1586
+          "line": 1602
         },
         {
           "name": "UNREST_ADAPT_DOWN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1587
+          "line": 1603
         },
         {
           "name": "UNREST_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1588
+          "line": 1604
         },
         {
           "name": "UNREST_DISCONTENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1605
+          "line": 1621
         },
         {
           "name": "UNREST_VOICELESS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1606
+          "line": 1622
         },
         {
           "name": "UNREST_INEQ",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1607
+          "line": 1623
         },
         {
           "name": "UNREST_GINI_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1608
+          "line": 1624
         },
         {
           "name": "UNREST_CRISIS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1609
+          "line": 1625
         },
         {
           "name": "UNREST_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1613
+          "line": 1629
         },
         {
           "name": "UNREST_DESPOTISM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1618
+          "line": 1634
         },
         {
           "name": "UNREST_ANARCHY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1619
+          "line": 1635
         },
         {
           "name": "REVOLT_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1623
+          "line": 1639
         },
         {
           "name": "REVOLT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1624
+          "line": 1640
         },
         {
           "name": "COUP_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1627
+          "line": 1643
         },
         {
           "name": "COUP_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1628
+          "line": 1644
         },
         {
           "name": "LAND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1634
+          "line": 1650
         },
         {
           "name": "IND_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1635
+          "line": 1651
         },
         {
           "name": "FIN_POWER_CREDIT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1636
+          "line": 1652
         },
         {
           "name": "FIN_POWER_DEBT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1637
+          "line": 1653
         },
         {
           "name": "UNION_POWER_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1638
+          "line": 1654
         },
         {
           "name": "SOCIETY_CHECK",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1642
+          "line": 1658
         },
         {
           "name": "BLOC_FAVOR_ADAPT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1643
+          "line": 1659
         },
         {
           "name": "BLOC_FAVOR_BASE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1654
+          "line": 1670
         },
         {
           "name": "FAVOR_LANDOWNERS_SUBSIDY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1665
+          "line": 1681
         },
         {
           "name": "FAVOR_LANDOWNERS_TARIFF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1666
+          "line": 1682
         },
         {
           "name": "FAVOR_LANDOWNERS_INCOME_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1667
+          "line": 1683
         },
         {
           "name": "FAVOR_LANDOWNERS_CORPORATE_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1668
+          "line": 1684
         },
         {
           "name": "FAVOR_LANDOWNERS_LABOR_RIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1669
+          "line": 1685
         },
         {
           "name": "FAVOR_LANDOWNERS_SUFFRAGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1670
+          "line": 1686
         },
         {
           "name": "FAVOR_LANDOWNERS_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1671
+          "line": 1687
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_SUBSIDY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1673
+          "line": 1689
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_TARIFF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1674
+          "line": 1690
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_CORPORATE_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1675
+          "line": 1691
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_REAL_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1676
+          "line": 1692
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_LABOR_RIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1677
+          "line": 1693
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_FUEL_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1678
+          "line": 1694
         },
         {
           "name": "FAVOR_INDUSTRIALISTS_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1679
+          "line": 1695
         },
         {
           "name": "FAVOR_FINANCIERS_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1681
+          "line": 1697
         },
         {
           "name": "FAVOR_FINANCIERS_REAL_RATE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1682
+          "line": 1698
         },
         {
           "name": "FAVOR_FINANCIERS_REAL_RATE_CLAMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1685
+          "line": 1701
         },
         {
           "name": "FAVOR_FINANCIERS_INFLATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1686
+          "line": 1702
         },
         {
           "name": "FAVOR_FINANCIERS_INFLATION_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1687
+          "line": 1703
         },
         {
           "name": "FAVOR_FINANCIERS_PRINTING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1688
+          "line": 1704
         },
         {
           "name": "FAVOR_FINANCIERS_DEBT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1689
+          "line": 1705
         },
         {
           "name": "FAVOR_FINANCIERS_DEBT_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1690
+          "line": 1706
         },
         {
           "name": "FAVOR_FINANCIERS_CORPORATE_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1691
+          "line": 1707
         },
         {
           "name": "FAVOR_UNIONS_LABOR_RIGHTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1693
+          "line": 1709
         },
         {
           "name": "FAVOR_UNIONS_SUFFRAGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1694
+          "line": 1710
         },
         {
           "name": "FAVOR_UNIONS_TRANSFERS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1695
+          "line": 1711
         },
         {
           "name": "FAVOR_UNIONS_UNEMPLOYMENT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1696
+          "line": 1712
         },
         {
           "name": "FAVOR_UNIONS_FUEL_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1697
+          "line": 1713
         },
         {
           "name": "FAVOR_UNIONS_REPRESSION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1698
+          "line": 1714
         },
         {
           "name": "FAVOR_UNIONS_INFLATION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1699
+          "line": 1715
         },
         {
           "name": "FAVOR_UNIONS_INFLATION_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1700
+          "line": 1716
         },
         {
           "name": "BLOC_DEFIANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1703
+          "line": 1719
         },
         {
           "name": "VETO_COST_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1705
+          "line": 1721
         },
         {
           "name": "PLEDGE_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1707
+          "line": 1723
         },
         {
           "name": "PLEDGE_VETO_MULT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1708
+          "line": 1724
         },
         {
           "name": "FIN_FAVOR_PREMIUM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1712
+          "line": 1728
         },
         {
           "name": "FIN_FAVOR_DEPTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1713
+          "line": 1729
         },
         {
           "name": "IND_FAVOR_INVEST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1714
+          "line": 1730
         },
         {
           "name": "UNION_FAVOR_WAGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1715
+          "line": 1731
         },
         {
           "name": "LAND_FAVOR_TAX",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1716
+          "line": 1732
         },
         {
           "name": "ELITE_CAPTURE_NEUTRAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1724
+          "line": 1740
         },
         {
           "name": "ELITE_VETO_ABSORB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1725
+          "line": 1741
         },
         {
           "name": "ELITE_ABSORB_CLAMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1726
+          "line": 1742
         },
         {
           "name": "StatuteLevel",
           "kind": "interface",
           "path": "packages/engine/src/constants.ts",
-          "line": 1751
+          "line": 1767
         },
         {
           "name": "STATUTE_LEVELS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1766
+          "line": 1782
         },
         {
           "name": "STATUTE_STANCE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1799
+          "line": 1815
         },
         {
           "name": "STATUTE_PHASE_IN_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1814
+          "line": 1830
         },
         {
           "name": "STATUTE_COMPLIANCE_ADMIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1819
+          "line": 1835
         },
         {
           "name": "STATUTE_COMPLIANCE_COURTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1820
+          "line": 1836
         },
         {
           "name": "STATUTE_EVASION_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1822
+          "line": 1838
         },
         {
           "name": "STATUTE_COMPLIANCE_FLOOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1827
+          "line": 1843
         },
         {
           "name": "STATUTE_COMPLIANCE_CEILING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1828
+          "line": 1844
         },
         {
           "name": "STATUTE_CONGESTION",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1832
+          "line": 1848
         },
         {
           "name": "COMPETITION_CAPTURE_RELIEF",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1844
+          "line": 1860
         },
         {
           "name": "SCHOOLING_LABOR_WITHDRAWAL",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1858
+          "line": 1874
         },
         {
           "name": "ABATEMENT_COST_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1871
+          "line": 1887
         },
         {
           "name": "SCHOOLING_ATTAINMENT_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1876
+          "line": 1892
         },
         {
           "name": "MINIMUM_WAGE_ANCHOR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1890
+          "line": 1906
         },
         {
           "name": "PC_COST_STATUTE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1894
+          "line": 1910
         },
         {
           "name": "STATUTE_ENTRENCHMENT_QTRS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1898
+          "line": 1914
         },
         {
           "name": "STATUTE_REPEAL_PREMIUM",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1899
+          "line": 1915
         },
         {
           "name": "PLATFORM_SWING",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1903
+          "line": 1919
         },
         {
           "name": "LARGESSE_BUMP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1912
+          "line": 1928
         },
         {
           "name": "LARGESSE_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1913
+          "line": 1929
         },
         {
           "name": "COALITION_SWING_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1914
+          "line": 1930
         },
         {
           "name": "SUPPRESSION_REPRESSION_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1915
+          "line": 1931
         },
         {
           "name": "FRANCHISE_SUFFRAGE_STEP",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1916
+          "line": 1932
         },
         {
           "name": "REPRESSION_VOTE_EDGE",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1919
+          "line": 1935
         },
         {
           "name": "PLATFORM_BLOC_COST",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1921
+          "line": 1937
         },
         {
           "name": "COALITION_FAVOR_GAIN",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1928
+          "line": 1944
         },
         {
           "name": "COALITION_FAVOR_SNUB",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1929
+          "line": 1945
         },
         {
           "name": "POSITION_GRADE_CUTS",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1934
+          "line": 1950
         },
         {
           "name": "CARETAKER_CAPACITY_EVERY",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1951
+          "line": 1967
         },
         {
           "name": "CARETAKER_CAPACITY_SPEND",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1952
+          "line": 1968
         },
         {
           "name": "NEWS_REPORT_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1972
+          "line": 1988
         },
         {
           "name": "NEWS_REPORTS_PER_QTR",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1975
+          "line": 1991
         },
         {
           "name": "NEWS_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1979
+          "line": 1995
         },
         {
           "name": "NEWS_COOLDOWN_GROWTH",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1997
+          "line": 2013
         },
         {
           "name": "NEWS_COOLDOWN_MAX_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 1999
+          "line": 2015
         },
         {
           "name": "WORLD_PHASE_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2011
+          "line": 2027
         },
         {
           "name": "NEWS_THIN_PAGE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2014
+          "line": 2030
         },
         {
           "name": "NEWS_COLOUR_P",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2018
+          "line": 2034
         },
         {
           "name": "NEWS_COLOUR_COOLDOWN_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2021
+          "line": 2037
         },
         {
           "name": "NEWS_PROFESSIONAL_UNDERUSE_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2033
+          "line": 2049
         },
         {
           "name": "NEWS_URBAN_JOBLESS_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2036
+          "line": 2052
         },
         {
           "name": "NEWS_UNEMPLOYMENT_IMPROVEMENT_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2041
+          "line": 2057
         },
         {
           "name": "NEWS_URBAN_TRANSITION_WINDOW_Q",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2044
+          "line": 2060
         },
         {
           "name": "NEWS_PROFESSIONAL_TIGHTNESS_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2049
+          "line": 2065
         },
         {
           "name": "PRESS_CAPTURED_AT",
           "kind": "constant",
           "path": "packages/engine/src/constants.ts",
-          "line": 2066
+          "line": 2082
         }
       ],
       "imports": [
@@ -4454,277 +4466,289 @@ export const architecture = {
       "packageId": "engine",
       "category": "Pipeline",
       "summary": "Shared derived quantities used by several steps. Pure reads, no mutation.",
-      "lines": 1041,
+      "lines": 1082,
       "exports": [
         {
           "name": "periodLifeExpectancy",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 73
+          "line": 75
         },
         {
           "name": "lifeExpectancyAtBirth",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 105
+          "line": 107
         },
         {
           "name": "financierAnger",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 113
+          "line": 115
         },
         {
           "name": "potentialOutput",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 120
+          "line": 122
         },
         {
           "name": "sectorValueAdded",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 139
+          "line": 141
         },
         {
           "name": "technologyAttainment",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 156
+          "line": 158
         },
         {
           "name": "laborForOutput",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 175
+          "line": 177
         },
         {
           "name": "effectivePrice",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 181
+          "line": 183
         },
         {
           "name": "schoolingWithdrawal",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 201
+          "line": 203
         },
         {
           "name": "laborForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 214
+          "line": 216
         },
         {
           "name": "totalLaborForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 226
+          "line": 228
         },
         {
           "name": "staffing",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 273
+          "line": 275
         },
         {
           "name": "skillTightness",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 301
+          "line": 303
         },
         {
           "name": "approvalIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 319
+          "line": 321
         },
         {
           "name": "meanLogConsumption",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 336
+          "line": 338
         },
         {
           "name": "realConsumptionPerCapita",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 352
+          "line": 354
         },
         {
           "name": "householdSavingRate",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 365
+          "line": 367
         },
         {
           "name": "livingStandard",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 398
+          "line": 400
         },
         {
           "name": "HouseholdIncomeGroup",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 403
+          "line": 405
         },
         {
           "name": "HouseholdIncomeDistribution",
           "kind": "interface",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 411
+          "line": 413
         },
         {
           "name": "householdIncomeGroups",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 445
+          "line": 447
         },
         {
           "name": "householdIncomeDistribution",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 475
+          "line": 477
         },
         {
           "name": "giniIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 551
+          "line": 553
         },
         {
           "name": "realIncomePerHead",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 581
+          "line": 583
         },
         {
           "name": "exchangeRateParity",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 620
+          "line": 622
         },
         {
           "name": "realExchangeRate",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 633
+          "line": 635
         },
         {
           "name": "termsOfTrade",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 642
+          "line": 644
         },
         {
           "name": "enfranchisementIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 664
+          "line": 666
         },
         {
           "name": "discontentIndex",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 686
+          "line": 688
         },
         {
           "name": "urbanShare",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 702
+          "line": 704
         },
         {
           "name": "residence",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 730
+          "line": 732
         },
         {
           "name": "statePower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 741
+          "line": 743
         },
         {
           "name": "corridorOffset",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 753
+          "line": 755
         },
         {
           "name": "corridorStrain",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 759
+          "line": 761
         },
         {
           "name": "inCorridor",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 767
+          "line": 769
         },
         {
           "name": "effectiveBlocPower",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 775
+          "line": 777
         },
         {
           "name": "eliteHostility",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 783
+          "line": 785
         },
         {
           "name": "eliteCapture",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 814
+          "line": 816
         },
         {
           "name": "creativeDestruction",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 827
+          "line": 829
         },
         {
           "name": "statutesInForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 839
+          "line": 841
         },
         {
           "name": "statuteCompliance",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 863
+          "line": 865
         },
         {
           "name": "statuteForce",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 904
+          "line": 906
         },
         {
           "name": "minimumWageFloor",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 939
+          "line": 941
+        },
+        {
+          "name": "householdBasket",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 994
+        },
+        {
+          "name": "farmGateShare",
+          "kind": "function",
+          "path": "packages/engine/src/pipeline/derive.ts",
+          "line": 1040
         },
         {
           "name": "effectiveConsumptionWeights",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 980
+          "line": 1053
         },
         {
           "name": "cohortCpi",
           "kind": "function",
           "path": "packages/engine/src/pipeline/derive.ts",
-          "line": 1035
+          "line": 1076
         }
       ],
       "imports": [
@@ -10165,7 +10189,7 @@ export const architecture = {
       "packageId": "ui",
       "category": "UI core",
       "summary": "The printed face of every dial.",
-      "lines": 304,
+      "lines": 311,
       "exports": [
         {
           "name": "Domain",
@@ -10189,31 +10213,31 @@ export const architecture = {
           "name": "FACE_MARK",
           "kind": "constant",
           "path": "packages/ui/src/domains.ts",
-          "line": 223
+          "line": 230
         },
         {
           "name": "niceBounds",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 264
+          "line": 271
         },
         {
           "name": "gaugeDomain",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 278
+          "line": 285
         },
         {
           "name": "faceScale",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 290
+          "line": 297
         },
         {
           "name": "readNeedle",
           "kind": "function",
           "path": "packages/ui/src/domains.ts",
-          "line": 296
+          "line": 303
         }
       ],
       "imports": [

@@ -26,7 +26,10 @@
  *    stops when the wage gap closes, and it closes at whatever headcount
  *    agriculture's share of demand can pay for — so this table, not table 2,
  *    sets where the share comes to rest. Shares are of gross DEMAND; `met` is
- *    how much of it the farm actually produced.
+ *    how much of it the farm actually produced. `food %` is the whole food
+ *    bill and `hh direct` the part households buy from agriculture themselves
+ *    (#289). What the margin's processors buy from farms is in `interm.`, so
+ *    the farm's whole take from the food bill is somewhat larger.
  *
  * Each table reads the quarter at the point its own step does, never the end of
  * the tick: `demography` runs before anything sets this quarter's wages,
@@ -64,7 +67,7 @@ import {
   SUBSISTENCE_CAP,
   URBANIZATION_GAIN,
 } from '../packages/engine/src/constants'
-import { laborForOutput } from '../packages/engine/src/pipeline/derive'
+import { householdBasket, laborForOutput } from '../packages/engine/src/pipeline/derive'
 import { FIRST_YEAR } from '../packages/engine/src/state/schema'
 import { summarize } from '../packages/runner/src/metrics'
 
@@ -121,7 +124,10 @@ interface Reading {
   urbanization: number
   /** the most it could have lost at this `jobsPull`, had the expected gap been at its clamp */
   urbanizationMax: number
+  /** the food bill, margins included, as a share of household spending */
   foodShare: number
+  /** the share of that bill households pay to agriculture directly */
+  directFarm: number
   household: number
   intermediate: number
   netExports: number
@@ -204,6 +210,8 @@ function read(q: Quarter): Reading {
   const gross = Math.max(p.flows.grossDemand.agri, 1e-9)
   let spend = 0
   for (const sid of SECTOR_IDS) spend += p.flows.householdDemand[sid] * p.market.prices[sid]
+  let foodBill = 0
+  for (const c of p.cohorts) foodBill += p.flows.cohortSpend[c.id] * householdBasket(p, c.id).agri
 
   return {
     agEmployment: agriOf(s).employment / s.sectors.reduce((sum, x) => sum + x.employment, 0),
@@ -216,7 +224,8 @@ function read(q: Quarter): Reading {
     jobsPull,
     urbanization: (4 * (ruralBefore - ruralAfter)) / Math.max(ruralBefore, 1e-9),
     urbanizationMax: 4 * URBANIZATION_GAIN * jobsPull,
-    foodShare: (p.flows.householdDemand.agri * p.market.prices.agri) / Math.max(spend, 1e-9),
+    foodShare: foodBill / Math.max(spend, 1e-9),
+    directFarm: (p.flows.householdDemand.agri * p.market.prices.agri) / Math.max(foodBill, 1e-9),
     household: p.flows.householdDemand.agri / gross,
     intermediate: (p.flows.grossDemand.agri - p.flows.finalDemand.agri) / gross,
     netExports: (p.flows.exportsReal.agri - p.flows.importsReal.agri) / gross,
@@ -303,6 +312,7 @@ const TABLES: Array<{ title: string; columns: Column[] }> = [
     title: '3. THE DESTINATION — where the demand for farm output comes from, and what it is worth',
     columns: [
       ['food %', (r) => r.foodShare, pct],
+      ['hh direct', (r) => r.directFarm, ratio],
       ['household', (r) => r.household, ratio],
       ['interm.', (r) => r.intermediate, ratio],
       ['net exp.', (r) => r.netExports, ratio],

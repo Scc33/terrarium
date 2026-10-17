@@ -29,6 +29,8 @@ import {
   type TrueState,
 } from '@terrarium/engine'
 import { validate } from '../../packages/engine/src/state/validate'
+import { FARM_GATE_ELASTICITY, FOOD_MARGIN_SECTORS } from '../../packages/engine/src/constants'
+import { farmGateShare, householdBasket } from '../../packages/engine/src/pipeline/derive'
 
 /**
  * A capacity-building century with tenure protected, so what is measured is
@@ -216,5 +218,51 @@ describe('the household basket', () => {
       if (neutralEngel && neutralPrice) expect(identical).toBe(true)
     }
     expect(neutralEngel && neutralPrice, 'this is a live mechanism, not a stub').toBe(false)
+  })
+})
+
+describe('where the food bill lands (#289)', () => {
+  it('spends less of it at the farm gate as a cohort gets richer, and pays the rest to the margin', () => {
+    // The food bill is the basket's; only the sector it reaches moves. Every
+    // country opens with all of it at the farm gate, as its recipe was written.
+    const { opening, final } = govern('meridia', 'gate', 400)
+    for (const c of opening.cohorts) expect(farmGateShare(opening, c.id), c.id).toBe(1)
+    for (const c of final.cohorts) {
+      const gate = farmGateShare(final, c.id)
+      const basket = householdBasket(final, c.id)
+      const w = effectiveConsumptionWeights(final, c.id)
+      // retirees end poorer per head than they began (#111), and a cohort
+      // that got poorer keeps buying its food at the farm gate
+      if (c.engelIncome > c.engelReference) expect(gate, c.id).toBeLessThan(1)
+      else expect(gate, c.id).toBe(1)
+      expect(w.agri, `${c.id} farm gate`).toBeCloseTo(basket.agri * gate, 12)
+      const margin = basket.agri * (1 - gate)
+      for (const sid of SECTOR_IDS) {
+        if (sid === 'agri') continue
+        expect(w[sid] - basket[sid], `${c.id}/${sid} margin`).toBeCloseTo(
+          margin * FOOD_MARGIN_SECTORS[sid],
+          12,
+        )
+      }
+    }
+  })
+
+  it('splits the whole margin and none of it to the farm', () => {
+    const total = SECTOR_IDS.reduce((sum, sid) => sum + FOOD_MARGIN_SECTORS[sid], 0)
+    expect(total).toBeCloseTo(1, 12)
+    expect(FOOD_MARGIN_SECTORS.agri).toBe(0)
+  })
+
+  it('is exactly the basket when the farm-gate share does not answer to income', () => {
+    // The inert proof the mechanism shipped on: at elasticity 0 the sector
+    // vector IS the category basket, so the goldens moved nothing.
+    const { final } = govern('meridia', 'gate-neutral', 120)
+    for (const c of final.cohorts) {
+      const identical = SECTOR_IDS.every(
+        (sid) => effectiveConsumptionWeights(final, c.id)[sid] === householdBasket(final, c.id)[sid],
+      )
+      if ((FARM_GATE_ELASTICITY as number) === 0) expect(identical).toBe(true)
+    }
+    expect(FARM_GATE_ELASTICITY, 'this is a live mechanism, not a stub').toBeLessThan(0)
   })
 })

@@ -268,6 +268,22 @@ export const ENGEL_INCOME_RATIO_MAX = 64
  * stopped eating — the floor is a numerical guard, not a behavioural one. */
 export const CONSUMPTION_WEIGHT_FLOOR = 0.01
 
+/**
+ * Where the food bill lands (#289, ADR-0048). Of the basket's `agri` weight,
+ * `(y / y_ref) ^ FARM_GATE_ELASTICITY` (at most 1) reaches the farm and the
+ * rest is the processing, retail and restaurant margin, split by
+ * `FOOD_MARGIN_SECTORS` after the USDA food dollar. No energy: the margin's
+ * fuel arrives through the I/O table, and household energy is the excise base.
+ */
+export const FARM_GATE_ELASTICITY = -0.5
+export const FOOD_MARGIN_SECTORS: Record<SectorId, number> = {
+  agri: 0,
+  manuf: 0.25,
+  energy: 0,
+  services: 0.7,
+  transport: 0.05,
+}
+
 // profit distribution across cohorts
 export const PROFIT_SHARE: Record<CohortId, number> = {
   business_owners: 0.75,

@@ -55,7 +55,9 @@ const MODULE_LINE_BASELINE = {
   // multipliers, which ADR-0007 says may live nowhere else.
   // #31 adds schema 50's maturity, dealer-memory and QE-duration coefficients,
   // which ADR-0007 requires in this total tuning ledger.
-  'packages/engine/src/constants.ts': 2068,
+  // Ratcheted from 2068 by #289: the farm-gate elasticity and the food
+  // margin's split.
+  'packages/engine/src/constants.ts': 2083,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.

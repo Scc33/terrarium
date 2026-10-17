@@ -6,7 +6,9 @@ changes it points at are split out as [#288](https://github.com/Scc33/terrarium/
 [#290](https://github.com/Scc33/terrarium/issues/290), in that order. The speed (#288) is
 [ADR-0045](../adr/0045-the-countryside-empties-toward-expected-income.md): ×3 alone, measured below,
 stopped at wage parity and drained Costona past the farm's market, so it shipped with an
-expected-income stopping rule. The destination (#289, #290) is still open.
+expected-income stopping rule. #289 is [ADR-0048](../adr/0048-the-food-bill-pays-a-margin.md):
+a farm-gate share of the food bill that falls with income takes developmental 2046 farm
+employment to 11–13%. #290 (food trade) is still open, and is what holds it there.
 
 **Raised by:** #151, "even in a very wealthy, highly educated, and industrial society the
 employment rate of agriculture is very high." The comment on that issue measured the basket fix

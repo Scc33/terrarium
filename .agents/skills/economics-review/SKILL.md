@@ -311,6 +311,21 @@ people nominally employed on capped farms queue for city jobs instead. Do not "f
 Use **`pnpm agriculture`** as the evidence. Table 2 prints `job odds` and `exp. gap`, and
 table 3's `rel prod` checks that the countryside did not empty past the farm's market.
 
+### Where the food bill lands (ADR-0048)
+
+Moves passive on purpose: the farm-gate share answers to income, and a passive country gets
+rich too. 1000 × 400q, `--country all`, before → after:
+
+| | passive | developmental | regulated |
+|---|---|---|---|
+| growth %/yr | 2.93 → **2.86** | 3.11 → **3.07** | 3.11 → **3.06** |
+| unemployment % | 12.84 → **12.99** | 12.57 → **12.73** | 12.31 → **12.49** |
+| deposed | 1% → **1%** | 6% → **6%** | 8% → **8%** |
+
+The growth cost is Baumol: demand leaves the farm for services. **Deposition does not move on
+any country**; if a retune moves it, the margin has become a political shock. Use **`pnpm
+agriculture`**: `hh direct` falls while `food %` holds, and `rel prod` must stay near 1.
+
 ### The statute book (`--policy regulated`)
 
 Builds the four capacities like `developmental`, then climbs every statute ladder a rung at a
