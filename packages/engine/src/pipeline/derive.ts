@@ -12,6 +12,8 @@ import {
   ENGEL_INCOME_RATIO_MAX,
   ENGEL_INCOME_RATIO_MIN,
   EXPORT_BASE_SHARE,
+  FARM_GATE_ELASTICITY,
+  FOOD_MARGIN_SECTORS,
   FX_PARITY_PASSTHROUGH,
   HOUSEHOLD_SUBSTITUTION,
   IMPORT_BASE_SHARE,
@@ -949,11 +951,23 @@ export function minimumWageFloor(state: TrueState): number {
   return MINIMUM_WAGE_ANCHOR * force * (bill / heads)
 }
 
+/** A cohort's real income per head against the one it inherited, bounded —
+ * what both the Engel term and the farm-gate share answer to. */
+function engelRatio(c: TrueState['cohorts'][number]): number {
+  return clamp(
+    c.engelIncome / Math.max(c.engelReference, 1e-9),
+    ENGEL_INCOME_RATIO_MIN,
+    ENGEL_INCOME_RATIO_MAX,
+  )
+}
+
 /**
- * What a cohort actually buys, as shares of its budget (ADR-0030). This is the
- * vector every reader wants; `cohort.consumptionWeights` is the recipe it was
- * authored with, and reading THAT is reading the announcement instead of the
- * effect — the same rule as `statuteForce` against `gov.statutes`.
+ * What a cohort spends its budget ON, by category (ADR-0030): the `agri` key
+ * is the whole food bill, margins included. `cohort.consumptionWeights` is the
+ * recipe it was authored with, and reading THAT is reading the announcement
+ * instead of the effect — the same rule as `statuteForce` against
+ * `gov.statutes`. What the economy is subject to is the next step on,
+ * `effectiveConsumptionWeights`, which says which sector the money reaches.
  *
  * Two multiplicative terms on the authored weight, renormalised once:
  *
@@ -977,16 +991,12 @@ export function minimumWageFloor(state: TrueState): number {
  * field rather than `lastRealIncome / size` because that mixes a lagging
  * aggregate with a current headcount — see the note on `Cohort.engelIncome`.
  */
-export function effectiveConsumptionWeights(
+export function householdBasket(
   state: TrueState,
   cohortId: CohortId,
 ): Record<SectorId, number> {
   const c = state.cohorts.find((x) => x.id === cohortId)!
-  const ratio = clamp(
-    c.engelIncome / Math.max(c.engelReference, 1e-9),
-    ENGEL_INCOME_RATIO_MIN,
-    ENGEL_INCOME_RATIO_MAX,
-  )
+  const ratio = engelRatio(c)
   const priceExponent = 1 - HOUSEHOLD_SUBSTITUTION
   const out = {} as Record<SectorId, number>
   let total = 0
@@ -1020,6 +1030,38 @@ export function effectiveConsumptionWeights(
     floored += out[sid]
   }
   if (bound) for (const sid of SECTOR_IDS) out[sid] /= floored
+  return out
+}
+
+/** The share of a cohort's food bill paid at the farm gate (#289): 1 at the
+ * income it inherited, falling as it gets richer, never above 1. A corrupt
+ * income reads as 1, the authored routing, for the reason `householdBasket`
+ * falls back to its recipe. */
+export function farmGateShare(state: TrueState, cohortId: CohortId): number {
+  if (FARM_GATE_ELASTICITY === 0) return 1
+  const c = state.cohorts.find((x) => x.id === cohortId)!
+  const share = Math.pow(engelRatio(c), FARM_GATE_ELASTICITY)
+  return Number.isFinite(share) ? Math.min(1, share) : 1
+}
+
+/**
+ * What a cohort buys, as shares of its budget BY SECTOR — the vector demand,
+ * the household price index and felt shortages all read. It is
+ * `householdBasket` with the food margin moved off the farm: of the food bill,
+ * `farmGateShare` stays with agriculture and the rest goes to
+ * `FOOD_MARGIN_SECTORS`. At a share of 1 it is the basket bit for bit.
+ */
+export function effectiveConsumptionWeights(
+  state: TrueState,
+  cohortId: CohortId,
+): Record<SectorId, number> {
+  const basket = householdBasket(state, cohortId)
+  const gate = farmGateShare(state, cohortId)
+  if (gate === 1) return basket
+  const margin = basket.agri * (1 - gate)
+  const out = {} as Record<SectorId, number>
+  for (const sid of SECTOR_IDS) out[sid] = basket[sid] + margin * FOOD_MARGIN_SECTORS[sid]
+  out.agri = basket.agri * gate
   return out
 }
 
