@@ -52,8 +52,9 @@ const MODULE_LINE_BASELINE = {
   // packages/observation: the one bare coefficient it found was a
   // legitimacy grade cut, which likewise may live nowhere else. Ratcheted
   // from 2033 by #122: schema 48's `TURBULENCE` table, the setup dial's
-  // multipliers, which ADR-0007 says may live nowhere else.
-  'packages/engine/src/constants.ts': 2048,
+  // multipliers, which ADR-0007 says may live nowhere else. Ratcheted from
+  // 2048 by #289: the farm-gate elasticity and the food margin's split.
+  'packages/engine/src/constants.ts': 2064,
   // Cohesive catalogue: authored and procedural country recipes plus their materialization.
   'packages/engine/src/countries.ts': 567,
   // Cohesive catalogue: total event copy records across all press eras.

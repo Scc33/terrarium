@@ -45,7 +45,6 @@ import {
   CAPACITY_IDS,
   createCountryParams,
   CURATED_COUNTRY_IDS,
-  householdBasket,
   init,
   laborForce,
   realConsumptionPerCapita,
@@ -66,7 +65,7 @@ import {
   SUBSISTENCE_CAP,
   URBANIZATION_GAIN,
 } from '../packages/engine/src/constants'
-import { laborForOutput } from '../packages/engine/src/pipeline/derive'
+import { householdBasket, laborForOutput } from '../packages/engine/src/pipeline/derive'
 import { FIRST_YEAR } from '../packages/engine/src/state/schema'
 import { summarize } from '../packages/runner/src/metrics'
 

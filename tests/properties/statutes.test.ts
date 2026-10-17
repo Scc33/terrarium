@@ -294,8 +294,9 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
   // the one draft in proc-0 … proc-199 whose farm the living wage binds through
   // most of 1957–76; if that stops being true, find the next one
   const agrarian = createCountryParams('procedural', 'proc-160')
-  // binds on transport and manufacturing in about two quarters in three
-  const veltravia = createCountryParams('veltravia', 'minwage-veltravia')
+  // binds on transport in about half of quarters. Veltravia did until the
+  // food margin (#289) sent its city sectors more demand than the floor.
+  const oranga = createCountryParams('oranga', 'minwage-oranga')
 
   let farmRuns: Array<{ seed: string; off: TrueState; on: TrueState }> | undefined
   const onTheFarm = () =>
@@ -338,8 +339,8 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
   it('where it binds on city wages, costs jobs with no disemployment term anywhere in the engine', () => {
     let costlier = 0
     for (const seed of SEEDS) {
-      const off = govern(veltravia, seed, 120, null)
-      const on = govern(veltravia, seed, 120, LIVING_WAGE)
+      const off = govern(oranga, seed, 120, null)
+      const on = govern(oranga, seed, 120, LIVING_WAGE)
       if (on.flows.unemployment > off.flows.unemployment) costlier++
     }
     expect(costlier).toBeGreaterThanOrEqual(5)
@@ -349,9 +350,11 @@ describe('minimum wage → the argument about minimum wages, unscripted', () => 
     // A floor at roughly half the average wage reaches nobody in a country
     // whose lowest-paid sector already earns more than that. The statute is
     // still on the books, still enforced, and simply has nothing to do.
-    const meridia = createCountryParams('meridia', 'minwage-meridia')
-    const off = govern(meridia, 'mw-b', 200, null)
-    const on = govern(meridia, 'mw-b', 200, LIVING_WAGE)
+    // Kestrel at q120; Meridia's farm wage reaches the floor by the 1980s
+    // once its market shrinks with the food margin (#289).
+    const kestrel = createCountryParams('kestrel', 'minwage-kestrel')
+    const off = govern(kestrel, 'mw-b', 120, null)
+    const on = govern(kestrel, 'mw-b', 120, LIVING_WAGE)
     expect(statuteForce(on, 'minimum_wage')).toBeGreaterThan(0)
     const lowest = Math.min(...on.sectors.map((sector) => on.market.wages[sector.id]))
     expect(lowest).toBeGreaterThan(minimumWageFloor(on))

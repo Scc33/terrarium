@@ -93,7 +93,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // takes 0–25 rather than 0–20: at 20 the maximal builder still pegged 9%.
   consumption_share: { lo: 50, hi: 85 },
   investment_share: { lo: 0, hi: 25 },
-  export_share: { lo: 5, hi: 30 },
+  // #289: a cheaper farm sells its surplus abroad (#290), and the money
+  // government in Kestrel pegged the old 30 rail 10% of its century.
+  // Measured p99 29.3, maximum 35.6.
+  export_share: { lo: 5, hi: 35 },
   // Schema 24 range: p01–p99 0.3–1.6% of GDP, extrema 0.1–2.6.
   // Exceptional small-country surges should peg; ordinary dependence should
   // use the face rather than disappear into a generic 0–5 scale.
@@ -108,7 +111,11 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // cheaper: food p01 32.1 against the old 42.6, fuel p01 29.9 against 38.2.
   // `price_fuel` was already spending part of its life against the old 40 rail
   // and this pushed it to a fifth of every print.
-  price_food: { lo: 25, hi: 180 },
+  // #289: the food margin moves household demand off the farm, so food gets
+  // cheaper again — p01 26.3, minimum 20.1, and a quarter of a procedural
+  // money century under the old 25 rail. The ceiling comes in to match:
+  // p99 129.6, maximum 161.1.
+  price_food: { lo: 15, hi: 165 },
   // Schema 46, 12 seeds × 6 countries × 5 governments × 400 quarters (#190):
   // fuel p99 142.9, maximum 204.4. The builders' demand runs the fuel board
   // past the old 130 rail; food stays on its face. 175 rather than 150

@@ -73,6 +73,10 @@ symptom. A lesson that only says what to do gets ignored the first time it is in
   unemployment rises two points. Do not raise it past 0.012 to chase the 2046 farm share. At
   ten times the old gain every country still rests at 16–17%, because the resting point is
   what the farm sells (#289, #290).
+- `FARM_GATE_ELASTICITY` stops at −0.5, short of the US food dollar's −0.7, because past it the
+  farm's lost household market goes abroad instead of out of farming (#290): farm value added
+  per worker passes the economy's (Meridia 1.09 at −0.5, 1.16 at −0.7). Do not steepen it to
+  chase the 2046 farm share until trade scales with partner demand. ADR-0047.
 - Init self-calibrates spending to the tax base (`init.ts`) — an unbalanced opening budget
   compounds into a scripted depression.
 - Finance is a loop that WANTS to ratchet (assets↑ → collateral↑ → credit↑ → assets↑). Two

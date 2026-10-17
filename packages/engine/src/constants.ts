@@ -268,23 +268,13 @@ export const ENGEL_INCOME_RATIO_MAX = 64
 export const CONSUMPTION_WEIGHT_FLOOR = 0.01
 
 /**
- * Where the food bill lands (#289). The basket's `agri` weight is what a
- * household spends on FOOD; the share of it that reaches the farm gate is
- * `(y / y_ref) ^ FARM_GATE_ELASTICITY`, capped at 1, and the rest is the
- * processing, retail and restaurant margin, paid to `FOOD_MARGIN_SECTORS`.
- * Read against the cohort's own 1946 income like the Engel term, so every
- * country opens with all of its food bought at the farm gate, as authored.
- *
- * Without it the farm's market fell only as fast as the food share of
- * spending, and agriculture held 15–25% of value added in countries that got
- * four to nine times richer (investigation 0023).
+ * Where the food bill lands (#289, ADR-0047). Of the basket's `agri` weight,
+ * `(y / y_ref) ^ FARM_GATE_ELASTICITY` (at most 1) reaches the farm and the
+ * rest is the processing, retail and restaurant margin, split by
+ * `FOOD_MARGIN_SECTORS` after the USDA food dollar. No energy: the margin's
+ * fuel arrives through the I/O table, and household energy is the excise base.
  */
-export const FARM_GATE_ELASTICITY = 0
-
-/** The food margin by sector: processing and packaging, then retail and food
- * service, then haulage, after the USDA food-dollar split. No energy — what
- * the margin burns arrives through the I/O table, and household energy
- * demand is the fuel excise's base. */
+export const FARM_GATE_ELASTICITY = -0.5
 export const FOOD_MARGIN_SECTORS: Record<SectorId, number> = {
   agri: 0,
   manuf: 0.25,

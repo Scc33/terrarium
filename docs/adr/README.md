@@ -59,3 +59,4 @@ the old one and update the Status line of both.
 | [0044](0044-wage-bargains-use-inflation-expectations.md) | Wage bargains use household inflation expectations | Accepted |
 | [0045](0045-the-countryside-empties-toward-expected-income.md) | The countryside empties toward expected city income, not wage parity | Accepted |
 | [0046](0046-the-world-has-a-turbulence-dial.md) | How often the world breaks is a replay input chosen at the posting | Accepted |
+| [0047](0047-the-food-bill-pays-a-margin.md) | The food bill pays a margin, and the farm's share of it falls with income | Accepted |

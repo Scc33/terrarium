@@ -1038,7 +1038,6 @@ export function householdBasket(
  * income reads as 1, the authored routing, for the reason `householdBasket`
  * falls back to its recipe. */
 export function farmGateShare(state: TrueState, cohortId: CohortId): number {
-  if (FARM_GATE_ELASTICITY === 0) return 1
   const c = state.cohorts.find((x) => x.id === cohortId)!
   const share = Math.pow(engelRatio(c), FARM_GATE_ELASTICITY)
   return Number.isFinite(share) ? Math.min(1, share) : 1
