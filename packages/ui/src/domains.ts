@@ -91,7 +91,10 @@ export const INDICATOR_FACE: Record<IndicatorId, Domain | 'ratchet'> = {
   // spending from one to the other, and on the old 65–85 and 0–10 faces it
   // spent 58% and 64% of its century against the rails. Capital formation
   // takes 0–25 rather than 0–20: at 20 the maximal builder still pegged 9%.
-  consumption_share: { lo: 50, hi: 85 },
+  // #319: the capacity builders hand their surpluses back, and the money arm
+  // is built on them — consumption p01–p99 52.6–88.5, maximum 94.1, and on 85
+  // the money arm in Costona spent 88% of its century against the rail.
+  consumption_share: { lo: 50, hi: 95 },
   investment_share: { lo: 0, hi: 25 },
   // #289: a cheaper farm sells its surplus abroad (#290), and the money
   // government in Kestrel pegged the old 30 rail 10% of its century.
